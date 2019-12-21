@@ -126,15 +126,15 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
             Token::Word(word) => {
                 match word.as_str() {
                     "print" => output.push(0u8),
-                    "+" => output.push(1),
+                    "+" => output.push(1), // pax
                     "*" => output.push(2),
                     "-" => output.push(3),
                     "/" => output.push(4),
                     "%" => output.push(5),
-                    ">r" => output.push(6),
-                    "r>" => output.push(7),
-                    "!" => output.push(8),
-                    "@" => output.push(9),
+                    ">r" => output.push(6), // pax
+                    "r>" => output.push(7), // pax
+                    "!" => output.push(8), // pax
+                    "@" => output.push(9), // pax
                     "dup" => output.push(10),
                     "swap" => output.push(11),
                     "rot" => output.push(12),
@@ -164,6 +164,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                     "r@" => output.push(33),
                     "or" => output.push(34),
                     "and" => output.push(35),
+                    "nand" => output.push(36),
                     _ => {
                         if functions.contains_key(word.as_str()) {
                             output.push(functions[word.as_str()]);
@@ -420,6 +421,12 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 stack.push((z != 0u32 && y != 0u32) as u32);
+            }
+            // nand
+            36u8 => {
+                let z = stack.pop().unwrap();
+                let y = stack.pop().unwrap();
+                stack.push(((z == 0u32 || y == 0u32) && z != y) as u32);
             }
             _ => panic!("unknown op code {}", op),
         }
