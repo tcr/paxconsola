@@ -42,7 +42,7 @@ fn main() {
 #[derive(Debug, Clone)]
 pub enum Token {
     Word(String),
-    Literal(u8),
+    Literal(isize),
 }
 
 #[derive(Debug, Clone)]
@@ -62,29 +62,20 @@ impl Iterator for Parser {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
-        if self.code.trim().is_empty() {
+        let code_input = self.code.trim_start().to_string();
+        if code_input.is_empty() {
             return None;
         }
 
-        let re_word = Regex::new(r"(?s)^([^0-9\s]\S*)\s*(.*?)$").unwrap();
-        let re_int = Regex::new(r"(?s)^(\d+)\s*(.*?)$").unwrap();
-        let re_int_hex = Regex::new(r"(?s)^0x(\d+)\s*(.*?)$").unwrap();
-
-        let code_input = self.code.trim_start().to_string();
-        let matches = re_word.captures(&code_input);
-        match matches {
-            Some(cap) => {
-                self.code = cap[2].to_string();
-                return Some(Token::Word(cap[1].to_string()));
-            }
-            _ => {}
-        }
+        let re_int = Regex::new(r"(?s)^(\-?\d+)(\s+.*?)?$").unwrap();
+        let re_int_hex = Regex::new(r"(?s)^0x(\d+)(\s+.*?)?$").unwrap();
+        let re_word = Regex::new(r"(?s)^(\S*)(\s+.*?)?$").unwrap();
 
         let matches = re_int.captures(&code_input);
         match matches {
             Some(cap) => {
                 self.code = cap[2].to_string();
-                return Some(Token::Literal(cap[1].parse::<u8>().unwrap()));
+                return Some(Token::Literal(cap[1].parse::<isize>().unwrap()));
             }
             _ => {}
         }
@@ -98,84 +89,129 @@ impl Iterator for Parser {
             _ => {}
         }
 
+        let matches = re_word.captures(&code_input);
+        match matches {
+            Some(cap) => {
+                self.code = cap[2].to_string();
+                return Some(Token::Word(cap[1].to_string()));
+            }
+            _ => {}
+        }
+
         panic!("incomplete parse: {:?}", &code_input);
     }
+}
+
+enum ParseMode {
+    Default,
+    FunctionName,
+    CommentParens,
 }
 
 fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
     let code = String::from_utf8_lossy(&buffer).to_string();
     let parser = Parser::new(&code);
 
-    let mut is_function = false;
+    let mut parse_mode = ParseMode::Default;
     let mut output = vec![];
     let mut functions = hashmap![];
     for token in parser {
         eprintln!("[token] {:?}", token);
 
-        if is_function {
-            match token {
-                Token::Word(ref word) => {
-                    functions.insert(word.to_string(), functions.len() as u8);
-                }
-                _ => panic!("expected function name"),
-            }
-        }
-        is_function = false;
-
-        match token {
-            Token::Word(word) => {
-                match word.as_str() {
-                    "print" => output.push(0u8),
-                    "+" => output.push(1), // pax
-                    "*" => output.push(2),
-                    "-" => output.push(3),
-                    "/" => output.push(4),
-                    "%" => output.push(5),
-                    ">r" => output.push(6), // pax
-                    "r>" => output.push(7), // pax
-                    "!" => output.push(8), // pax
-                    "@" => output.push(9), // pax
-                    "dup" => output.push(10),
-                    "swap" => output.push(11),
-                    "rot" => output.push(12),
-                    "tuck" => output.push(13),
-                    "2dup" => output.push(14),
-                    "2swap" => output.push(15),
-                    ":" => {
-                        output.push(16);
-                        is_function = true;
-                    }
-                    ";" => output.push(17),
-                    "recurse" => output.push(18),
-                    "call" => output.push(19),
-                    "push" => output.push(20),
-                    "pushn" => output.push(21),
-                    "push1" => output.push(22),
-                    "push2" => output.push(23),
-                    "push3" => output.push(24),
-                    "if" => output.push(25),
-                    "else" => output.push(26),
-                    "then" => output.push(27),
-                    "==" => output.push(28),
-                    ">" => output.push(29),
-                    "<" => output.push(30),
-                    "drop" => output.push(31),
-                    "Stop" => output.push(32),
-                    "r@" => output.push(33),
-                    "or" => output.push(34),
-                    "and" => output.push(35),
-                    "nand" => output.push(36),
-                    _ => {
-                        if functions.contains_key(word.as_str()) {
-                            output.push(functions[word.as_str()]);
-                        } else {
-                            panic!("unknown value: {:?}", word);
+        match parse_mode {
+            ParseMode::CommentParens => {
+                match token {
+                    Token::Word(ref word) => {
+                        if word == ")" {
+                            parse_mode = ParseMode::Default;
                         }
                     }
+                    _ => {}
                 }
             }
-            Token::Literal(lit) => {
-                output.push(lit);
+            ParseMode::FunctionName => {
+                match token {
+                    Token::Word(ref word) => {
+                        let idx = functions.len() as u8;
+                        functions.insert(word.to_string(), idx);
+                        output.push(idx);
+                    }
+                    _ => panic!("expected function name"),
+                }
+                parse_mode = ParseMode::Default;
+            }
+            ParseMode::Default => {
+                match token {
+                    Token::Word(word) => {
+                        // Functions shadow all terms
+                        if functions.contains_key(word.as_str()) {
+                            output.push(21);
+                            output.push(functions[word.as_str()]);
+                            output.push(19);
+                            continue;
+                        }
+
+                        match word.as_str() {
+                            "(" => {
+                                parse_mode = ParseMode::CommentParens;
+                            }
+                            "print" => output.push(0u8),
+                            "+" => output.push(1), // pax
+                            "*" => output.push(2),
+                            "-" => output.push(3),
+                            "/" => output.push(4),
+                            "%" => output.push(5),
+                            ">r" => output.push(6), // pax
+                            "r>" => output.push(7), // pax
+                            "!" => output.push(8), // pax
+                            "@" => output.push(9), // pax
+                            "dup" => output.push(10),
+                            "swap" => output.push(11),
+                            "rot" => output.push(12),
+                            "tuck" => output.push(13),
+                            "2dup" => output.push(14),
+                            "2swap" => output.push(15),
+                            ":" => {
+                                output.push(16);
+                                parse_mode = ParseMode::FunctionName;
+                            }
+                            ";" => output.push(17),
+                            "recurse" => {
+                                output.push(21);
+                                output.push(18);
+                                output.push(19);
+                            },
+                            // "call" => output.push(19),
+                            "push" => output.push(20),
+                            // "pushn" => output.push(21),
+                            "push1" => output.push(22),
+                            "push2" => output.push(23),
+                            "push3" => output.push(24),
+                            "if" => output.push(25),
+                            "else" => output.push(26),
+                            "then" => output.push(27),
+                            "==" => output.push(28),
+                            ">" => output.push(29),
+                            "<" => output.push(30),
+                            "drop" => output.push(31),
+                            "Stop" => output.push(32),
+                            "r@" => output.push(33),
+                            "or" => output.push(34),
+                            "and" => output.push(35),
+                            "nand" => output.push(36),
+                            _ => {
+                                panic!("unknown value: {:?}", word);
+                            }
+                        }
+                    }
+                    Token::Literal(lit) => {
+                        if lit > 255 {
+                            panic!("Cannot convert {} to u8", lit);
+                        }
+                        output.push(21);
+                        output.push(lit as u8);
+                    }
+                }
             }
         }
     }
@@ -360,10 +396,10 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
             22u8|23u8|24u8 => {
                 let count = op - 21;
                 for _ in 0..count {
-                    let z = code.pop().unwrap() as u32;
-                    let b = code.pop().unwrap() as u32;
-                    let e = code.pop().unwrap() as u32;
-                    let d = code.pop().unwrap() as u32;
+                    let d = stack.pop().unwrap() as u32;
+                    let e = stack.pop().unwrap() as u32;
+                    let b = stack.pop().unwrap() as u32;
+                    let z = stack.pop().unwrap() as u32;
                     let y = (d << 24) | (e << 16) | (b << 8) | z;
                     stack.push(y);
                 }
@@ -426,7 +462,7 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
             36u8 => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
-                stack.push(((z == 0u32 || y == 0u32) && z != y) as u32);
+                stack.push((z ^ y) as u32);
             }
             _ => panic!("unknown op code {}", op),
         }

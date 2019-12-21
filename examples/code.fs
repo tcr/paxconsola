@@ -1,3 +1,3 @@
- : fib dup pushn 0 == if drop else pushn 1 - >r dup rot + r> pushn recurse call then ; 
+ : fib dup 0 == if drop else 1 - >r dup rot + r> recurse then ; 
 
-pushn 1 pushn 1 pushn 20 pushn fib call print 
+1 1 20 fib print

@@ -1,1 +1,1 @@
-pushn 4 pushn 5 ! pushn 5 @ print
+4 5 ! 5 @ print
