@@ -1,4 +1,5 @@
-//use std::io;
+use maplit::*;
+use regex::Regex;
 use std::collections::BTreeMap;
 use std::io::prelude::*;
 use std::io;
@@ -21,14 +22,164 @@ fn main() {
         Some(p) => p,
         None => die!("no filename specified"),
     };
-    let remaining_args = args.count();
-    if remaining_args > 0 {
-        die!("expected one argument, found {}", remaining_args);
+    if args.next().is_some() {
+        die!("expected one argument");
     }
     let mut file = File::open(&path).unwrap_or_else(|err| die!("{}", err));
     let mut buffer = Vec::with_capacity(file.metadata().map(|m|m.len()).unwrap_or(0) as usize);
     file.read_to_end(&mut buffer).unwrap_or_else(|err| die!("{}", err));
-    forth(buffer);
+
+    if path.to_string_lossy().ends_with(".bytes") {
+        // Read as bytecode
+        forth(buffer);
+    } else {
+        // Read as source
+        let script = compile_forth(buffer);
+        forth(script);
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Token {
+    Word(String),
+    Literal(u8),
+}
+
+#[derive(Debug, Clone)]
+pub struct Parser {
+    pub code: String,
+}
+
+impl Parser {
+    pub fn new(code: &str) -> Parser {
+        Parser {
+            code: code.to_string(),
+        }
+    }
+}
+
+impl Iterator for Parser {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Token> {
+        if self.code.trim().is_empty() {
+            return None;
+        }
+
+        let re_word = Regex::new(r"(?s)^([^0-9\s]\S*)\s*(.*?)$").unwrap();
+        let re_int = Regex::new(r"(?s)^(\d+)\s*(.*?)$").unwrap();
+        let re_int_hex = Regex::new(r"(?s)^0x(\d+)\s*(.*?)$").unwrap();
+
+        let code_input = self.code.trim_start().to_string();
+        let matches = re_word.captures(&code_input);
+        match matches {
+            Some(cap) => {
+                self.code = cap[2].to_string();
+                return Some(Token::Word(cap[1].to_string()));
+            }
+            _ => {}
+        }
+
+        let matches = re_int.captures(&code_input);
+        match matches {
+            Some(cap) => {
+                self.code = cap[2].to_string();
+                return Some(Token::Literal(cap[1].parse::<u8>().unwrap()));
+            }
+            _ => {}
+        }
+
+        let matches = re_int_hex.captures(&code_input);
+        match matches {
+            Some(cap) => {
+                self.code = cap[2].to_string();
+                unimplemented!();
+            }
+            _ => {}
+        }
+
+        panic!("incomplete parse: {:?}", &code_input);
+    }
+}
+
+fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
+    let code = String::from_utf8_lossy(&buffer).to_string();
+    let parser = Parser::new(&code);
+
+    let mut is_function = false;
+    let mut output = vec![];
+    let mut functions = hashmap![];
+    for token in parser {
+        eprintln!("[token] {:?}", token);
+
+        if is_function {
+            match token {
+                Token::Word(ref word) => {
+                    functions.insert(word.to_string(), functions.len() as u8);
+                }
+                _ => panic!("expected function name"),
+            }
+        }
+        is_function = false;
+
+        match token {
+            Token::Word(word) => {
+                match word.as_str() {
+                    "print" => output.push(0u8),
+                    "+" => output.push(1),
+                    "*" => output.push(2),
+                    "-" => output.push(3),
+                    "/" => output.push(4),
+                    "%" => output.push(5),
+                    ">r" => output.push(6),
+                    "r>" => output.push(7),
+                    "!" => output.push(8),
+                    "@" => output.push(9),
+                    "dup" => output.push(10),
+                    "swap" => output.push(11),
+                    "rot" => output.push(12),
+                    "tuck" => output.push(13),
+                    "2dup" => output.push(14),
+                    "2swap" => output.push(15),
+                    ":" => {
+                        output.push(16);
+                        is_function = true;
+                    }
+                    ";" => output.push(17),
+                    "recurse" => output.push(18),
+                    "call" => output.push(19),
+                    "push" => output.push(20),
+                    "pushn" => output.push(21),
+                    "push1" => output.push(22),
+                    "push2" => output.push(23),
+                    "push3" => output.push(24),
+                    "if" => output.push(25),
+                    "else" => output.push(26),
+                    "then" => output.push(27),
+                    "==" => output.push(28),
+                    ">" => output.push(29),
+                    "<" => output.push(30),
+                    "drop" => output.push(31),
+                    "Stop" => output.push(32),
+                    "r@" => output.push(33),
+                    "or" => output.push(34),
+                    "and" => output.push(35),
+                    _ => {
+                        if functions.contains_key(word.as_str()) {
+                            output.push(functions[word.as_str()]);
+                        } else {
+                            panic!("unknown value: {:?}", word);
+                        }
+                    }
+                }
+            }
+            Token::Literal(lit) => {
+                output.push(lit);
+            }
+        }
+    }
+
+    return output;
 }
 
 fn forth(mut code: Vec<u8>) -> Vec<u32> {
@@ -48,9 +199,6 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
     // To avoid allocating every time we define a function, store them all in
     // the same Vec, terminate them with a 17 byte (can't appear in function
     // definitions), and put a pointer to them in function_table.
-
-    // We could put this on the stack but it's a bit large and a single large
-    // allocation isn't too expensive.
     let mut function_table: Vec<usize> = vec![0; 256];
     let mut function_code: Vec<u8> = Vec::new();
 
