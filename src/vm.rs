@@ -161,12 +161,14 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                         }
 
                         match word.as_str() {
-                            "print" => output.push(Pax::Print as _), // pax+
-                            "+" => output.push(Pax::Add as _), // pax
-                            ">r" => output.push(Pax::AltPush as _), // pax
-                            "r>" => output.push(Pax::AltPop as _), // pax
-                            "!" => output.push(Pax::Store as _), // pax
-                            "@" => output.push(Pax::Load as _), // pax
+                            // pax
+                            "+" => output.push(Pax::Add as _),
+                            ">r" => output.push(Pax::AltPush as _),
+                            "r>" => output.push(Pax::AltPop as _),
+                            "!" => output.push(Pax::Store as _),
+                            "@" => output.push(Pax::Load as _),
+                            // pax debug
+                            "print" => output.push(Pax::Print as _),
 
                             "*" => output.push(Pax::Multiply as _),
                             "-" => output.push(Pax::Subtract as _),
@@ -178,7 +180,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                                 output.push(Pax::Function as _);
                                 parse_mode = ParseMode::FunctionName;
                             }
-                            ";" => output.push(Pax::FunctionEnd as _),
+                            ";" => output.push(Pax::Exit as _),
                             "recurse" => {
                                 output.push(Pax::Recurse as _);
                             },
@@ -214,21 +216,25 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
 #[repr(u8)]
 #[derive(FromPrimitive, ToPrimitive, Debug, PartialEq)]
 enum Pax {
-    Add,
-    Store,
+    // pax
+    // todo noop
     Load,
-    AltPush,
+    Call,
+    Exit = 0x80, // must be unique, for now (seek on opcode)
+    Pushn,
     AltPop, 
+    Add,
     Nand,
-    Print, // debug
+    AltPush,
+    // todo 0branch
+    Store,
+    // pax debug
+    Print,
 
     Function,
-    FunctionEnd,
     Recurse,
-    Pushn,
     Multiply,
     Subtract,
-    Call,
     Pack,
     Rotate,
     Swap,
@@ -313,7 +319,7 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 cindex += 1;
                 // skip past ;
                 function_table[name as usize] = cindex;
-                while Pax::from_u8(code[cindex]) != Some(Pax::FunctionEnd) {
+                while Pax::from_u8(code[cindex]) != Some(Pax::Exit) {
                     cindex += 1;
                 }
                 cindex += 1;
@@ -348,7 +354,7 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 cindex = function_start;
             }
             // ;
-            Pax::FunctionEnd => {
+            Pax::Exit => {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
                 cindex = alt_stack.pop().unwrap() as usize;
             }
@@ -434,13 +440,13 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
             Pax::Or => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
-                stack.push((z != 0 || y != 0) as u32)
+                stack.push(z | y)
             }
             // and
             Pax::And => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
-                stack.push((z != 0u32 && y != 0u32) as u32);
+                stack.push(z & y);
             }
             _ => panic!("unknown op code {}", op),
         }
