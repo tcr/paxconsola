@@ -8,7 +8,6 @@ use std::fs::File;
 use std::env;
 use std::process::exit;
 use std::io::Cursor;
-use num_traits::cast::FromPrimitive;
 
 macro_rules! die {
     ($($tok:tt)+) => {{
@@ -111,7 +110,7 @@ enum ParseMode {
     CommentParens,
 }
 
-fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
+fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
     let code = String::from_utf8_lossy(&buffer).to_string();
     let parser = Parser::new(&code);
 
@@ -137,7 +136,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                     Token::Word(ref word) => {
                         let idx = functions.len() as u8;
                         functions.insert(word.to_string(), idx);
-                        output.push(idx);
+                        output.push(Pax::Function(idx as usize));
                     }
                     _ => panic!("expected function name"),
                 }
@@ -154,45 +153,41 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
 
                         // Functions shadow all terms
                         if functions.contains_key(word.as_str()) {
-                            output.push(Pax::Pushn as _);
-                            output.push(functions[word.as_str()]);
-                            output.push(Pax::Call as _);
+                            output.push(Pax::Pushn(functions[word.as_str()] as isize));
+                            output.push(Pax::Call);
                             continue;
                         }
 
                         match word.as_str() {
                             // pax
-                            "+" => output.push(Pax::Add as _),
-                            ">r" => output.push(Pax::AltPush as _),
-                            "r>" => output.push(Pax::AltPop as _),
-                            "!" => output.push(Pax::Store as _),
-                            "@" => output.push(Pax::Load as _),
+                            "+" => output.push(Pax::Add),
+                            ">r" => output.push(Pax::AltPush),
+                            "r>" => output.push(Pax::AltPop),
+                            "!" => output.push(Pax::Store),
+                            "@" => output.push(Pax::Load),
                             // pax debug
-                            "print" => output.push(Pax::Print as _),
+                            "print" => output.push(Pax::Print),
 
-                            "*" => output.push(Pax::Multiply as _),
-                            "-" => output.push(Pax::Subtract as _),
-                            "%" => output.push(Pax::Remainder as _),
-                            "dup" => output.push(Pax::Dup as _),
-                            "swap" => output.push(Pax::Swap as _),
-                            "rot" => output.push(Pax::Rotate as _),
+                            "*" => output.push(Pax::Multiply),
+                            "-" => output.push(Pax::Subtract),
+                            "%" => output.push(Pax::Remainder),
+                            "dup" => output.push(Pax::Dup),
+                            "swap" => output.push(Pax::Swap),
+                            "rot" => output.push(Pax::Rotate),
                             ":" => {
-                                output.push(Pax::Function as _);
                                 parse_mode = ParseMode::FunctionName;
                             }
-                            ";" => output.push(Pax::Exit as _),
-                            "recurse" => {
-                                output.push(Pax::Recurse as _);
-                            },
-                            "pack" => output.push(Pax::Pack as _),
-                            "if" => output.push(Pax::If as _),
-                            "else" => output.push(Pax::Else as _),
-                            "then" => output.push(Pax::Then as _),
-                            "==" => output.push(Pax::Equals as _),
-                            "drop" => output.push(Pax::Drop as _),
-                            "or" => output.push(Pax::Or as _),
-                            "and" => output.push(Pax::And as _),
-                            "nand" => output.push(Pax::AltPop as _),
+                            ";" => output.push(Pax::Exit),
+                            "recurse" => output.push(Pax::Recurse),
+                            "pack" => output.push(Pax::Pack),
+                            "if" => output.push(Pax::If),
+                            "else" => output.push(Pax::Else),
+                            "then" => output.push(Pax::Then),
+                            "==" => output.push(Pax::Equals),
+                            "drop" => output.push(Pax::Drop),
+                            "or" => output.push(Pax::Or),
+                            "and" => output.push(Pax::And),
+                            "nand" => output.push(Pax::Nand),
                             _ => {
                                 panic!("unknown value: {:?}", word);
                             }
@@ -202,8 +197,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                         if lit > 255 {
                             panic!("Cannot convert {} to u8", lit);
                         }
-                        output.push(Pax::Pushn as _);
-                        output.push(lit as u8);
+                        output.push(Pax::Pushn(lit as isize));
                     }
                 }
             }
@@ -213,15 +207,14 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
     return output;
 }
 
-#[repr(u8)]
-#[derive(FromPrimitive, ToPrimitive, Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Pax {
     // pax
     // todo noop
     Load,
     Call,
-    Exit = 0x80, // must be unique, for now (seek on opcode)
-    Pushn,
+    Exit,
+    Pushn(isize), // (literal: u<N>)
     AltPop, 
     Add,
     Nand,
@@ -231,7 +224,7 @@ enum Pax {
     // pax debug
     Print,
 
-    Function,
+    Function(usize), // (index: u8)
     Recurse,
     Multiply,
     Subtract,
@@ -249,7 +242,7 @@ enum Pax {
     Then,
 }
 
-fn forth(code: Vec<u8>) -> Vec<u32> {
+fn forth(code: Vec<Pax>) -> Vec<u32> {
     // Pre-allocate some space. Keeps short programs with small stacks from
     // spending time up front repeatedly re-allocating the stacks.
     let mut stack: Vec<u32> = Vec::with_capacity(32);
@@ -269,15 +262,15 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
     // NOTE: this could be significantly faster if we loosened the stack
     // abstraction a bit but forth really is all about stacks.
 
-    // eprintln!("[code] {:?}", code);
+    eprintln!("[code] {:?}", code);
     let mut cindex = 0;
     while cindex < code.len() {
-        let op = code[cindex];
+        let op = code[cindex].clone();
         cindex += 1;
         
-        // eprintln!("[op:{}] {}", cindex - 1, op);
-        // eprintln!("[stack] {:?}", stack);
-        match Pax::from_u8(op).unwrap() {
+        eprintln!("[stack] {:?}", stack);
+        eprintln!("[op:{}] {:?}", cindex - 1, op);
+        match op {
             // print
             Pax::Print => {
                 // debug: Take the top three items from the stack.
@@ -314,12 +307,13 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 stack.push(b);
             }
             // : (define function)
-            Pax::Function => {
-                let name = code[cindex];
-                cindex += 1;
+            Pax::Function(findex) => {
                 // skip past ;
-                function_table[name as usize] = cindex;
-                while Pax::from_u8(code[cindex]) != Some(Pax::Exit) {
+                function_table[findex] = cindex;
+                loop {
+                    if let Pax::Exit = code[cindex] {
+                        break;
+                    }
                     cindex += 1;
                 }
                 cindex += 1;
@@ -331,15 +325,16 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 stack.push((z ^ y) as u32);
             }
             // pushn
-            Pax::Pushn => {
-                let y = code[cindex];
-                cindex += 1;
-                stack.push(y as u32);
+            Pax::Pushn(lit) => {
+                stack.push(lit as u32);
             }
             // recurse
             Pax::Recurse => {
                 // walk backward
-                while Pax::from_u8(code[cindex]) != Some(Pax::Function) {
+                loop {
+                    if let Pax::Function(_) = code[cindex] {
+                        break;
+                    }
                     cindex -= 1;
                 }
                 cindex += 2;
@@ -414,14 +409,14 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 let y = stack.pop().unwrap();
                 if y == 0 {
                     // skip until 'else'
-                    while Pax::from_u8(code[cindex]) != Some(Pax::Else) {
+                    while code[cindex] != Pax::Else {
                         cindex += 1;
                     }
                     cindex += 1;
                 }
             }
             // else; skip until 'then'
-            Pax::Else => while Pax::from_u8(code[cindex]) != Some(Pax::Then) {
+            Pax::Else => while code[cindex] != Pax::Then {
                 cindex += 1;
             },
             // then
@@ -446,9 +441,9 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
             Pax::And => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
-                stack.push(z & y);
+                stack.push((z & y) as u32);
             }
-            _ => panic!("unknown op code {}", op),
+            _ => panic!("unknown op code {:?}", op),
         }
     }
     stack
