@@ -262,14 +262,14 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
     // NOTE: this could be significantly faster if we loosened the stack
     // abstraction a bit but forth really is all about stacks.
 
-    eprintln!("[code] {:?}", code);
+    // eprintln!("[code] {:?}", code);
     let mut cindex = 0;
     while cindex < code.len() {
         let op = code[cindex].clone();
         cindex += 1;
         
-        eprintln!("[stack] {:?}", stack);
-        eprintln!("[op:{}] {:?}", cindex - 1, op);
+        // eprintln!("[stack] {:?}", stack);
+        // eprintln!("[op:{}] {:?}", cindex - 1, op);
         match op {
             // print
             Pax::Print => {
@@ -337,7 +337,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                     }
                     cindex -= 1;
                 }
-                cindex += 2;
+                cindex += 1;
             }
             // call
             Pax::Call => {
