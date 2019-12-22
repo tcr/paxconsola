@@ -1,6 +1,6 @@
 use maplit::*;
 use regex::Regex;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::io::prelude::*;
 use std::io;
 use std::fs::File;
@@ -143,6 +143,12 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
             ParseMode::Default => {
                 match token {
                     Token::Word(word) => {
+                        // Skip comments
+                        if word == "(" {
+                            parse_mode = ParseMode::CommentParens;
+                            continue;
+                        }
+
                         // Functions shadow all terms
                         if functions.contains_key(word.as_str()) {
                             output.push(21);
@@ -152,19 +158,17 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                         }
 
                         match word.as_str() {
-                            "(" => {
-                                parse_mode = ParseMode::CommentParens;
-                            }
-                            "print" => output.push(0u8),
+                            "print" => output.push(0u8), // pax+
                             "+" => output.push(1), // pax
-                            "*" => output.push(2),
-                            "-" => output.push(3),
-                            "/" => output.push(4),
-                            "%" => output.push(5),
                             ">r" => output.push(6), // pax
                             "r>" => output.push(7), // pax
                             "!" => output.push(8), // pax
                             "@" => output.push(9), // pax
+
+                            "*" => output.push(2),
+                            "-" => output.push(3),
+                            "/" => output.push(4),
+                            "%" => output.push(5),
                             "dup" => output.push(10),
                             "swap" => output.push(11),
                             "rot" => output.push(12),
@@ -195,7 +199,6 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                             "<" => output.push(30),
                             "drop" => output.push(31),
                             "Stop" => output.push(32),
-                            "r@" => output.push(33),
                             "or" => output.push(34),
                             "and" => output.push(35),
                             "nand" => output.push(36),
@@ -219,9 +222,9 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
     return output;
 }
 
-fn forth(mut code: Vec<u8>) -> Vec<u32> {
+fn forth(buffer: Vec<u8>) -> Vec<u32> {
     // In-place reversal
-    code.reverse();
+    let mut code = VecDeque::from(buffer);
 
     // Pre-allocate some space. Keeps short programs with small stacks from
     // spending time up front repeatedly re-allocating the stacks.
@@ -242,7 +245,7 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
     // NOTE: this could be significantly faster if we loosened the stack
     // abstraction a bit but forth really is all about stacks.
 
-    while let Some(op) = code.pop() {
+    while let Some(op) = code.pop_front() {
         match op {
             //print
             0u8 => {
@@ -257,6 +260,75 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
                 let d = stack.pop().unwrap();
                 stack.push(b+d);
             }
+            // ! (store value in variable)
+            8u8 => {
+                let name = stack.pop().unwrap();
+                let value = stack.pop().unwrap();
+                variables.insert(name, value);
+            }
+            // @ (get)
+            9u8 => {
+                let name = stack.pop().unwrap();
+                let value = *variables.get(&name).unwrap_or(&0);
+                stack.push(value);
+            }
+            // >r
+            6u8 => {
+                let b = stack.pop().unwrap();
+                alt_stack.push(b);
+            }
+            // r>
+            7u8 => {
+                let b = alt_stack.pop().unwrap();
+                stack.push(b);
+            }
+            // : (define function)
+            16u8 => {
+                let name = code.pop_front().unwrap();
+                function_code.push(17u8);
+                loop {
+                    match code.pop_front().expect("unterminated function") {
+                        17u8 => break,
+                        18u8 => function_code.push(name),
+                        op => function_code.push(op),
+                    }
+                }
+                function_table[name as usize] = function_code.len();
+            }
+            17u8|18u8 => unreachable!(),
+            // nand
+            36u8 => {
+                let z = stack.pop().unwrap();
+                let y = stack.pop().unwrap();
+                stack.push((z ^ y) as u32);
+            }
+            //pushn
+            21u8 => {
+                let y = code.pop_front().unwrap();
+                stack.push(y as u32);
+            }
+            //demo
+            37u8 => {
+                eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
+                // alt_stack.pop();
+            }
+            // call
+            19u8 => {
+                let name = stack.pop().unwrap();
+                let function_start = function_table[name as usize];
+                code.push_front(37);
+                assert!(function_start != 0, "attempted to call undefined function {}", name);
+                for &byte in function_code[..function_start].iter().rev() {
+                    match byte {
+                        17u8 => break,
+                        _ => code.push_front(byte),
+                    }
+                }
+                // alt_stack.push(0);
+                eprintln!("[call] enter: {:?} {:?}", alt_stack, variables.get(&0));
+            }
+
+
             // *
             2u8 => {
                 let b = stack.pop().unwrap();
@@ -279,28 +351,6 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push( d % b );
-            }
-            // >r
-            6u8 => {
-                let b = stack.pop().unwrap();
-                alt_stack.push(b);
-            }
-            // r>
-            7u8 => {
-                let b = alt_stack.pop().unwrap();
-                stack.push(b);
-            }
-            // ! (store value in variable)
-            8u8 => {
-                let name = stack.pop().unwrap();
-                let value = stack.pop().unwrap();
-                variables.insert(name, value);
-            }
-            // @ (get)
-            9u8 => {
-                let name = stack.pop().unwrap();
-                let value = *variables.get(&name).unwrap_or(&0);
-                stack.push(value);
             }
             //dup
             10u8 => {
@@ -353,44 +403,13 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
                 stack.push(y2);
                 stack.push(x2);
             }
-            // : (define function)
-            16u8 => {
-                let name = code.pop().unwrap();
-                function_code.push(17u8);
-                loop {
-                    match code.pop().expect("unterminated function") {
-                        17u8 => break,
-                        18u8 => function_code.push(name),
-                        op => function_code.push(op),
-                    }
-                }
-                function_table[name as usize] = function_code.len();
-            }
-            17u8|18u8 => unreachable!(),
-            // call
-            19u8 => {
-                let name = stack.pop().unwrap();
-                let function_start = function_table[name as usize];
-                assert!(function_start != 0, "attempted to call undefined function");
-                for &byte in function_code[..function_start].iter().rev() {
-                    match byte {
-                        17u8 => break,
-                        _ => code.push(byte),
-                    }
-                }
-            }
             // push
             20u8 => {
                 let b = stack.pop().unwrap();
                 for _ in 0..b {
-                    let d = code.pop().unwrap();
+                    let d = code.pop_front().unwrap();
                     stack.push(d as u32);
                 }
-            }
-            //pushn
-            21u8 => {
-                let y = code.pop().unwrap();
-                stack.push(y as u32);
             }
             //push1..3
             22u8|23u8|24u8 => {
@@ -409,11 +428,11 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
                 let y = stack.pop().unwrap();
                 if y == 0 {
                     // skip to else.
-                    while code.pop().unwrap() != 26 { }
+                    while code.pop_front().unwrap() != 26 { }
                 }
             }
             // skip over else
-            26u8 => while code.pop().unwrap() != 27 { },
+            26u8 => while code.pop_front().unwrap() != 27 { },
             // endif
             27u8 => {},
             // ==
@@ -440,12 +459,6 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
             }
             // Stop
             32u8 => break,
-            // r@
-            33u8 => {
-                let z = alt_stack.pop().unwrap();
-                stack.push(z);
-                alt_stack.push(z);
-            }
             // or
             34u8 => {
                 let z = stack.pop().unwrap();
@@ -457,12 +470,6 @@ fn forth(mut code: Vec<u8>) -> Vec<u32> {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 stack.push((z != 0u32 && y != 0u32) as u32);
-            }
-            // nand
-            36u8 => {
-                let z = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                stack.push((z ^ y) as u32);
             }
             _ => panic!("unknown op code {}", op),
         }
