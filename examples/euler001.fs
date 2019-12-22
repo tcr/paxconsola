@@ -16,5 +16,5 @@ Find the sum of all the multiples of 3 or 5 below 1000. )
   temp@ 5 % 0 ==
   or g
   temp@ 1 - temp! recurse then ;
-231 3 0 0 push1 temp! 0 f print
+231 3 0 0 pack temp! 0 f print
 ( 9 temp! 0 f print )

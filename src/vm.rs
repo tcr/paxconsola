@@ -1,3 +1,4 @@
+use num_derive::*;
 use maplit::*;
 use regex::Regex;
 use std::collections::{BTreeMap, VecDeque};
@@ -7,6 +8,7 @@ use std::fs::File;
 use std::env;
 use std::process::exit;
 use std::io::Cursor;
+use num_traits::cast::FromPrimitive;
 
 macro_rules! die {
     ($($tok:tt)+) => {{
@@ -30,14 +32,14 @@ fn main() {
     let mut buffer = Vec::with_capacity(file.metadata().map(|m|m.len()).unwrap_or(0) as usize);
     file.read_to_end(&mut buffer).unwrap_or_else(|err| die!("{}", err));
 
-    if path.to_string_lossy().ends_with(".bytes") {
-        // Read as bytecode
-        forth(buffer);
-    } else {
+    // if path.to_string_lossy().ends_with(".bytes") {
+    //     // Read as bytecode
+    //     forth(buffer);
+    // } else {
         // Read as source
         let script = compile_forth(buffer);
         forth(script);
-    }
+    // }
 }
 
 #[derive(Debug, Clone)]
@@ -152,55 +154,43 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
 
                         // Functions shadow all terms
                         if functions.contains_key(word.as_str()) {
-                            output.push(21);
+                            output.push(Pax::Pushn as _);
                             output.push(functions[word.as_str()]);
-                            output.push(19);
+                            output.push(Pax::Call as _);
                             continue;
                         }
 
                         match word.as_str() {
-                            "print" => output.push(0u8), // pax+
-                            "+" => output.push(1), // pax
-                            ">r" => output.push(6), // pax
-                            "r>" => output.push(7), // pax
-                            "!" => output.push(8), // pax
-                            "@" => output.push(9), // pax
+                            "print" => output.push(Pax::Print as _), // pax+
+                            "+" => output.push(Pax::Add as _), // pax
+                            ">r" => output.push(Pax::AltPush as _), // pax
+                            "r>" => output.push(Pax::AltPop as _), // pax
+                            "!" => output.push(Pax::Store as _), // pax
+                            "@" => output.push(Pax::Load as _), // pax
 
-                            "*" => output.push(2),
-                            "-" => output.push(3),
-                            "/" => output.push(4),
-                            "%" => output.push(5),
-                            "dup" => output.push(10),
-                            "swap" => output.push(11),
-                            "rot" => output.push(12),
-                            "tuck" => output.push(13),
-                            "2dup" => output.push(14),
-                            "2swap" => output.push(15),
+                            "*" => output.push(Pax::Multiply as _),
+                            "-" => output.push(Pax::Subtract as _),
+                            "%" => output.push(Pax::Remainder as _),
+                            "dup" => output.push(Pax::Dup as _),
+                            "swap" => output.push(Pax::Swap as _),
+                            "rot" => output.push(Pax::Rotate as _),
                             ":" => {
-                                output.push(16);
+                                output.push(Pax::Function as _);
                                 parse_mode = ParseMode::FunctionName;
                             }
-                            ";" => output.push(17),
+                            ";" => output.push(Pax::FunctionEnd as _),
                             "recurse" => {
-                                output.push(18);
+                                output.push(Pax::Recurse as _);
                             },
-                            // "call" => output.push(19),
-                            "push" => output.push(20),
-                            // "pushn" => output.push(21),
-                            "push1" => output.push(22),
-                            "push2" => output.push(23),
-                            "push3" => output.push(24),
-                            "if" => output.push(25),
-                            "else" => output.push(26),
-                            "then" => output.push(27),
-                            "==" => output.push(28),
-                            ">" => output.push(29),
-                            "<" => output.push(30),
-                            "drop" => output.push(31),
-                            "Stop" => output.push(32),
-                            "or" => output.push(34),
-                            "and" => output.push(35),
-                            "nand" => output.push(36),
+                            "pack" => output.push(Pax::Pack as _),
+                            "if" => output.push(Pax::If as _),
+                            "else" => output.push(Pax::Else as _),
+                            "then" => output.push(Pax::Then as _),
+                            "==" => output.push(Pax::Equals as _),
+                            "drop" => output.push(Pax::Drop as _),
+                            "or" => output.push(Pax::Or as _),
+                            "and" => output.push(Pax::And as _),
+                            "nand" => output.push(Pax::AltPop as _),
                             _ => {
                                 panic!("unknown value: {:?}", word);
                             }
@@ -210,7 +200,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
                         if lit > 255 {
                             panic!("Cannot convert {} to u8", lit);
                         }
-                        output.push(21);
+                        output.push(Pax::Pushn as _);
                         output.push(lit as u8);
                     }
                 }
@@ -219,6 +209,37 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
     }
 
     return output;
+}
+
+#[repr(u8)]
+#[derive(FromPrimitive, ToPrimitive, Debug, PartialEq)]
+enum Pax { 
+    Print,
+    Add,
+    Store,
+    Load,
+    AltPush,
+    AltPop,
+    Function,
+    FunctionEnd,
+    Nand,
+    Recurse,
+    Pushn,
+    Multiply,
+    Subtract,
+    Call,
+    Pack,
+    Rotate,
+    Swap,
+    Dup,
+    Remainder,
+    And,
+    Or,
+    Equals,
+    Drop,
+    If,
+    Else,
+    Then,
 }
 
 fn forth(code: Vec<u8>) -> Vec<u32> {
@@ -249,79 +270,75 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
         
         // eprintln!("[op:{}] {}", cindex - 1, op);
         // eprintln!("[stack] {:?}", stack);
-        match op {
-            //print
-            0u8 => {
-                // Take the top three items from the stack.
+        match Pax::from_u8(op).unwrap() {
+            // print
+            Pax::Print => {
+                // debug: Take the top three items from the stack.
                 for &b in stack.iter().rev().take(3) {
                     println!("{}", b);
                 }
             }
             // +
-            1u8 => {
+            Pax::Add => {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(b + d);
             }
             // ! (store value in variable)
-            8u8 => {
+            Pax::Store => {
                 let name = stack.pop().unwrap();
                 let value = stack.pop().unwrap();
                 variables.insert(name, value);
             }
             // @ (get)
-            9u8 => {
+            Pax::Load => {
                 let name = stack.pop().unwrap();
                 let value = *variables.get(&name).unwrap_or(&0);
                 stack.push(value);
             }
             // >r
-            6u8 => {
+            Pax::AltPush => {
                 let b = stack.pop().unwrap();
                 alt_stack.push(b);
             }
             // r>
-            7u8 => {
+            Pax::AltPop => {
                 let b = alt_stack.pop().unwrap();
                 stack.push(b);
             }
             // : (define function)
-            16u8 => {
+            Pax::Function => {
                 let name = code[cindex];
                 cindex += 1;
                 // skip past ;
                 function_table[name as usize] = cindex;
-                while code[cindex] != 17 {
+                while Pax::from_u8(code[cindex]) != Some(Pax::FunctionEnd) {
                     cindex += 1;
                 }
                 cindex += 1;
             }
             // nand
-            36u8 => {
+            Pax::Nand => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 stack.push((z ^ y) as u32);
             }
-            //pushn
-            21u8 => {
+            // pushn
+            Pax::Pushn => {
                 let y = code[cindex];
                 cindex += 1;
                 stack.push(y as u32);
             }
             // recurse
-            18u8 => {
+            Pax::Recurse => {
                 // walk backward
-                while code[cindex] != 16 {
+                while Pax::from_u8(code[cindex]) != Some(Pax::Function) {
                     cindex -= 1;
                 }
                 cindex += 2;
             }
-            17u8 => {
-                // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
-                cindex = alt_stack.pop().unwrap() as usize;
-            }
             // call
-            19u8 => {
+            Pax::Call => {
                 let name = stack.pop().unwrap();
                 let function_start = function_table[name as usize];
                 // eprintln!("function_start {:?} = {}", name, function_start);
@@ -329,46 +346,46 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 alt_stack.push(cindex as u32);
                 cindex = function_start;
             }
+            // ;
+            Pax::FunctionEnd => {
+                // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
+                cindex = alt_stack.pop().unwrap() as usize;
+            }
 
 
             // *
-            2u8 => {
+            Pax::Multiply => {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(b * d);
             },
             // -
-            3u8 => {
+            Pax::Subtract => {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(d - b);
             }
-            4u8 => {
-                let b = stack.pop().unwrap();
-                let d = stack.pop().unwrap();
-                stack.push(b / d);
-            }
             // %
-            5u8 => {
+            Pax::Remainder => {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(d % b);
             }
-            //dup
-            10u8 => {
+            // dup
+            Pax::Dup => {
                 let ab = stack.pop().unwrap();
                 stack.push(ab);
                 stack.push(ab);
             }
             // swap
-            11u8 => {
+            Pax::Swap => {
                 let y = stack.pop().unwrap();
                 let u = stack.pop().unwrap();
                 stack.push(y);
                 stack.push(u);
             }
-            //rot
-            12u8 => {
+            // rot
+            Pax::Rotate => {
                 let x = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 let z = stack.pop().unwrap();
@@ -376,105 +393,50 @@ fn forth(code: Vec<u8>) -> Vec<u32> {
                 stack.push(z);
                 stack.push(x);
             },
-            // tuck
-            13u8 => {
-                let x = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                let z = stack.pop().unwrap();
-                stack.push(z);
-                stack.push(x);
+            // pack
+            Pax::Pack => {
+                let d = stack.pop().unwrap() as u32;
+                let e = stack.pop().unwrap() as u32;
+                let b = stack.pop().unwrap() as u32;
+                let z = stack.pop().unwrap() as u32;
+                let y = (d << 24) | (e << 16) | (b << 8) | z;
                 stack.push(y);
-            },
-            // 2dup
-            14u8 => {
-                let x = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                stack.push(y);
-                stack.push(x);
-                stack.push(y);
-                stack.push(x);
-            }
-            // 2swap
-            15u8 => {
-                let x = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                let x2 = stack.pop().unwrap();
-                let y2 = stack.pop().unwrap();
-                stack.push(y);
-                stack.push(x);
-                stack.push(y2);
-                stack.push(x2);
-            }
-            // push
-            20u8 => {
-                let b = stack.pop().unwrap();
-                for _ in 0..b {
-                    let d = code[cindex];
-                    cindex += 1;
-                    stack.push(d as u32);
-                }
-            }
-            //push1..3
-            22u8|23u8|24u8 => {
-                let count = op - 21;
-                for _ in 0..count {
-                    let d = stack.pop().unwrap() as u32;
-                    let e = stack.pop().unwrap() as u32;
-                    let b = stack.pop().unwrap() as u32;
-                    let z = stack.pop().unwrap() as u32;
-                    let y = (d << 24) | (e << 16) | (b << 8) | z;
-                    stack.push(y);
-                }
             }
             // if
-            25u8 => {
+            Pax::If => {
                 let y = stack.pop().unwrap();
                 if y == 0 {
-                    // skip to else.
-                    while code[cindex] != 26 {
+                    // skip until 'else'
+                    while Pax::from_u8(code[cindex]) != Some(Pax::Else) {
                         cindex += 1;
                     }
                     cindex += 1;
                 }
             }
-            // skip over else
-            26u8 => while code[cindex] != 27 {
+            // else; skip until 'then'
+            Pax::Else => while Pax::from_u8(code[cindex]) != Some(Pax::Then) {
                 cindex += 1;
             },
-            // endif
-            27u8 => {},
+            // then
+            Pax::Then => {},
             // ==
-            28u8 => {
+            Pax::Equals => {
                 let y = stack.pop().unwrap();
                 let z = stack.pop().unwrap();
                 stack.push((z == y) as u32);
             }
-            // >
-            29u8 => {
-                let y = stack.pop().unwrap();
-                let z = stack.pop().unwrap();
-                stack.push((z > y) as u32);
-            }
-            // <
-            30u8 => {
-                let y = stack.pop().unwrap();
-                let z = stack.pop().unwrap();
-                stack.push((z < y) as u32);
-            }
             // drop
-            31u8 => {
+            Pax::Drop => {
                 stack.pop().unwrap();
             }
-            // Stop
-            32u8 => break,
             // or
-            34u8 => {
+            Pax::Or => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 stack.push((z != 0 || y != 0) as u32)
             }
             // and
-            35u8 => {
+            Pax::And => {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 stack.push((z != 0u32 && y != 0u32) as u32);
