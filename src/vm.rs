@@ -213,16 +213,17 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<u8> {
 
 #[repr(u8)]
 #[derive(FromPrimitive, ToPrimitive, Debug, PartialEq)]
-enum Pax { 
-    Print,
+enum Pax {
     Add,
     Store,
     Load,
     AltPush,
-    AltPop,
+    AltPop, 
+    Nand,
+    Print, // debug
+
     Function,
     FunctionEnd,
-    Nand,
     Recurse,
     Pushn,
     Multiply,
