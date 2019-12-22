@@ -108,6 +108,7 @@ enum ParseMode {
     Default,
     FunctionName,
     CommentParens,
+    Variable,
 }
 
 fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
@@ -117,6 +118,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
     let mut parse_mode = ParseMode::Default;
     let mut output = vec![];
     let mut functions = hashmap![];
+    let mut variables = hashmap![];
     for token in parser {
         eprintln!("[token] {:?}", token);
 
@@ -130,6 +132,16 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
                     }
                     _ => {}
                 }
+            }
+            ParseMode::Variable => {
+                match token {
+                    Token::Word(ref word) => {
+                        let idx = functions.len() as u8;
+                        variables.insert(word.to_string(), idx);
+                    }
+                    _ => panic!("expected variable name"),
+                }
+                parse_mode = ParseMode::Default;
             }
             ParseMode::FunctionName => {
                 match token {
@@ -151,10 +163,21 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             continue;
                         }
 
+                        // Skip comments
+                        if word == "variable" {
+                            parse_mode = ParseMode::Variable;
+                            continue;
+                        }
+
                         // Functions shadow all terms
                         if functions.contains_key(word.as_str()) {
                             output.push(Pax::Pushn(functions[word.as_str()] as isize));
                             output.push(Pax::Call);
+                            continue;
+                        }
+                        // Variables shadow all terms
+                        if variables.contains_key(word.as_str()) {
+                            output.push(Pax::Pushn(variables[word.as_str()] as isize));
                             continue;
                         }
 
