@@ -9,6 +9,7 @@ regex = "1"
 maplit = "*"
 num-traits = "0.2"
 num-derive = "0.3"
+glob = "*"
 
 [[bin]]
 name = "vm"
