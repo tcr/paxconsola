@@ -1,3 +1,3 @@
 ( check 4 )
 
-4 5 ! 5 @ print
+4 1024 ! 1024 @ print

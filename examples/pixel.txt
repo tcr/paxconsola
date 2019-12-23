@@ -1,0 +1,9 @@
+
+: convert-x-y ( x y -- offset )  24 cells * + ;
+: draw ( color x y -- )  convert-x-y graphics + ! ;
+: draw-white ( x y -- )  1 rot rot draw ;
+: draw-black ( x y -- )  0 rot rot draw ;
+
+0 0 draw-white
+1 1 draw-white
+2 2 draw-white
