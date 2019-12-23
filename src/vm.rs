@@ -400,8 +400,9 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             }
             Pax::Loop => {
                 let (index, limit, startindex) = loop_stack.last().unwrap().clone();
-                if index + 1 < limit {
-                    loop_stack.last_mut().unwrap().0 += 1;
+                let next_value = index.wrapping_add(1);
+                if next_value < limit {
+                    loop_stack.last_mut().unwrap().0 = next_value;
                     cindex = startindex;
                 } else {
                     loop_stack.pop();
@@ -410,8 +411,9 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             Pax::PlusLoop => {
                 let value = stack.pop().unwrap();
                 let (index, limit, startindex) = loop_stack.last().unwrap().clone();
-                if index + value < limit {
-                    loop_stack.last_mut().unwrap().0 += value;
+                let next_value = index.wrapping_add(value);
+                if next_value < limit {
+                    loop_stack.last_mut().unwrap().0 = next_value;
                     cindex = startindex;
                 } else {
                     loop_stack.pop();
@@ -421,7 +423,8 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 stack.push(loop_stack.last().unwrap().0);
             }
             Pax::JIndex => {
-                unimplemented!();
+                // TODO this is incorrect
+                stack.push(loop_stack.last().unwrap().0);
             }
             Pax::Begin => {
                 loop_stack.push((0, 0, cindex));
@@ -452,10 +455,10 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             Pax::Store => {
                 let name = stack.pop().unwrap();
                 let value = stack.pop().unwrap();
-                eprintln!("[store] setting {}, is it a VM var?", name);
+                // eprintln!("[store] setting {}, is it a VM var?", name);
                 variables.insert(name, value);
 
-                if false {
+                if true {
                     if name < 24*24 {
                         let x = name % 24;
                         let y = (name - x) / 24;
@@ -467,7 +470,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                             write!(stdout, "{}", clear::All).unwrap();
                             use_graphics = true;
                         }
-                        eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
+                        // eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
                         write!(stdout, "{}{}@{}", style::Reset, cursor::Goto(x as u16 + 1, y as u16 + 1), cursor::Goto(1, 25)).unwrap();
                     }
                 }
