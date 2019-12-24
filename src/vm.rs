@@ -486,6 +486,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                         // eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
                         let color = if value == 0 { "@" } else { "_" };
                         write!(stdout, "{}{}{}{}", style::Reset, cursor::Goto(x as u16 + 1, y as u16 + 1), color, cursor::Goto(1, 25)).unwrap();
+                        eprintln!("[store] setting graphics var: {}", name as usize);
                         let _ = stdout.flush();
                     }
                 }
