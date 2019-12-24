@@ -1,0 +1,4 @@
+   Compiling paxconsolas v0.1.0 (/Users/trim/Sync/pax/gb/forth-in-rust)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.13s
+     Running `target/debug/vm examples/recurse.fs`
+allocating 575

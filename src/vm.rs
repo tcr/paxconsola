@@ -25,6 +25,48 @@ macro_rules! die {
     }}
 }
 
+#[derive(Debug, PartialEq, Clone)]
+enum Pax {
+    // pax
+    // todo noop
+    Load,
+    Call,
+    Exit,
+    Pushn(isize), // (literal: u<N>)
+    AltPop, 
+    Add,
+    Nand,
+    AltPush,
+    // todo 0branch
+    Store,
+    // pax debug
+    Print,
+    Debugger,
+    Sleep, // todo: should be "yieldframe"
+
+    Function(usize), // (index: u8)
+    Recurse,
+    Multiply,
+    Subtract,
+    Pack,
+    Remainder,
+    And,
+    Or,
+    Equals,
+    Drop,
+    If,
+    Else,
+    Then,
+
+    Do,
+    Loop,
+    PlusLoop,
+    IIndex,
+    JIndex,
+    Begin,
+    Until,
+}
+
 const PRELUDE: &str = r"
 
 : cells ;
@@ -37,8 +79,19 @@ variable random-register \ 577
 variable  temp \ 578
 : swap   >r temp ! r> temp @ ;
 : over   >r temp ! temp @ r> temp @ ;
+: rot    >r swap r> swap ;
+
+: r@   r> temp ! temp @ >r temp @ ;
+: 2>r   r> swap rot >r >r >r ;
+: 2r>   r> r> r> rot >r swap ;
+
+: dup    temp ! temp @ temp @ ;
+: 2dup   over over ;
+: ?dup   temp ! temp @ if temp @ temp @ then ;
 
 : random random-register @ swap % ;
+
+\ : invert   -1 nand ;
 
 : 1+   1 + ;
 : 1-   -1 + ;
@@ -154,6 +207,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
     let mut parse_mode = ParseMode::Default;
     let mut output = vec![];
     let mut functions = hashmap![];
+    let mut function_offset = 0;
     let mut variables = hashmap![];
     let mut variable_offset = 0;
     let mut constants = hashmap![];
@@ -186,9 +240,9 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
             ParseMode::FunctionName => {
                 match token {
                     Token::Word(ref word) => {
-                        let idx = functions.len() as u8;
-                        functions.insert(word.to_string(), idx);
-                        output.push(Pax::Function(idx as usize));
+                        functions.insert(word.to_string(), function_offset);
+                        output.push(Pax::Function(function_offset));
+                        function_offset += 1;
                     }
                     _ => panic!("expected function name"),
                 }
@@ -281,8 +335,6 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "*" => output.push(Pax::Multiply),
                             "-" => output.push(Pax::Subtract),
                             "%" => output.push(Pax::Remainder),
-                            "dup" => output.push(Pax::Dup),
-                            "rot" => output.push(Pax::Rotate),
                             ":" => {
                                 parse_mode = ParseMode::FunctionName;
                             }
@@ -321,50 +373,6 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
     }
 
     return output;
-}
-
-#[derive(Debug, PartialEq, Clone)]
-enum Pax {
-    // pax
-    // todo noop
-    Load,
-    Call,
-    Exit,
-    Pushn(isize), // (literal: u<N>)
-    AltPop, 
-    Add,
-    Nand,
-    AltPush,
-    // todo 0branch
-    Store,
-    // pax debug
-    Print,
-    Debugger,
-    Sleep, // todo: should be "yieldframe"
-
-    Function(usize), // (index: u8)
-    Recurse,
-    Multiply,
-    Subtract,
-    Pack,
-    Rotate,
-    Dup,
-    Remainder,
-    And,
-    Or,
-    Equals,
-    Drop,
-    If,
-    Else,
-    Then,
-
-    Do,
-    Loop,
-    PlusLoop,
-    IIndex,
-    JIndex,
-    Begin,
-    Until,
 }
 
 fn forth(code: Vec<Pax>) -> Vec<u32> {
@@ -625,21 +633,6 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 let d = stack.pop().unwrap();
                 stack.push(d % b);
             }
-            // dup
-            Pax::Dup => {
-                let ab = stack.pop().unwrap();
-                stack.push(ab);
-                stack.push(ab);
-            }
-            // rot
-            Pax::Rotate => {
-                let n3 = stack.pop().unwrap();
-                let n2 = stack.pop().unwrap();
-                let n1 = stack.pop().unwrap();
-                stack.push(n2);
-                stack.push(n3);
-                stack.push(n1);
-            },
             // pack
             Pax::Pack => {
                 let d = stack.pop().unwrap() as u32;
