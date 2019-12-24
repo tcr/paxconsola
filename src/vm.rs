@@ -545,7 +545,10 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                     write!(stdout, "{}{}{}\r\n",
                         style::Reset,
                         cursor::Goto(1, 27),
-                        format!("[debugger] stack: {:?}", stack),
+                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
+                            variables.get(&179),
+                            variables.get(&(179 + 500 + 1)),
+                        ),
                     ).unwrap();
                     let _ = stdout.flush();
                     eprint!("... press <enter> to continue\r\n");
