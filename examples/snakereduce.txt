@@ -69,11 +69,10 @@ variable length
   then then then then drop ;
 
 \ Move each segment of the snake forward by one
-: move-snake-tail  0 length @ do
-    debugger
+: move-snake-tail  debugger 0 length @ do
     i snake-x @ i 1 + snake-x !
     i snake-y @ i 1 + snake-y !
-  -1 +loop ;
+  -1 +loop debugger ;
 
 : is-horizontal  direction @ dup
   left = swap

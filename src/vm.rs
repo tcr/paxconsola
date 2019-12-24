@@ -3,7 +3,6 @@
 // use num_derive::*;
 use maplit::*;
 use regex::Regex;
-use std::collections::{BTreeMap};
 use std::io::prelude::*;
 use std::io;
 use std::fs::File;
@@ -33,7 +32,7 @@ variable graphics 575 cells allot \ 0-575
 variable last-key \ 576
 variable random-register \ 577
 
-variable  temp
+variable  temp \ 578
 : swap   >r temp ! r> temp @ ;
 : over   >r temp ! temp @ r> temp @ ;
 
@@ -537,15 +536,20 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             // debugger
             Pax::Debugger => {
                 if use_graphics {
+                    const VAR_START_X: usize = 579 + 2;
+                    const VAR_START_Y: usize = VAR_START_X + 500 + 1;
+
                     let stdout = std::io::stdout();
                     let stdout = stdout.lock();
                     let mut stdout = stdout.into_raw_mode().unwrap();
                     write!(stdout, "{}{}{}\r\n",
                         style::Reset,
                         cursor::Goto(1, 27),
-                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
-                            variables.get(179),
-                            variables.get(179 + 500 + 1),
+                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
+                            variables.get(VAR_START_X),
+                            variables.get(VAR_START_Y),
+                            variables[VAR_START_X..(VAR_START_X+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
+                            variables[VAR_START_Y..(VAR_START_Y+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
                         ),
                     ).unwrap();
                     let _ = stdout.flush();
