@@ -393,6 +393,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
 
     // eprintln!("[code] {:?}", code);
     let mut cindex = 0;
+    let mut frame = 0;
     while cindex < code.len() {
         let op = code[cindex].clone();
         cindex += 1;
@@ -497,7 +498,6 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 if name == 577 {
                     // random
                     let random_u32 = rand::random::<u32>();
-                    println!("random! {}", random_u32);
                     stack.push(random_u32);
                 } else {
                     let value = *variables.get(&name).unwrap_or(&0);
@@ -560,6 +560,15 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             Pax::Sleep => {
                 let time = stack.pop().unwrap();
                 std::thread::sleep_ms(time as _);
+                frame += 1;
+
+                if frame == 4 {
+                    // HACK fill in last-key
+                    variables.insert(576, 38);
+                } else if frame == 12 {
+                    // HACK fill in last-key
+                    variables.insert(576, 37);
+                }
             }
             // recurse
             Pax::Recurse => {
