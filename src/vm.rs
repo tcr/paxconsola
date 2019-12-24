@@ -369,15 +369,13 @@ enum Pax {
 fn forth(code: Vec<Pax>) -> Vec<u32> {
     // Pre-allocate some space. Keeps short programs with small stacks from
     // spending time up front repeatedly re-allocating the stacks.
-    let mut stack: Vec<u32> = Vec::with_capacity(32);
-    let mut alt_stack: Vec<u32> = Vec::with_capacity(32);
+    let mut stack: Vec<u32> = vec![];
+    let mut alt_stack: Vec<u32> = vec![];
     // (index, limit, loop start)
     let mut loop_stack: Vec<(u32, u32, usize)> = Vec::with_capacity(32);
 
-    // Could also use a HashMap but BTreeMaps tend to be faster smaller tables.
-    // If we had more guarantees about where variables could be written,
-    // variable lookup could be significantly faster.
-    let mut variables: BTreeMap<u32, u32> = BTreeMap::new();
+    // TODO could look up max variable allocation from compiled artifact.
+    let mut variables: Vec<u32> = vec![0; 1024*64];
 
     // To avoid allocating every time we define a function, store them all in
     // the same Vec, terminate them with a 17 byte (can't appear in function
@@ -469,11 +467,11 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             Pax::Store => {
                 let name = stack.pop().unwrap();
                 let value = stack.pop().unwrap();
-                // eprintln!("[store] setting {}, is it a VM var?", name);
-                variables.insert(name, value);
+                variables[name as usize] = value;
 
                 if true {
                     if name < 24*24 {
+                        eprintln!("[store] setting graphics var: {}", name as usize);
                         let x = name % 24;
                         let y = (name - x) / 24;
 
@@ -500,7 +498,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                     let random_u32 = rand::random::<u32>();
                     stack.push(random_u32);
                 } else {
-                    let value = *variables.get(&name).unwrap_or(&0);
+                    let value = *variables.get(name as usize).unwrap_or(&0);
                     stack.push(value);
                 }
             }
@@ -546,8 +544,8 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                         style::Reset,
                         cursor::Goto(1, 27),
                         format!("[debugger] stack: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
-                            variables.get(&179),
-                            variables.get(&(179 + 500 + 1)),
+                            variables.get(179),
+                            variables.get(179 + 500 + 1),
                         ),
                     ).unwrap();
                     let _ = stdout.flush();
@@ -567,10 +565,10 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
 
                 if frame == 4 {
                     // HACK fill in last-key
-                    variables.insert(576, 38);
+                    variables[576] = 38;
                 } else if frame == 12 {
                     // HACK fill in last-key
-                    variables.insert(576, 37);
+                    variables[576] = 37;
                 }
             }
             // recurse
