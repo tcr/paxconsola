@@ -14,6 +14,8 @@ use termion::raw::IntoRawMode;
 use termion::input::TermRead;
 // use termion::event::Key;
 
+const ENABLE_GRAPHICS: bool = true;
+
 macro_rules! die {
     ($($tok:tt)+) => {{
         let stderr = io::stderr();
@@ -468,7 +470,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 let value = stack.pop().unwrap();
                 variables[name as usize] = value;
 
-                if true {
+                if ENABLE_GRAPHICS {
                     if name < 24*24 {
                         eprintln!("[store] setting graphics var: {}", name as usize);
                         let x = name % 24;
@@ -536,7 +538,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             // debugger
             Pax::Debugger => {
                 if use_graphics {
-                    const VAR_START_X: usize = 579 + 2;
+                    const VAR_START_X: usize = 579;
                     const VAR_START_Y: usize = VAR_START_X + 500 + 1;
 
                     let stdout = std::io::stdout();
@@ -545,9 +547,9 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                     write!(stdout, "{}{}{}\r\n",
                         style::Reset,
                         cursor::Goto(1, 27),
-                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
-                            variables.get(VAR_START_X),
-                            variables.get(VAR_START_Y),
+                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x-head({}): {:?}\r\n[debugger] snake-y-head({}): {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
+                            VAR_START_X, variables.get(VAR_START_X),
+                            VAR_START_Y, variables.get(VAR_START_Y),
                             variables[VAR_START_X..(VAR_START_X+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
                             variables[VAR_START_Y..(VAR_START_Y+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
                         ),

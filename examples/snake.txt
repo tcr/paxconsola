@@ -77,7 +77,7 @@ variable length
 : move-snake-tail  0 length @ do
     i snake-x @ i 1 + snake-x !
     i snake-y @ i 1 + snake-y !
-  -1 +loop debugger ;
+  -1 +loop ;
 
 : is-horizontal  direction @ dup
   left = swap
