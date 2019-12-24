@@ -12,7 +12,7 @@ use std::process::exit;
 // use std::io::Cursor;
 use termion::{clear, cursor, style};
 use termion::raw::IntoRawMode;
-// use termion::input::TermRead;
+use termion::input::TermRead;
 // use termion::event::Key;
 
 macro_rules! die {
@@ -31,11 +31,13 @@ const PRELUDE: &str = r"
 \ Positions synced with VM (for now)
 variable graphics 575 cells allot \ 0-575
 variable last-key \ 576
-variable random \ 577
+variable random-register \ 577
 
 variable  temp
 : swap   >r temp ! r> temp @ ;
 : over   >r temp ! temp @ r> temp @ ;
+
+: random random-register @ swap % ;
 
 : 1+   1 + ;
 : 1-   -1 + ;
@@ -273,6 +275,7 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "@" => output.push(Pax::Load),
                             // pax debug
                             "print" => output.push(Pax::Print),
+                            "debugger" => output.push(Pax::Debugger),
 
                             "*" => output.push(Pax::Multiply),
                             "-" => output.push(Pax::Subtract),
@@ -335,6 +338,7 @@ enum Pax {
     Store,
     // pax debug
     Print,
+    Debugger,
     Sleep, // todo: should be "yieldframe"
 
     Function(usize), // (index: u8)
@@ -380,6 +384,8 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
     // definitions), and put a pointer to them in function_table.
     let mut function_table: Vec<usize> = vec![0; 256];
 
+    let mut do_level: Vec<usize> = vec![0];
+
     // NOTE: this could be significantly faster if we loosened the stack
     // abstraction a bit but forth really is all about stacks.
 
@@ -397,34 +403,41 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 let index = stack.pop().unwrap();
                 let limit = stack.pop().unwrap();
                 loop_stack.push((index, limit, cindex));
+                *do_level.last_mut().unwrap() += 1;
             }
             Pax::Loop => {
                 let (index, limit, startindex) = loop_stack.last().unwrap().clone();
                 let next_value = index.wrapping_add(1);
-                if next_value < limit {
+                if next_value != limit {
                     loop_stack.last_mut().unwrap().0 = next_value;
                     cindex = startindex;
                 } else {
                     loop_stack.pop();
+                    *do_level.last_mut().unwrap() -= 1;
                 }
             }
             Pax::PlusLoop => {
                 let value = stack.pop().unwrap();
                 let (index, limit, startindex) = loop_stack.last().unwrap().clone();
                 let next_value = index.wrapping_add(value);
-                if next_value < limit {
+                if next_value != limit {
                     loop_stack.last_mut().unwrap().0 = next_value;
                     cindex = startindex;
                 } else {
                     loop_stack.pop();
+                    *do_level.last_mut().unwrap() -= 1;
                 }
             }
             Pax::IIndex => {
-                stack.push(loop_stack.last().unwrap().0);
+                if *do_level.last().unwrap() == 2 {
+                    stack.push(loop_stack[loop_stack.len() - 2].0);
+                } else {
+                    stack.push(loop_stack[loop_stack.len() - 1].0);
+                }
             }
             Pax::JIndex => {
-                // TODO this is incorrect
-                stack.push(loop_stack.last().unwrap().0);
+                // Never can be nested twice
+                stack.push(loop_stack[loop_stack.len() - 1].0);
             }
             Pax::Begin => {
                 loop_stack.push((0, 0, cindex));
@@ -471,15 +484,25 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                             use_graphics = true;
                         }
                         // eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
-                        write!(stdout, "{}{}@{}", style::Reset, cursor::Goto(x as u16 + 1, y as u16 + 1), cursor::Goto(1, 25)).unwrap();
+                        let color = if value == 0 { "@" } else { "_" };
+                        write!(stdout, "{}{}{}{}", style::Reset, cursor::Goto(x as u16 + 1, y as u16 + 1), color, cursor::Goto(1, 25)).unwrap();
+                        let _ = stdout.flush();
                     }
                 }
             }
             // @ (get)
             Pax::Load => {
                 let name = stack.pop().unwrap();
-                let value = *variables.get(&name).unwrap_or(&0);
-                stack.push(value);
+
+                if name == 577 {
+                    // random
+                    let random_u32 = rand::random::<u32>();
+                    println!("random! {}", random_u32);
+                    stack.push(random_u32);
+                } else {
+                    let value = *variables.get(&name).unwrap_or(&0);
+                    stack.push(value);
+                }
             }
             // >r
             Pax::AltPush => {
@@ -513,6 +536,26 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             Pax::Pushn(lit) => {
                 stack.push(lit as u32);
             }
+            // debugger
+            Pax::Debugger => {
+                if use_graphics {
+                    let stdout = std::io::stdout();
+                    let stdout = stdout.lock();
+                    let mut stdout = stdout.into_raw_mode().unwrap();
+                    write!(stdout, "{}{}{}\r\n",
+                        style::Reset,
+                        cursor::Goto(1, 27),
+                        format!("[debugger] stack: {:?}", stack),
+                    ).unwrap();
+                    let _ = stdout.flush();
+                    eprint!("... press <enter> to continue\r\n");
+                    drop(stdout);
+
+                    let stdin = std::io::stdin();
+                    let mut stdin = stdin.lock();
+                    let _ = TermRead::read_line(&mut stdin);
+                }
+            }
             // pushn
             Pax::Sleep => {
                 let time = stack.pop().unwrap();
@@ -537,11 +580,13 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 assert!(function_start != 0, "attempted to call undefined function {}", name);
                 alt_stack.push(cindex as u32);
                 cindex = function_start;
+                do_level.push(0);
             }
             // ;
             Pax::Exit => {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
                 cindex = alt_stack.pop().unwrap() as usize;
+                do_level.pop();
             }
 
 

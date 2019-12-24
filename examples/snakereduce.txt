@@ -1,0 +1,110 @@
+variable snake-x-head
+500 cells allot
+
+variable snake-y-head
+500 cells allot
+
+variable apple-x
+variable apple-y
+
+0 constant left
+1 constant up
+2 constant right
+3 constant down
+
+24 constant width
+24 constant height
+
+variable direction
+variable length
+
+: snake-x ( offset -- address )
+  cells snake-x-head + ;
+
+: snake-y ( offset -- address )
+  cells snake-y-head + ;
+
+: convert-x-y ( x y -- offset )  24 cells * + ;
+: draw ( color x y -- )  convert-x-y graphics + ! ;
+: draw-white ( x y -- )  1 rot rot draw ;
+: draw-black ( x y -- )  0 rot rot draw ;
+
+: draw-walls
+  width 0 do
+    i 0 draw-black
+    i height 1 - draw-black
+  loop
+  height 0 do
+    0 i draw-black
+    width 1 - i draw-black
+  loop ;
+
+: initialize-snake
+  4 length !
+  length @ 1 + 0 do
+    12 i - i snake-x !
+    12 i snake-y !
+  loop
+  right direction ! ;
+
+: initialize
+  width 0 do
+    height 0 do
+      j i draw-white
+    loop
+  loop
+  draw-walls
+  initialize-snake ;
+
+: move-up  -1 snake-y-head +! ;
+: move-left  -1 snake-x-head +! ;
+: move-down  1 snake-y-head +! ;
+: move-right  1 snake-x-head +! ;
+
+: move-snake-head  direction @
+  left over  = if move-left else
+  up over    = if move-up else
+  right over = if move-right else
+  down over  = if move-down
+  then then then then drop ;
+
+\ Move each segment of the snake forward by one
+: move-snake-tail  0 length @ do
+    i snake-x @ i 1 + snake-x !
+    i snake-y @ i 1 + snake-y !
+  -1 +loop ;
+
+: is-horizontal  direction @ dup
+  left = swap
+  right = or ;
+
+: is-vertical  direction @ dup
+  up = swap
+  down = or ;
+
+\ get random x or y position within playable area
+: random-position ( -- pos )
+  width 4 - random 2 + ;
+
+: draw-snake
+  length @ 0 do
+    i snake-x @ i snake-y @ draw-black
+  loop
+  length @ snake-x @
+  length @ snake-y @
+  draw-white ;
+
+: draw-apple
+  apple-x @ apple-y @ draw-black ;
+
+: game-loop ( -- )
+  begin
+    draw-snake
+    draw-apple
+    100 sleep
+    move-snake-tail
+    move-snake-head
+    0
+  until ;
+
+initialize game-loop
