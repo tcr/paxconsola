@@ -420,7 +420,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 let value = stack.pop().unwrap();
                 let (index, limit, startindex) = loop_stack.last().unwrap().clone();
                 let next_value = index.wrapping_add(value);
-                if next_value != limit {
+                if index != limit { // see http://wiki.laptop.org/go/Forth_Lesson_7#Do_Loops
                     loop_stack.last_mut().unwrap().0 = next_value;
                     cindex = startindex;
                 } else {
