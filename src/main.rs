@@ -1,18 +1,17 @@
 #![allow(deprecated)]
 
-// use num_derive::*;
 use maplit::*;
 use regex::Regex;
 use std::io::prelude::*;
 use std::io;
 use std::fs::File;
 use std::env;
+use std::path::PathBuf;
 use std::process::exit;
-// use std::io::Cursor;
 use termion::{clear, cursor, style};
 use termion::raw::IntoRawMode;
 use termion::input::TermRead;
-// use termion::event::Key;
+use structopt::StructOpt;
 
 const ENABLE_GRAPHICS: bool = true;
 
@@ -107,30 +106,36 @@ variable  temp \ 578
 
 ";
 
-fn main() {
-    let mut args = env::args_os().skip(1);
-    let path = match args.next() {
-        Some(p) => p,
-        None => die!("no filename specified"),
-    };
-    if args.next().is_some() {
-        die!("expected one argument");
-    }
-    let mut file = File::open(&path).unwrap_or_else(|err| die!("{}", err));
+#[derive(StructOpt, Debug)]
+#[structopt(name = "paxconolas")]
+struct Args {
+    #[structopt(short, long)]
+    compile: bool,
+
+    #[structopt(short, long)]
+    interactive: bool,
+
+    #[structopt(name = "FILE", parse(from_os_str))]
+    file: PathBuf,
+}
+
+#[paw::main]
+fn main(args: Args) -> Result<(), std::io::Error> {
+    let mut file = File::open(&args.file).unwrap_or_else(|err| die!("{}", err));
     let mut buffer = Vec::with_capacity(file.metadata().map(|m|m.len()).unwrap_or(0) as usize);
     file.read_to_end(&mut buffer).unwrap_or_else(|err| die!("{}", err));
 
-    // if path.to_string_lossy().ends_with(".bytes") {
-    //     // Read as bytecode
-    //     forth(buffer);
-    // } else {
-        // Read as source
-        // let mut bytes = PRELUDE.as_bytes().to_owned();
-        // bytes.extend(&buffer);
+    if args.compile {
         let script = compile_forth(buffer);
         cross_compile_forth_gb(script);
-        // forth(script);
-    // }
+    } else {
+        let mut code = PRELUDE.as_bytes().to_owned();
+        code.extend(&buffer);
+        let script = compile_forth(code);
+        forth(script);
+    }
+
+    Ok(())
 }
 
 // last-key @ 37 = if 12 graphics ! then
