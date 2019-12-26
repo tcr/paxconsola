@@ -223,24 +223,18 @@ impl Iterator for Parser {
             return None;
         }
 
-        let re_int = Regex::new(r"(?s)^(\-?\d+)(\s+.*?)?$").unwrap();
-        let re_int_hex = Regex::new(r"(?s)^0x(\d+)(\s+.*?)?$").unwrap();
+        let re_int = Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
         let re_word = Regex::new(r"(?s)^(\S*)(\s+.*?)?$").unwrap();
 
         let matches = re_int.captures(&code_input);
         match matches {
             Some(cap) => {
                 self.code = cap[2].to_string();
-                return Some(Token::Literal(cap[1].parse::<isize>().unwrap()));
-            }
-            _ => {}
-        }
-
-        let matches = re_int_hex.captures(&code_input);
-        match matches {
-            Some(cap) => {
-                self.code = cap[2].to_string();
-                unimplemented!();
+                if let Some(index) = cap[1].find("$") {
+                    return Some(Token::Literal(isize::from_str_radix(&cap[1][index+1..], 16).unwrap()));
+                } else {
+                    return Some(Token::Literal(cap[1].parse::<isize>().unwrap()));
+                }
             }
             _ => {}
         }
