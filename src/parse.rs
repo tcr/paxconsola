@@ -2,6 +2,7 @@ use crate::*;
 use maplit::*;
 use regex::Regex;
 use lazy_static::*;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
@@ -113,12 +114,12 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     let parser = Parser::new(&code);
 
     let mut parse_mode = ParseMode::Default;
-    let mut output = vec![];
-    let mut functions = hashmap![];
-    let mut variables = hashmap![];
-    let mut variable_offset = 0;
-    let mut constants = hashmap![];
-    let mut previous_tokens = vec![];
+    let mut output: Vec<Pax> = vec![];
+    let mut functions: HashMap<String, MarkerGroup> = hashmap![];
+    let mut variables: HashMap<String, usize> = hashmap![];
+    let mut variable_offset: usize = 0;
+    let mut constants: HashMap<String, isize> = hashmap![];
+    let mut previous_tokens: Vec<Token> = vec![];
 
     // let mut markers = vec![];
     for token in parser {
@@ -215,7 +216,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                             output.pop(); // Call
                                             output.pop(); // "cells"
                                             output.pop(); // value
-                                            variable_offset += cells;
+                                            variable_offset += *cells as usize;
                                         }
                                     }
                                 } else {
