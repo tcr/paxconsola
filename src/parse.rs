@@ -291,10 +291,12 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     if true {
         const FUNC_OPCODE_ADJUST: usize = 1;
 
+
+        let keys = functions.keys().cloned().collect::<Vec<_>>();
+
         // Move first function to end
-        {
-            let mut fmap = functions.values_mut();
-            let mut func = fmap.next().unwrap();
+        for key in keys {
+            let func = functions.get_mut(&key).unwrap();
 
             let offset_start = func.source_index - FUNC_OPCODE_ADJUST;
             let mut offset_end = offset_start;
