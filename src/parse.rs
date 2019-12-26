@@ -115,7 +115,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     let mut parse_mode = ParseMode::Default;
     let mut output = vec![];
     let mut functions = hashmap![];
-    let mut function_count = 0;
     let mut variables = hashmap![];
     let mut variable_offset = 0;
     let mut constants = hashmap![];
@@ -150,10 +149,11 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             ParseMode::FunctionName => {
                 match token {
                     Token::Word(ref word) => {
-                        let group = MarkerGroup::new(word.to_owned(), Some(function_count));
+                        let function_offset = output.len() + 1;
+                        output.push(Pax::Function);
+
+                        let group = MarkerGroup::new(word.to_owned(), Some(function_offset));
                         functions.insert(word.to_string(), group);
-                        output.push(Pax::Function(function_count));
-                        function_count += 1;
                     }
                     _ => panic!("expected function name"),
                 }

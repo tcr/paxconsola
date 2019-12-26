@@ -15,11 +15,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
     // TODO could look up max variable allocation from compiled artifact.
     let mut variables: Vec<u32> = vec![0; 1024*64];
 
-    // To avoid allocating every time we define a function, store them all in
-    // the same Vec, terminate them with a 17 byte (can't appear in function
-    // definitions), and put a pointer to them in function_table.
-    let mut function_table: Vec<usize> = vec![0; 256];
-
     let mut use_graphics = false;
 
     // eprintln!("[code] {:?}", code);
@@ -150,9 +145,8 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 stack.push(b);
             }
             // : (define function)
-            Pax::Function(findex) => {
+            Pax::Function => {
                 // skip past ;
-                function_table[findex] = cindex;
                 loop {
                     if let Pax::Exit = code[cindex] {
                         break;
@@ -217,7 +211,7 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             Pax::Recurse => {
                 // walk backward
                 loop {
-                    if let Pax::Function(_) = code[cindex] {
+                    if let Pax::Function = code[cindex] {
                         break;
                     }
                     cindex -= 1;
@@ -226,12 +220,9 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             }
             // call
             Pax::Call => {
-                let name = stack.pop().unwrap();
-                let function_start = function_table[name as usize];
-                // eprintln!("function_start {:?} = {}", name, function_start);
-                assert!(function_start != 0, "attempted to call undefined function {}", name);
+                let function_start = stack.pop().unwrap();
                 alt_stack.push(cindex as u32);
-                cindex = function_start;
+                cindex = function_start as _;
                 do_level.push(0);
             }
             // ;
