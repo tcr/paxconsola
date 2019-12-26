@@ -60,6 +60,9 @@ struct Args {
     #[structopt(short, long)]
     interactive: bool,
 
+    #[structopt(short, long)]
+    dump: bool,
+
     #[structopt(name = "FILE", parse(from_os_str))]
     file: PathBuf,
 }
@@ -77,7 +80,14 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         let mut code = PRELUDE.as_bytes().to_owned();
         code.extend(&buffer);
         let script = parse_forth(code);
-        eval_forth(script, args.interactive);
+
+        if args.dump {
+            for (i, op) in script.iter().enumerate() {
+                println!("[{:>3}]  {:?}", i, op);
+            }
+        } else {
+            eval_forth(script, args.interactive);
+        }
     }
 
     Ok(())

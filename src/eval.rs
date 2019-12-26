@@ -5,12 +5,12 @@ use termion::raw::IntoRawMode;
 use termion::input::TermRead;
 
 pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
-    // Pre-allocate some space. Keeps short programs with small stacks from
-    // spending time up front repeatedly re-allocating the stacks.
     let mut stack: Vec<u32> = vec![];
     let mut alt_stack: Vec<u32> = vec![];
+
     // (index, limit, loop start)
     let mut loop_stack: Vec<(u32, u32, usize)> = Vec::with_capacity(32);
+    let mut do_level: Vec<usize> = vec![0];
 
     // TODO could look up max variable allocation from compiled artifact.
     let mut variables: Vec<u32> = vec![0; 1024*64];
@@ -19,11 +19,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
     // the same Vec, terminate them with a 17 byte (can't appear in function
     // definitions), and put a pointer to them in function_table.
     let mut function_table: Vec<usize> = vec![0; 256];
-
-    let mut do_level: Vec<usize> = vec![0];
-
-    // NOTE: this could be significantly faster if we loosened the stack
-    // abstraction a bit but forth really is all about stacks.
 
     let mut use_graphics = false;
 
@@ -100,8 +95,8 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             }
             // +
             Pax::Add => {
-                let b = stack.pop().unwrap();
-                let d = stack.pop().unwrap();
+                let b = stack.pop().expect("+ found 0 stack arguments");
+                let d = stack.pop().expect("+ found only 1 stack argument");
                 stack.push(b.wrapping_add(d));
             }
             // ! (store value in variable)

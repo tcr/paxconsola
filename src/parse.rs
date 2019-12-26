@@ -1,6 +1,7 @@
 use crate::*;
 use maplit::*;
 use regex::Regex;
+use lazy_static::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
@@ -25,15 +26,17 @@ impl Iterator for Parser {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
+        lazy_static! {
+            static ref RE_INT: Regex = Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
+            static ref RE_WORD: Regex = Regex::new(r"(?s)^(\S*)(\s+.*?)?$").unwrap();
+        }
+
         let code_input = self.code.trim_start().to_string();
         if code_input.is_empty() {
             return None;
         }
 
-        let re_int = Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
-        let re_word = Regex::new(r"(?s)^(\S*)(\s+.*?)?$").unwrap();
-
-        let matches = re_int.captures(&code_input);
+        let matches = RE_INT.captures(&code_input);
         match matches {
             Some(cap) => {
                 self.code = cap[2].to_string();
@@ -46,7 +49,7 @@ impl Iterator for Parser {
             _ => {}
         }
 
-        let matches = re_word.captures(&code_input);
+        let matches = RE_WORD.captures(&code_input);
         match matches {
             Some(cap) => {
                 self.code = cap[2].to_string();
@@ -67,23 +70,58 @@ pub enum ParseMode {
     Variable,
 }
 
+pub struct MarkerGroup {
+    name: String,
+    target_indices: Vec<usize>,
+    source_index: Option<usize>,
+}
+
+impl MarkerGroup {
+    fn new(name: String, index: Option<usize>) -> MarkerGroup {
+        MarkerGroup {
+            name,
+            target_indices: vec![],
+            source_index: index,
+        }
+    }
+
+    fn push_marker(&mut self, output: &mut Vec<Pax>) {
+        let index = output.len();
+        output.push(Pax::Pushn(0));
+        self.target_indices.push(index);
+    }
+
+    fn commit(&self, output: &mut Vec<Pax>) {
+        for target in &self.target_indices {
+            // println!("[{}]: {:?}", self.name, target);
+            output[*target] = Pax::Pushn(self.source_index.unwrap() as isize);
+        }
+    }
+
+}
+
 pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
+    lazy_static! {
+        static ref RE_COMMENTS: Regex = Regex::new(r"(?m)\\.*$").unwrap();
+    }
+
     let mut code = String::from_utf8_lossy(&buffer).to_string();
 
     // Strip comments
-    let re_comments = Regex::new(r"(?m)\\.*$").unwrap();
-    code = re_comments.replace_all(&code, "").to_string();
+    code = RE_COMMENTS.replace_all(&code, "").to_string();
 
     let parser = Parser::new(&code);
 
     let mut parse_mode = ParseMode::Default;
     let mut output = vec![];
     let mut functions = hashmap![];
-    let mut function_offset = 0;
+    let mut function_count = 0;
     let mut variables = hashmap![];
     let mut variable_offset = 0;
     let mut constants = hashmap![];
     let mut previous_tokens = vec![];
+
+    // let mut markers = vec![];
     for token in parser {
         // eprintln!("[token] {:?}", token);
         previous_tokens.push(token.clone());
@@ -112,9 +150,10 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             ParseMode::FunctionName => {
                 match token {
                     Token::Word(ref word) => {
-                        functions.insert(word.to_string(), function_offset);
-                        output.push(Pax::Function(function_offset));
-                        function_offset += 1;
+                        let group = MarkerGroup::new(word.to_owned(), Some(function_count));
+                        functions.insert(word.to_string(), group);
+                        output.push(Pax::Function(function_count));
+                        function_count += 1;
                     }
                     _ => panic!("expected function name"),
                 }
@@ -150,8 +189,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             continue;
                         }
                         // Functions shadow all terms
-                        if functions.contains_key(word.as_str()) {
-                            output.push(Pax::Pushn(functions[word.as_str()] as isize));
+                        if let Some(group) = functions.get_mut(word.as_str()) {
+                            group.push_marker(&mut output);
                             output.push(Pax::Call);
                             continue;
                         }
@@ -165,11 +204,14 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             // compiler keyword
                             "allot" => {
                                 if previous_tokens[previous_tokens.len() - 2] == Token::Word("cells".to_string()) {
+                                    // Hack for removing cells reference from fn group
+                                    functions.get_mut("cells").unwrap().target_indices.pop();
+
                                     let cells = &previous_tokens[previous_tokens.len() - 3];
                                     match cells {
                                         Token::Word(_) => panic!("Expected literal"),
                                         Token::Literal(cells) => {
-                                            eprintln!("allocating {}", cells);
+                                            // eprintln!("allocating {}", cells);
                                             output.pop(); // Call
                                             output.pop(); // "cells"
                                             output.pop(); // value
@@ -186,7 +228,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 match cells {
                                     Token::Word(_) => panic!("Expected literal"),
                                     Token::Literal(value) => {
-                                        eprintln!("constant {}", value);
+                                        // eprintln!("constant {}", value);
                                         output.pop(); // value
 
                                         parse_mode = ParseMode::ConstantName(*value);
@@ -236,6 +278,11 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                 }
             }
         }
+    }
+
+    // Finalize function positions
+    for function in functions.values() {
+        function.commit(&mut output);
     }
 
     return output;
