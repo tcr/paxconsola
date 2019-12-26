@@ -7,7 +7,7 @@ Some things you can run:
 ```sh
 ./check.sh
 cargo run -- examples/snake.txt --interactive
-cargo run -- examples/gb.txt --compile > ./snake/gb/pax_generated.asm
+cargo run -- examples/gb.txt --compile --no-prelude > ./snake/gb/pax_generated.asm
 ```
 
 ## Inspiration

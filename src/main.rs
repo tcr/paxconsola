@@ -63,6 +63,9 @@ struct Args {
     #[structopt(short, long)]
     dump: bool,
 
+    #[structopt(long = "--no-prelude")]
+    no_prelude: bool,
+
     #[structopt(name = "FILE", parse(from_os_str))]
     file: PathBuf,
 }
@@ -73,14 +76,16 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     let mut buffer = Vec::with_capacity(file.metadata().map(|m|m.len()).unwrap_or(0) as usize);
     file.read_to_end(&mut buffer).unwrap_or_else(|err| panic!("{}", err));
 
+    let mut code = vec![];
+    if !args.no_prelude {
+        code.extend(PRELUDE.as_bytes());
+    }
+    code.extend(&buffer);
+    let script = parse_forth(code);
+
     if args.compile {
-        let script = parse_forth(buffer);
         cross_compile_forth_gb(script);
     } else {
-        let mut code = PRELUDE.as_bytes().to_owned();
-        code.extend(&buffer);
-        let script = parse_forth(code);
-
         if args.dump {
             for (i, op) in script.iter().enumerate() {
                 println!("[{:>3}]  {:?}", i, op);

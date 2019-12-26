@@ -21,6 +21,8 @@ pub enum Pax {
     Sleep, // todo: should be "yieldframe"
     Equals,
 
+    Stop,
+
     Function,
     Recurse,
     If,

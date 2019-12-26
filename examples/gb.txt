@@ -2,5 +2,7 @@
 $C004 constant last-key
 $9800 constant graphics
 
+: write-graphics graphics ! ;
+
 last-key @ 
-  37 = if 17 graphics ! then
+  37 = if 17 write-graphics then

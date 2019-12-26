@@ -1,8 +1,7 @@
 use crate::*;
-use maplit::*;
 use regex::Regex;
 use lazy_static::*;
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
@@ -71,14 +70,16 @@ pub enum ParseMode {
     Variable,
 }
 
+#[derive(Debug)]
 pub struct MarkerGroup {
+    #[allow(unused)]
     name: String,
     target_indices: Vec<usize>,
-    source_index: Option<usize>,
+    source_index: usize,
 }
 
 impl MarkerGroup {
-    fn new(name: String, index: Option<usize>) -> MarkerGroup {
+    fn new(name: String, index: usize) -> MarkerGroup {
         MarkerGroup {
             name,
             target_indices: vec![],
@@ -88,18 +89,23 @@ impl MarkerGroup {
 
     fn push_marker(&mut self, output: &mut Vec<Pax>) {
         let index = output.len();
-        output.push(Pax::Pushn(0));
+        output.push(Pax::Pushn(self.source_index as isize));
         self.target_indices.push(index);
     }
 
-    fn commit(&self, output: &mut Vec<Pax>) {
+    fn update(&self, output: &mut Vec<Pax>) {
         for target in &self.target_indices {
             // println!("[{}]: {:?}", self.name, target);
-            output[*target] = Pax::Pushn(self.source_index.unwrap() as isize);
+            output[*target] = Pax::Pushn(self.source_index as isize);
         }
     }
-
 }
+
+// in a loop,
+// slice from function beginning to end,
+// adjust all markers in existing code,
+// adjust all markers in new code,
+// append to the end of the opcode list
 
 pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     lazy_static! {
@@ -113,15 +119,14 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
     let parser = Parser::new(&code);
 
-    let mut parse_mode = ParseMode::Default;
     let mut output: Vec<Pax> = vec![];
-    let mut functions: HashMap<String, MarkerGroup> = hashmap![];
-    let mut variables: HashMap<String, usize> = hashmap![];
+    let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
+    let mut functions: IndexMap<String, MarkerGroup> = IndexMap::new();
+    let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
     let mut variable_offset: usize = 0;
-    let mut constants: HashMap<String, isize> = hashmap![];
-    let mut previous_tokens: Vec<Token> = vec![];
 
-    // let mut markers = vec![];
+    let mut parse_mode = ParseMode::Default;
+    let mut previous_tokens: Vec<Token> = vec![];
     for token in parser {
         // eprintln!("[token] {:?}", token);
         previous_tokens.push(token.clone());
@@ -153,7 +158,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                         let function_offset = output.len() + 1;
                         output.push(Pax::Function);
 
-                        let group = MarkerGroup::new(word.to_owned(), Some(function_offset));
+                        let group = MarkerGroup::new(word.to_owned(), function_offset);
                         functions.insert(word.to_string(), group);
                     }
                     _ => panic!("expected function name"),
@@ -281,9 +286,54 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
         }
     }
 
+    output.push(Pax::Stop);
+
+    if true {
+        const FUNC_OPCODE_ADJUST: usize = 1;
+
+        // Move first function to end
+        {
+            let mut fmap = functions.values_mut();
+            let mut func = fmap.next().unwrap();
+
+            let offset_start = func.source_index - FUNC_OPCODE_ADJUST;
+            let mut offset_end = offset_start;
+            while output[offset_end] != Pax::Exit {
+                offset_end += 1;
+            }
+            offset_end += 1;
+            let adjust = offset_end - offset_start;
+
+            // Extract this function, re-append to end.
+            let func_code: Vec<_> = output.splice(offset_start..offset_end, vec![]).collect();
+            let new_func_offset = output.len();
+            output.extend(func_code);
+            // Update function position.
+
+            // Now relocate all other indexes.
+            for func in functions.values_mut() {
+                if func.source_index == offset_start + FUNC_OPCODE_ADJUST {
+                    func.source_index = new_func_offset + FUNC_OPCODE_ADJUST;
+                } else if func.source_index > offset_start {
+                    func.source_index -= adjust;
+                }
+
+                for target in &mut func.target_indices {
+                    if *target >= offset_end {
+                        // after function
+                        *target -= adjust;
+                    } else if *target >= offset_start && *target < offset_end {
+                        // inside function
+                        *target += new_func_offset - offset_start;
+                    }
+                }
+            }
+        }
+    }
+
     // Finalize function positions
     for function in functions.values() {
-        function.commit(&mut output);
+        function.update(&mut output);
     }
 
     return output;

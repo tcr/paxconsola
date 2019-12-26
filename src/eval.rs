@@ -232,6 +232,10 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 do_level.pop();
             }
 
+            Pax::Stop => {
+                break;
+            }
+
 
             // *
             Pax::Multiply => {
