@@ -36,28 +36,23 @@ enum Pax {
     AltPop, 
     Add,
     Nand,
+    Remainder,
     AltPush,
     // todo 0branch
     Store,
+    Multiply,
+
     // pax debug
     Print,
     Debugger,
     Sleep, // todo: should be "yieldframe"
+    Equals,
 
     Function(usize), // (index: u8)
     Recurse,
-    Multiply,
-    Subtract,
-    Pack,
-    Remainder,
-    And,
-    Or,
-    Equals,
-    Drop,
     If,
     Else,
     Then,
-
     Do,
     Loop,
     PlusLoop,
@@ -76,6 +71,9 @@ variable graphics 575 cells allot \ 0-575
 variable last-key \ 576
 variable random-register \ 577
 
+: drop    if then ;
+: 2drop   + drop ;
+
 variable  temp \ 578
 : swap   >r temp ! r> temp @ ;
 : over   >r temp ! temp @ r> temp @ ;
@@ -91,11 +89,21 @@ variable  temp \ 578
 
 : random random-register @ swap % ;
 
-\ : invert   -1 nand ;
+: invert   -1 nand ;
+: negate   invert 1 + ;
+: -        negate + ;
 
 : 1+   1 + ;
 : 1-   -1 + ;
 : +!   dup >r @ + r> ! ;
+: 0=   if 0 else -1 then ;
+: =    - 0= ;
+: <>   = 0= ;
+: ==   - 0= ;
+
+: or   invert swap invert nand ;
+: xor   2dup nand 1+ dup + + + ;
+: and   nand invert ;
 
 ";
 
@@ -117,11 +125,74 @@ fn main() {
     //     forth(buffer);
     // } else {
         // Read as source
-        let mut bytes = PRELUDE.as_bytes().to_owned();
-        bytes.extend(&buffer);
-        let script = compile_forth(bytes);
-        forth(script);
+        // let mut bytes = PRELUDE.as_bytes().to_owned();
+        // bytes.extend(&buffer);
+        let script = compile_forth(buffer);
+        cross_compile_forth_gb(script);
+        // forth(script);
     // }
+}
+
+// last-key @ 37 = if 12 graphics ! then
+
+fn cross_compile_forth_gb(code: Vec<Pax>) {
+    let mut idx = 0;
+    for op in code {
+        println!(";[op] {:?}", op);
+        match op {
+            Pax::Pushn(lit) => {
+                println!("    ; {lit}
+    ld d, h
+    ld e, l ; push new value
+    ld hl,{lit}
+", lit=lit);
+            }
+            Pax::Load => {
+                println!("    ; @ (8-bit)
+    ld a, [hl]
+    ld h, 0
+    ld l, a
+");
+            }
+            Pax::Store => {
+                println!("    ; ! (8-bit)
+    ld a, e
+    ld [hl],a
+");
+            }
+            Pax::If => {
+                println!("    ; if (8-bit)
+    ld a,l
+    cp $0
+    jr z,.next_{index}
+", index=idx);
+                idx += 1;
+            }
+            Pax::Then => {
+                println!(".next_{index}
+", index=idx - 1);
+            }
+            Pax::Equals => {
+                println!("    ; =
+    ld a, d
+    cp h
+    jp nz,.next_{index_1}
+    ld a, e
+    cp l
+    jp nz,.next_{index_1}
+    ld hl, $1
+    ; pop de
+    jp .next_{index_2}
+.next_{index_1}:
+    ld hl, $0
+    ; pop de
+.next_{index_2}:
+", index_1 = idx, index_2 = idx + 1);
+                idx += 2;
+            }
+            _ => {}
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -332,23 +403,17 @@ fn compile_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "print" => output.push(Pax::Print),
                             "debugger" => output.push(Pax::Debugger),
 
+                            "=" => output.push(Pax::Equals),
                             "*" => output.push(Pax::Multiply),
-                            "-" => output.push(Pax::Subtract),
                             "%" => output.push(Pax::Remainder),
                             ":" => {
                                 parse_mode = ParseMode::FunctionName;
                             }
                             ";" => output.push(Pax::Exit),
                             "recurse" => output.push(Pax::Recurse),
-                            "pack" => output.push(Pax::Pack),
                             "if" => output.push(Pax::If),
                             "else" => output.push(Pax::Else),
                             "then" => output.push(Pax::Then),
-                            "==" => output.push(Pax::Equals),
-                            "=" => output.push(Pax::Equals),
-                            "drop" => output.push(Pax::Drop),
-                            "or" => output.push(Pax::Or),
-                            "and" => output.push(Pax::And),
                             "nand" => output.push(Pax::Nand),
                             "sleep" => output.push(Pax::Sleep),
 
@@ -398,7 +463,7 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
 
     let mut use_graphics = false;
 
-    // eprintln!("[code] {:?}", code);
+    eprintln!("[code] {:?}", code);
     let mut cindex = 0;
     let mut frame = 0;
     while cindex < code.len() {
@@ -407,6 +472,9 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
         
         // eprintln!("[op#{:>4}]  {:<12}   stack: {:?}", format!("{}", cindex - 1), format!("{:?}", op), stack);
         match op {
+            Pax::Equals => {
+                unimplemented!();
+            }
             Pax::Do => {
                 let index = stack.pop().unwrap();
                 let limit = stack.pop().unwrap();
@@ -621,26 +689,11 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
                 let d = stack.pop().unwrap();
                 stack.push(b.wrapping_mul(d));
             },
-            // -
-            Pax::Subtract => {
-                let b = stack.pop().unwrap();
-                let d = stack.pop().unwrap();
-                stack.push(d.wrapping_sub(b));
-            }
             // %
             Pax::Remainder => {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(d % b);
-            }
-            // pack
-            Pax::Pack => {
-                let d = stack.pop().unwrap() as u32;
-                let e = stack.pop().unwrap() as u32;
-                let b = stack.pop().unwrap() as u32;
-                let z = stack.pop().unwrap() as u32;
-                let y = (d << 24) | (e << 16) | (b << 8) | z;
-                stack.push(y);
             }
             // if
             Pax::If => {
@@ -659,28 +712,6 @@ fn forth(code: Vec<Pax>) -> Vec<u32> {
             },
             // then
             Pax::Then => {},
-            // ==
-            Pax::Equals => {
-                let y = stack.pop().unwrap();
-                let z = stack.pop().unwrap();
-                stack.push((z == y) as u32);
-            }
-            // drop
-            Pax::Drop => {
-                stack.pop().unwrap();
-            }
-            // or
-            Pax::Or => {
-                let z = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                stack.push(z | y)
-            }
-            // and
-            Pax::And => {
-                let z = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                stack.push((z & y) as u32);
-            }
         }
     }
     stack

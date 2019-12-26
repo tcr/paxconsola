@@ -1,0 +1,9 @@
+
+: cells ;
+
+variable graphics 575 cells allot \ 0-575
+variable last-key \ 576
+variable random-register \ 577
+
+last-key @ 
+  37 = if 17 graphics ! then
