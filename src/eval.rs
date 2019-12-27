@@ -154,59 +154,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             Pax::Pushn(lit) => {
                 stack.push(lit as u32);
             }
-            // debugger
-            Pax::Debugger => {
-                if use_graphics {
-                    const VAR_START_X: usize = 579;
-                    const VAR_START_Y: usize = VAR_START_X + 500 + 1;
-
-                    let stdout = std::io::stdout();
-                    let stdout = stdout.lock();
-                    let mut stdout = stdout.into_raw_mode().unwrap();
-                    write!(stdout, "{}{}{}\r\n",
-                        style::Reset,
-                        cursor::Goto(1, 27),
-                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x-head({}): {:?}\r\n[debugger] snake-y-head({}): {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
-                            VAR_START_X, variables.get(VAR_START_X),
-                            VAR_START_Y, variables.get(VAR_START_Y),
-                            variables[VAR_START_X..(VAR_START_X+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
-                            variables[VAR_START_Y..(VAR_START_Y+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
-                        ),
-                    ).unwrap();
-                    let _ = stdout.flush();
-                    eprint!("... press <enter> to continue\r\n");
-                    drop(stdout);
-
-                    let stdin = std::io::stdin();
-                    let mut stdin = stdin.lock();
-                    let _ = TermRead::read_line(&mut stdin);
-                }
-            }
-            // pushn
-            Pax::Sleep => {
-                let time = stack.pop().unwrap();
-                std::thread::sleep(std::time::Duration::from_millis(time as _));
-                frame += 1;
-
-                if frame == 4 {
-                    // HACK fill in last-key while interpreting
-                    variables[576] = 38;
-                } else if frame == 12 {
-                    // HACK fill in last-key while interpreting
-                    variables[576] = 37;
-                }
-            }
-            // recurse
-            Pax::Recurse => {
-                // walk backward
-                loop {
-                    if let Pax::Function = code[cindex] {
-                        break;
-                    }
-                    cindex -= 1;
-                }
-                cindex += 1;
-            }
             // call
             Pax::Call => {
                 let function_start = stack.pop().unwrap();
@@ -253,23 +200,49 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                     do_level.push(0); // TODO dunno if correct
                 }
             }
-            // if
-            Pax::If => {
-                let y = stack.pop().unwrap();
-                if y == 0 {
-                    // skip until 'else'
-                    while code[cindex] != Pax::Else && code[cindex] != Pax::Then {
-                        cindex += 1;
-                    }
-                    cindex += 1;
+
+            // debugger
+            Pax::Debugger => {
+                if use_graphics {
+                    const VAR_START_X: usize = 579;
+                    const VAR_START_Y: usize = VAR_START_X + 500 + 1;
+
+                    let stdout = std::io::stdout();
+                    let stdout = stdout.lock();
+                    let mut stdout = stdout.into_raw_mode().unwrap();
+                    write!(stdout, "{}{}{}\r\n",
+                        style::Reset,
+                        cursor::Goto(1, 27),
+                        format!("[debugger] stack: {:?}\r\n[debugger] snake-x-head({}): {:?}\r\n[debugger] snake-y-head({}): {:?}\r\n[debugger] snake-x: {:?}\r\n[debugger] snake-y: {:?}\r\n", stack,
+                            VAR_START_X, variables.get(VAR_START_X),
+                            VAR_START_Y, variables.get(VAR_START_Y),
+                            variables[VAR_START_X..(VAR_START_X+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
+                            variables[VAR_START_Y..(VAR_START_Y+16)].iter().map(|x| x.to_string()).collect::<Vec<_>>().join("-"),
+                        ),
+                    ).unwrap();
+                    let _ = stdout.flush();
+                    eprint!("... press <enter> to continue\r\n");
+                    drop(stdout);
+
+                    let stdin = std::io::stdin();
+                    let mut stdin = stdin.lock();
+                    let _ = TermRead::read_line(&mut stdin);
                 }
             }
-            // else; skip until 'then'
-            Pax::Else => while code[cindex] != Pax::Then {
-                cindex += 1;
-            },
-            // then
-            Pax::Then => {},
+            // pushn
+            Pax::Sleep => {
+                let time = stack.pop().unwrap();
+                std::thread::sleep(std::time::Duration::from_millis(time as _));
+                frame += 1;
+
+                if frame == 4 {
+                    // HACK fill in last-key while interpreting
+                    variables[576] = 38;
+                } else if frame == 12 {
+                    // HACK fill in last-key while interpreting
+                    variables[576] = 37;
+                }
+            }
         }
     }
     stack

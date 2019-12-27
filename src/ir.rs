@@ -25,13 +25,9 @@ pub enum Pax {
 
     Function, // not needed?
 
-    Recurse,
     Jump, // temporary, for <recurse>
-    JumpIf0,
+    JumpIf0, // maybe the way forward
 
-    If,
-    Else,
-    Then,
     Do,
     Loop,
     PlusLoop,

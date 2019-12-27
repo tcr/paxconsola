@@ -15,3 +15,4 @@ structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
 lazy_static = "*"
 indexmap = "*"
+color-backtrace = { version = "0.3" }

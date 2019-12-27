@@ -244,22 +244,46 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 }
                             }
 
+                            // flow control
                             "recurse" => {
-                                // TODO is fetching latest function correct?
                                 let group = functions.last_mut().unwrap();
                                 group.push_marker(&mut output);
                                 output.push(Pax::Jump);
                                 continue;
                             }
-
                             "begin" => {
-                                flow_markers.push(MarkerGroup::new("begin", output.len()));
+                                flow_markers.push(MarkerGroup::new("<begin>", output.len()));
                             }
                             "until" => {
                                 let mut group = flow_markers.pop().expect("did not match marker group");
-                                assert_eq!(group.name, "begin", "expected begin loop");
+                                assert_eq!(group.name, "<begin>", "expected begin loop");
                                 group.push_marker(&mut output);
                                 output.push(Pax::JumpIf0);
+                                used_flow_markers.push(group);
+                            }
+                            "if" => {
+                                let mut group = MarkerGroup::new("<if>", output.len());
+                                group.push_marker(&mut output);
+                                output.push(Pax::JumpIf0);
+
+                                flow_markers.push(group);
+                            }
+                            "else" => {
+                                let mut if_group = flow_markers.pop().expect("did not match marker group");
+                                
+                                let mut else_group = MarkerGroup::new("<else>", output.len());
+                                output.push(Pax::Pushn(0)); // Always yes
+                                else_group.push_marker(&mut output);
+                                output.push(Pax::JumpIf0);
+
+                                flow_markers.push(else_group);
+
+                                if_group.source_index = output.len();
+                                used_flow_markers.push(if_group);
+                            }
+                            "then" => {
+                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                group.source_index = output.len();
                                 used_flow_markers.push(group);
                             }
 
@@ -269,6 +293,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "r>" => output.push(Pax::AltPop),
                             "!" => output.push(Pax::Store),
                             "@" => output.push(Pax::Load),
+                            "nand" => output.push(Pax::Nand),
                             // pax debug
                             "print" => output.push(Pax::Print),
                             "debugger" => output.push(Pax::Debugger),
@@ -281,11 +306,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 parse_mode = ParseMode::FunctionName;
                             }
                             ";" => output.push(Pax::Exit),
-                            
-                            "if" => output.push(Pax::If),
-                            "else" => output.push(Pax::Else),
-                            "then" => output.push(Pax::Then),
-                            "nand" => output.push(Pax::Nand),
+
                             "sleep" => output.push(Pax::Sleep),
 
                             "do" => output.push(Pax::Do),
@@ -310,16 +331,17 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
     output.push(Pax::Stop);
 
-    if true {
-        const FUNC_OPCODE_ADJUST: usize = 0;
+    // eprintln!("---> {:?}", output);
 
+    if true {
         let keys = 0..functions.len();
 
         // Move first function to end
         for key in keys {
             let func = &mut functions[key];
+            // eprintln!("moving {:?} to end", func.name);
 
-            let offset_start = func.source_index - FUNC_OPCODE_ADJUST;
+            let offset_start = func.source_index;
             let mut offset_end = offset_start;
             while output[offset_end] != Pax::Exit {
                 offset_end += 1;
@@ -331,6 +353,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             let func_code: Vec<_> = output.splice(offset_start..offset_end, vec![]).collect();
             let new_func_offset = output.len();
             output.extend(func_code);
+            let adjust_inner = new_func_offset - offset_start;
             // Update function position.
 
             // Now relocate all other indexes.
@@ -338,17 +361,19 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             groups.extend(functions.iter_mut());
             groups.extend(used_flow_markers.iter_mut());
             for func in groups {
-                if func.source_index == offset_start + FUNC_OPCODE_ADJUST {
-                    func.source_index = new_func_offset + FUNC_OPCODE_ADJUST;
-                } else if func.source_index > offset_start {
+                if func.source_index >= offset_end {
+                    // eprintln!("----> func.source_index {:?} -= adjust {:?}", func, adjust);
                     func.source_index -= adjust;
+                } else if func.source_index >= offset_start {
+                    // eprintln!("----> func.source_index {:?} += adjust {:?}", func, adjust);
+                    func.source_index += adjust_inner;
                 }
 
                 for target in &mut func.target_indices {
                     if *target >= offset_end {
                         // after function
                         *target -= adjust;
-                    } else if *target >= offset_start && *target < offset_end {
+                    } else if *target >= offset_start {
                         // inside function
                         *target += new_func_offset - offset_start;
                     }
