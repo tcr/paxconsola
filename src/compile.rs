@@ -3,43 +3,33 @@ use crate::*;
 pub fn cross_compile_forth_gb(code: Vec<Pax>) {
     let mut idx = 0;
     for op in code {
-        println!(";[op] {:?}", op);
+        println!("    ; {:?}", op);
         match op {
             Pax::Pushn(lit) => {
-                println!("    ; {lit}
-    ld d, h
-    ld e, l ; push new value
+                println!("    ld d, h
+    ld e, l
     ld hl,{lit}
 ", lit=lit);
             }
             Pax::Load => {
-                println!("    ; @ (8-bit)
-    ld a, [hl]
+                println!("    ld a, [hl]
     ld h, 0
     ld l, a
 ");
             }
             Pax::Store => {
-                println!("    ; ! (8-bit)
-    ld a, e
+                println!("    ld a, e
     ld [hl],a
 ");
             }
-            Pax::If => {
-                println!("    ; if (8-bit)
-    ld a,l
+            Pax::JumpIf0 => {
+                println!("    ld a,e
     cp $0
-    jr z,.next_{index}
-", index=idx);
-                idx += 1;
-            }
-            Pax::Then => {
-                println!(".next_{index}
-", index=idx - 1);
+    jr z,[hl]
+");
             }
             Pax::Equals => {
-                println!("    ; =
-    ld a, d
+                println!("    ld a, d
     cp h
     jp nz,.next_{index_1}
     ld a, e
@@ -55,7 +45,21 @@ pub fn cross_compile_forth_gb(code: Vec<Pax>) {
 ", index_1 = idx, index_2 = idx + 1);
                 idx += 2;
             }
-            _ => {}
+            Pax::Exit => {
+                println!("    ret
+");
+            }
+            Pax::Call => {
+                println!("    call [hl]
+");
+            }
+            Pax::Stop => {
+                println!("    ret
+");
+            }
+            op => {
+                panic!("not yet implemented: {:?}", op);
+            }
         }
     }
 }

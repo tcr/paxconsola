@@ -69,14 +69,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 // Never can be nested twice
                 stack.push(loop_stack[loop_stack.len() - 1].0);
             }
-
-            // print
-            Pax::Print => {
-                // debug: Take the top three items from the stack.
-                for &b in stack.iter().rev().take(3) {
-                    println!("{}", b);
-                }
-            }
             // +
             Pax::Add => {
                 let b = stack.pop().expect("+ found 0 stack arguments");
@@ -133,17 +125,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let b = alt_stack.pop().unwrap();
                 stack.push(b);
             }
-            // : (define function)
-            Pax::Function => {
-                // skip past ;
-                loop {
-                    if let Pax::Exit = code[cindex] {
-                        break;
-                    }
-                    cindex += 1;
-                }
-                cindex += 1;
-            }
             // nand
             Pax::Nand => {
                 let z = stack.pop().unwrap();
@@ -173,7 +154,15 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 cindex = alt_stack.pop().unwrap() as usize;
                 do_level.pop();
             }
-
+            // jump (recurse)
+            Pax::JumpIf0 => {
+                let dest = stack.pop().unwrap();
+                let cond = stack.pop().unwrap();
+                if cond == 0 {
+                    cindex = dest as _;
+                    do_level.push(0); // TODO dunno if correct
+                }
+            }
             Pax::Stop => {
                 break;
             }
@@ -191,16 +180,14 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let d = stack.pop().unwrap();
                 stack.push(d % b);
             }
-            // jump (recurse)
-            Pax::JumpIf0 => {
-                let dest = stack.pop().unwrap();
-                let cond = stack.pop().unwrap();
-                if cond == 0 {
-                    cindex = dest as _;
-                    do_level.push(0); // TODO dunno if correct
+
+            // print
+            Pax::Print => {
+                // debug: Take the top three items from the stack.
+                for &b in stack.iter().rev().take(3) {
+                    println!("{}", b);
                 }
             }
-
             // debugger
             Pax::Debugger => {
                 if use_graphics {
