@@ -164,7 +164,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let cond = stack.pop().unwrap();
                 if cond == 0 {
                     cindex = dest as _;
-                    do_level.push(0); // TODO dunno if correct
                 }
             }
             Pax::Stop => {
