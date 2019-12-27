@@ -43,8 +43,12 @@ START:
 	;call DMA_COPY    ;move DMA routine to HRAM
 LOOP:
 	call WAIT_VBLANK
+
 	call READ_JOYPAD
 	call JOY_RIGHT
+	call JOY_LEFT
+	call JOY_UP
+	call JOY_DOWN
 
 	; Set forth stack to end of zero page RAM
 	ld c,$ff
@@ -160,29 +164,38 @@ READ_JOYPAD:
 	ret
 
 JOY_RIGHT:
+	ld d,a
 	and %00010000
 	cp  %00010000
 	jp  nz,JOY_FALSE
-	ld  a,37
+	ld  a,39
 	ld [pax_var_last_key], a
+	ld a,d
 	ret
 JOY_LEFT:
+	ld d,a
 	and %00100000
 	cp  %00100000
 	jp  nz,JOY_FALSE
-	ld  a,$1
+	ld  a,37
+	ld [pax_var_last_key], a
+	ld a,d
 	ret
 JOY_UP:
 	and %01000000
 	cp  %01000000
 	jp  nz,JOY_FALSE
-	ld  a,$1
+	ld  a,38
+	ld [pax_var_last_key], a
+	ld a,d
 	ret
 JOY_DOWN:
 	and %10000000
 	cp  %10000000
 	jp  nz,JOY_FALSE
-	ld  a,$1
+	ld  a,40
+	ld [pax_var_last_key], a
+	ld a,d
 	ret
 JOY_A:
 	and %00000001
@@ -209,8 +222,9 @@ JOY_START:
 	ld  a,$1
 	ret
 JOY_FALSE:
-	ld  a,$0
-	ld [pax_var_last_key], a
+	;ld  a,$0
+	;ld [pax_var_last_key], a
+	ld a,d
 	ret
 
 SECTION "RAM Vars",WRAM0[$C000]
@@ -223,4 +237,8 @@ db                   ;dow/up/lef/rig/sta/sel/a/b
 joypad_pressed:
 db
 pax_var_last_key:
+db
+db
+pax_var_temp:
+db
 db

@@ -28,6 +28,12 @@ pub enum GbIr {
     JumpIfDEIs0,
     // ( b -- cond )
     CompareDEAndReplace,
+    // ( a -- result )
+    ReplaceAddWithDE,
+    // ( -- )
+    AltDup,
+    // ( a -- peek )
+    AltPop,
 }
 
 fn translate_to_gb(op: Pax) -> Vec<GbIr> {
@@ -70,8 +76,25 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         Pax::Exit | Pax::Stop => vec![
             GbIr::Ret
         ],
-        _ => {
-            unimplemented!();
+        // ( a b -- c )
+        Pax::Add => vec![
+            GbIr::NipIntoDE,
+            GbIr::ReplaceAddWithDE,
+        ],
+        // ( a -- )
+        Pax::AltPush => vec![
+            GbIr::AltDup,
+            GbIr::Pop,
+        ],
+        // ( a -- )
+        Pax::AltPop => vec![
+            GbIr::AltPop,
+        ],
+        // Pax::Remainder => vec![],
+        // Pax::Nand => vec![],
+        // Pax::Multiply => vec![],
+        op => {
+            panic!("not yet implemented: {:?}", op);
         }
     }
 }
@@ -166,6 +189,21 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
 .next_{index_2}:
             ", index_1 = idx, index_2 = *idx + 1);
             *idx += 2;
+        }
+        GbIr::ReplaceAddWithDE => {
+            println!("
+    add hl, de
+            ");
+        }
+        GbIr::AltDup => {
+            println!("
+    push hl
+            ");
+        }
+        GbIr::AltPop => {
+            println!("
+    pop hl
+            ");
         }
         GbIr::Ret => {
             println!("ret");

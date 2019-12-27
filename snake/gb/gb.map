@@ -7,41 +7,61 @@ ROM Bank #0 (HOME):
   SECTION: $0058-$0058 ($0001 bytes) ["Serial IRQ Vector"]
   SECTION: $0060-$0060 ($0001 bytes) ["Joypad IRQ Vector"]
   SECTION: $0100-$014F ($0050 bytes) ["Start"]
-  SECTION: $06E6-$08D5 ($01F0 bytes) ["Tiles"]
-           $06E6 = TILE_DATA
-  SECTION: $02E6-$06E5 ($0400 bytes) ["Map"]
-           $02E6 = MAP_DATA
-  SECTION: $0150-$02E5 ($0196 bytes) ["Program Start"]
+  SECTION: $08D7-$0AC6 ($01F0 bytes) ["Tiles"]
+           $08D7 = TILE_DATA
+  SECTION: $04D7-$08D6 ($0400 bytes) ["Map"]
+           $04D7 = MAP_DATA
+  SECTION: $0150-$04D6 ($0387 bytes) ["Program Start"]
            $0150 = START
-           $022A = CLEAR_MAP
-           $0239 = LOAD_TILES
-           $024B = LOAD_MAP
-           $0202 = WAIT_VBLANK
-           $025D = READ_JOYPAD
-           $028D = JOY_RIGHT
-           $018B = PAX_VM
+           $0410 = CLEAR_MAP
+           $041F = LOAD_TILES
+           $0431 = LOAD_MAP
+           $03E8 = WAIT_VBLANK
+           $0443 = READ_JOYPAD
+           $0473 = JOY_RIGHT
+           $0482 = JOY_LEFT
+           $0491 = JOY_UP
+           $049F = JOY_DOWN
+           $0194 = PAX_VM
            $0177 = LOOP
-           $01B7 = PAX_VM.next_0
-           $01BA = PAX_VM.next_1
-           $01DE = PAX_VM.opcode_8
-           $01D0 = PAX_VM.next_2
-           $01DF = PAX_VM.opcode_9
-           $0200 = EMULATE_JP_HL
-           $0205 = WAIT_VBLANK.wait_vblank_loop
-           $0230 = CLEAR_MAP.clear_map_loop
-           $0242 = LOAD_TILES.load_tiles_loop
-           $0254 = LOAD_MAP.load_map_loop
-           $02E0 = JOY_FALSE
-    SLACK: $380F bytes
+           $01C0 = PAX_VM.next_0
+           $01C3 = PAX_VM.next_1
+           $01E7 = PAX_VM.opcode_8
+           $01D9 = PAX_VM.next_2
+           $0363 = PAX_VM.opcode_51
+           $03E6 = EMULATE_JP_HL
+           $0213 = PAX_VM.next_3
+           $0216 = PAX_VM.next_4
+           $023A = PAX_VM.opcode_16
+           $022C = PAX_VM.next_5
+           $0332 = PAX_VM.opcode_45
+           $0266 = PAX_VM.next_6
+           $0269 = PAX_VM.next_7
+           $028D = PAX_VM.opcode_24
+           $027F = PAX_VM.next_8
+           $0384 = PAX_VM.opcode_55
+           $02B9 = PAX_VM.next_9
+           $02BC = PAX_VM.next_10
+           $02E0 = PAX_VM.opcode_32
+           $02D2 = PAX_VM.next_11
+           $03B5 = PAX_VM.opcode_61
+           $02F7 = PAX_VM.opcode_35
+           $02F7 = PAX_VM.next_12
+           $03EB = WAIT_VBLANK.wait_vblank_loop
+           $0416 = CLEAR_MAP.clear_map_loop
+           $0428 = LOAD_TILES.load_tiles_loop
+           $043A = LOAD_MAP.load_map_loop
+           $04D5 = JOY_FALSE
+    SLACK: $361E bytes
 
 WRAM Bank #0:
-  SECTION: $C000-$C004 ($0005 bytes) ["RAM Vars"]
+  SECTION: $C000-$C007 ($0008 bytes) ["RAM Vars"]
            $C000 = vblank_flag
            $C001 = vblank_count
            $C002 = joypad_down
            $C003 = joypad_pressed
            $C004 = pax_var_last_key
-    SLACK: $0FFB bytes
+    SLACK: $0FF8 bytes
 
 WRAM Bank #1:
   EMPTY
