@@ -5,15 +5,17 @@ pub enum Pax {
     Load,
     Call,
     Exit,
-    Pushn(isize), // (literal: u<N>)
+    
     AltPop, 
     Add,
     Nand,
     Remainder,
     AltPush,
-    // todo 0branch
     Store,
     Multiply,
+
+    PushLiteral(isize),
+    PushLabel(isize),
 
     // pax debug
     Print,

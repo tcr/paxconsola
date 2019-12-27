@@ -2,13 +2,20 @@ use crate::*;
 
 pub fn cross_compile_forth_gb(code: Vec<Pax>) {
     let mut idx = 0;
-    for op in code {
-        println!("    ; {:?}", op);
+    for (i, op) in code.iter().enumerate() {
+        println!(".opcode_{}
+    ; {:?}", i, op);
         match op {
-            Pax::Pushn(lit) => {
+            Pax::PushLiteral(lit) => {
                 println!("    ld d, h
     ld e, l
     ld hl,{lit}
+", lit=lit);
+            }
+            Pax::PushLabel(lit) => {
+                println!("    ld d, h
+    ld e, l
+    ld hl,.opcode_{lit}
 ", lit=lit);
             }
             Pax::Load => {
@@ -25,8 +32,11 @@ pub fn cross_compile_forth_gb(code: Vec<Pax>) {
             Pax::JumpIf0 => {
                 println!("    ld a,e
     cp $0
-    jr z,[hl]
-");
+    jp nz,.next_{index}
+    jp hl
+.next_{index}:
+", index = idx);
+                idx += 1;
             }
             Pax::Equals => {
                 println!("    ld a, d
@@ -50,7 +60,7 @@ pub fn cross_compile_forth_gb(code: Vec<Pax>) {
 ");
             }
             Pax::Call => {
-                println!("    call [hl]
+                println!("    call EMULATE_JP_HL
 ");
             }
             Pax::Stop => {
@@ -62,4 +72,8 @@ pub fn cross_compile_forth_gb(code: Vec<Pax>) {
             }
         }
     }
+
+    println!("
+EMULATE_JP_HL:
+	jp	hl")
 }

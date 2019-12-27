@@ -1,23 +1,23 @@
-;[op] Pushn(49156)
-    ; 49156
+.opcode_0
+    ; PushLiteral(49156)
     ld d, h
-    ld e, l ; push new value
+    ld e, l
     ld hl,49156
 
-;[op] Load
-    ; @ (8-bit)
+.opcode_1
+    ; Load
     ld a, [hl]
     ld h, 0
     ld l, a
 
-;[op] Pushn(37)
-    ; 37
+.opcode_2
+    ; PushLiteral(37)
     ld d, h
-    ld e, l ; push new value
+    ld e, l
     ld hl,37
 
-;[op] Equals
-    ; =
+.opcode_3
+    ; Equals
     ld a, d
     cp h
     jp nz,.next_0
@@ -32,30 +32,55 @@
     ; pop de
 .next_1:
 
-;[op] If
-    ; if (8-bit)
-    ld a,l
+.opcode_4
+    ; PushLabel(8)
+    ld d, h
+    ld e, l
+    ld hl,.opcode_8
+
+.opcode_5
+    ; JumpIf0
+    ld a,e
     cp $0
-    jr z,.next_2
+    jp nz,.next_2
+    jp hl
+.next_2:
 
-;[op] Pushn(17)
-    ; 17
+.opcode_6
+    ; PushLabel(9)
     ld d, h
-    ld e, l ; push new value
-    ld hl,17
+    ld e, l
+    ld hl,.opcode_9
 
-;[op] Pushn(38912)
-    ; 38912
+.opcode_7
+    ; Call
+    call EMULATE_JP_HL
+
+.opcode_8
+    ; Stop
+    ret
+
+.opcode_9
+    ; PushLiteral(20)
     ld d, h
-    ld e, l ; push new value
+    ld e, l
+    ld hl,20
+
+.opcode_10
+    ; PushLiteral(38912)
+    ld d, h
+    ld e, l
     ld hl,38912
 
-;[op] Store
-    ; ! (8-bit)
+.opcode_11
+    ; Store
     ld a, e
     ld [hl],a
 
-;[op] Then
-.next_2
+.opcode_12
+    ; Exit
+    ret
 
-;[op] Stop
+
+EMULATE_JP_HL:
+	jp	hl

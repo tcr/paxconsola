@@ -26,6 +26,14 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
         
         // eprintln!("[op#{:>4}]  {:<12}   stack: {:?}", format!("{}", cindex - 1), format!("{:?}", op), stack);
         match op {
+            Pax::PushLiteral(lit) => {
+                stack.push(lit as u32);
+            }
+            Pax::PushLabel(lit) => {
+                // All labels just use their opcode indexes.
+                stack.push(lit as u32);
+            }
+
             Pax::Equals => {
                 unimplemented!();
             }
@@ -130,10 +138,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let z = stack.pop().unwrap();
                 let y = stack.pop().unwrap();
                 stack.push(!(z & y));
-            }
-            // pushn
-            Pax::Pushn(lit) => {
-                stack.push(lit as u32);
             }
             // call
             Pax::Call => {

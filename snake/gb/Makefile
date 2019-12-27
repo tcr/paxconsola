@@ -18,3 +18,7 @@ all : $(OBJS)
 allrun:
 	make
 	rboy -x 6 gb.gb
+
+debug:
+	make
+	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 gb.gb

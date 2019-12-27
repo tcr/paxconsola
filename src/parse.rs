@@ -89,14 +89,14 @@ impl MarkerGroup {
 
     fn push_marker(&mut self, output: &mut Vec<Pax>) {
         let index = output.len();
-        output.push(Pax::Pushn(self.source_index as isize));
+        output.push(Pax::PushLabel(self.source_index as isize));
         self.target_indices.push(index);
     }
 
     fn update(&self, output: &mut Vec<Pax>) {
         for target in &self.target_indices {
             // println!("[{}]: {:?}", self.name, target);
-            output[*target] = Pax::Pushn(self.source_index as isize);
+            output[*target] = Pax::PushLabel(self.source_index as isize);
         }
     }
 }
@@ -193,7 +193,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                         // Constants shadow all terms
                         if constants.contains_key(word.as_str()) {
-                            output.push(Pax::Pushn(constants[word.as_str()] as isize));
+                            output.push(Pax::PushLiteral(constants[word.as_str()] as isize));
                             continue;
                         }
                         // Functions shadow all terms
@@ -204,7 +204,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                         }
                         // Variables shadow all terms
                         if variables.contains_key(word.as_str()) {
-                            output.push(Pax::Pushn(variables[word.as_str()] as isize));
+                            output.push(Pax::PushLiteral(variables[word.as_str()] as isize));
                             continue;
                         }
 
@@ -272,7 +272,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 let mut if_group = flow_markers.pop().expect("did not match marker group");
                                 
                                 let mut else_group = MarkerGroup::new("<else>", output.len());
-                                output.push(Pax::Pushn(0)); // Always yes
+                                output.push(Pax::PushLiteral(0)); // Always yes
                                 else_group.push_marker(&mut output);
                                 output.push(Pax::JumpIf0);
 
@@ -320,7 +320,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                         }
                     }
                     Token::Literal(lit) => {
-                        output.push(Pax::Pushn(lit as isize));
+                        output.push(Pax::PushLiteral(lit as isize));
                     }
                 }
             }
