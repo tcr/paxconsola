@@ -36,13 +36,22 @@ START:
 	ld  a,%11010011  ;turn on LCD, BG0, OBJ0, etc
 	ldh [rLCDC],a    ;load LCD flags
 
-	call DMA_COPY    ;move DMA routine to HRAM
+	; Set stack to end of internal RAM
+	ld HL,$CFFF
+	ld SP, HL
+
+	;call DMA_COPY    ;move DMA routine to HRAM
 LOOP:
 	call WAIT_VBLANK
 	call READ_JOYPAD
 	call JOY_RIGHT
+
+	; Set forth stack to end of zero page RAM
+	ld c,$ff
+	ld hl, $0
 	call PAX_VM
-	call _HRAM		 ;call DMA routine from HRAM
+
+	;call _HRAM		 ;call DMA routine from HRAM
 	jp LOOP
 
 ;-------------

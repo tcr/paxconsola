@@ -38,34 +38,34 @@ https://retrocomputing.stackexchange.com/a/8174/9124
 
 #### gbForth pointer usage
 
-Pushing:
+Pushing into hl:
 
 ```
-\ Move TOS "down" the stack
-dec C
-ld H, A
-ld A, (C)
-dec C
-ld L, A, ld A, (C)
+\ Push hl (TOS) down the stack
+dec c \ zero page pointer
+ld a, h
+ld (c), a
+dec c \ zero page pointer
+ld a, l
+ld (c), a
 
-\ Load a value to the TOS
-ld HL, $1234
+\ Load a value to hl (TOS)
+ld hl, $1234
 ```
 
-Popping:
+Popping from hl:
 
 ```
-\ Load TOS to register DE
-ld H, D
-ld L, E
+\ Load TOS to register DE (optional)
+ld d, h
+ld e, l
 
 \ Move second item to TOS
-ld (C), A
-ld A, L
+ld a, (c)
+ld l, a
 inc C
-ld (C), A ld
-ld A, H
-inc C
+ld a, (c)
+ld h, a,
+inc c
 ```
 
-https://github.com/ams-hackers/gbforth/blob/9d98f94fdab05158365c31bc45eb57c1c2610f9c/docs/kernel.md
