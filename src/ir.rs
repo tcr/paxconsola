@@ -23,8 +23,11 @@ pub enum Pax {
 
     Stop,
 
-    Function,
+    Function, // not needed?
+
     Recurse,
+    Jump, // temporary, for <recurse>
+
     If,
     Else,
     Then,

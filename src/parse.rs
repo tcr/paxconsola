@@ -121,7 +121,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
     let mut output: Vec<Pax> = vec![];
     let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
-    let mut functions: IndexMap<String, MarkerGroup> = IndexMap::new();
+    let mut functions: Vec<MarkerGroup> = vec![];
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
     let mut variable_offset: usize = 0;
 
@@ -155,11 +155,11 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             ParseMode::FunctionName => {
                 match token {
                     Token::Word(ref word) => {
-                        let function_offset = output.len() + 1;
-                        output.push(Pax::Function);
+                        // output.push(Pax::Function);
+                        let function_offset = output.len(); // don't include first word
 
                         let group = MarkerGroup::new(word.to_owned(), function_offset);
-                        functions.insert(word.to_string(), group);
+                        functions.push(group);
                     }
                     _ => panic!("expected function name"),
                 }
@@ -195,7 +195,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             continue;
                         }
                         // Functions shadow all terms
-                        if let Some(group) = functions.get_mut(word.as_str()) {
+                        if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
                             group.push_marker(&mut output);
                             output.push(Pax::Call);
                             continue;
@@ -211,7 +211,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "allot" => {
                                 if previous_tokens[previous_tokens.len() - 2] == Token::Word("cells".to_string()) {
                                     // Hack for removing cells reference from fn group
-                                    functions.get_mut("cells").unwrap().target_indices.pop();
+                                    functions.iter_mut().find(|c| c.name == "cells").unwrap().target_indices.pop();
 
                                     let cells = &previous_tokens[previous_tokens.len() - 3];
                                     match cells {
@@ -242,6 +242,14 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 }
                             }
 
+                            "recurse" => {
+                                // TODO is fetching latest function correct?
+                                let group = functions.last_mut().unwrap();
+                                group.push_marker(&mut output);
+                                output.push(Pax::Jump);
+                                continue;
+                            }
+
                             // pax
                             "+" => output.push(Pax::Add),
                             ">r" => output.push(Pax::AltPush),
@@ -259,7 +267,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 parse_mode = ParseMode::FunctionName;
                             }
                             ";" => output.push(Pax::Exit),
-                            "recurse" => output.push(Pax::Recurse),
+                            
                             "if" => output.push(Pax::If),
                             "else" => output.push(Pax::Else),
                             "then" => output.push(Pax::Then),
@@ -289,14 +297,13 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     output.push(Pax::Stop);
 
     if true {
-        const FUNC_OPCODE_ADJUST: usize = 1;
+        const FUNC_OPCODE_ADJUST: usize = 0;
 
-
-        let keys = functions.keys().cloned().collect::<Vec<_>>();
+        let keys = 0..functions.len();
 
         // Move first function to end
         for key in keys {
-            let func = functions.get_mut(&key).unwrap();
+            let func = &mut functions[key];
 
             let offset_start = func.source_index - FUNC_OPCODE_ADJUST;
             let mut offset_end = offset_start;
@@ -313,7 +320,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             // Update function position.
 
             // Now relocate all other indexes.
-            for func in functions.values_mut() {
+            for func in &mut functions {
                 if func.source_index == offset_start + FUNC_OPCODE_ADJUST {
                     func.source_index = new_func_offset + FUNC_OPCODE_ADJUST;
                 } else if func.source_index > offset_start {
@@ -334,7 +341,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     }
 
     // Finalize function positions
-    for function in functions.values() {
+    for function in &mut functions {
         function.update(&mut output);
     }
 

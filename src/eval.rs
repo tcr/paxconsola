@@ -200,10 +200,10 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 frame += 1;
 
                 if frame == 4 {
-                    // HACK fill in last-key
+                    // HACK fill in last-key while interpreting
                     variables[576] = 38;
                 } else if frame == 12 {
-                    // HACK fill in last-key
+                    // HACK fill in last-key while interpreting
                     variables[576] = 37;
                 }
             }
@@ -224,6 +224,12 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 alt_stack.push(cindex as u32);
                 cindex = function_start as _;
                 do_level.push(0);
+            }
+            // jump (recurse)
+            Pax::Jump => {
+                let function_start = stack.pop().unwrap();
+                cindex = function_start as _;
+                do_level.push(0); // dunno if correct
             }
             // ;
             Pax::Exit => {
