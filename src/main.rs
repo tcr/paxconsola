@@ -52,7 +52,7 @@ variable  temp \ 578
 ";
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "paxconolas")]
+#[structopt(name = "paxconsolas")]
 struct Args {
     #[structopt(short, long)]
     compile: bool,

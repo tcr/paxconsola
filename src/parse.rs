@@ -79,9 +79,9 @@ pub struct MarkerGroup {
 }
 
 impl MarkerGroup {
-    fn new(name: String, index: usize) -> MarkerGroup {
+    fn new(name: &str, index: usize) -> MarkerGroup {
         MarkerGroup {
-            name,
+            name: name.to_string(),
             target_indices: vec![],
             source_index: index,
         }
@@ -124,6 +124,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     let mut functions: Vec<MarkerGroup> = vec![];
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
     let mut variable_offset: usize = 0;
+    let mut flow_markers: Vec<MarkerGroup> = vec![];
+    let mut used_flow_markers: Vec<MarkerGroup> = vec![];
 
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
@@ -158,7 +160,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                         // output.push(Pax::Function);
                         let function_offset = output.len(); // don't include first word
 
-                        let group = MarkerGroup::new(word.to_owned(), function_offset);
+                        let group = MarkerGroup::new(word, function_offset);
                         functions.push(group);
                     }
                     _ => panic!("expected function name"),
@@ -250,6 +252,17 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 continue;
                             }
 
+                            "begin" => {
+                                flow_markers.push(MarkerGroup::new("begin", output.len()));
+                            }
+                            "until" => {
+                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                assert_eq!(group.name, "begin", "expected begin loop");
+                                group.push_marker(&mut output);
+                                output.push(Pax::JumpIf0);
+                                used_flow_markers.push(group);
+                            }
+
                             // pax
                             "+" => output.push(Pax::Add),
                             ">r" => output.push(Pax::AltPush),
@@ -264,6 +277,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "*" => output.push(Pax::Multiply),
                             "%" => output.push(Pax::Remainder),
                             ":" => {
+                                assert_eq!(flow_markers.len(), 0, "expected empty loop stack");
                                 parse_mode = ParseMode::FunctionName;
                             }
                             ";" => output.push(Pax::Exit),
@@ -279,8 +293,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "+loop" => output.push(Pax::PlusLoop),
                             "i" => output.push(Pax::IIndex),
                             "j" => output.push(Pax::JIndex),
-                            "begin" => output.push(Pax::Begin),
-                            "until" => output.push(Pax::Until),
                             _ => {
                                 panic!("unknown value: {:?}", word);
                             }
@@ -293,6 +305,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
         }
     }
+
+    assert_eq!(flow_markers.len(), 0, "did not exhaust all flow markers");
 
     output.push(Pax::Stop);
 
@@ -320,7 +334,10 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             // Update function position.
 
             // Now relocate all other indexes.
-            for func in &mut functions {
+            let mut groups = vec![];
+            groups.extend(functions.iter_mut());
+            groups.extend(used_flow_markers.iter_mut());
+            for func in groups {
                 if func.source_index == offset_start + FUNC_OPCODE_ADJUST {
                     func.source_index = new_func_offset + FUNC_OPCODE_ADJUST;
                 } else if func.source_index > offset_start {
@@ -341,7 +358,10 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     }
 
     // Finalize function positions
-    for function in &mut functions {
+    let mut groups = vec![];
+    groups.extend(functions.iter_mut());
+    groups.extend(used_flow_markers.iter_mut());
+    for function in groups {
         function.update(&mut output);
     }
 

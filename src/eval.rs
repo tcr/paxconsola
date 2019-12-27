@@ -69,17 +69,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 // Never can be nested twice
                 stack.push(loop_stack[loop_stack.len() - 1].0);
             }
-            Pax::Begin => {
-                loop_stack.push((0, 0, cindex));
-            }
-            Pax::Until => {
-                let condition = stack.pop().unwrap();
-                if condition == 0 {
-                    cindex = loop_stack.last().unwrap().2;
-                } else {
-                    loop_stack.pop();
-                }
-            }
 
             // print
             Pax::Print => {
@@ -254,6 +243,15 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(d % b);
+            }
+            // jump (recurse)
+            Pax::JumpIf0 => {
+                let dest = stack.pop().unwrap();
+                let cond = stack.pop().unwrap();
+                if cond == 0 {
+                    cindex = dest as _;
+                    do_level.push(0); // TODO dunno if correct
+                }
             }
             // if
             Pax::If => {

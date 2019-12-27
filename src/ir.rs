@@ -27,6 +27,7 @@ pub enum Pax {
 
     Recurse,
     Jump, // temporary, for <recurse>
+    JumpIf0,
 
     If,
     Else,
@@ -36,6 +37,4 @@ pub enum Pax {
     PlusLoop,
     IIndex,
     JIndex,
-    Begin,
-    Until,
 }
