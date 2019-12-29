@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
 use crate::*;
+use lazy_static::*;
+use regex::Regex;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum GbIr {
@@ -104,16 +106,29 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
     }
 }
 
+lazy_static! {
+    static ref RE_TRIM_GB: Regex = Regex::new(r"^\s*?\n|\n\s*?$").unwrap();
+}
+
+macro_rules! gb_output {
+    ($fmt:expr) => (
+        println!("{}", RE_TRIM_GB.replace_all(&format!(concat!($fmt, "\n")), ""))
+    );
+    ($fmt:expr, $($arg:tt)*) => (
+        println!("{}", RE_TRIM_GB.replace_all(&format!(concat!($fmt, "\n"), $($arg)*), ""))
+    );
+}
+
 pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
-    println!("
+    gb_output!("
     ; [gb_ir] {:?}
         ", op);
     match op {
-        GbIr::Metadata(s) => println!("
+        GbIr::Metadata(s) => gb_output!("
     ; [metadata] {:?}
         ", s),
         GbIr::Dup => {
-            println!("
+            gb_output!("
     dec c
     ld a, h
     ld [c], a
@@ -123,7 +138,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
             ");
         }
         GbIr::Pop => {
-            println!("
+            gb_output!("
     ld a, [c]
     ld l, a
     inc c
@@ -133,17 +148,17 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
             ");
         }
         GbIr::ReplaceLiteral(lit) => {
-            println!("
+            gb_output!("
     ld hl,{lit}
             ", lit=lit);
         }
         GbIr::ReplaceLabel(lit) => {
-            println!("
+            gb_output!("
     ld hl,.opcode_{lit}
             ", lit=lit);
         }
         GbIr::NipIntoDE => {
-            println!("
+            gb_output!("
     ; Move second item to TOS
     ld a, [c]
     ld e, a
@@ -154,26 +169,27 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
             ");
         }
         GbIr::CopyToA => {
-            println!("
+            gb_output!("
     ; Move to accumulator for comparison
     ld a,l
             ");
         }
         GbIr::ReplaceLoad => {
-            println!("
+            // 8-bit load
+            gb_output!("
     ld a, [hl]
     ld h, 0
     ld l, a
             ");
         }
         GbIr::StoreDE => {
-            println!("
+            gb_output!("
     ld a, e
     ld [hl],a
             ");
         }
         GbIr::JumpIfDEIs0 => {
-            println!("
+            gb_output!("
     ld a, e
     cp $0
     jp nz,.next_{index}
@@ -183,7 +199,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
             *idx += 1;
         }
         GbIr::CompareDEAndReplace => {
-            println!("
+            gb_output!("
     ld a, d
     cp h
     jp nz,.next_{index_1}
@@ -199,27 +215,31 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
             *idx += 2;
         }
         GbIr::ReplaceAddWithDE => {
-            println!("
+            gb_output!("
     add hl, de
             ");
         }
         GbIr::AltDup => {
-            println!("
+            gb_output!("
     push hl
             ");
         }
         GbIr::AltPop => {
-            println!("
+            gb_output!("
     pop hl
             ");
         }
         GbIr::Ret => {
-            println!("ret");
+            gb_output!("
+    ret
+            ");
         }
         GbIr::PopAndCall => {
-            println!("inc c");
-            println!("inc c");
-            println!("call EMULATE_JP_HL");
+            gb_output!("
+    inc c
+    inc c
+    call EMULATE_JP_HL
+            ");
         }
     }
 }

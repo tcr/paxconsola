@@ -38,4 +38,5 @@ last-key @
 
 )
 
-39 39 over = if move-left then
+last-key @
+  left over = if move-left then
