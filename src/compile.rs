@@ -4,6 +4,8 @@ use crate::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum GbIr {
+    Metadata(String),
+
     // ( a -- a a )
     Dup,                        // dup hl onto stack
     // ( a -- value )
@@ -38,7 +40,9 @@ pub enum GbIr {
 
 fn translate_to_gb(op: Pax) -> Vec<GbIr> {
     match op {  
-        Pax::Metadata(_) => vec![],
+        Pax::Metadata(s) => vec![
+            GbIr::Metadata(s)
+        ],
         // ( -- value )
         Pax::PushLiteral(value) => vec![
             GbIr::Dup,
@@ -105,6 +109,9 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     ; [gb_ir] {:?}
         ", op);
     match op {
+        GbIr::Metadata(s) => println!("
+    ; [metadata] {:?}
+        ", s),
         GbIr::Dup => {
             println!("
     dec c
@@ -223,84 +230,11 @@ pub fn cross_compile_forth_gb(code: Vec<Pax>) {
     let mut idx = 0;
     for (i, op) in code.iter().enumerate() {
         println!("
+; [pax_ir] {:?}
 .opcode_{}:
-    ; [pax] {:?}
-        ", i, op);
+        ", op, i);
 
-        if true {
-            translate_to_gb(op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(&mut idx, g));
-            continue;
-        }
-
-        match op {
-            Pax::PushLiteral(lit) => {
-                println!("
-    ld d, h
-    ld e, l
-    ld hl,{lit}
-                ", lit=lit);
-            }
-            Pax::PushLabel(lit) => {
-                println!("
-    ld d, h
-    ld e, l
-    ld hl,.opcode_{lit}
-                ", lit=lit);
-            }
-            Pax::Load => {
-                println!("
-    ld a, [hl]
-    ld h, a
-    ld l, 0
-                ");
-            }
-            Pax::Store => {
-                println!("
-    ld a, e
-    ld [hl],a
-                ");
-            }
-            Pax::JumpIf0 => {
-                println!("
-    ld a,e
-    cp $0
-    jp nz,.next_{index}
-    jp hl
-.next_{index}:
-                ", index = idx);
-                idx += 1;
-            }
-            Pax::Equals => {
-                println!("
-    ld a, d
-    cp h
-    jp nz,.next_{index_1}
-    ld a, e
-    cp l
-    jp nz,.next_{index_1}
-    ld hl, $1
-    ; pop de
-    jp .next_{index_2}
-.next_{index_1}:
-    ld hl, $0
-    ; pop de
-.next_{index_2}:
-                ", index_1 = idx, index_2 = idx + 1);
-                idx += 2;
-            }
-            Pax::Exit => {
-                println!("ret");
-            }
-            Pax::Call => {
-                println!("call EMULATE_JP_HL");
-            }
-            Pax::Stop => {
-                println!("ret");
-            }
-            op => {
-                panic!("not yet implemented: {:?}", op);
-            }
-        }
+        translate_to_gb(op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(&mut idx, g));
     }
 
     println!("

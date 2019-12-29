@@ -11,34 +11,31 @@ $9800 constant graphics
 : drop    if then ;
 : over   >r temp ! temp @ r> temp @ ;
 
-: turn-right 18 graphics 3 + ! ;
-: turn-left 21 graphics ! ;
-: turn-up 19 graphics 2 + ! ;
-: turn-down 20 graphics 1 + ! ;
-
-\ todo why does over not work
-
-last-key @ 
-  left = if turn-left then
-last-key @ 
-  right = if turn-right then
-last-key @ 
-  up = if turn-up then
-last-key @ 
-  down = if turn-down then
+: move-right 18 graphics 3 + ! ;
+: move-left 21 graphics ! ;
+: move-up 19 graphics 2 + ! ;
+: move-down 20 graphics 1 + ! ;
 
 (
 
-: move-left 11 graphics ! ;
-: move-up 10 graphics ! ;
-: move-right 13 graphics ! ;
-: move-down 12 graphics ! ;
+last-key @ 
+  left = if move-left then
+last-key @ 
+  right = if move-right then
+last-key @ 
+  up = if move-up then
+last-key @ 
+  down = if move-down then
 
+
+  
 last-key @ 
   left over = if move-left else
   up over    = if move-up else
   right over = if move-right else
   down over  = if move-down
-  then then then then drop
+  then then then then
 
 )
+
+39 39 over = if move-left then

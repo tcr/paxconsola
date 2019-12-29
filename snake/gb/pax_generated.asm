@@ -1,6 +1,6 @@
 
+; [pax_ir] PushLiteral(39)
 .opcode_0:
-    ; [pax] PushLiteral(49156)
         
 
     ; [gb_ir] Dup
@@ -14,26 +14,14 @@
     ld [c], a
             
 
-    ; [gb_ir] ReplaceLiteral(49156)
+    ; [gb_ir] ReplaceLiteral(39)
         
 
-    ld hl,49156
+    ld hl,39
             
 
+; [pax_ir] PushLiteral(39)
 .opcode_1:
-    ; [pax] Load
-        
-
-    ; [gb_ir] ReplaceLoad
-        
-
-    ld a, [hl]
-    ld h, 0
-    ld l, a
-            
-
-.opcode_2:
-    ; [pax] PushLiteral(37)
         
 
     ; [gb_ir] Dup
@@ -47,14 +35,45 @@
     ld [c], a
             
 
-    ; [gb_ir] ReplaceLiteral(37)
+    ; [gb_ir] ReplaceLiteral(39)
         
 
-    ld hl,37
+    ld hl,39
             
 
+; [pax_ir] PushLabel(14)
+.opcode_2:
+        
+
+    ; [gb_ir] Dup
+        
+
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+            
+
+    ; [gb_ir] ReplaceLabel(14)
+        
+
+    ld hl,.opcode_14
+            
+
+; [pax_ir] Call
 .opcode_3:
-    ; [pax] Equals
+        
+
+    ; [gb_ir] PopAndCall
+        
+inc c
+inc c
+call EMULATE_JP_HL
+
+; [pax_ir] Equals
+.opcode_4:
         
 
     ; [gb_ir] NipIntoDE
@@ -85,8 +104,8 @@
 .next_1:
             
 
-.opcode_4:
-    ; [pax] PushLabel(8)
+; [pax_ir] PushLabel(9)
+.opcode_5:
         
 
     ; [gb_ir] Dup
@@ -100,14 +119,14 @@
     ld [c], a
             
 
-    ; [gb_ir] ReplaceLabel(8)
+    ; [gb_ir] ReplaceLabel(9)
         
 
-    ld hl,.opcode_8
+    ld hl,.opcode_9
             
 
-.opcode_5:
-    ; [pax] JumpIf0
+; [pax_ir] JumpIf0
+.opcode_6:
         
 
     ; [gb_ir] NipIntoDE
@@ -132,602 +151,122 @@
 .next_2:
             
 
-.opcode_6:
-    ; [pax] PushLabel(54)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(54)
-        
-
-    ld hl,.opcode_54
-            
-
+; [pax_ir] PushLabel(31)
 .opcode_7:
-    ; [pax] Call
         
 
-    ; [gb_ir] PopAndCall
+    ; [gb_ir] Dup
         
-inc c
-inc c
-call EMULATE_JP_HL
 
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+            
+
+    ; [gb_ir] ReplaceLabel(31)
+        
+
+    ld hl,.opcode_31
+            
+
+; [pax_ir] Call
 .opcode_8:
-    ; [pax] PushLiteral(49156)
         
 
-    ; [gb_ir] Dup
+    ; [gb_ir] PopAndCall
         
+inc c
+inc c
+call EMULATE_JP_HL
 
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLiteral(49156)
-        
-
-    ld hl,49156
-            
-
+; [pax_ir] Stop
 .opcode_9:
-    ; [pax] Load
         
 
-    ; [gb_ir] ReplaceLoad
+    ; [gb_ir] Ret
         
+ret
 
-    ld a, [hl]
-    ld h, 0
-    ld l, a
-            
-
+; [pax_ir] Metadata("drop")
 .opcode_10:
-    ; [pax] PushLiteral(39)
         
 
-    ; [gb_ir] Dup
+    ; [gb_ir] Metadata("drop")
         
 
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLiteral(39)
+    ; [metadata] "drop"
         
 
-    ld hl,39
-            
-
+; [pax_ir] PushLabel(13)
 .opcode_11:
-    ; [pax] Equals
         
 
-    ; [gb_ir] NipIntoDE
+    ; [gb_ir] Dup
         
 
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
             
 
-    ; [gb_ir] CompareDEAndReplace
+    ; [gb_ir] ReplaceLabel(13)
         
 
-    ld a, d
-    cp h
-    jp nz,.next_3
-    ld a, e
-    cp l
-    jp nz,.next_3
-    ld hl, $1
-    jp .next_4
-.next_3:
-    ld hl, $0
-.next_4:
+    ld hl,.opcode_13
             
 
+; [pax_ir] JumpIf0
 .opcode_12:
-    ; [pax] PushLabel(16)
         
 
-    ; [gb_ir] Dup
+    ; [gb_ir] NipIntoDE
         
 
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc C
+    ld a, [c]
+    ld d, a
+    inc c
             
 
-    ; [gb_ir] ReplaceLabel(16)
+    ; [gb_ir] JumpIfDEIs0
         
 
-    ld hl,.opcode_16
+    ld a, e
+    cp $0
+    jp nz,.next_3
+    jp hl
+.next_3:
             
 
+; [pax_ir] Exit
 .opcode_13:
-    ; [pax] JumpIf0
         
 
-    ; [gb_ir] NipIntoDE
+    ; [gb_ir] Ret
         
+ret
 
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
-            
-
-    ; [gb_ir] JumpIfDEIs0
-        
-
-    ld a, e
-    cp $0
-    jp nz,.next_5
-    jp hl
-.next_5:
-            
-
+; [pax_ir] Metadata("over")
 .opcode_14:
-    ; [pax] PushLabel(47)
         
 
-    ; [gb_ir] Dup
+    ; [gb_ir] Metadata("over")
         
 
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(47)
+    ; [metadata] "over"
         
 
-    ld hl,.opcode_47
-            
-
+; [pax_ir] AltPush
 .opcode_15:
-    ; [pax] Call
-        
-
-    ; [gb_ir] PopAndCall
-        
-inc c
-inc c
-call EMULATE_JP_HL
-
-.opcode_16:
-    ; [pax] PushLiteral(49156)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLiteral(49156)
-        
-
-    ld hl,49156
-            
-
-.opcode_17:
-    ; [pax] Load
-        
-
-    ; [gb_ir] ReplaceLoad
-        
-
-    ld a, [hl]
-    ld h, 0
-    ld l, a
-            
-
-.opcode_18:
-    ; [pax] PushLiteral(38)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLiteral(38)
-        
-
-    ld hl,38
-            
-
-.opcode_19:
-    ; [pax] Equals
-        
-
-    ; [gb_ir] NipIntoDE
-        
-
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
-            
-
-    ; [gb_ir] CompareDEAndReplace
-        
-
-    ld a, d
-    cp h
-    jp nz,.next_6
-    ld a, e
-    cp l
-    jp nz,.next_6
-    ld hl, $1
-    jp .next_7
-.next_6:
-    ld hl, $0
-.next_7:
-            
-
-.opcode_20:
-    ; [pax] PushLabel(24)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(24)
-        
-
-    ld hl,.opcode_24
-            
-
-.opcode_21:
-    ; [pax] JumpIf0
-        
-
-    ; [gb_ir] NipIntoDE
-        
-
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
-            
-
-    ; [gb_ir] JumpIfDEIs0
-        
-
-    ld a, e
-    cp $0
-    jp nz,.next_8
-    jp hl
-.next_8:
-            
-
-.opcode_22:
-    ; [pax] PushLabel(59)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(59)
-        
-
-    ld hl,.opcode_59
-            
-
-.opcode_23:
-    ; [pax] Call
-        
-
-    ; [gb_ir] PopAndCall
-        
-inc c
-inc c
-call EMULATE_JP_HL
-
-.opcode_24:
-    ; [pax] PushLiteral(49156)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLiteral(49156)
-        
-
-    ld hl,49156
-            
-
-.opcode_25:
-    ; [pax] Load
-        
-
-    ; [gb_ir] ReplaceLoad
-        
-
-    ld a, [hl]
-    ld h, 0
-    ld l, a
-            
-
-.opcode_26:
-    ; [pax] PushLiteral(40)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLiteral(40)
-        
-
-    ld hl,40
-            
-
-.opcode_27:
-    ; [pax] Equals
-        
-
-    ; [gb_ir] NipIntoDE
-        
-
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
-            
-
-    ; [gb_ir] CompareDEAndReplace
-        
-
-    ld a, d
-    cp h
-    jp nz,.next_9
-    ld a, e
-    cp l
-    jp nz,.next_9
-    ld hl, $1
-    jp .next_10
-.next_9:
-    ld hl, $0
-.next_10:
-            
-
-.opcode_28:
-    ; [pax] PushLabel(32)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(32)
-        
-
-    ld hl,.opcode_32
-            
-
-.opcode_29:
-    ; [pax] JumpIf0
-        
-
-    ; [gb_ir] NipIntoDE
-        
-
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
-            
-
-    ; [gb_ir] JumpIfDEIs0
-        
-
-    ld a, e
-    cp $0
-    jp nz,.next_11
-    jp hl
-.next_11:
-            
-
-.opcode_30:
-    ; [pax] PushLabel(66)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(66)
-        
-
-    ld hl,.opcode_66
-            
-
-.opcode_31:
-    ; [pax] Call
-        
-
-    ; [gb_ir] PopAndCall
-        
-inc c
-inc c
-call EMULATE_JP_HL
-
-.opcode_32:
-    ; [pax] Stop
-        
-
-    ; [gb_ir] Ret
-        
-ret
-
-.opcode_33:
-    ; [pax] Metadata("drop")
-        
-
-.opcode_34:
-    ; [pax] PushLabel(36)
-        
-
-    ; [gb_ir] Dup
-        
-
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-            
-
-    ; [gb_ir] ReplaceLabel(36)
-        
-
-    ld hl,.opcode_36
-            
-
-.opcode_35:
-    ; [pax] JumpIf0
-        
-
-    ; [gb_ir] NipIntoDE
-        
-
-    ; Move second item to TOS
-    ld a, [c]
-    ld e, a
-    inc C
-    ld a, [c]
-    ld d, a
-    inc c
-            
-
-    ; [gb_ir] JumpIfDEIs0
-        
-
-    ld a, e
-    cp $0
-    jp nz,.next_12
-    jp hl
-.next_12:
-            
-
-.opcode_36:
-    ; [pax] Exit
-        
-
-    ; [gb_ir] Ret
-        
-ret
-
-.opcode_37:
-    ; [pax] Metadata("over")
-        
-
-.opcode_38:
-    ; [pax] AltPush
         
 
     ; [gb_ir] AltDup
@@ -747,8 +286,8 @@ ret
     inc c                
             
 
-.opcode_39:
-    ; [pax] PushLiteral(49158)
+; [pax_ir] PushLiteral(49158)
+.opcode_16:
         
 
     ; [gb_ir] Dup
@@ -768,8 +307,8 @@ ret
     ld hl,49158
             
 
-.opcode_40:
-    ; [pax] Store
+; [pax_ir] Store
+.opcode_17:
         
 
     ; [gb_ir] NipIntoDE
@@ -802,8 +341,8 @@ ret
     inc c                
             
 
-.opcode_41:
-    ; [pax] PushLiteral(49158)
+; [pax_ir] PushLiteral(49158)
+.opcode_18:
         
 
     ; [gb_ir] Dup
@@ -823,8 +362,8 @@ ret
     ld hl,49158
             
 
-.opcode_42:
-    ; [pax] Load
+; [pax_ir] Load
+.opcode_19:
         
 
     ; [gb_ir] ReplaceLoad
@@ -835,8 +374,8 @@ ret
     ld l, a
             
 
-.opcode_43:
-    ; [pax] AltPop
+; [pax_ir] AltPop
+.opcode_20:
         
 
     ; [gb_ir] AltPop
@@ -845,8 +384,8 @@ ret
     pop hl
             
 
-.opcode_44:
-    ; [pax] PushLiteral(49158)
+; [pax_ir] PushLiteral(49158)
+.opcode_21:
         
 
     ; [gb_ir] Dup
@@ -866,8 +405,8 @@ ret
     ld hl,49158
             
 
-.opcode_45:
-    ; [pax] Load
+; [pax_ir] Load
+.opcode_22:
         
 
     ; [gb_ir] ReplaceLoad
@@ -878,20 +417,26 @@ ret
     ld l, a
             
 
-.opcode_46:
-    ; [pax] Exit
+; [pax_ir] Exit
+.opcode_23:
         
 
     ; [gb_ir] Ret
         
 ret
 
-.opcode_47:
-    ; [pax] Metadata("turn-right")
+; [pax_ir] Metadata("move-right")
+.opcode_24:
         
 
-.opcode_48:
-    ; [pax] PushLiteral(18)
+    ; [gb_ir] Metadata("move-right")
+        
+
+    ; [metadata] "move-right"
+        
+
+; [pax_ir] PushLiteral(18)
+.opcode_25:
         
 
     ; [gb_ir] Dup
@@ -911,8 +456,8 @@ ret
     ld hl,18
             
 
-.opcode_49:
-    ; [pax] PushLiteral(38912)
+; [pax_ir] PushLiteral(38912)
+.opcode_26:
         
 
     ; [gb_ir] Dup
@@ -932,8 +477,8 @@ ret
     ld hl,38912
             
 
-.opcode_50:
-    ; [pax] PushLiteral(3)
+; [pax_ir] PushLiteral(3)
+.opcode_27:
         
 
     ; [gb_ir] Dup
@@ -953,8 +498,8 @@ ret
     ld hl,3
             
 
-.opcode_51:
-    ; [pax] Add
+; [pax_ir] Add
+.opcode_28:
         
 
     ; [gb_ir] NipIntoDE
@@ -975,8 +520,8 @@ ret
     add hl, de
             
 
-.opcode_52:
-    ; [pax] Store
+; [pax_ir] Store
+.opcode_29:
         
 
     ; [gb_ir] NipIntoDE
@@ -1009,20 +554,26 @@ ret
     inc c                
             
 
-.opcode_53:
-    ; [pax] Exit
+; [pax_ir] Exit
+.opcode_30:
         
 
     ; [gb_ir] Ret
         
 ret
 
-.opcode_54:
-    ; [pax] Metadata("turn-left")
+; [pax_ir] Metadata("move-left")
+.opcode_31:
         
 
-.opcode_55:
-    ; [pax] PushLiteral(21)
+    ; [gb_ir] Metadata("move-left")
+        
+
+    ; [metadata] "move-left"
+        
+
+; [pax_ir] PushLiteral(21)
+.opcode_32:
         
 
     ; [gb_ir] Dup
@@ -1042,8 +593,8 @@ ret
     ld hl,21
             
 
-.opcode_56:
-    ; [pax] PushLiteral(38912)
+; [pax_ir] PushLiteral(38912)
+.opcode_33:
         
 
     ; [gb_ir] Dup
@@ -1063,8 +614,8 @@ ret
     ld hl,38912
             
 
-.opcode_57:
-    ; [pax] Store
+; [pax_ir] Store
+.opcode_34:
         
 
     ; [gb_ir] NipIntoDE
@@ -1097,20 +648,26 @@ ret
     inc c                
             
 
-.opcode_58:
-    ; [pax] Exit
+; [pax_ir] Exit
+.opcode_35:
         
 
     ; [gb_ir] Ret
         
 ret
 
-.opcode_59:
-    ; [pax] Metadata("turn-up")
+; [pax_ir] Metadata("move-up")
+.opcode_36:
         
 
-.opcode_60:
-    ; [pax] PushLiteral(19)
+    ; [gb_ir] Metadata("move-up")
+        
+
+    ; [metadata] "move-up"
+        
+
+; [pax_ir] PushLiteral(19)
+.opcode_37:
         
 
     ; [gb_ir] Dup
@@ -1130,8 +687,8 @@ ret
     ld hl,19
             
 
-.opcode_61:
-    ; [pax] PushLiteral(38912)
+; [pax_ir] PushLiteral(38912)
+.opcode_38:
         
 
     ; [gb_ir] Dup
@@ -1151,8 +708,8 @@ ret
     ld hl,38912
             
 
-.opcode_62:
-    ; [pax] PushLiteral(2)
+; [pax_ir] PushLiteral(2)
+.opcode_39:
         
 
     ; [gb_ir] Dup
@@ -1172,8 +729,8 @@ ret
     ld hl,2
             
 
-.opcode_63:
-    ; [pax] Add
+; [pax_ir] Add
+.opcode_40:
         
 
     ; [gb_ir] NipIntoDE
@@ -1194,8 +751,8 @@ ret
     add hl, de
             
 
-.opcode_64:
-    ; [pax] Store
+; [pax_ir] Store
+.opcode_41:
         
 
     ; [gb_ir] NipIntoDE
@@ -1228,20 +785,26 @@ ret
     inc c                
             
 
-.opcode_65:
-    ; [pax] Exit
+; [pax_ir] Exit
+.opcode_42:
         
 
     ; [gb_ir] Ret
         
 ret
 
-.opcode_66:
-    ; [pax] Metadata("turn-down")
+; [pax_ir] Metadata("move-down")
+.opcode_43:
         
 
-.opcode_67:
-    ; [pax] PushLiteral(20)
+    ; [gb_ir] Metadata("move-down")
+        
+
+    ; [metadata] "move-down"
+        
+
+; [pax_ir] PushLiteral(20)
+.opcode_44:
         
 
     ; [gb_ir] Dup
@@ -1261,8 +824,8 @@ ret
     ld hl,20
             
 
-.opcode_68:
-    ; [pax] PushLiteral(38912)
+; [pax_ir] PushLiteral(38912)
+.opcode_45:
         
 
     ; [gb_ir] Dup
@@ -1282,8 +845,8 @@ ret
     ld hl,38912
             
 
-.opcode_69:
-    ; [pax] PushLiteral(1)
+; [pax_ir] PushLiteral(1)
+.opcode_46:
         
 
     ; [gb_ir] Dup
@@ -1303,8 +866,8 @@ ret
     ld hl,1
             
 
-.opcode_70:
-    ; [pax] Add
+; [pax_ir] Add
+.opcode_47:
         
 
     ; [gb_ir] NipIntoDE
@@ -1325,8 +888,8 @@ ret
     add hl, de
             
 
-.opcode_71:
-    ; [pax] Store
+; [pax_ir] Store
+.opcode_48:
         
 
     ; [gb_ir] NipIntoDE
@@ -1359,8 +922,8 @@ ret
     inc c                
             
 
-.opcode_72:
-    ; [pax] Exit
+; [pax_ir] Exit
+.opcode_49:
         
 
     ; [gb_ir] Ret
