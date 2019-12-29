@@ -162,6 +162,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                         let group = MarkerGroup::new(word, function_offset);
                         functions.push(group);
+
+                        output.push(Pax::Metadata(word.to_string()));
                     }
                     _ => panic!("expected function name"),
                 }
@@ -261,6 +263,33 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 output.push(Pax::JumpIf0);
                                 used_flow_markers.push(group);
                             }
+                            "do" => {
+                                output.push(Pax::AltPush);
+                                output.push(Pax::AltPush);
+                                flow_markers.push(MarkerGroup::new("<do>", output.len()));
+                            }
+                            "loop" => {
+                                let group = functions.iter_mut().find(|c| c.name == "loopimpl").expect("no :loopimpl defn found");
+                                group.push_marker(&mut output);
+                                output.push(Pax::Call);
+
+                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                assert_eq!(group.name, "<do>", "expected do loop");
+                                group.push_marker(&mut output);
+                                output.push(Pax::JumpIf0);
+                                used_flow_markers.push(group);
+                            }
+                            "+loop" => {
+                                let group = functions.iter_mut().find(|c| c.name == "+loopimpl").expect("no :loopimpl defn found");
+                                group.push_marker(&mut output);
+                                output.push(Pax::Call);
+
+                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                assert_eq!(group.name, "<do>", "expected do loop");
+                                group.push_marker(&mut output);
+                                output.push(Pax::JumpIf0);
+                                used_flow_markers.push(group);
+                            }
                             "if" => {
                                 let mut group = MarkerGroup::new("<if>", output.len());
                                 group.push_marker(&mut output);
@@ -309,11 +338,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                             "sleep" => output.push(Pax::Sleep),
 
-                            "do" => output.push(Pax::Do),
-                            "loop" => output.push(Pax::Loop),
-                            "+loop" => output.push(Pax::PlusLoop),
-                            "i" => output.push(Pax::IIndex),
-                            "j" => output.push(Pax::JIndex),
                             _ => {
                                 panic!("unknown value: {:?}", word);
                             }

@@ -9,7 +9,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
     let mut alt_stack: Vec<u32> = vec![];
 
     // (index, limit, loop start)
-    let mut loop_stack: Vec<(u32, u32, usize)> = Vec::with_capacity(32);
     let mut do_level: Vec<usize> = vec![0];
 
     // TODO could look up max variable allocation from compiled artifact.
@@ -24,58 +23,24 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
         let op = code[cindex].clone();
         cindex += 1;
         
-        // eprintln!("[op#{:>4}]  {:<12}   stack: {:?}", format!("{}", cindex - 1), format!("{:?}", op), stack);
+        // eprintln!("[op#{:>4}]  {:<20}   stack: {:?}\n                                    alt: {:?}", format!("{}", cindex - 1), format!("{:?}", op), stack, alt_stack);
         match op {
             Pax::PushLiteral(lit) => {
                 stack.push(lit as u32);
             }
             Pax::PushLabel(lit) => {
-                // All labels just use their opcode indexes.
+                // All labels in the interpreter just use their opcode indexes.
                 stack.push(lit as u32);
             }
 
             Pax::Equals => {
                 unimplemented!();
             }
-            Pax::Do => {
-                let index = stack.pop().unwrap();
-                let limit = stack.pop().unwrap();
-                loop_stack.push((index, limit, cindex));
-                *do_level.last_mut().unwrap() += 1;
-            }
-            Pax::Loop => {
-                let (index, limit, startindex) = loop_stack.last().unwrap().clone();
-                let next_value = index.wrapping_add(1);
-                if next_value != limit {
-                    loop_stack.last_mut().unwrap().0 = next_value;
-                    cindex = startindex;
-                } else {
-                    loop_stack.pop();
-                    *do_level.last_mut().unwrap() -= 1;
-                }
-            }
-            Pax::PlusLoop => {
-                let value = stack.pop().unwrap();
-                let (index, limit, startindex) = loop_stack.last().unwrap().clone();
-                let next_value = index.wrapping_add(value);
-                if index != limit { // see http://wiki.laptop.org/go/Forth_Lesson_7#Do_Loops
-                    loop_stack.last_mut().unwrap().0 = next_value;
-                    cindex = startindex;
-                } else {
-                    loop_stack.pop();
-                    *do_level.last_mut().unwrap() -= 1;
-                }
-            }
-            Pax::IIndex => {
-                if *do_level.last().unwrap() == 2 {
-                    stack.push(loop_stack[loop_stack.len() - 2].0);
-                } else {
-                    stack.push(loop_stack[loop_stack.len() - 1].0);
-                }
-            }
-            Pax::JIndex => {
-                // Never can be nested twice
-                stack.push(loop_stack[loop_stack.len() - 1].0);
+            // nand
+            Pax::Nand => {
+                let z = stack.pop().unwrap();
+                let y = stack.pop().unwrap();
+                stack.push(!(z & y));
             }
             // +
             Pax::Add => {
@@ -133,12 +98,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let b = alt_stack.pop().unwrap();
                 stack.push(b);
             }
-            // nand
-            Pax::Nand => {
-                let z = stack.pop().unwrap();
-                let y = stack.pop().unwrap();
-                stack.push(!(z & y));
-            }
             // call
             Pax::Call => {
                 let function_start = stack.pop().unwrap();
@@ -171,6 +130,9 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             }
 
 
+            Pax::Metadata(_) => {
+                // no-op
+            }
             // *
             Pax::Multiply => {
                 let b = stack.pop().unwrap();
@@ -187,9 +149,7 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             // print
             Pax::Print => {
                 // debug: Take the top three items from the stack.
-                for &b in stack.iter().rev().take(3) {
-                    println!("{}", b);
-                }
+                println!("{}", stack.pop().unwrap());
             }
             // debugger
             Pax::Debugger => {

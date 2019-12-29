@@ -17,6 +17,8 @@ pub enum Pax {
     PushLiteral(isize),
     PushLabel(isize),
 
+    Metadata(String),
+
     // pax debug
     Print,
     Debugger,
@@ -28,9 +30,4 @@ pub enum Pax {
     Jump, // temporary, for <recurse>
     JumpIf0, // maybe the way forward
 
-    Do,
-    Loop,
-    PlusLoop,
-    IIndex,
-    JIndex,
 }
