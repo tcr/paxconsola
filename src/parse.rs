@@ -279,8 +279,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 output.push(Pax::JumpIf0);
                                 used_flow_markers.push(group);
                             }
-                            "+loop" => {
-                                let group = functions.iter_mut().find(|c| c.name == "+loopimpl").expect("no :loopimpl defn found");
+                            "-loop" => {
+                                let group = functions.iter_mut().find(|c| c.name == "-loopimpl").expect("no :loopimpl defn found");
                                 group.push_marker(&mut output);
                                 output.push(Pax::Call);
 

@@ -37,7 +37,8 @@ pub enum GbIr {
 }
 
 fn translate_to_gb(op: Pax) -> Vec<GbIr> {
-    match op {
+    match op {  
+        Pax::Metadata(_) => vec![],
         // ( -- value )
         Pax::PushLiteral(value) => vec![
             GbIr::Dup,

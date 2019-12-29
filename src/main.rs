@@ -23,7 +23,7 @@ variable  temp \ 578
 : over   >r temp ! temp @ r> temp @ ;
 : rot    >r swap r> swap ;
 
-\ careful! observe the current return stack which includes a return address!
+\ note: must preserve return address!
 : r@   r> r> temp ! temp @ >r temp @ swap >r ;
 
 : dup    temp ! temp @ temp @ ;
@@ -48,10 +48,11 @@ variable  temp \ 578
 
 \ return stack pops off index, then limit, reverse of initial stack order
 \ compare, if equal then cleanup and return 1, else increase index, push, return 0
+\ note: must preserve return address!
 : loopimpl r> r> r> 1+ 2dup = if 2drop 1 else >r >r 0 then swap >r ;
-: +loopimpl r> r> rot r> + 2dup = if 2drop 1 else >r >r 0 then swap >r ;
+: -loopimpl r> r> rot r> swap - 2dup = if 2drop 1 else >r >r 0 then swap >r ;
 
-\ careful! observe the current return stack which includes a return address!
+\ note: must preserve return address!
 : i r> r> r> temp ! temp @ >r >r >r temp @ ;
 : j r> r> r> r> r> temp ! temp @ >r >r >r >r >r temp @ ;
 

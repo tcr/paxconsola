@@ -138,12 +138,14 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(b.wrapping_mul(d));
+                // panic!("multiply not implemented");
             },
             // %
             Pax::Remainder => {
                 let b = stack.pop().unwrap();
                 let d = stack.pop().unwrap();
                 stack.push(d % b);
+                // panic!("remainder not implemented");
             }
 
             // print
