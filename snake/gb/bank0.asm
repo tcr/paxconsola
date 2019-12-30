@@ -39,6 +39,15 @@ START:
 	; Set stack to end of internal RAM
 	ld HL,$CFFF
 	ld SP, HL
+	; Clear memory locations
+	xor a
+	ld [pax_var_last_key], a
+	ld [pax_var_last_key+1], a
+
+	ld a, $ba
+	ld [$fffe], a
+	ld a, $dd
+	ld [$ffff], a
 
 	;call DMA_COPY    ;move DMA routine to HRAM
 LOOP:
@@ -51,7 +60,7 @@ LOOP:
 	call JOY_DOWN
 
 	; Set forth stack to end of zero page RAM
-	ld c,$ff
+	ld c,$fe
 	ld hl, $0
 	call PAX_VM
 

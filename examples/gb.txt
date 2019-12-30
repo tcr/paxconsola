@@ -16,27 +16,9 @@ $9800 constant graphics
 : move-up 19 graphics 2 + ! ;
 : move-down 20 graphics 1 + ! ;
 
-(
-
-last-key @ 
-  left = if move-left then
-last-key @ 
-  right = if move-right then
-last-key @ 
-  up = if move-up then
-last-key @ 
-  down = if move-down then
-
-
-  
 last-key @ 
   left over = if move-left else
   up over    = if move-up else
   right over = if move-right else
   down over  = if move-down
   then then then then
-
-)
-
-last-key @
-  left over = if move-left then

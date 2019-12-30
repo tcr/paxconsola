@@ -29,13 +29,15 @@ pub enum GbIr {
     // ( addr -- addr )
     StoreDE,
     // ( addr -- addr )
-    JumpIfDEIs0,
+    RetIfDEIs0,
     // ( b -- cond )
     CompareDEAndReplace,
     // ( a -- result )
     ReplaceAddWithDE,
+    // ( addr -- )
+    PushRetAddr,
     // ( -- )
-    AltDup,
+    AltDupFromTOS,
     // ( a -- peek )
     AltPop,
 }
@@ -43,7 +45,8 @@ pub enum GbIr {
 fn translate_to_gb(op: Pax) -> Vec<GbIr> {
     match op {  
         Pax::Metadata(s) => vec![
-            GbIr::Metadata(s)
+            GbIr::Metadata(s),
+            GbIr::Pop,
         ],
         // ( -- value )
         Pax::PushLiteral(value) => vec![
@@ -68,7 +71,9 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         // ( cond addr -- )
         Pax::JumpIf0 => vec![
             GbIr::NipIntoDE,
-            GbIr::JumpIfDEIs0,
+            GbIr::PushRetAddr,
+            GbIr::Pop,
+            GbIr::RetIfDEIs0,
         ],
         // ( a b -- cond )
         Pax::Equals => vec![
@@ -90,11 +95,12 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         ],
         // ( a -- )
         Pax::AltPush => vec![
-            GbIr::AltDup,
+            GbIr::AltDupFromTOS,
             GbIr::Pop,
         ],
         // ( a -- )
         Pax::AltPop => vec![
+            GbIr::Dup,
             GbIr::AltPop,
         ],
         // Pax::Remainder => vec![],
@@ -162,7 +168,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     ; Move second item to TOS
     ld a, [c]
     ld e, a
-    inc C
+    inc c
     ld a, [c]
     ld d, a
     inc c
@@ -174,27 +180,36 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     ld a,l
             ");
         }
-        GbIr::ReplaceLoad => {
-            // 8-bit load
+        GbIr::ReplaceLoad =>  {
             gb_output!("
-    ld a, [hl]
-    ld h, 0
-    ld l, a
+    ldi a, [hl]
+    ld b, a
+    ldd a, [hl]
+    ld h, a
+    ld l, b
             ");
         }
         GbIr::StoreDE => {
             gb_output!("
     ld a, e
-    ld [hl],a
+    ldi [hl],a
+    ld a, d
+    ldd [hl],a
             ");
         }
-        GbIr::JumpIfDEIs0 => {
+        GbIr::PushRetAddr => {
+            gb_output!("
+    push hl
+            ");
+        }
+        GbIr::RetIfDEIs0 => {
             gb_output!("
     ld a, e
     cp $0
     jp nz,.next_{index}
-    jp hl
+    ret
 .next_{index}:
+    pop de ; toss
             ", index = idx);
             *idx += 1;
         }
@@ -219,7 +234,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     add hl, de
             ");
         }
-        GbIr::AltDup => {
+        GbIr::AltDupFromTOS => {
             gb_output!("
     push hl
             ");
@@ -236,8 +251,6 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
         }
         GbIr::PopAndCall => {
             gb_output!("
-    inc c
-    inc c
     call EMULATE_JP_HL
             ");
         }
