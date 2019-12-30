@@ -56,6 +56,12 @@ variable  temp \ 578
 : i r> r> r> temp ! temp @ >r >r >r temp @ ;
 : j r> r> r> r> r> temp ! temp @ >r >r >r >r >r temp @ ;
 
+(
+: * \ a b -- c
+    >r
+    0 swap
+    0 do r@ + loop r> drop ;
+)
 
 : random random-register @ swap % ;
 

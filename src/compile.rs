@@ -106,6 +106,9 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         // Pax::Remainder => vec![],
         // Pax::Nand => vec![],
         // Pax::Multiply => vec![],
+        Pax::Print => vec![
+            // nah
+        ],
         op => {
             panic!("not yet implemented: {:?}", op);
         }

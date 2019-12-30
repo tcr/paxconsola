@@ -23,7 +23,10 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
         let op = code[cindex].clone();
         cindex += 1;
         
-        // eprintln!("[op#{:>4}]  {:<20}   stack: {:?}\n                                    alt: {:?}", format!("{}", cindex - 1), format!("{:?}", op), stack, alt_stack);
+        eprintln!("[op#{:>4}]  {}", format!("{}", cindex - 1), format!("{:?}", op));
+        eprintln!("                                stack: {:?}", stack);
+        eprintln!("                                  alt: {:?}", alt_stack);
+
         match op {
             Pax::PushLiteral(lit) => {
                 stack.push(lit as u32);
