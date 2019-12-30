@@ -12,7 +12,6 @@ pub enum Pax {
     Remainder,
     AltPush,
     Store,
-    Multiply,
 
     PushLiteral(isize),
     PushLabel(isize),

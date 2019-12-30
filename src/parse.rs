@@ -328,7 +328,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "debugger" => output.push(Pax::Debugger),
 
                             "=" => output.push(Pax::Equals),
-                            "*" => output.push(Pax::Multiply),
                             "%" => output.push(Pax::Remainder),
                             ":" => {
                                 assert_eq!(flow_markers.len(), 0, "expected empty loop stack");

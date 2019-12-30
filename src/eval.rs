@@ -23,9 +23,9 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
         let op = code[cindex].clone();
         cindex += 1;
         
-        eprintln!("[op#{:>4}]  {}", format!("{}", cindex - 1), format!("{:?}", op));
-        eprintln!("                                stack: {:?}", stack);
-        eprintln!("                                  alt: {:?}", alt_stack);
+        // eprintln!("[op#{:>4}]  {}", format!("{}", cindex - 1), format!("{:?}", op));
+        // eprintln!("                                stack: {:?}", stack);
+        // eprintln!("                                  alt: {:?}", alt_stack);
 
         match op {
             Pax::PushLiteral(lit) => {
@@ -136,13 +136,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
             Pax::Metadata(_) => {
                 // no-op
             }
-            // *
-            Pax::Multiply => {
-                let b = stack.pop().unwrap();
-                let d = stack.pop().unwrap();
-                stack.push(b.wrapping_mul(d));
-                // panic!("multiply not implemented");
-            },
             // %
             Pax::Remainder => {
                 let b = stack.pop().unwrap();
