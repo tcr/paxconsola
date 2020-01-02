@@ -1,5 +1,5 @@
 use crate::*;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use lazy_static::*;
 use regex::Regex;
 
@@ -11,49 +11,54 @@ pub enum ParseMode {
     Variable,
 }
 
-struct Span {
-    start: usize,
-    end: usize,
-}
-
-impl Span {
-    fn len(&self) -> usize {
-        self.end - self.start
-    }
-}
+pub type Span = Vec<Located<Pax>>;
 
 #[derive(Debug)]
 pub struct MarkerGroup {
     #[allow(unused)]
     name: String,
     target_indices: Vec<usize>,
-    source_index: usize,
+    source_index: Option<usize>,
 }
 
 impl MarkerGroup {
-    fn new(name: &str, index: usize) -> MarkerGroup {
+    fn new(name: &str, source_index: Option<usize>) -> MarkerGroup {
         MarkerGroup {
             name: name.to_string(),
             target_indices: vec![],
-            source_index: index,
+            source_index,
         }
     }
 
-    fn push_marker(&mut self, output: &mut Vec<Located<Pax>>, pos: Pos) {
+    fn new_target(name: &str, output: &mut Span, pos: Pos) -> MarkerGroup {
         let index = output.len();
-        output.push((Pax::JumpIf0(self.source_index as _, 0), pos));
-        self.target_indices.push(index);
+        output.push((Pax::BranchTarget, pos));
+        MarkerGroup {
+            name: name.to_string(),
+            target_indices: vec![],
+            source_index: Some(index),
+        }
     }
 
-    fn update(&self, output: &mut Vec<Located<Pax>>) {
+    fn set_target(&mut self, output: &mut Span, pos: Pos) {
+        assert!(self.source_index.is_none());
+        let index = output.len();
+        output.push((Pax::BranchTarget, pos));
+        self.source_index = Some(index);
+
         for target in &self.target_indices {
-            // println!("[{}]: {:?}", self.name, target);
-            output[*target].0 = Pax::JumpIf0(self.source_index as _, 0);
+            output[*target].0 = Pax::JumpIf0(index);
         }
+    }
+
+    fn push_marker(&mut self, output: &mut Span, pos: Pos) {
+        let index = output.len();
+        output.push((Pax::JumpIf0(self.source_index.unwrap_or(0)), pos));
+        self.target_indices.push(index);
     }
 }
 
-pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
+pub fn parse_forth(buffer: Vec<u8>) -> Span {
     lazy_static! {
         static ref RE_COMMENTS: Regex = Regex::new(r"(?m)\\.*$").unwrap();
     }
@@ -65,13 +70,22 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
 
     let parser = Tokenizer::new(&code);
 
-    let mut output: Vec<Located<Pax>> = vec![];
+    let mut functions: IndexMap<String, Span> = IndexMap::new();
     let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
-    let mut functions: Vec<MarkerGroup> = vec![];
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
     let mut variable_offset: usize = 0;
+
     let mut flow_markers: Vec<MarkerGroup> = vec![];
     let mut used_flow_markers: Vec<MarkerGroup> = vec![];
+
+    // Start in "main" (the global function).
+    functions.insert("main".to_string(), vec![]);
+
+    // Create the function stack. Should always be at len 1 (main) or len 2 (inside a function)
+    let mut stack: Vec<(String, Span)> = vec![("main".to_string(), vec![])];
+    fn current(stack: &'_ mut Vec<(String, Span)>) -> &'_ mut Span {
+        &mut stack.last_mut().unwrap().1
+    }
 
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
@@ -101,17 +115,13 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
             ParseMode::FunctionName => {
                 match token {
                     Token::Word(ref word) => {
-                        // output.push(Pax::Function);
-                        let function_offset = output.len(); // don't include first word
+                        stack.push((word.to_string(), vec![]));
 
-                        let group = MarkerGroup::new(word, function_offset);
-                        functions.push(group);
+                        current(&mut stack).push((Pax::Metadata(word.to_string()), pos));
 
                         // Flow control for recurse
-                        let group = MarkerGroup::new(word, function_offset);
+                        let group = MarkerGroup::new_target(word, current(&mut stack), pos);
                         flow_markers.push(group);
-
-                        output.push((Pax::Metadata(word.to_string()), pos));
                     }
                     _ => panic!("expected function name"),
                 }
@@ -128,6 +138,9 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
             }
             ParseMode::Default => {
                 match token {
+                    Token::Literal(lit) => {
+                        current(&mut stack).push((Pax::PushLiteral(lit as isize), pos));
+                    }
                     Token::Word(word) => {
                         // Skip comments
                         if word == "(" {
@@ -143,22 +156,24 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
 
                         // Constants shadow all terms
                         if constants.contains_key(word.as_str()) {
-                            output.push((Pax::PushLiteral(constants[word.as_str()] as isize), pos));
+                            current(&mut stack)
+                                .push((Pax::PushLiteral(constants[word.as_str()] as isize), pos));
                             continue;
                         }
                         // Functions shadow all terms
-                        if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
-                            output.push((Pax::Call(word.to_string()), pos));
+                        if functions.contains_key(&word) {
+                            current(&mut stack).push((Pax::Call(word.to_string()), pos));
                             continue;
                         }
                         // Variables shadow all terms
                         if variables.contains_key(word.as_str()) {
-                            output.push((Pax::PushLiteral(variables[word.as_str()] as isize), pos));
+                            current(&mut stack)
+                                .push((Pax::PushLiteral(variables[word.as_str()] as isize), pos));
                             continue;
                         }
 
                         match word.as_str() {
-                            // compiler keyword
+                            // Compiler keywords
                             "allot" => {
                                 if previous_tokens[previous_tokens.len() - 2]
                                     == Token::Word("cells".to_string())
@@ -168,8 +183,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                         Token::Word(_) => panic!("Expected literal"),
                                         Token::Literal(cells) => {
                                             // eprintln!("allocating {}", cells);
-                                            output.pop(); // "cells"
-                                            output.pop(); // value
+                                            current(&mut stack).pop(); // "cells"
+                                            current(&mut stack).pop(); // value
                                             variable_offset += *cells as usize;
                                         }
                                     }
@@ -177,211 +192,220 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     panic!("expected cells");
                                 }
                             }
-                            // compiler keyword
                             "constant" => {
                                 let cells = &previous_tokens[previous_tokens.len() - 2];
                                 match cells {
                                     Token::Word(_) => panic!("Expected literal"),
                                     Token::Literal(value) => {
-                                        // eprintln!("constant {}", value);
-                                        output.pop(); // value
+                                        current(&mut stack).pop(); // value
 
                                         parse_mode = ParseMode::ConstantName(*value);
                                     }
                                 }
                             }
 
-                            // flow control
+                            // Function delimiters
+                            ":" => {
+                                assert_eq!(stack.len(), 1, "cannot nest functions");
+                                assert_eq!(flow_markers.len(), 0, "expected empty flow stack");
+
+                                parse_mode = ParseMode::FunctionName;
+                            }
+                            ";" => {
+                                assert!(stack.len() == 2, "expected to be inside a function");
+                                assert_eq!(
+                                    flow_markers.len(),
+                                    1,
+                                    "expected flow stack with just recurse"
+                                );
+
+                                let recurse_group = flow_markers.pop().unwrap();
+                                used_flow_markers.push(recurse_group);
+                                current(&mut stack).push((Pax::Exit, pos));
+
+                                // Extract function into its own body.
+                                let (name, body) = stack.pop().unwrap();
+                                functions.insert(name, body);
+                            }
+
+                            // Flow control
                             "recurse" => {
-                                output.push((Pax::PushLiteral(0), pos));
+                                current(&mut stack).push((Pax::PushLiteral(0), pos));
                                 // Address root flow group
-                                flow_markers[0].push_marker(&mut output, pos);
+                                flow_markers[0].push_marker(current(&mut stack), pos);
                                 continue;
                             }
                             "begin" => {
-                                flow_markers.push(MarkerGroup::new("<begin>", output.len()));
-                                output.push((Pax::BranchTarget, pos));
+                                flow_markers.push(MarkerGroup::new_target(
+                                    "<begin>",
+                                    current(&mut stack),
+                                    pos,
+                                ));
                             }
                             "until" => {
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<begin>", "expected begin loop");
-                                group.push_marker(&mut output, pos);
+                                group.push_marker(current(&mut stack), pos);
                                 used_flow_markers.push(group);
                             }
                             "do" => {
-                                output.push((Pax::AltPush, pos));
-                                output.push((Pax::AltPush, pos));
-                                flow_markers.push(MarkerGroup::new("<do>", output.len()));
-                                output.push((Pax::BranchTarget, pos));
+                                current(&mut stack).push((Pax::AltPush, pos));
+                                current(&mut stack).push((Pax::AltPush, pos));
+                                flow_markers.push(MarkerGroup::new_target(
+                                    "<do>",
+                                    current(&mut stack),
+                                    pos,
+                                ));
                             }
                             "loop" => {
-                                let group = functions
-                                    .iter_mut()
-                                    .find(|c| c.name == "loopimpl")
-                                    .expect("no :loopimpl defn found");
-                                output.push((Pax::Call(group.name.clone()), pos));
+                                let name = "loopimpl";
+                                if !functions.contains_key(name) {
+                                    panic!("no loopimpl defn found");
+                                }
+                                current(&mut stack).push((Pax::Call(name.to_string()), pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(&mut output, pos);
+                                group.push_marker(current(&mut stack), pos);
                                 used_flow_markers.push(group);
                             }
                             "-loop" => {
-                                let group = functions
-                                    .iter_mut()
-                                    .find(|c| c.name == "-loopimpl")
-                                    .expect("no :loopimpl defn found");
-                                output.push((Pax::Call(group.name.clone()), pos));
+                                let name = "-loopimpl";
+                                if !functions.contains_key(name) {
+                                    panic!("no -loopimpl defn found");
+                                }
+                                current(&mut stack).push((Pax::Call(name.to_string()), pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(&mut output, pos);
+                                group.push_marker(current(&mut stack), pos);
                                 used_flow_markers.push(group);
                             }
                             "if" => {
-                                let mut group = MarkerGroup::new("<if>", output.len());
-                                group.push_marker(&mut output, pos);
+                                let mut group = MarkerGroup::new("<if>", None);
+                                group.push_marker(current(&mut stack), pos);
 
                                 flow_markers.push(group);
                             }
                             "else" => {
                                 let mut if_group =
                                     flow_markers.pop().expect("did not match marker group");
-                                let mut else_group = MarkerGroup::new("<else>", output.len());
-                                output.push((Pax::PushLiteral(0), pos)); // Always yes
-                                else_group.push_marker(&mut output, pos);
+                                let mut else_group = MarkerGroup::new("<else>", None);
+                                current(&mut stack).push((Pax::PushLiteral(0), pos)); // Always yes
+                                else_group.push_marker(current(&mut stack), pos);
 
                                 flow_markers.push(else_group);
-                                if_group.source_index = output.len();
+                                if_group.set_target(current(&mut stack), pos);
                                 used_flow_markers.push(if_group);
-
-                                output.push((Pax::BranchTarget, pos));
                             }
                             "then" => {
-                                let mut group =
+                                let mut else_group =
                                     flow_markers.pop().expect("did not match marker group");
-                                group.source_index = output.len();
-                                used_flow_markers.push(group);
-
-                                output.push((Pax::BranchTarget, pos));
+                                else_group.set_target(current(&mut stack), pos);
+                                used_flow_markers.push(else_group);
                             }
 
-                            // pax
-                            "+" => output.push((Pax::Add, pos)),
-                            ">r" => output.push((Pax::AltPush, pos)),
-                            "r>" => output.push((Pax::AltPop, pos)),
-                            "!" => output.push((Pax::Store, pos)),
-                            "@" => output.push((Pax::Load, pos)),
-                            "nand" => output.push((Pax::Nand, pos)),
-                            // pax debug
-                            "print" => output.push((Pax::Print, pos)),
-                            "debugger" => output.push((Pax::Debugger, pos)),
+                            // Opcodes
+                            "+" => current(&mut stack).push((Pax::Add, pos)),
+                            ">r" => current(&mut stack).push((Pax::AltPush, pos)),
+                            "r>" => current(&mut stack).push((Pax::AltPop, pos)),
+                            "!" => current(&mut stack).push((Pax::Store, pos)),
+                            "@" => current(&mut stack).push((Pax::Load, pos)),
+                            "nand" => current(&mut stack).push((Pax::Nand, pos)),
 
-                            "=" => output.push((Pax::Equals, pos)),
-                            "%" => output.push((Pax::Remainder, pos)),
+                            "print" => current(&mut stack).push((Pax::Print, pos)),
+                            "debugger" => current(&mut stack).push((Pax::Debugger, pos)),
 
-                            ":" => {
-                                assert_eq!(flow_markers.len(), 0, "expected empty flow stack");
-                                parse_mode = ParseMode::FunctionName;
-                            }
-                            ";" => {
-                                assert_eq!(flow_markers.len(), 1, "expected flow stack with just recurse");
-                                let recurse_group = flow_markers.pop().unwrap();
-                                used_flow_markers.push(recurse_group);
-                                output.push((Pax::Exit, pos));
-                            }
+                            "=" => current(&mut stack).push((Pax::Equals, pos)),
+                            "%" => current(&mut stack).push((Pax::Remainder, pos)),
 
-                            "c!" => output.push((Pax::Store8, pos)),
-                            "c@" => output.push((Pax::Load8, pos)),
+                            "c!" => current(&mut stack).push((Pax::Store8, pos)),
+                            "c@" => current(&mut stack).push((Pax::Load8, pos)),
 
-                            "sleep" => output.push((Pax::Sleep, pos)),
+                            "sleep" => current(&mut stack).push((Pax::Sleep, pos)),
 
                             _ => {
                                 panic!("unknown value: {:?}", word);
                             }
                         }
                     }
-                    Token::Literal(lit) => {
-                        output.push((Pax::PushLiteral(lit as isize), pos));
-                    }
                 }
             }
         }
     }
 
+    // Finish "main" function.
     assert_eq!(flow_markers.len(), 0, "did not exhaust all flow markers");
-
+    assert_eq!(stack.len(), 1, "did not exhaust all functions");
+    let (_main, mut output) = stack.pop().unwrap();
     output.push((Pax::Stop, Default::default()));
+    functions.get_mut("main").unwrap().extend(output);
 
-    // eprintln!("---> {:?}", output);
-
-    if true {
-        let keys = 0..functions.len();
-
-        // Move first function to end
-        for key in keys {
-            let func = &mut functions[key];
-            // eprintln!("moving {:?} to end", func.name);
-
-            let span = {
-                let offset_start = func.source_index;
-                let mut offset_end = offset_start;
-                while output[offset_end].0 != Pax::Exit {
-                    offset_end += 1;
-                }
-                offset_end += 1;
-
-                Span {
-                    start: offset_start,
-                    end: offset_end,
-                }
-            };
-
-            // Extract this function, re-append to end.
-            let func_code: Vec<_> = output.splice(span.start..span.end, vec![]).collect();
-            let new_func_offset = output.len();
-            output.extend(func_code);
-            let adjust_inner = new_func_offset - span.start;
-
-            // Relocate all marker groups.
-            let mut groups = vec![];
-            groups.extend(functions.iter_mut());
-            groups.extend(used_flow_markers.iter_mut());
-            for func in groups {
-                if func.source_index >= span.end {
-                    // eprintln!("----> func.source_index {:?} -= adjust {:?}", func, adjust);
-                    func.source_index -= span.len();
-                } else if func.source_index >= span.start {
-                    // eprintln!("----> func.source_index {:?} += adjust {:?}", func, adjust);
-                    func.source_index += adjust_inner;
-                }
-            }
-
-            // Relocate interior markers.
-            for func in used_flow_markers.iter_mut() {
-                for target in &mut func.target_indices {
-                    if *target >= span.end {
-                        // after function
-                        *target -= span.len();
-                    } else if *target >= span.start {
-                        // inside function
-                        *target += new_func_offset - span.start;
+    // Strip unused functions.
+    if false {
+        let mut used = IndexSet::<String>::new();
+        used.insert("main".to_string());
+        for (_name, body) in &functions {
+            for op in body {
+                match &op.0 {
+                    Pax::Call(word) => {
+                        used.insert(word.to_string());
                     }
+                    _ => {}
                 }
             }
         }
+        functions = functions.into_iter().filter(|(k, _)| used.contains(k)).collect();
     }
 
-    // Finalize function positions
-    let mut groups = vec![];
-    // groups.extend(functions.iter_mut());
-    groups.extend(used_flow_markers.iter_mut());
-    for function in groups {
-        function.update(&mut output);
+    // Compact into bytecode array (unnecessary).
+    let mut result = vec![];
+    for (name, body) in functions {
+        result.extend(body);
     }
 
-    return output;
+    return result;
 }
+
+/*
+if true {
+    let keys = 0..functions.len();
+
+    // Move first function to end
+    for key in keys {
+        let func = &mut functions[key];
+        // eprintln!("moving {:?} to end", func.name);
+
+        let start = func.source_index.unwrap();
+        let mut end = start;
+        while output[end].0 != Pax::Exit {
+            end += 1;
+        }
+        end += 1;
+
+        // Extract this function, re-append to end.
+        let func_code: Vec<_> = output.splice(start..end, vec![]).collect();
+        let new_func_offset = output.len();
+        output.extend(func_code);
+        let adjust_inner = new_func_offset - start;
+
+        // Relocate all marker groups.
+        let mut groups = vec![];
+        groups.extend(functions.iter_mut());
+        for func in groups {
+            if func.source_index.unwrap() >= end {
+                // eprintln!("----> func.source_index {:?} -= adjust {:?}", func, adjust);
+                *func.source_index.as_mut().unwrap() -= end - start;
+            } else if func.source_index.unwrap() >= start {
+                // eprintln!("----> func.source_index {:?} += adjust {:?}", func, adjust);
+                *func.source_index.as_mut().unwrap() += adjust_inner;
+            }
+        }
+    }
+}
+
+return output;
+*/

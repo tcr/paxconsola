@@ -73,11 +73,9 @@ initialize
 
 )
 
-last-key @ 
+last-key @
   left over = if move-left else
   up over    = if move-up else
-  right over  = if move-right
-  then then then
-
-last-key @ down = if move-down then
-last-key @ down = if move-down then
+  right over  = if move-right else
+  down over = if move-down
+  then then then then

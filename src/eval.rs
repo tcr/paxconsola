@@ -25,6 +25,7 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
     // eprintln!("[code] {:?}", code);
     let mut cindex = 0;
     let mut frame = 0;
+    let mut current_function = vec![0];
     while cindex < code.len() {
         let op = code[cindex].0.clone();
         cindex += 1;
@@ -119,12 +120,16 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
             Pax::Exit => {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
                 cindex = alt_stack.pop().unwrap() as usize;
+                current_function.pop();
             }
             // jump if TOS == 0
-            Pax::JumpIf0(dest, _) => {
+            Pax::JumpIf0(branch) => {
+                let dest = current_function.last().unwrap() + branch;
+
                 let cond = stack.pop().unwrap();
                 if cond == 0 {
                     cindex = dest as _;
+                    assert_eq!(code[cindex].0, Pax::BranchTarget);
                 }
             }
             Pax::Stop => {
@@ -134,6 +139,7 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
 
             Pax::Metadata(_) => {
                 // no-op
+                current_function.push(cindex - 1);
             }
             // %
             Pax::Remainder => {
