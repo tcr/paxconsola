@@ -113,7 +113,8 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
             }
             // call
             Pax::Call(target) => {
-                stack.pop().unwrap();
+                let num = stack.pop().unwrap();
+                assert_eq!(num, 0);
                 // Look up function globally.
                 // TODO make this the primary way to interact with calls
                 let function_start = *function_map.get(&target).expect("couldnt determine function location");

@@ -35,7 +35,7 @@
     ; [gb_ir] ReplaceLiteral(37)
     ld hl,37
 
-; [pax_ir] PushLabel(73), file.fs:77:8
+; [pax_ir] PushLabel(0), file.fs:77:8
 .opcode_3:
         
     ; [gb_ir] Dup
@@ -45,8 +45,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_73")
-    ld hl,.opcode_73
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("over"), file.fs:77:8
 .opcode_4:
@@ -56,7 +56,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(172), file.fs:77:13
+; [pax_ir] PushLabel(0), file.fs:77:13
 .opcode_5:
         
     ; [gb_ir] Dup
@@ -66,8 +66,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:77:13
 .opcode_6:
@@ -94,7 +94,7 @@
     cp $0
     jp z,.opcode_12
 
-; [pax_ir] PushLabel(328), file.fs:77:18
+; [pax_ir] PushLabel(0), file.fs:77:18
 .opcode_8:
         
     ; [gb_ir] Dup
@@ -104,8 +104,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_328")
-    ld hl,.opcode_328
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("move-left"), file.fs:77:18
 .opcode_9:
@@ -162,7 +162,7 @@
     ; [gb_ir] ReplaceLiteral(38)
     ld hl,38
 
-; [pax_ir] PushLabel(73), file.fs:78:6
+; [pax_ir] PushLabel(0), file.fs:78:6
 .opcode_14:
         
     ; [gb_ir] Dup
@@ -172,8 +172,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_73")
-    ld hl,.opcode_73
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("over"), file.fs:78:6
 .opcode_15:
@@ -183,7 +183,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(172), file.fs:78:14
+; [pax_ir] PushLabel(0), file.fs:78:14
 .opcode_16:
         
     ; [gb_ir] Dup
@@ -193,8 +193,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:78:14
 .opcode_17:
@@ -221,7 +221,7 @@
     cp $0
     jp z,.opcode_23
 
-; [pax_ir] PushLabel(333), file.fs:78:19
+; [pax_ir] PushLabel(0), file.fs:78:19
 .opcode_19:
         
     ; [gb_ir] Dup
@@ -231,8 +231,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_333")
-    ld hl,.opcode_333
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("move-up"), file.fs:78:19
 .opcode_20:
@@ -289,7 +289,7 @@
     ; [gb_ir] ReplaceLiteral(39)
     ld hl,39
 
-; [pax_ir] PushLabel(73), file.fs:79:9
+; [pax_ir] PushLabel(0), file.fs:79:9
 .opcode_25:
         
     ; [gb_ir] Dup
@@ -299,8 +299,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_73")
-    ld hl,.opcode_73
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("over"), file.fs:79:9
 .opcode_26:
@@ -310,7 +310,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(172), file.fs:79:15
+; [pax_ir] PushLabel(0), file.fs:79:15
 .opcode_27:
         
     ; [gb_ir] Dup
@@ -320,8 +320,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:79:15
 .opcode_28:
@@ -348,7 +348,7 @@
     cp $0
     jp z,.opcode_32
 
-; [pax_ir] PushLabel(321), file.fs:79:20
+; [pax_ir] PushLabel(0), file.fs:79:20
 .opcode_30:
         
     ; [gb_ir] Dup
@@ -358,8 +358,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_321")
-    ld hl,.opcode_321
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("move-right"), file.fs:79:20
 .opcode_31:
@@ -417,7 +417,7 @@
     ; [gb_ir] ReplaceLiteral(40)
     ld hl,40
 
-; [pax_ir] PushLabel(172), file.fs:82:17
+; [pax_ir] PushLabel(0), file.fs:82:17
 .opcode_38:
         
     ; [gb_ir] Dup
@@ -427,8 +427,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:82:17
 .opcode_39:
@@ -455,7 +455,7 @@
     cp $0
     jp z,.opcode_43
 
-; [pax_ir] PushLabel(340), file.fs:82:22
+; [pax_ir] PushLabel(0), file.fs:82:22
 .opcode_41:
         
     ; [gb_ir] Dup
@@ -465,8 +465,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_340")
-    ld hl,.opcode_340
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("move-down"), file.fs:82:22
 .opcode_42:
@@ -516,7 +516,7 @@
     ; [gb_ir] ReplaceLiteral(40)
     ld hl,40
 
-; [pax_ir] PushLabel(172), file.fs:83:17
+; [pax_ir] PushLabel(0), file.fs:83:17
 .opcode_47:
         
     ; [gb_ir] Dup
@@ -526,8 +526,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:83:17
 .opcode_48:
@@ -554,7 +554,7 @@
     cp $0
     jp z,.opcode_52
 
-; [pax_ir] PushLabel(340), file.fs:83:22
+; [pax_ir] PushLabel(0), file.fs:83:22
 .opcode_50:
         
     ; [gb_ir] Dup
@@ -564,8 +564,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_340")
-    ld hl,.opcode_340
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("move-down"), file.fs:83:22
 .opcode_51:
@@ -695,7 +695,7 @@
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
 
-; [pax_ir] PushLabel(56), file.fs:9:13
+; [pax_ir] PushLabel(0), file.fs:9:13
 .opcode_62:
         
     ; [gb_ir] Dup
@@ -705,8 +705,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_56")
-    ld hl,.opcode_56
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("drop"), file.fs:9:13
 .opcode_63:
@@ -1005,7 +1005,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(65), file.fs:13:13
+; [pax_ir] PushLabel(0), file.fs:13:13
 .opcode_85:
         
     ; [gb_ir] Dup
@@ -1015,8 +1015,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:13:13
 .opcode_86:
@@ -1039,7 +1039,7 @@
     ; [gb_ir] AltPop
     pop hl
 
-; [pax_ir] PushLabel(65), file.fs:13:21
+; [pax_ir] PushLabel(0), file.fs:13:21
 .opcode_88:
         
     ; [gb_ir] Dup
@@ -1049,8 +1049,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:13:21
 .opcode_89:
@@ -1209,7 +1209,7 @@
     ld h, a
     ld l, b
 
-; [pax_ir] PushLabel(65), file.fs:16:38
+; [pax_ir] PushLabel(0), file.fs:16:38
 .opcode_101:
         
     ; [gb_ir] Dup
@@ -1219,8 +1219,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:16:38
 .opcode_102:
@@ -1380,7 +1380,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(73), file.fs:19:10
+; [pax_ir] PushLabel(0), file.fs:19:10
 .opcode_114:
         
     ; [gb_ir] Dup
@@ -1390,8 +1390,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_73")
-    ld hl,.opcode_73
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("over"), file.fs:19:10
 .opcode_115:
@@ -1401,7 +1401,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(73), file.fs:19:15
+; [pax_ir] PushLabel(0), file.fs:19:15
 .opcode_116:
         
     ; [gb_ir] Dup
@@ -1411,8 +1411,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_73")
-    ld hl,.opcode_73
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("over"), file.fs:19:15
 .opcode_117:
@@ -1664,7 +1664,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(131), file.fs:23:12
+; [pax_ir] PushLabel(0), file.fs:23:12
 .opcode_136:
         
     ; [gb_ir] Dup
@@ -1674,8 +1674,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_131")
-    ld hl,.opcode_131
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("invert"), file.fs:23:12
 .opcode_137:
@@ -1739,7 +1739,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(135), file.fs:24:12
+; [pax_ir] PushLabel(0), file.fs:24:12
 .opcode_142:
         
     ; [gb_ir] Dup
@@ -1749,8 +1749,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_135")
-    ld hl,.opcode_135
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("negate"), file.fs:24:12
 .opcode_143:
@@ -1909,7 +1909,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(105), file.fs:28:8
+; [pax_ir] PushLabel(0), file.fs:28:8
 .opcode_155:
         
     ; [gb_ir] Dup
@@ -1919,8 +1919,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_105")
-    ld hl,.opcode_105
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("dup"), file.fs:28:8
 .opcode_156:
@@ -2139,7 +2139,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(141), file.fs:30:8
+; [pax_ir] PushLabel(0), file.fs:30:8
 .opcode_173:
         
     ; [gb_ir] Dup
@@ -2149,8 +2149,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_141")
-    ld hl,.opcode_141
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("-"), file.fs:30:8
 .opcode_174:
@@ -2160,7 +2160,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(163), file.fs:30:10
+; [pax_ir] PushLabel(0), file.fs:30:10
 .opcode_175:
         
     ; [gb_ir] Dup
@@ -2170,8 +2170,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_163")
-    ld hl,.opcode_163
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("0="), file.fs:30:10
 .opcode_176:
@@ -2208,7 +2208,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(172), file.fs:31:8
+; [pax_ir] PushLabel(0), file.fs:31:8
 .opcode_179:
         
     ; [gb_ir] Dup
@@ -2218,8 +2218,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:31:8
 .opcode_180:
@@ -2229,7 +2229,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(163), file.fs:31:10
+; [pax_ir] PushLabel(0), file.fs:31:10
 .opcode_181:
         
     ; [gb_ir] Dup
@@ -2239,8 +2239,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_163")
-    ld hl,.opcode_163
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("0="), file.fs:31:10
 .opcode_182:
@@ -2277,7 +2277,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(141), file.fs:32:8
+; [pax_ir] PushLabel(0), file.fs:32:8
 .opcode_185:
         
     ; [gb_ir] Dup
@@ -2287,8 +2287,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_141")
-    ld hl,.opcode_141
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("-"), file.fs:32:8
 .opcode_186:
@@ -2298,7 +2298,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(163), file.fs:32:10
+; [pax_ir] PushLabel(0), file.fs:32:10
 .opcode_187:
         
     ; [gb_ir] Dup
@@ -2308,8 +2308,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_163")
-    ld hl,.opcode_163
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("0="), file.fs:32:10
 .opcode_188:
@@ -2346,7 +2346,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(131), file.fs:34:8
+; [pax_ir] PushLabel(0), file.fs:34:8
 .opcode_191:
         
     ; [gb_ir] Dup
@@ -2356,8 +2356,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_131")
-    ld hl,.opcode_131
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("invert"), file.fs:34:8
 .opcode_192:
@@ -2367,7 +2367,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(65), file.fs:34:15
+; [pax_ir] PushLabel(0), file.fs:34:15
 .opcode_193:
         
     ; [gb_ir] Dup
@@ -2377,8 +2377,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:34:15
 .opcode_194:
@@ -2388,7 +2388,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(131), file.fs:34:20
+; [pax_ir] PushLabel(0), file.fs:34:20
 .opcode_195:
         
     ; [gb_ir] Dup
@@ -2398,8 +2398,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_131")
-    ld hl,.opcode_131
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("invert"), file.fs:34:20
 .opcode_196:
@@ -2457,7 +2457,7 @@
     ld h, a
     inc c
 
-; [pax_ir] PushLabel(113), file.fs:35:9
+; [pax_ir] PushLabel(0), file.fs:35:9
 .opcode_200:
         
     ; [gb_ir] Dup
@@ -2467,8 +2467,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_113")
-    ld hl,.opcode_113
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("2dup"), file.fs:35:9
 .opcode_201:
@@ -2499,7 +2499,7 @@
     cpl
     ld h,a
 
-; [pax_ir] PushLabel(146), file.fs:35:19
+; [pax_ir] PushLabel(0), file.fs:35:19
 .opcode_203:
         
     ; [gb_ir] Dup
@@ -2509,8 +2509,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_146")
-    ld hl,.opcode_146
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("1+"), file.fs:35:19
 .opcode_204:
@@ -2520,7 +2520,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(105), file.fs:35:22
+; [pax_ir] PushLabel(0), file.fs:35:22
 .opcode_205:
         
     ; [gb_ir] Dup
@@ -2530,8 +2530,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_105")
-    ld hl,.opcode_105
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("dup"), file.fs:35:22
 .opcode_206:
@@ -2631,7 +2631,7 @@
     cpl
     ld h,a
 
-; [pax_ir] PushLabel(131), file.fs:36:14
+; [pax_ir] PushLabel(0), file.fs:36:14
 .opcode_213:
         
     ; [gb_ir] Dup
@@ -2641,8 +2641,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_131")
-    ld hl,.opcode_131
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("invert"), file.fs:36:14
 .opcode_214:
@@ -2718,7 +2718,7 @@
     ; [gb_ir] AltPop
     pop hl
 
-; [pax_ir] PushLabel(146), file.fs:41:21
+; [pax_ir] PushLabel(0), file.fs:41:21
 .opcode_220:
         
     ; [gb_ir] Dup
@@ -2728,8 +2728,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_146")
-    ld hl,.opcode_146
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("1+"), file.fs:41:21
 .opcode_221:
@@ -2739,7 +2739,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(113), file.fs:41:24
+; [pax_ir] PushLabel(0), file.fs:41:24
 .opcode_222:
         
     ; [gb_ir] Dup
@@ -2749,8 +2749,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_113")
-    ld hl,.opcode_113
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("2dup"), file.fs:41:24
 .opcode_223:
@@ -2760,7 +2760,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(172), file.fs:41:29
+; [pax_ir] PushLabel(0), file.fs:41:29
 .opcode_224:
         
     ; [gb_ir] Dup
@@ -2770,8 +2770,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:41:29
 .opcode_225:
@@ -2798,7 +2798,7 @@
     cp $0
     jp z,.opcode_232
 
-; [pax_ir] PushLabel(60), file.fs:41:34
+; [pax_ir] PushLabel(0), file.fs:41:34
 .opcode_227:
         
     ; [gb_ir] Dup
@@ -2808,8 +2808,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_60")
-    ld hl,.opcode_60
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("2drop"), file.fs:41:34
 .opcode_228:
@@ -2909,7 +2909,7 @@
 .opcode_236:
         
 
-; [pax_ir] PushLabel(65), file.fs:41:60
+; [pax_ir] PushLabel(0), file.fs:41:60
 .opcode_237:
         
     ; [gb_ir] Dup
@@ -2919,8 +2919,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:41:60
 .opcode_238:
@@ -2996,7 +2996,7 @@
     ; [gb_ir] AltPop
     pop hl
 
-; [pax_ir] PushLabel(83), file.fs:42:19
+; [pax_ir] PushLabel(0), file.fs:42:19
 .opcode_244:
         
     ; [gb_ir] Dup
@@ -3006,8 +3006,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_83")
-    ld hl,.opcode_83
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("rot"), file.fs:42:19
 .opcode_245:
@@ -3030,7 +3030,7 @@
     ; [gb_ir] AltPop
     pop hl
 
-; [pax_ir] PushLabel(65), file.fs:42:26
+; [pax_ir] PushLabel(0), file.fs:42:26
 .opcode_247:
         
     ; [gb_ir] Dup
@@ -3040,8 +3040,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:42:26
 .opcode_248:
@@ -3051,7 +3051,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(141), file.fs:42:31
+; [pax_ir] PushLabel(0), file.fs:42:31
 .opcode_249:
         
     ; [gb_ir] Dup
@@ -3061,8 +3061,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_141")
-    ld hl,.opcode_141
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("-"), file.fs:42:31
 .opcode_250:
@@ -3072,7 +3072,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(113), file.fs:42:33
+; [pax_ir] PushLabel(0), file.fs:42:33
 .opcode_251:
         
     ; [gb_ir] Dup
@@ -3082,8 +3082,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_113")
-    ld hl,.opcode_113
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("2dup"), file.fs:42:33
 .opcode_252:
@@ -3093,7 +3093,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(172), file.fs:42:38
+; [pax_ir] PushLabel(0), file.fs:42:38
 .opcode_253:
         
     ; [gb_ir] Dup
@@ -3103,8 +3103,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_172")
-    ld hl,.opcode_172
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("="), file.fs:42:38
 .opcode_254:
@@ -3131,7 +3131,7 @@
     cp $0
     jp z,.opcode_261
 
-; [pax_ir] PushLabel(60), file.fs:42:43
+; [pax_ir] PushLabel(0), file.fs:42:43
 .opcode_256:
         
     ; [gb_ir] Dup
@@ -3141,8 +3141,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_60")
-    ld hl,.opcode_60
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("2drop"), file.fs:42:43
 .opcode_257:
@@ -3242,7 +3242,7 @@
 .opcode_265:
         
 
-; [pax_ir] PushLabel(65), file.fs:42:69
+; [pax_ir] PushLabel(0), file.fs:42:69
 .opcode_266:
         
     ; [gb_ir] Dup
@@ -3252,8 +3252,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:42:69
 .opcode_267:
@@ -3813,7 +3813,7 @@
 .opcode_309:
         
 
-; [pax_ir] PushLabel(73), file.fs:48:18
+; [pax_ir] PushLabel(0), file.fs:48:18
 .opcode_310:
         
     ; [gb_ir] Dup
@@ -3823,8 +3823,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_73")
-    ld hl,.opcode_73
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("over"), file.fs:48:18
 .opcode_311:
@@ -3848,7 +3848,7 @@
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
 
-; [pax_ir] PushLabel(216), file.fs:48:25
+; [pax_ir] PushLabel(0), file.fs:48:25
 .opcode_313:
         
     ; [gb_ir] Dup
@@ -3858,8 +3858,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_216")
-    ld hl,.opcode_216
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("loopimpl"), file.fs:48:25
 .opcode_314:
@@ -3886,7 +3886,7 @@
     cp $0
     jp z,.opcode_309
 
-; [pax_ir] PushLabel(65), file.fs:48:30
+; [pax_ir] PushLabel(0), file.fs:48:30
 .opcode_316:
         
     ; [gb_ir] Dup
@@ -3896,8 +3896,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_65")
-    ld hl,.opcode_65
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("swap"), file.fs:48:30
 .opcode_317:
@@ -3907,7 +3907,7 @@
     ; [gb_ir] PopAndCall
     call EMULATE_JP_HL
 
-; [pax_ir] PushLabel(56), file.fs:48:35
+; [pax_ir] PushLabel(0), file.fs:48:35
 .opcode_318:
         
     ; [gb_ir] Dup
@@ -3917,8 +3917,8 @@
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLabel(".opcode_56")
-    ld hl,.opcode_56
+    ; [gb_ir] ReplaceLabel(".opcode_0")
+    ld hl,.opcode_0
 
 ; [pax_ir] Call("drop"), file.fs:48:35
 .opcode_319:
