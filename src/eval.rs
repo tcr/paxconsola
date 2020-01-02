@@ -108,12 +108,6 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 cindex = function_start as _;
                 do_level.push(0);
             }
-            // jump (recurse)
-            Pax::Jump => {
-                let function_start = stack.pop().unwrap();
-                cindex = function_start as _;
-                do_level.push(0); // dunno if correct
-            }
             // ;
             Pax::Exit => {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));

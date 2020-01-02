@@ -1,12 +1,18 @@
 use crate::*;
-use regex::Regex;
-use lazy_static::*;
 use indexmap::IndexMap;
+use lazy_static::*;
+use regex::Regex;
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Pos {
+    line: usize,
+    col: usize,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
-    Word(String),
-    Literal(isize),
+    Word(String, Pos),
+    Literal(isize, Pos),
 }
 
 #[derive(Debug, Clone)]
@@ -27,7 +33,8 @@ impl Iterator for Parser {
 
     fn next(&mut self) -> Option<Token> {
         lazy_static! {
-            static ref RE_INT: Regex = Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
+            static ref RE_INT: Regex =
+                Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
             static ref RE_WORD: Regex = Regex::new(r"(?s)^(\S*)(\s+.*?)?$").unwrap();
         }
 
@@ -41,9 +48,15 @@ impl Iterator for Parser {
             Some(cap) => {
                 self.code = cap[2].to_string();
                 if let Some(index) = cap[1].find("$") {
-                    return Some(Token::Literal(isize::from_str_radix(&cap[1][index+1..], 16).unwrap()));
+                    return Some(Token::Literal(
+                        isize::from_str_radix(&cap[1][index + 1..], 16).unwrap(),
+                        Default::default(),
+                    ));
                 } else {
-                    return Some(Token::Literal(cap[1].parse::<isize>().unwrap()));
+                    return Some(Token::Literal(
+                        cap[1].parse::<isize>().unwrap(),
+                        Default::default(),
+                    ));
                 }
             }
             _ => {}
@@ -53,7 +66,7 @@ impl Iterator for Parser {
         match matches {
             Some(cap) => {
                 self.code = cap[2].to_string();
-                return Some(Token::Word(cap[1].to_string()));
+                return Some(Token::Word(cap[1].to_string(), Default::default()));
             }
             _ => {}
         }
@@ -101,12 +114,6 @@ impl MarkerGroup {
     }
 }
 
-// in a loop,
-// slice from function beginning to end,
-// adjust all markers in existing code,
-// adjust all markers in new code,
-// append to the end of the opcode list
-
 pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
     lazy_static! {
         static ref RE_COMMENTS: Regex = Regex::new(r"(?m)\\.*$").unwrap();
@@ -134,19 +141,17 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
         previous_tokens.push(token.clone());
 
         match parse_mode {
-            ParseMode::CommentParens => {
-                match token {
-                    Token::Word(ref word) => {
-                        if word == ")" {
-                            parse_mode = ParseMode::Default;
-                        }
+            ParseMode::CommentParens => match token {
+                Token::Word(ref word, _) => {
+                    if word == ")" {
+                        parse_mode = ParseMode::Default;
                     }
-                    _ => {}
                 }
-            }
+                _ => {}
+            },
             ParseMode::Variable => {
                 match token {
-                    Token::Word(ref word) => {
+                    Token::Word(ref word, _) => {
                         variables.insert(word.to_string(), variable_offset);
                         variable_offset += 1;
                     }
@@ -156,7 +161,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
             ParseMode::FunctionName => {
                 match token {
-                    Token::Word(ref word) => {
+                    Token::Word(ref word, _) => {
                         // output.push(Pax::Function);
                         let function_offset = output.len(); // don't include first word
 
@@ -171,7 +176,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
             ParseMode::ConstantName(value) => {
                 match token {
-                    Token::Word(ref word) => {
+                    Token::Word(ref word, _) => {
                         constants.insert(word.to_string(), value);
                     }
                     _ => panic!("expected constant name"),
@@ -180,7 +185,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
             ParseMode::Default => {
                 match token {
-                    Token::Word(word) => {
+                    Token::Word(word, pos) => {
                         // Skip comments
                         if word == "(" {
                             parse_mode = ParseMode::CommentParens;
@@ -213,14 +218,21 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                         match word.as_str() {
                             // compiler keyword
                             "allot" => {
-                                if previous_tokens[previous_tokens.len() - 2] == Token::Word("cells".to_string()) {
+                                if previous_tokens[previous_tokens.len() - 2]
+                                    == Token::Word("cells".to_string(), pos)
+                                {
                                     // Hack for removing cells reference from fn group
-                                    functions.iter_mut().find(|c| c.name == "cells").unwrap().target_indices.pop();
+                                    functions
+                                        .iter_mut()
+                                        .find(|c| c.name == "cells")
+                                        .unwrap()
+                                        .target_indices
+                                        .pop();
 
                                     let cells = &previous_tokens[previous_tokens.len() - 3];
                                     match cells {
-                                        Token::Word(_) => panic!("Expected literal"),
-                                        Token::Literal(cells) => {
+                                        Token::Word(_, _) => panic!("Expected literal"),
+                                        Token::Literal(cells, _) => {
                                             // eprintln!("allocating {}", cells);
                                             output.pop(); // Call
                                             output.pop(); // "cells"
@@ -236,8 +248,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "constant" => {
                                 let cells = &previous_tokens[previous_tokens.len() - 2];
                                 match cells {
-                                    Token::Word(_) => panic!("Expected literal"),
-                                    Token::Literal(value) => {
+                                    Token::Word(_, _) => panic!("Expected literal"),
+                                    Token::Literal(value, _) => {
                                         // eprintln!("constant {}", value);
                                         output.pop(); // value
 
@@ -248,16 +260,18 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                             // flow control
                             "recurse" => {
+                                output.push(Pax::PushLiteral(0));
                                 let group = functions.last_mut().unwrap();
                                 group.push_marker(&mut output);
-                                output.push(Pax::Jump);
+                                output.push(Pax::JumpIf0);
                                 continue;
                             }
                             "begin" => {
                                 flow_markers.push(MarkerGroup::new("<begin>", output.len()));
                             }
                             "until" => {
-                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                let mut group =
+                                    flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<begin>", "expected begin loop");
                                 group.push_marker(&mut output);
                                 output.push(Pax::JumpIf0);
@@ -269,22 +283,30 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 flow_markers.push(MarkerGroup::new("<do>", output.len()));
                             }
                             "loop" => {
-                                let group = functions.iter_mut().find(|c| c.name == "loopimpl").expect("no :loopimpl defn found");
+                                let group = functions
+                                    .iter_mut()
+                                    .find(|c| c.name == "loopimpl")
+                                    .expect("no :loopimpl defn found");
                                 group.push_marker(&mut output);
                                 output.push(Pax::Call);
 
-                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                let mut group =
+                                    flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
                                 group.push_marker(&mut output);
                                 output.push(Pax::JumpIf0);
                                 used_flow_markers.push(group);
                             }
                             "-loop" => {
-                                let group = functions.iter_mut().find(|c| c.name == "-loopimpl").expect("no :loopimpl defn found");
+                                let group = functions
+                                    .iter_mut()
+                                    .find(|c| c.name == "-loopimpl")
+                                    .expect("no :loopimpl defn found");
                                 group.push_marker(&mut output);
                                 output.push(Pax::Call);
 
-                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                let mut group =
+                                    flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
                                 group.push_marker(&mut output);
                                 output.push(Pax::JumpIf0);
@@ -298,8 +320,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 flow_markers.push(group);
                             }
                             "else" => {
-                                let mut if_group = flow_markers.pop().expect("did not match marker group");
-                                
+                                let mut if_group =
+                                    flow_markers.pop().expect("did not match marker group");
                                 let mut else_group = MarkerGroup::new("<else>", output.len());
                                 output.push(Pax::PushLiteral(0)); // Always yes
                                 else_group.push_marker(&mut output);
@@ -311,7 +333,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 used_flow_markers.push(if_group);
                             }
                             "then" => {
-                                let mut group = flow_markers.pop().expect("did not match marker group");
+                                let mut group =
+                                    flow_markers.pop().expect("did not match marker group");
                                 group.source_index = output.len();
                                 used_flow_markers.push(group);
                             }
@@ -346,7 +369,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             }
                         }
                     }
-                    Token::Literal(lit) => {
+                    Token::Literal(lit, _) => {
                         output.push(Pax::PushLiteral(lit as isize));
                     }
                 }

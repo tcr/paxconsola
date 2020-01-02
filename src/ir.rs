@@ -29,7 +29,6 @@ pub enum Pax {
 
     Stop,
 
-    Jump, // temporary, for <recurse>
     JumpIf0, // maybe the way forward
 
 }
