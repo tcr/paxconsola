@@ -139,8 +139,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                         }
                         // Functions shadow all terms
                         if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
-                            // group.push_marker(&mut output, pos);
-                            output.push((Pax::PushLabel(0), pos));
                             output.push((Pax::Call(word.to_string()), pos));
                             continue;
                         }
@@ -156,20 +154,11 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                 if previous_tokens[previous_tokens.len() - 2]
                                     == Token::Word("cells".to_string())
                                 {
-                                    // Hack for removing cells reference from fn group
-                                    functions
-                                        .iter_mut()
-                                        .find(|c| c.name == "cells")
-                                        .unwrap()
-                                        .target_indices
-                                        .pop();
-
                                     let cells = &previous_tokens[previous_tokens.len() - 3];
                                     match cells {
                                         Token::Word(_) => panic!("Expected literal"),
                                         Token::Literal(cells) => {
                                             // eprintln!("allocating {}", cells);
-                                            output.pop(); // Call
                                             output.pop(); // "cells"
                                             output.pop(); // value
                                             variable_offset += *cells as usize;
@@ -222,7 +211,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     .iter_mut()
                                     .find(|c| c.name == "loopimpl")
                                     .expect("no :loopimpl defn found");
-                                output.push((Pax::PushLabel(0), pos));
                                 output.push((Pax::Call(group.name.clone()), pos));
 
                                 let mut group =
@@ -236,7 +224,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     .iter_mut()
                                     .find(|c| c.name == "-loopimpl")
                                     .expect("no :loopimpl defn found");
-                                    output.push((Pax::PushLabel(0), pos));
                                 output.push((Pax::Call(group.name.clone()), pos));
 
                                 let mut group =

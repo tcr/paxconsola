@@ -29,7 +29,7 @@ pub enum GbIr {
     // ( a -- )
     Pop,                        // pop stack, load TOS into hl
     // ( addr -- )
-    PopAndCall,
+    Call,
     // ( -- )
     Ret,
     // ( addr -- value )
@@ -68,11 +68,6 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             GbIr::Dup,
             GbIr::ReplaceLiteral(value as _),
         ],
-        // ( -- label )
-        Pax::PushLabel(value) => vec![
-            GbIr::Dup,
-            GbIr::ReplaceLabel(format!(".opcode_{}", value))
-        ],
         // ( address -- value )
         Pax::Load => vec![
             GbIr::ReplaceLoad,
@@ -106,9 +101,9 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         ],
         // ( address -- )
         Pax::Call(target) => vec![
-            // GbIr::Dup,
+            GbIr::Dup,
             GbIr::ReplaceLabel(format!(".PAX_FN_{}", name_slug(&target))),
-            GbIr::PopAndCall,
+            GbIr::Call,
         ],
         // ( -- )
         Pax::Exit | Pax::Stop => vec![
@@ -319,7 +314,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
 ; function start
             ");
         }
-        GbIr::PopAndCall => {
+        GbIr::Call => {
             gb_output!("
     call EMULATE_JP_HL
             ");

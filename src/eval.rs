@@ -41,10 +41,6 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
             Pax::PushLiteral(lit) => {
                 stack.push(lit as u32);
             }
-            Pax::PushLabel(lit) => {
-                // All labels in the interpreter just use their opcode indexes.
-                stack.push(lit as u32);
-            }
 
             Pax::Equals => {
                 unimplemented!();
@@ -113,10 +109,7 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
             }
             // call
             Pax::Call(target) => {
-                let num = stack.pop().unwrap();
-                assert_eq!(num, 0);
                 // Look up function globally.
-                // TODO make this the primary way to interact with calls
                 let function_start = *function_map.get(&target).expect("couldnt determine function location");
 
                 alt_stack.push(cindex as u32);

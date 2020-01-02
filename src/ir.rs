@@ -19,7 +19,6 @@ pub enum Pax {
     BranchTarget,
 
     PushLiteral(isize),
-    PushLabel(isize),
 
     Metadata(String),
 
