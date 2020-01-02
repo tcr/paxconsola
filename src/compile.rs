@@ -130,6 +130,8 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         Pax::Print => vec![
             // nah
         ],
+        // ( -- )
+        Pax::BranchTarget => vec![],
         op => {
             panic!("not yet implemented: {:?}", op);
         }

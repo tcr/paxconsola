@@ -28,6 +28,10 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
         // eprintln!("                                  alt: {:?}", alt_stack);
 
         match op {
+            Pax::BranchTarget => {
+                // noop
+            },
+
             Pax::PushLiteral(lit) => {
                 stack.push(lit as u32);
             }

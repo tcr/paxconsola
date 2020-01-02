@@ -4,4 +4,10 @@ pub struct Pos {
     pub col: usize,
 }
 
+impl std::fmt::Display for Pos {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.line, self.col)
+    }
+}
+
 pub type Located<T> = (T, Pos);

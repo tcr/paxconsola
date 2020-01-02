@@ -16,6 +16,8 @@ pub enum Pax {
     Load8,
     Store8,
 
+    BranchTarget,
+
     PushLiteral(isize),
     PushLabel(isize),
 

@@ -280,6 +280,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                             }
                             "begin" => {
                                 flow_markers.push(MarkerGroup::new("<begin>", output.len()));
+                                output.push((Pax::BranchTarget, pos));
                             }
                             "until" => {
                                 let mut group =
@@ -293,6 +294,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                 output.push((Pax::AltPush, pos));
                                 output.push((Pax::AltPush, pos));
                                 flow_markers.push(MarkerGroup::new("<do>", output.len()));
+                                output.push((Pax::BranchTarget, pos));
                             }
                             "loop" => {
                                 let group = functions
@@ -340,15 +342,18 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                 output.push((Pax::JumpIf0, pos));
 
                                 flow_markers.push(else_group);
-
                                 if_group.source_index = output.len();
                                 used_flow_markers.push(if_group);
+
+                                output.push((Pax::BranchTarget, pos));
                             }
                             "then" => {
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 group.source_index = output.len();
                                 used_flow_markers.push(group);
+
+                                output.push((Pax::BranchTarget, pos));
                             }
 
                             // pax

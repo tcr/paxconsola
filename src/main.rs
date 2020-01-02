@@ -98,8 +98,10 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         cross_compile_forth_gb(script);
     } else {
         if args.dump {
-            for (i, op) in script.iter().enumerate() {
+            for (i, (op, pos)) in script.iter().enumerate() {
                 println!("[{:>3}]  {:?}", i, op);
+                println!("       ; {}:{}", args.file.to_string_lossy(), pos);
+                println!();
             }
         } else {
             eval_forth(script, args.interactive);
