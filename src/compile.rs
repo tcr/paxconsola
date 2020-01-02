@@ -3,6 +3,12 @@
 use crate::*;
 use lazy_static::*;
 use regex::Regex;
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC, AsciiSet};
+
+fn name_slug(name: &str) -> String {
+    const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
+    utf8_percent_encode(name, &NON_ALPHA).to_string().replace("%", "").to_string()
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum GbIr {
@@ -17,7 +23,9 @@ pub enum GbIr {
     // ( a b -- b )
     NipIntoDE,                  // store [stack - 1] into de
     // ( a -- a )
-    CopyToA,                    // copy top of stack to A
+    CopyToA,                    // copy TOS to register A
+    // ( a -- a )
+    CopyToE,                    // copy TOS to register E
     // ( a -- )
     Pop,                        // pop stack, load TOS into hl
     // ( addr -- )
@@ -28,8 +36,8 @@ pub enum GbIr {
     ReplaceLoad,
     // ( addr -- addr )
     StoreDE,
-    // ( addr -- addr )
-    RetIfDEIs0,
+    // ( -- )
+    JumpIfEIs0(String),         // label destination
     // ( b -- cond )
     CompareDEAndReplace,
     // ( a -- result )
@@ -50,7 +58,7 @@ pub enum GbIr {
 }
 
 fn translate_to_gb(op: Pax) -> Vec<GbIr> {
-    match op {  
+    match op {
         Pax::Metadata(s) => vec![
             GbIr::Metadata(s),
             GbIr::Pop,
@@ -85,12 +93,11 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             GbIr::StoreDE8,
             GbIr::Pop,
         ],
-        // ( cond addr -- )
-        Pax::JumpIf0 => vec![
-            GbIr::NipIntoDE,
-            GbIr::PushRetAddr,
+        // ( cond -- )
+        Pax::JumpIf0(addr) => vec![
+            GbIr::CopyToE,
             GbIr::Pop,
-            GbIr::RetIfDEIs0,
+            GbIr::JumpIfEIs0(format!(".opcode_{}", addr)),
         ],
         // ( a b -- cond )
         Pax::Equals => vec![
@@ -99,8 +106,8 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         ],
         // ( address -- )
         Pax::Call(target) => vec![
-            GbIr::Dup,
-            GbIr::ReplaceLabel(format!(".PAX_{}", target)),
+            // GbIr::Dup,
+            GbIr::ReplaceLabel(format!(".PAX_FN_{}", name_slug(&target))),
             GbIr::PopAndCall,
         ],
         // ( -- )
@@ -160,8 +167,8 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     match op {
         GbIr::Metadata(s) => gb_output!("
     ; [metadata] {:?}
-.PAX_{}:
-        ", s, s),
+.PAX_FN_{}:
+        ", s, name_slug(&s)),
         GbIr::Dup => {
             gb_output!("
     dec c
@@ -179,7 +186,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     inc c
     ld a, [c]
     ld h, a
-    inc c                
+    inc c
             ");
         }
         GbIr::ReplaceLiteral(lit) => {
@@ -201,6 +208,11 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     ld a, [c]
     ld d, a
     inc c
+            ");
+        }
+        GbIr::CopyToE => {
+            gb_output!("
+    ld e,l
             ");
         }
         GbIr::CopyToA => {
@@ -245,16 +257,12 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     push hl
             ");
         }
-        GbIr::RetIfDEIs0 => {
+        GbIr::JumpIfEIs0(addr) => {
             gb_output!("
     ld a, e
     cp $0
-    jp nz,.next_{index}
-    ret
-.next_{index}:
-    pop de ; toss
-            ", index = idx);
-            *idx += 1;
+    jp z,{}
+            ", addr);
         }
         GbIr::CompareDEAndReplace => {
             gb_output!("

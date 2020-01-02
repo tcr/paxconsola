@@ -5,7 +5,7 @@ pub enum Pax {
     Load,
     Call(String),
     Exit,
-    
+
     Add,
     Nand,
     Remainder,
@@ -31,6 +31,5 @@ pub enum Pax {
 
     Stop,
 
-    JumpIf0, // maybe the way forward
-
+    JumpIf0(usize),
 }

@@ -1,0 +1,5405 @@
+[
+    (
+        Metadata(
+            "cells",
+        ),
+        Pos {
+            line: 3,
+            col: 3,
+        },
+    ),
+    (
+        Metadata(
+            "drop",
+        ),
+        Pos {
+            line: 10,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            2,
+        ),
+        Pos {
+            line: 10,
+            col: 11,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 10,
+            col: 14,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 10,
+            col: 19,
+        },
+    ),
+    (
+        Metadata(
+            "2drop",
+        ),
+        Pos {
+            line: 11,
+            col: 3,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 11,
+            col: 11,
+        },
+    ),
+    (
+        Call(
+            "drop",
+        ),
+        Pos {
+            line: 11,
+            col: 13,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 11,
+            col: 18,
+        },
+    ),
+    (
+        Metadata(
+            "swap",
+        ),
+        Pos {
+            line: 14,
+            col: 3,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 14,
+            col: 10,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 14,
+            col: 13,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 14,
+            col: 18,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 14,
+            col: 20,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 14,
+            col: 23,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 14,
+            col: 28,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 14,
+            col: 30,
+        },
+    ),
+    (
+        Metadata(
+            "over",
+        ),
+        Pos {
+            line: 15,
+            col: 3,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 15,
+            col: 10,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 15,
+            col: 13,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 15,
+            col: 18,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 15,
+            col: 20,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 15,
+            col: 25,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 15,
+            col: 27,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 15,
+            col: 30,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 15,
+            col: 35,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 15,
+            col: 37,
+        },
+    ),
+    (
+        Metadata(
+            "rot",
+        ),
+        Pos {
+            line: 16,
+            col: 3,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 16,
+            col: 10,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 16,
+            col: 13,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 16,
+            col: 18,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 16,
+            col: 21,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 16,
+            col: 26,
+        },
+    ),
+    (
+        Metadata(
+            "r@",
+        ),
+        Pos {
+            line: 19,
+            col: 3,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 19,
+            col: 8,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 19,
+            col: 11,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 19,
+            col: 14,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 19,
+            col: 19,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 19,
+            col: 21,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 19,
+            col: 26,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 19,
+            col: 28,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 19,
+            col: 31,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 19,
+            col: 36,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 19,
+            col: 38,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 19,
+            col: 43,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 19,
+            col: 46,
+        },
+    ),
+    (
+        Metadata(
+            "dup",
+        ),
+        Pos {
+            line: 21,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 21,
+            col: 10,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 21,
+            col: 15,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 21,
+            col: 17,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 21,
+            col: 22,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 21,
+            col: 24,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 21,
+            col: 29,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 21,
+            col: 31,
+        },
+    ),
+    (
+        Metadata(
+            "2dup",
+        ),
+        Pos {
+            line: 22,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 22,
+            col: 10,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 22,
+            col: 15,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 22,
+            col: 20,
+        },
+    ),
+    (
+        Metadata(
+            "?dup",
+        ),
+        Pos {
+            line: 23,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 23,
+            col: 10,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 23,
+            col: 15,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 23,
+            col: 17,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 23,
+            col: 22,
+        },
+    ),
+    (
+        JumpIf0(
+            63,
+        ),
+        Pos {
+            line: 23,
+            col: 24,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 23,
+            col: 27,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 23,
+            col: 32,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 23,
+            col: 34,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 23,
+            col: 39,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 23,
+            col: 41,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 23,
+            col: 46,
+        },
+    ),
+    (
+        Metadata(
+            "invert",
+        ),
+        Pos {
+            line: 25,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            -1,
+        ),
+        Pos {
+            line: 25,
+            col: 12,
+        },
+    ),
+    (
+        Nand,
+        Pos {
+            line: 25,
+            col: 15,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 25,
+            col: 20,
+        },
+    ),
+    (
+        Metadata(
+            "negate",
+        ),
+        Pos {
+            line: 26,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "invert",
+        ),
+        Pos {
+            line: 26,
+            col: 12,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 26,
+            col: 19,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 26,
+            col: 21,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 26,
+            col: 23,
+        },
+    ),
+    (
+        Metadata(
+            "-",
+        ),
+        Pos {
+            line: 27,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "negate",
+        ),
+        Pos {
+            line: 27,
+            col: 12,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 27,
+            col: 19,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 27,
+            col: 21,
+        },
+    ),
+    (
+        Metadata(
+            "1+",
+        ),
+        Pos {
+            line: 29,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 29,
+            col: 8,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 29,
+            col: 10,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 29,
+            col: 12,
+        },
+    ),
+    (
+        Metadata(
+            "1-",
+        ),
+        Pos {
+            line: 30,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            -1,
+        ),
+        Pos {
+            line: 30,
+            col: 8,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 30,
+            col: 11,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 30,
+            col: 13,
+        },
+    ),
+    (
+        Metadata(
+            "+!",
+        ),
+        Pos {
+            line: 31,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "dup",
+        ),
+        Pos {
+            line: 31,
+            col: 8,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 31,
+            col: 12,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 31,
+            col: 15,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 31,
+            col: 17,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 31,
+            col: 19,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 31,
+            col: 22,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 31,
+            col: 24,
+        },
+    ),
+    (
+        Metadata(
+            "0=",
+        ),
+        Pos {
+            line: 32,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            100,
+        ),
+        Pos {
+            line: 32,
+            col: 8,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 32,
+            col: 11,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 32,
+            col: 13,
+        },
+    ),
+    (
+        JumpIf0(
+            102,
+        ),
+        Pos {
+            line: 32,
+            col: 13,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 32,
+            col: 13,
+        },
+    ),
+    (
+        PushLiteral(
+            -1,
+        ),
+        Pos {
+            line: 32,
+            col: 18,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 32,
+            col: 21,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 32,
+            col: 26,
+        },
+    ),
+    (
+        Metadata(
+            "=",
+        ),
+        Pos {
+            line: 33,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 33,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "0=",
+        ),
+        Pos {
+            line: 33,
+            col: 10,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 33,
+            col: 13,
+        },
+    ),
+    (
+        Metadata(
+            "<>",
+        ),
+        Pos {
+            line: 34,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 34,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "0=",
+        ),
+        Pos {
+            line: 34,
+            col: 10,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 34,
+            col: 13,
+        },
+    ),
+    (
+        Metadata(
+            "==",
+        ),
+        Pos {
+            line: 35,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 35,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "0=",
+        ),
+        Pos {
+            line: 35,
+            col: 10,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 35,
+            col: 13,
+        },
+    ),
+    (
+        Metadata(
+            "or",
+        ),
+        Pos {
+            line: 37,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "invert",
+        ),
+        Pos {
+            line: 37,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 37,
+            col: 15,
+        },
+    ),
+    (
+        Call(
+            "invert",
+        ),
+        Pos {
+            line: 37,
+            col: 20,
+        },
+    ),
+    (
+        Nand,
+        Pos {
+            line: 37,
+            col: 27,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 37,
+            col: 32,
+        },
+    ),
+    (
+        Metadata(
+            "xor",
+        ),
+        Pos {
+            line: 38,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "2dup",
+        ),
+        Pos {
+            line: 38,
+            col: 9,
+        },
+    ),
+    (
+        Nand,
+        Pos {
+            line: 38,
+            col: 14,
+        },
+    ),
+    (
+        Call(
+            "1+",
+        ),
+        Pos {
+            line: 38,
+            col: 19,
+        },
+    ),
+    (
+        Call(
+            "dup",
+        ),
+        Pos {
+            line: 38,
+            col: 22,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 38,
+            col: 26,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 38,
+            col: 28,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 38,
+            col: 30,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 38,
+            col: 32,
+        },
+    ),
+    (
+        Metadata(
+            "and",
+        ),
+        Pos {
+            line: 39,
+            col: 3,
+        },
+    ),
+    (
+        Nand,
+        Pos {
+            line: 39,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "invert",
+        ),
+        Pos {
+            line: 39,
+            col: 14,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 39,
+            col: 21,
+        },
+    ),
+    (
+        Metadata(
+            "loopimpl",
+        ),
+        Pos {
+            line: 44,
+            col: 3,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 44,
+            col: 12,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 44,
+            col: 15,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 44,
+            col: 18,
+        },
+    ),
+    (
+        Call(
+            "1+",
+        ),
+        Pos {
+            line: 44,
+            col: 21,
+        },
+    ),
+    (
+        Call(
+            "2dup",
+        ),
+        Pos {
+            line: 44,
+            col: 24,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 44,
+            col: 29,
+        },
+    ),
+    (
+        JumpIf0(
+            146,
+        ),
+        Pos {
+            line: 44,
+            col: 31,
+        },
+    ),
+    (
+        Call(
+            "2drop",
+        ),
+        Pos {
+            line: 44,
+            col: 34,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 44,
+            col: 40,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 44,
+            col: 42,
+        },
+    ),
+    (
+        JumpIf0(
+            149,
+        ),
+        Pos {
+            line: 44,
+            col: 42,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 44,
+            col: 42,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 44,
+            col: 47,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 44,
+            col: 50,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 44,
+            col: 53,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 44,
+            col: 55,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 44,
+            col: 60,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 44,
+            col: 65,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 44,
+            col: 68,
+        },
+    ),
+    (
+        Metadata(
+            "-loopimpl",
+        ),
+        Pos {
+            line: 45,
+            col: 3,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 45,
+            col: 13,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 45,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "rot",
+        ),
+        Pos {
+            line: 45,
+            col: 19,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 45,
+            col: 23,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 45,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 45,
+            col: 31,
+        },
+    ),
+    (
+        Call(
+            "2dup",
+        ),
+        Pos {
+            line: 45,
+            col: 33,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 45,
+            col: 38,
+        },
+    ),
+    (
+        JumpIf0(
+            168,
+        ),
+        Pos {
+            line: 45,
+            col: 40,
+        },
+    ),
+    (
+        Call(
+            "2drop",
+        ),
+        Pos {
+            line: 45,
+            col: 43,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 45,
+            col: 49,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 45,
+            col: 51,
+        },
+    ),
+    (
+        JumpIf0(
+            171,
+        ),
+        Pos {
+            line: 45,
+            col: 51,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 45,
+            col: 51,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 45,
+            col: 56,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 45,
+            col: 59,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 45,
+            col: 62,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 45,
+            col: 64,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 45,
+            col: 69,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 45,
+            col: 74,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 45,
+            col: 77,
+        },
+    ),
+    (
+        Metadata(
+            "i",
+        ),
+        Pos {
+            line: 48,
+            col: 3,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 48,
+            col: 5,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 48,
+            col: 8,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 48,
+            col: 11,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 48,
+            col: 14,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 48,
+            col: 19,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 48,
+            col: 21,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 48,
+            col: 26,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 48,
+            col: 28,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 48,
+            col: 31,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 48,
+            col: 34,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 48,
+            col: 37,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 48,
+            col: 42,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 48,
+            col: 44,
+        },
+    ),
+    (
+        Metadata(
+            "j",
+        ),
+        Pos {
+            line: 49,
+            col: 3,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 49,
+            col: 5,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 49,
+            col: 8,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 49,
+            col: 11,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 49,
+            col: 14,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 49,
+            col: 17,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 49,
+            col: 20,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 49,
+            col: 25,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 49,
+            col: 27,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 49,
+            col: 32,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 49,
+            col: 34,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 49,
+            col: 37,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 49,
+            col: 40,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 49,
+            col: 43,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 49,
+            col: 46,
+        },
+    ),
+    (
+        PushLiteral(
+            578,
+        ),
+        Pos {
+            line: 49,
+            col: 49,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 49,
+            col: 54,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 49,
+            col: 56,
+        },
+    ),
+    (
+        Metadata(
+            "*",
+        ),
+        Pos {
+            line: 51,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "dup",
+        ),
+        Pos {
+            line: 51,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "0=",
+        ),
+        Pos {
+            line: 51,
+            col: 9,
+        },
+    ),
+    (
+        JumpIf0(
+            216,
+        ),
+        Pos {
+            line: 51,
+            col: 12,
+        },
+    ),
+    (
+        Call(
+            "drop",
+        ),
+        Pos {
+            line: 51,
+            col: 15,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 51,
+            col: 20,
+        },
+    ),
+    (
+        JumpIf0(
+            218,
+        ),
+        Pos {
+            line: 51,
+            col: 20,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 51,
+            col: 20,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 51,
+            col: 25,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 51,
+            col: 28,
+        },
+    ),
+    (
+        AltPop,
+        Pos {
+            line: 51,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 51,
+            col: 33,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 51,
+            col: 35,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 51,
+            col: 35,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 51,
+            col: 35,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 51,
+            col: 38,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 51,
+            col: 43,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 51,
+            col: 45,
+        },
+    ),
+    (
+        JumpIf0(
+            227,
+        ),
+        Pos {
+            line: 51,
+            col: 45,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 51,
+            col: 50,
+        },
+    ),
+    (
+        Call(
+            "drop",
+        ),
+        Pos {
+            line: 51,
+            col: 55,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 51,
+            col: 60,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 51,
+            col: 65,
+        },
+    ),
+    (
+        Metadata(
+            "random",
+        ),
+        Pos {
+            line: 53,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            577,
+        ),
+        Pos {
+            line: 53,
+            col: 10,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 53,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 53,
+            col: 28,
+        },
+    ),
+    (
+        Metadata(
+            "snake-x",
+        ),
+        Pos {
+            line: 75,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "cells",
+        ),
+        Pos {
+            line: 76,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            579,
+        ),
+        Pos {
+            line: 76,
+            col: 9,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 76,
+            col: 22,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 76,
+            col: 24,
+        },
+    ),
+    (
+        Metadata(
+            "snake-y",
+        ),
+        Pos {
+            line: 78,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "cells",
+        ),
+        Pos {
+            line: 79,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1080,
+        ),
+        Pos {
+            line: 79,
+            col: 9,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 79,
+            col: 22,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 79,
+            col: 24,
+        },
+    ),
+    (
+        Metadata(
+            "convert-x-y",
+        ),
+        Pos {
+            line: 81,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 81,
+            col: 33,
+        },
+    ),
+    (
+        Call(
+            "cells",
+        ),
+        Pos {
+            line: 81,
+            col: 36,
+        },
+    ),
+    (
+        Call(
+            "*",
+        ),
+        Pos {
+            line: 81,
+            col: 42,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 81,
+            col: 44,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 81,
+            col: 46,
+        },
+    ),
+    (
+        Metadata(
+            "draw",
+        ),
+        Pos {
+            line: 82,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "convert-x-y",
+        ),
+        Pos {
+            line: 82,
+            col: 26,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 82,
+            col: 38,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 82,
+            col: 47,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 82,
+            col: 49,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 82,
+            col: 51,
+        },
+    ),
+    (
+        Metadata(
+            "draw-white",
+        ),
+        Pos {
+            line: 83,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 83,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "rot",
+        ),
+        Pos {
+            line: 83,
+            col: 28,
+        },
+    ),
+    (
+        Call(
+            "rot",
+        ),
+        Pos {
+            line: 83,
+            col: 32,
+        },
+    ),
+    (
+        Call(
+            "draw",
+        ),
+        Pos {
+            line: 83,
+            col: 36,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 83,
+            col: 41,
+        },
+    ),
+    (
+        Metadata(
+            "draw-black",
+        ),
+        Pos {
+            line: 84,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 84,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "rot",
+        ),
+        Pos {
+            line: 84,
+            col: 28,
+        },
+    ),
+    (
+        Call(
+            "rot",
+        ),
+        Pos {
+            line: 84,
+            col: 32,
+        },
+    ),
+    (
+        Call(
+            "draw",
+        ),
+        Pos {
+            line: 84,
+            col: 36,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 84,
+            col: 41,
+        },
+    ),
+    (
+        Metadata(
+            "draw-walls",
+        ),
+        Pos {
+            line: 86,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 87,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 87,
+            col: 9,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 87,
+            col: 11,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 87,
+            col: 11,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 87,
+            col: 11,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 88,
+            col: 5,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 88,
+            col: 7,
+        },
+    ),
+    (
+        Call(
+            "draw-black",
+        ),
+        Pos {
+            line: 88,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 89,
+            col: 5,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 89,
+            col: 7,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 89,
+            col: 14,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 89,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "draw-black",
+        ),
+        Pos {
+            line: 89,
+            col: 18,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 90,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            279,
+        ),
+        Pos {
+            line: 90,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 91,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 91,
+            col: 10,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 91,
+            col: 12,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 91,
+            col: 12,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 91,
+            col: 12,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 92,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 92,
+            col: 7,
+        },
+    ),
+    (
+        Call(
+            "draw-black",
+        ),
+        Pos {
+            line: 92,
+            col: 9,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 93,
+            col: 5,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 93,
+            col: 11,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 93,
+            col: 13,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 93,
+            col: 15,
+        },
+    ),
+    (
+        Call(
+            "draw-black",
+        ),
+        Pos {
+            line: 93,
+            col: 17,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 94,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            294,
+        ),
+        Pos {
+            line: 94,
+            col: 3,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 94,
+            col: 8,
+        },
+    ),
+    (
+        Metadata(
+            "initialize-snake",
+        ),
+        Pos {
+            line: 96,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            4,
+        ),
+        Pos {
+            line: 97,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 97,
+            col: 5,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 97,
+            col: 12,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 98,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 98,
+            col: 10,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 98,
+            col: 12,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 98,
+            col: 14,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 98,
+            col: 16,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 98,
+            col: 18,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 98,
+            col: 18,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 98,
+            col: 18,
+        },
+    ),
+    (
+        PushLiteral(
+            12,
+        ),
+        Pos {
+            line: 99,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 99,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 99,
+            col: 10,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 99,
+            col: 12,
+        },
+    ),
+    (
+        Call(
+            "snake-x",
+        ),
+        Pos {
+            line: 99,
+            col: 14,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 99,
+            col: 22,
+        },
+    ),
+    (
+        PushLiteral(
+            12,
+        ),
+        Pos {
+            line: 100,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 100,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "snake-y",
+        ),
+        Pos {
+            line: 100,
+            col: 10,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 100,
+            col: 18,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 101,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            317,
+        ),
+        Pos {
+            line: 101,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            2,
+        ),
+        Pos {
+            line: 102,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 102,
+            col: 9,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 102,
+            col: 19,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 102,
+            col: 21,
+        },
+    ),
+    (
+        Metadata(
+            "set-apple-position",
+        ),
+        Pos {
+            line: 104,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1581,
+        ),
+        Pos {
+            line: 104,
+            col: 22,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 104,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            1582,
+        ),
+        Pos {
+            line: 104,
+            col: 32,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 104,
+            col: 40,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 104,
+            col: 42,
+        },
+    ),
+    (
+        Metadata(
+            "initialize-apple",
+        ),
+        Pos {
+            line: 106,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            4,
+        ),
+        Pos {
+            line: 106,
+            col: 21,
+        },
+    ),
+    (
+        PushLiteral(
+            4,
+        ),
+        Pos {
+            line: 106,
+            col: 23,
+        },
+    ),
+    (
+        Call(
+            "set-apple-position",
+        ),
+        Pos {
+            line: 106,
+            col: 25,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 106,
+            col: 44,
+        },
+    ),
+    (
+        Metadata(
+            "initialize",
+        ),
+        Pos {
+            line: 108,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 109,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 109,
+            col: 9,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 109,
+            col: 11,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 109,
+            col: 11,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 109,
+            col: 11,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 110,
+            col: 5,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 110,
+            col: 12,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 110,
+            col: 14,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 110,
+            col: 14,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 110,
+            col: 14,
+        },
+    ),
+    (
+        Call(
+            "j",
+        ),
+        Pos {
+            line: 111,
+            col: 7,
+        },
+    ),
+    (
+        Print,
+        Pos {
+            line: 111,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "j",
+        ),
+        Pos {
+            line: 112,
+            col: 7,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 112,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "draw-white",
+        ),
+        Pos {
+            line: 112,
+            col: 11,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 113,
+            col: 5,
+        },
+    ),
+    (
+        JumpIf0(
+            355,
+        ),
+        Pos {
+            line: 113,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 114,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            350,
+        ),
+        Pos {
+            line: 114,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "draw-walls",
+        ),
+        Pos {
+            line: 115,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "initialize-snake",
+        ),
+        Pos {
+            line: 116,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "initialize-apple",
+        ),
+        Pos {
+            line: 117,
+            col: 3,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 117,
+            col: 20,
+        },
+    ),
+    (
+        Metadata(
+            "move-up",
+        ),
+        Pos {
+            line: 119,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            -1,
+        ),
+        Pos {
+            line: 119,
+            col: 12,
+        },
+    ),
+    (
+        PushLiteral(
+            1080,
+        ),
+        Pos {
+            line: 119,
+            col: 15,
+        },
+    ),
+    (
+        Call(
+            "+!",
+        ),
+        Pos {
+            line: 119,
+            col: 28,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 119,
+            col: 31,
+        },
+    ),
+    (
+        Metadata(
+            "move-left",
+        ),
+        Pos {
+            line: 120,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            -1,
+        ),
+        Pos {
+            line: 120,
+            col: 14,
+        },
+    ),
+    (
+        PushLiteral(
+            579,
+        ),
+        Pos {
+            line: 120,
+            col: 17,
+        },
+    ),
+    (
+        Call(
+            "+!",
+        ),
+        Pos {
+            line: 120,
+            col: 30,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 120,
+            col: 33,
+        },
+    ),
+    (
+        Metadata(
+            "move-down",
+        ),
+        Pos {
+            line: 121,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 121,
+            col: 14,
+        },
+    ),
+    (
+        PushLiteral(
+            1080,
+        ),
+        Pos {
+            line: 121,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "+!",
+        ),
+        Pos {
+            line: 121,
+            col: 29,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 121,
+            col: 32,
+        },
+    ),
+    (
+        Metadata(
+            "move-right",
+        ),
+        Pos {
+            line: 122,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 122,
+            col: 15,
+        },
+    ),
+    (
+        PushLiteral(
+            579,
+        ),
+        Pos {
+            line: 122,
+            col: 17,
+        },
+    ),
+    (
+        Call(
+            "+!",
+        ),
+        Pos {
+            line: 122,
+            col: 30,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 122,
+            col: 33,
+        },
+    ),
+    (
+        Metadata(
+            "move-snake-head",
+        ),
+        Pos {
+            line: 124,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 124,
+            col: 20,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 124,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 125,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 125,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 125,
+            col: 14,
+        },
+    ),
+    (
+        JumpIf0(
+            395,
+        ),
+        Pos {
+            line: 125,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "move-left",
+        ),
+        Pos {
+            line: 125,
+            col: 19,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 125,
+            col: 29,
+        },
+    ),
+    (
+        JumpIf0(
+            397,
+        ),
+        Pos {
+            line: 125,
+            col: 29,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 125,
+            col: 29,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 126,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 126,
+            col: 6,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 126,
+            col: 14,
+        },
+    ),
+    (
+        JumpIf0(
+            403,
+        ),
+        Pos {
+            line: 126,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "move-up",
+        ),
+        Pos {
+            line: 126,
+            col: 19,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 126,
+            col: 27,
+        },
+    ),
+    (
+        JumpIf0(
+            405,
+        ),
+        Pos {
+            line: 126,
+            col: 27,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 126,
+            col: 27,
+        },
+    ),
+    (
+        PushLiteral(
+            2,
+        ),
+        Pos {
+            line: 127,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 127,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 127,
+            col: 14,
+        },
+    ),
+    (
+        JumpIf0(
+            411,
+        ),
+        Pos {
+            line: 127,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "move-right",
+        ),
+        Pos {
+            line: 127,
+            col: 19,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 127,
+            col: 30,
+        },
+    ),
+    (
+        JumpIf0(
+            413,
+        ),
+        Pos {
+            line: 127,
+            col: 30,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 127,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            3,
+        ),
+        Pos {
+            line: 128,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 128,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 128,
+            col: 14,
+        },
+    ),
+    (
+        JumpIf0(
+            419,
+        ),
+        Pos {
+            line: 128,
+            col: 16,
+        },
+    ),
+    (
+        Call(
+            "move-down",
+        ),
+        Pos {
+            line: 128,
+            col: 19,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 129,
+            col: 3,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 129,
+            col: 8,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 129,
+            col: 13,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 129,
+            col: 18,
+        },
+    ),
+    (
+        Call(
+            "drop",
+        ),
+        Pos {
+            line: 129,
+            col: 23,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 129,
+            col: 28,
+        },
+    ),
+    (
+        Metadata(
+            "move-snake-tail",
+        ),
+        Pos {
+            line: 132,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            -1,
+        ),
+        Pos {
+            line: 132,
+            col: 20,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 132,
+            col: 23,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 132,
+            col: 30,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 132,
+            col: 32,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 132,
+            col: 32,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 132,
+            col: 32,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 133,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "drop",
+        ),
+        Pos {
+            line: 133,
+            col: 7,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 133,
+            col: 12,
+        },
+    ),
+    (
+        Call(
+            "snake-x",
+        ),
+        Pos {
+            line: 133,
+            col: 14,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 133,
+            col: 22,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 133,
+            col: 24,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 133,
+            col: 26,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 133,
+            col: 28,
+        },
+    ),
+    (
+        Call(
+            "snake-x",
+        ),
+        Pos {
+            line: 133,
+            col: 30,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 133,
+            col: 38,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 134,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "snake-y",
+        ),
+        Pos {
+            line: 134,
+            col: 7,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 134,
+            col: 15,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 134,
+            col: 17,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 134,
+            col: 19,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 134,
+            col: 21,
+        },
+    ),
+    (
+        Call(
+            "snake-y",
+        ),
+        Pos {
+            line: 134,
+            col: 23,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 134,
+            col: 31,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 135,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "-loopimpl",
+        ),
+        Pos {
+            line: 135,
+            col: 5,
+        },
+    ),
+    (
+        JumpIf0(
+            433,
+        ),
+        Pos {
+            line: 135,
+            col: 5,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 135,
+            col: 11,
+        },
+    ),
+    (
+        Metadata(
+            "is-horizontal",
+        ),
+        Pos {
+            line: 137,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 137,
+            col: 18,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 137,
+            col: 28,
+        },
+    ),
+    (
+        Call(
+            "dup",
+        ),
+        Pos {
+            line: 137,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 138,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 138,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 138,
+            col: 10,
+        },
+    ),
+    (
+        PushLiteral(
+            2,
+        ),
+        Pos {
+            line: 139,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 139,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "or",
+        ),
+        Pos {
+            line: 139,
+            col: 11,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 139,
+            col: 14,
+        },
+    ),
+    (
+        Metadata(
+            "is-vertical",
+        ),
+        Pos {
+            line: 141,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 141,
+            col: 16,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 141,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "dup",
+        ),
+        Pos {
+            line: 141,
+            col: 28,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 142,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 142,
+            col: 6,
+        },
+    ),
+    (
+        Call(
+            "swap",
+        ),
+        Pos {
+            line: 142,
+            col: 8,
+        },
+    ),
+    (
+        PushLiteral(
+            3,
+        ),
+        Pos {
+            line: 143,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 143,
+            col: 8,
+        },
+    ),
+    (
+        Call(
+            "or",
+        ),
+        Pos {
+            line: 143,
+            col: 10,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 143,
+            col: 13,
+        },
+    ),
+    (
+        Metadata(
+            "turn-up",
+        ),
+        Pos {
+            line: 145,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "is-horizontal",
+        ),
+        Pos {
+            line: 145,
+            col: 15,
+        },
+    ),
+    (
+        JumpIf0(
+            480,
+        ),
+        Pos {
+            line: 145,
+            col: 29,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 145,
+            col: 32,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 145,
+            col: 35,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 145,
+            col: 45,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 145,
+            col: 47,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 145,
+            col: 52,
+        },
+    ),
+    (
+        Metadata(
+            "turn-left",
+        ),
+        Pos {
+            line: 146,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "is-vertical",
+        ),
+        Pos {
+            line: 146,
+            col: 15,
+        },
+    ),
+    (
+        JumpIf0(
+            488,
+        ),
+        Pos {
+            line: 146,
+            col: 27,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 146,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 146,
+            col: 35,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 146,
+            col: 45,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 146,
+            col: 47,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 146,
+            col: 52,
+        },
+    ),
+    (
+        Metadata(
+            "turn-down",
+        ),
+        Pos {
+            line: 147,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "is-horizontal",
+        ),
+        Pos {
+            line: 147,
+            col: 15,
+        },
+    ),
+    (
+        JumpIf0(
+            496,
+        ),
+        Pos {
+            line: 147,
+            col: 29,
+        },
+    ),
+    (
+        PushLiteral(
+            3,
+        ),
+        Pos {
+            line: 147,
+            col: 32,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 147,
+            col: 37,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 147,
+            col: 47,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 147,
+            col: 49,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 147,
+            col: 54,
+        },
+    ),
+    (
+        Metadata(
+            "turn-right",
+        ),
+        Pos {
+            line: 148,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "is-vertical",
+        ),
+        Pos {
+            line: 148,
+            col: 15,
+        },
+    ),
+    (
+        JumpIf0(
+            504,
+        ),
+        Pos {
+            line: 148,
+            col: 27,
+        },
+    ),
+    (
+        PushLiteral(
+            2,
+        ),
+        Pos {
+            line: 148,
+            col: 30,
+        },
+    ),
+    (
+        PushLiteral(
+            1583,
+        ),
+        Pos {
+            line: 148,
+            col: 36,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 148,
+            col: 46,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 148,
+            col: 48,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 148,
+            col: 53,
+        },
+    ),
+    (
+        Metadata(
+            "change-direction",
+        ),
+        Pos {
+            line: 150,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            37,
+        ),
+        Pos {
+            line: 151,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 151,
+            col: 6,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 151,
+            col: 11,
+        },
+    ),
+    (
+        JumpIf0(
+            514,
+        ),
+        Pos {
+            line: 151,
+            col: 13,
+        },
+    ),
+    (
+        Call(
+            "turn-left",
+        ),
+        Pos {
+            line: 151,
+            col: 16,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 151,
+            col: 26,
+        },
+    ),
+    (
+        JumpIf0(
+            516,
+        ),
+        Pos {
+            line: 151,
+            col: 26,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 151,
+            col: 26,
+        },
+    ),
+    (
+        PushLiteral(
+            38,
+        ),
+        Pos {
+            line: 152,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 152,
+            col: 6,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 152,
+            col: 11,
+        },
+    ),
+    (
+        JumpIf0(
+            522,
+        ),
+        Pos {
+            line: 152,
+            col: 13,
+        },
+    ),
+    (
+        Call(
+            "turn-up",
+        ),
+        Pos {
+            line: 152,
+            col: 16,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 152,
+            col: 24,
+        },
+    ),
+    (
+        JumpIf0(
+            524,
+        ),
+        Pos {
+            line: 152,
+            col: 24,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 152,
+            col: 24,
+        },
+    ),
+    (
+        PushLiteral(
+            39,
+        ),
+        Pos {
+            line: 153,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 153,
+            col: 6,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 153,
+            col: 11,
+        },
+    ),
+    (
+        JumpIf0(
+            530,
+        ),
+        Pos {
+            line: 153,
+            col: 13,
+        },
+    ),
+    (
+        Call(
+            "turn-right",
+        ),
+        Pos {
+            line: 153,
+            col: 16,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 153,
+            col: 27,
+        },
+    ),
+    (
+        JumpIf0(
+            532,
+        ),
+        Pos {
+            line: 153,
+            col: 27,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 153,
+            col: 27,
+        },
+    ),
+    (
+        PushLiteral(
+            40,
+        ),
+        Pos {
+            line: 154,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "over",
+        ),
+        Pos {
+            line: 154,
+            col: 6,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 154,
+            col: 11,
+        },
+    ),
+    (
+        JumpIf0(
+            538,
+        ),
+        Pos {
+            line: 154,
+            col: 13,
+        },
+    ),
+    (
+        Call(
+            "turn-down",
+        ),
+        Pos {
+            line: 154,
+            col: 16,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 155,
+            col: 3,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 155,
+            col: 8,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 155,
+            col: 13,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 155,
+            col: 18,
+        },
+    ),
+    (
+        Call(
+            "drop",
+        ),
+        Pos {
+            line: 155,
+            col: 23,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 155,
+            col: 28,
+        },
+    ),
+    (
+        Metadata(
+            "check-input",
+        ),
+        Pos {
+            line: 157,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            576,
+        ),
+        Pos {
+            line: 158,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 158,
+            col: 12,
+        },
+    ),
+    (
+        Call(
+            "change-direction",
+        ),
+        Pos {
+            line: 158,
+            col: 14,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 159,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            576,
+        ),
+        Pos {
+            line: 159,
+            col: 5,
+        },
+    ),
+    (
+        Store,
+        Pos {
+            line: 159,
+            col: 14,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 159,
+            col: 16,
+        },
+    ),
+    (
+        Metadata(
+            "random-position",
+        ),
+        Pos {
+            line: 162,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            24,
+        ),
+        Pos {
+            line: 163,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            4,
+        ),
+        Pos {
+            line: 163,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "-",
+        ),
+        Pos {
+            line: 163,
+            col: 11,
+        },
+    ),
+    (
+        Call(
+            "random",
+        ),
+        Pos {
+            line: 163,
+            col: 13,
+        },
+    ),
+    (
+        PushLiteral(
+            2,
+        ),
+        Pos {
+            line: 163,
+            col: 20,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 163,
+            col: 22,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 163,
+            col: 24,
+        },
+    ),
+    (
+        Metadata(
+            "move-apple",
+        ),
+        Pos {
+            line: 165,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1581,
+        ),
+        Pos {
+            line: 166,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 166,
+            col: 11,
+        },
+    ),
+    (
+        PushLiteral(
+            1582,
+        ),
+        Pos {
+            line: 166,
+            col: 13,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 166,
+            col: 21,
+        },
+    ),
+    (
+        Call(
+            "draw-white",
+        ),
+        Pos {
+            line: 166,
+            col: 23,
+        },
+    ),
+    (
+        Call(
+            "random-position",
+        ),
+        Pos {
+            line: 167,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "random-position",
+        ),
+        Pos {
+            line: 167,
+            col: 19,
+        },
+    ),
+    (
+        Call(
+            "set-apple-position",
+        ),
+        Pos {
+            line: 168,
+            col: 3,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 168,
+            col: 22,
+        },
+    ),
+    (
+        Metadata(
+            "grow-snake",
+        ),
+        Pos {
+            line: 170,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1,
+        ),
+        Pos {
+            line: 170,
+            col: 15,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 170,
+            col: 17,
+        },
+    ),
+    (
+        Call(
+            "+!",
+        ),
+        Pos {
+            line: 170,
+            col: 24,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 170,
+            col: 27,
+        },
+    ),
+    (
+        Metadata(
+            "check-apple",
+        ),
+        Pos {
+            line: 172,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            579,
+        ),
+        Pos {
+            line: 173,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 173,
+            col: 16,
+        },
+    ),
+    (
+        PushLiteral(
+            1581,
+        ),
+        Pos {
+            line: 173,
+            col: 18,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 173,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 173,
+            col: 28,
+        },
+    ),
+    (
+        PushLiteral(
+            1080,
+        ),
+        Pos {
+            line: 174,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 174,
+            col: 16,
+        },
+    ),
+    (
+        PushLiteral(
+            1582,
+        ),
+        Pos {
+            line: 174,
+            col: 18,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 174,
+            col: 26,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 174,
+            col: 28,
+        },
+    ),
+    (
+        Call(
+            "and",
+        ),
+        Pos {
+            line: 175,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            589,
+        ),
+        Pos {
+            line: 175,
+            col: 7,
+        },
+    ),
+    (
+        Call(
+            "move-apple",
+        ),
+        Pos {
+            line: 176,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "grow-snake",
+        ),
+        Pos {
+            line: 177,
+            col: 5,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 178,
+            col: 3,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 178,
+            col: 8,
+        },
+    ),
+    (
+        Metadata(
+            "check-collision",
+        ),
+        Pos {
+            line: 180,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            579,
+        ),
+        Pos {
+            line: 182,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 182,
+            col: 16,
+        },
+    ),
+    (
+        PushLiteral(
+            1080,
+        ),
+        Pos {
+            line: 182,
+            col: 18,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 182,
+            col: 31,
+        },
+    ),
+    (
+        Call(
+            "convert-x-y",
+        ),
+        Pos {
+            line: 185,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 185,
+            col: 15,
+        },
+    ),
+    (
+        Add,
+        Pos {
+            line: 185,
+            col: 24,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 185,
+            col: 26,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 188,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "=",
+        ),
+        Pos {
+            line: 188,
+            col: 5,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 188,
+            col: 7,
+        },
+    ),
+    (
+        Metadata(
+            "draw-snake",
+        ),
+        Pos {
+            line: 190,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 191,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 191,
+            col: 10,
+        },
+    ),
+    (
+        PushLiteral(
+            0,
+        ),
+        Pos {
+            line: 191,
+            col: 12,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 191,
+            col: 14,
+        },
+    ),
+    (
+        AltPush,
+        Pos {
+            line: 191,
+            col: 14,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 191,
+            col: 14,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 192,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "snake-x",
+        ),
+        Pos {
+            line: 192,
+            col: 7,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 192,
+            col: 15,
+        },
+    ),
+    (
+        Call(
+            "i",
+        ),
+        Pos {
+            line: 192,
+            col: 17,
+        },
+    ),
+    (
+        Call(
+            "snake-y",
+        ),
+        Pos {
+            line: 192,
+            col: 19,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 192,
+            col: 27,
+        },
+    ),
+    (
+        Call(
+            "draw-black",
+        ),
+        Pos {
+            line: 192,
+            col: 29,
+        },
+    ),
+    (
+        Call(
+            "loopimpl",
+        ),
+        Pos {
+            line: 193,
+            col: 3,
+        },
+    ),
+    (
+        JumpIf0(
+            612,
+        ),
+        Pos {
+            line: 193,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 194,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 194,
+            col: 10,
+        },
+    ),
+    (
+        Call(
+            "snake-x",
+        ),
+        Pos {
+            line: 194,
+            col: 12,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 194,
+            col: 20,
+        },
+    ),
+    (
+        PushLiteral(
+            1584,
+        ),
+        Pos {
+            line: 195,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 195,
+            col: 10,
+        },
+    ),
+    (
+        Call(
+            "snake-y",
+        ),
+        Pos {
+            line: 195,
+            col: 12,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 195,
+            col: 20,
+        },
+    ),
+    (
+        Call(
+            "draw-white",
+        ),
+        Pos {
+            line: 196,
+            col: 3,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 196,
+            col: 14,
+        },
+    ),
+    (
+        Metadata(
+            "draw-apple",
+        ),
+        Pos {
+            line: 198,
+            col: 3,
+        },
+    ),
+    (
+        PushLiteral(
+            1581,
+        ),
+        Pos {
+            line: 199,
+            col: 3,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 199,
+            col: 11,
+        },
+    ),
+    (
+        PushLiteral(
+            1582,
+        ),
+        Pos {
+            line: 199,
+            col: 13,
+        },
+    ),
+    (
+        Load,
+        Pos {
+            line: 199,
+            col: 21,
+        },
+    ),
+    (
+        Call(
+            "draw-black",
+        ),
+        Pos {
+            line: 199,
+            col: 23,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 199,
+            col: 34,
+        },
+    ),
+    (
+        Metadata(
+            "game-loop",
+        ),
+        Pos {
+            line: 202,
+            col: 3,
+        },
+    ),
+    (
+        BranchTarget,
+        Pos {
+            line: 203,
+            col: 3,
+        },
+    ),
+    (
+        Call(
+            "draw-snake",
+        ),
+        Pos {
+            line: 204,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "draw-apple",
+        ),
+        Pos {
+            line: 205,
+            col: 5,
+        },
+    ),
+    (
+        PushLiteral(
+            100,
+        ),
+        Pos {
+            line: 206,
+            col: 5,
+        },
+    ),
+    (
+        Sleep,
+        Pos {
+            line: 206,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "check-input",
+        ),
+        Pos {
+            line: 207,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "move-snake-tail",
+        ),
+        Pos {
+            line: 208,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "move-snake-head",
+        ),
+        Pos {
+            line: 209,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "check-apple",
+        ),
+        Pos {
+            line: 210,
+            col: 5,
+        },
+    ),
+    (
+        Call(
+            "check-collision",
+        ),
+        Pos {
+            line: 211,
+            col: 5,
+        },
+    ),
+    (
+        JumpIf0(
+            640,
+        ),
+        Pos {
+            line: 212,
+            col: 3,
+        },
+    ),
+    (
+        Exit,
+        Pos {
+            line: 212,
+            col: 9,
+        },
+    ),
+    (
+        Call(
+            "initialize",
+        ),
+        Pos {
+            line: 214,
+            col: 1,
+        },
+    ),
+    (
+        Call(
+            "game-loop",
+        ),
+        Pos {
+            line: 214,
+            col: 12,
+        },
+    ),
+    (
+        Stop,
+        Pos {
+            line: 0,
+            col: 0,
+        },
+    ),
+]

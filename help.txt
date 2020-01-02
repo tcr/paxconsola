@@ -1,0 +1,711 @@
+   Compiling paxconsola v0.1.0 (/Users/trim/Sync/paxconsola)
+warning: unused variable: `group`
+   --> src/parse.rs:135:37
+    |
+135 |                         if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
+    |                                     ^^^^^ help: consider prefixing with an underscore: `_group`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `name`
+   --> src/eval.rs:162:27
+    |
+162 |             Pax::Metadata(name) => {
+    |                           ^^^^ help: consider prefixing with an underscore: `_name`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+    Finished dev [unoptimized + debuginfo] target(s) in 3.18s
+     Running `target/debug/paxconsola examples/snake.txt --interactive`
+    stack: []
+    alt: []
+[  0]  [1] main :: Call("initialize")
+
+    stack: []
+    alt: [1]
+[348]  [2] main -> initialize :: Metadata("initialize")
+
+    stack: []
+    alt: [1]
+[349]  [2] main -> initialize :: PushLiteral(24)
+
+    stack: [24]
+    alt: [1]
+[350]  [2] main -> initialize :: PushLiteral(0)
+
+    stack: [24, 0]
+    alt: [1]
+[351]  [2] main -> initialize :: AltPush
+
+    stack: [24]
+    alt: [1, 0]
+[352]  [2] main -> initialize :: AltPush
+
+    stack: []
+    alt: [1, 0, 24]
+[353]  [2] main -> initialize :: BranchTarget
+
+    stack: []
+    alt: [1, 0, 24]
+[354]  [2] main -> initialize :: PushLiteral(24)
+
+    stack: [24]
+    alt: [1, 0, 24]
+[355]  [2] main -> initialize :: PushLiteral(0)
+
+    stack: [24, 0]
+    alt: [1, 0, 24]
+[356]  [2] main -> initialize :: AltPush
+
+    stack: [24]
+    alt: [1, 0, 24, 0]
+[357]  [2] main -> initialize :: AltPush
+
+    stack: []
+    alt: [1, 0, 24, 0, 24]
+[358]  [2] main -> initialize :: BranchTarget
+
+    stack: []
+    alt: [1, 0, 24, 0, 24]
+[359]  [2] main -> initialize :: Call("j")
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 360]
+[198]  [3] main -> initialize -> j :: Metadata("j")
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 360]
+[199]  [3] main -> initialize -> j :: AltPop
+
+    stack: [360]
+    alt: [1, 0, 24, 0, 24]
+[200]  [3] main -> initialize -> j :: AltPop
+
+    stack: [360, 24]
+    alt: [1, 0, 24, 0]
+[201]  [3] main -> initialize -> j :: AltPop
+
+    stack: [360, 24, 0]
+    alt: [1, 0, 24]
+[202]  [3] main -> initialize -> j :: AltPop
+
+    stack: [360, 24, 0, 24]
+    alt: [1, 0]
+[203]  [3] main -> initialize -> j :: AltPop
+
+    stack: [360, 24, 0, 24, 0]
+    alt: [1]
+[204]  [3] main -> initialize -> j :: PushLiteral(578)
+
+    stack: [360, 24, 0, 24, 0, 578]
+    alt: [1]
+[205]  [3] main -> initialize -> j :: Store
+
+    stack: [360, 24, 0, 24]
+    alt: [1]
+[206]  [3] main -> initialize -> j :: PushLiteral(578)
+
+    stack: [360, 24, 0, 24, 578]
+    alt: [1]
+[207]  [3] main -> initialize -> j :: Load
+
+    stack: [360, 24, 0, 24, 0]
+    alt: [1]
+[208]  [3] main -> initialize -> j :: AltPush
+
+    stack: [360, 24, 0, 24]
+    alt: [1, 0]
+[209]  [3] main -> initialize -> j :: AltPush
+
+    stack: [360, 24, 0]
+    alt: [1, 0, 24]
+[210]  [3] main -> initialize -> j :: AltPush
+
+    stack: [360, 24]
+    alt: [1, 0, 24, 0]
+[211]  [3] main -> initialize -> j :: AltPush
+
+    stack: [360]
+    alt: [1, 0, 24, 0, 24]
+[212]  [3] main -> initialize -> j :: AltPush
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 360]
+[213]  [3] main -> initialize -> j :: PushLiteral(578)
+
+    stack: [578]
+    alt: [1, 0, 24, 0, 24, 360]
+[214]  [3] main -> initialize -> j :: Load
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 360]
+[215]  [3] main -> initialize -> j :: Exit
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24]
+[360]  [2] main -> initialize :: Print
+
+    stack: []
+    alt: [1, 0, 24, 0, 24]
+[361]  [2] main -> initialize :: Call("j")
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 362]
+[198]  [3] main -> initialize -> j :: Metadata("j")
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 362]
+[199]  [3] main -> initialize -> j :: AltPop
+
+    stack: [362]
+    alt: [1, 0, 24, 0, 24]
+[200]  [3] main -> initialize -> j :: AltPop
+
+    stack: [362, 24]
+    alt: [1, 0, 24, 0]
+[201]  [3] main -> initialize -> j :: AltPop
+
+    stack: [362, 24, 0]
+    alt: [1, 0, 24]
+[202]  [3] main -> initialize -> j :: AltPop
+
+    stack: [362, 24, 0, 24]
+    alt: [1, 0]
+[203]  [3] main -> initialize -> j :: AltPop
+
+    stack: [362, 24, 0, 24, 0]
+    alt: [1]
+[204]  [3] main -> initialize -> j :: PushLiteral(578)
+
+    stack: [362, 24, 0, 24, 0, 578]
+    alt: [1]
+[205]  [3] main -> initialize -> j :: Store
+
+    stack: [362, 24, 0, 24]
+    alt: [1]
+[206]  [3] main -> initialize -> j :: PushLiteral(578)
+
+    stack: [362, 24, 0, 24, 578]
+    alt: [1]
+[207]  [3] main -> initialize -> j :: Load
+
+    stack: [362, 24, 0, 24, 0]
+    alt: [1]
+[208]  [3] main -> initialize -> j :: AltPush
+
+    stack: [362, 24, 0, 24]
+    alt: [1, 0]
+[209]  [3] main -> initialize -> j :: AltPush
+
+    stack: [362, 24, 0]
+    alt: [1, 0, 24]
+[210]  [3] main -> initialize -> j :: AltPush
+
+    stack: [362, 24]
+    alt: [1, 0, 24, 0]
+[211]  [3] main -> initialize -> j :: AltPush
+
+    stack: [362]
+    alt: [1, 0, 24, 0, 24]
+[212]  [3] main -> initialize -> j :: AltPush
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 362]
+[213]  [3] main -> initialize -> j :: PushLiteral(578)
+
+    stack: [578]
+    alt: [1, 0, 24, 0, 24, 362]
+[214]  [3] main -> initialize -> j :: Load
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 362]
+[215]  [3] main -> initialize -> j :: Exit
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24]
+[362]  [2] main -> initialize :: Call("i")
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 363]
+[184]  [3] main -> initialize -> i :: Metadata("i")
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 363]
+[185]  [3] main -> initialize -> i :: AltPop
+
+    stack: [0, 363]
+    alt: [1, 0, 24, 0, 24]
+[186]  [3] main -> initialize -> i :: AltPop
+
+    stack: [0, 363, 24]
+    alt: [1, 0, 24, 0]
+[187]  [3] main -> initialize -> i :: AltPop
+
+    stack: [0, 363, 24, 0]
+    alt: [1, 0, 24]
+[188]  [3] main -> initialize -> i :: PushLiteral(578)
+
+    stack: [0, 363, 24, 0, 578]
+    alt: [1, 0, 24]
+[189]  [3] main -> initialize -> i :: Store
+
+    stack: [0, 363, 24]
+    alt: [1, 0, 24]
+[190]  [3] main -> initialize -> i :: PushLiteral(578)
+
+    stack: [0, 363, 24, 578]
+    alt: [1, 0, 24]
+[191]  [3] main -> initialize -> i :: Load
+
+    stack: [0, 363, 24, 0]
+    alt: [1, 0, 24]
+[192]  [3] main -> initialize -> i :: AltPush
+
+    stack: [0, 363, 24]
+    alt: [1, 0, 24, 0]
+[193]  [3] main -> initialize -> i :: AltPush
+
+    stack: [0, 363]
+    alt: [1, 0, 24, 0, 24]
+[194]  [3] main -> initialize -> i :: AltPush
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 363]
+[195]  [3] main -> initialize -> i :: PushLiteral(578)
+
+    stack: [0, 578]
+    alt: [1, 0, 24, 0, 24, 363]
+[196]  [3] main -> initialize -> i :: Load
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 363]
+[197]  [3] main -> initialize -> i :: Exit
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24]
+[363]  [2] main -> initialize :: Call("draw-white")
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364]
+[265]  [3] main -> initialize -> draw-white :: Metadata("draw-white")
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364]
+[266]  [3] main -> initialize -> draw-white :: PushLiteral(1)
+
+    stack: [0, 0, 1]
+    alt: [1, 0, 24, 0, 24, 364]
+[267]  [3] main -> initialize -> draw-white :: Call("rot")
+
+    stack: [0, 0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 268]
+[ 30]  [4] main -> initialize -> draw-white -> rot :: Metadata("rot")
+
+    stack: [0, 0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 268]
+[ 31]  [4] main -> initialize -> draw-white -> rot :: AltPush
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1]
+[ 32]  [4] main -> initialize -> draw-white -> rot :: Call("swap")
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33]
+[ 12]  [5] main -> initialize -> draw-white -> rot -> swap :: Metadata("swap")
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33]
+[ 13]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPush
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33, 0]
+[ 14]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33, 0]
+[ 15]  [5] main -> initialize -> draw-white -> rot -> swap :: Store
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33, 0]
+[ 16]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPop
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33]
+[ 17]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33]
+[ 18]  [5] main -> initialize -> draw-white -> rot -> swap :: Load
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1, 33]
+[ 19]  [5] main -> initialize -> draw-white -> rot -> swap :: Exit
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 1]
+[ 33]  [4] main -> initialize -> draw-white -> rot :: AltPop
+
+    stack: [0, 0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 268]
+[ 34]  [4] main -> initialize -> draw-white -> rot :: Call("swap")
+
+    stack: [0, 0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35]
+[ 12]  [5] main -> initialize -> draw-white -> rot -> swap :: Metadata("swap")
+
+    stack: [0, 0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35]
+[ 13]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPush
+
+    stack: [0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35, 1]
+[ 14]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [0, 0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35, 1]
+[ 15]  [5] main -> initialize -> draw-white -> rot -> swap :: Store
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35, 1]
+[ 16]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPop
+
+    stack: [0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35]
+[ 17]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [0, 1, 578]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35]
+[ 18]  [5] main -> initialize -> draw-white -> rot -> swap :: Load
+
+    stack: [0, 1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268, 35]
+[ 19]  [5] main -> initialize -> draw-white -> rot -> swap :: Exit
+
+    stack: [0, 1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 268]
+[ 35]  [4] main -> initialize -> draw-white -> rot :: Exit
+
+    stack: [0, 1, 0]
+    alt: [1, 0, 24, 0, 24, 364]
+[268]  [3] main -> initialize -> draw-white :: Call("rot")
+
+    stack: [0, 1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269]
+[ 30]  [4] main -> initialize -> draw-white -> rot :: Metadata("rot")
+
+    stack: [0, 1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269]
+[ 31]  [4] main -> initialize -> draw-white -> rot :: AltPush
+
+    stack: [0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0]
+[ 32]  [4] main -> initialize -> draw-white -> rot :: Call("swap")
+
+    stack: [0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33]
+[ 12]  [5] main -> initialize -> draw-white -> rot -> swap :: Metadata("swap")
+
+    stack: [0, 1]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33]
+[ 13]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPush
+
+    stack: [0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33, 1]
+[ 14]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33, 1]
+[ 15]  [5] main -> initialize -> draw-white -> rot -> swap :: Store
+
+    stack: []
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33, 1]
+[ 16]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPop
+
+    stack: [1]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33]
+[ 17]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [1, 578]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33]
+[ 18]  [5] main -> initialize -> draw-white -> rot -> swap :: Load
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0, 33]
+[ 19]  [5] main -> initialize -> draw-white -> rot -> swap :: Exit
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 0]
+[ 33]  [4] main -> initialize -> draw-white -> rot :: AltPop
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269]
+[ 34]  [4] main -> initialize -> draw-white -> rot :: Call("swap")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35]
+[ 12]  [5] main -> initialize -> draw-white -> rot -> swap :: Metadata("swap")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35]
+[ 13]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPush
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35, 0]
+[ 14]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [1, 0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35, 0]
+[ 15]  [5] main -> initialize -> draw-white -> rot -> swap :: Store
+
+    stack: [1]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35, 0]
+[ 16]  [5] main -> initialize -> draw-white -> rot -> swap :: AltPop
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35]
+[ 17]  [5] main -> initialize -> draw-white -> rot -> swap :: PushLiteral(578)
+
+    stack: [1, 0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35]
+[ 18]  [5] main -> initialize -> draw-white -> rot -> swap :: Load
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269, 35]
+[ 19]  [5] main -> initialize -> draw-white -> rot -> swap :: Exit
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 269]
+[ 35]  [4] main -> initialize -> draw-white -> rot :: Exit
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364]
+[269]  [3] main -> initialize -> draw-white :: Call("draw")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270]
+[259]  [4] main -> initialize -> draw-white -> draw :: Metadata("draw")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270]
+[260]  [4] main -> initialize -> draw-white -> draw :: Call("convert-x-y")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261]
+[253]  [5] main -> initialize -> draw-white -> draw -> convert-x-y :: Metadata("convert-x-y")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261]
+[254]  [5] main -> initialize -> draw-white -> draw -> convert-x-y :: PushLiteral(24)
+
+    stack: [1, 0, 0, 24]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261]
+[255]  [5] main -> initialize -> draw-white -> draw -> convert-x-y :: Call("cells")
+
+    stack: [1, 0, 0, 24]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 256]
+[  3]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> cells :: Metadata("cells")
+
+    stack: [1, 0, 0, 24]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 256]
+[  4]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> cells :: Metadata("drop")
+
+    stack: [1, 0, 0, 24]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 256]
+[  5]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> cells :: JumpIf0(6)
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 256]
+[  6]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> cells :: BranchTarget
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 256]
+[  7]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> cells :: Exit
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261]
+[256]  [5] main -> initialize -> draw-white -> draw -> convert-x-y :: Call("*")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[216]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: Metadata("*")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[217]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: Call("dup")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 49]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: Metadata("dup")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 50]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: PushLiteral(578)
+
+    stack: [1, 0, 0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 51]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: Store
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 52]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: PushLiteral(578)
+
+    stack: [1, 0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 53]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: Load
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 54]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: PushLiteral(578)
+
+    stack: [1, 0, 0, 578]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 55]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: Load
+
+    stack: [1, 0, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 218]
+[ 56]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> dup :: Exit
+
+    stack: [1, 0, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[218]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: Call("0=")
+
+    stack: [1, 0, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 219]
+[102]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> 0= :: Metadata("0=")
+
+    stack: [1, 0, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 219]
+[103]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> 0= :: JumpIf0(107)
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 219]
+[107]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> 0= :: BranchTarget
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 219]
+[108]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> 0= :: PushLiteral(-1)
+
+    stack: [1, 0, 0, 4294967295]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 219]
+[109]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> 0= :: BranchTarget
+
+    stack: [1, 0, 0, 4294967295]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 219]
+[110]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> 0= :: Exit
+
+    stack: [1, 0, 0, 4294967295]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[219]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: JumpIf0(223)
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[220]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: Call("drop")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 221]
+[  4]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> drop :: Metadata("drop")
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 221]
+[  5]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> drop :: JumpIf0(6)
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 221]
+[  6]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> drop :: BranchTarget
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257, 221]
+[  7]  [7] main -> initialize -> draw-white -> draw -> convert-x-y -> * -> drop :: Exit
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[221]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: PushLiteral(0)
+
+    stack: [1, 0, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[222]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: JumpIf0(237)
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[237]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: BranchTarget
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261, 257]
+[238]  [6] main -> initialize -> draw-white -> draw -> convert-x-y -> * :: Exit
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261]
+[257]  [5] main -> initialize -> draw-white -> draw -> convert-x-y :: Add
+
+    stack: [1]
+    alt: [1, 0, 24, 0, 24, 364, 270, 261]
+[258]  [5] main -> initialize -> draw-white -> draw -> convert-x-y :: Exit
+
+    stack: [1]
+    alt: [1, 0, 24, 0, 24, 364, 270]
+[261]  [4] main -> initialize -> draw-white -> draw :: PushLiteral(0)
+
+    stack: [1, 0]
+    alt: [1, 0, 24, 0, 24, 364, 270]
+[262]  [4] main -> initialize -> draw-white -> draw :: Add
+
+    stack: [1]
+    alt: [1, 0, 24, 0, 24, 364, 270]
+[263]  [4] main -> initialize -> draw-white -> draw :: Store
+
+thread 'main' panicked at 'called `Option::unwrap()` on a `None` value', src/libcore/option.rs:378:21
+stack backtrace:
+   0: backtrace::backtrace::libunwind::trace
+             at /Users/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.40/src/backtrace/libunwind.rs:88
+   1: backtrace::backtrace::trace_unsynchronized
+             at /Users/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.40/src/backtrace/mod.rs:66
+   2: std::sys_common::backtrace::_print_fmt
+             at src/libstd/sys_common/backtrace.rs:77
+   3: <std::sys_common::backtrace::_print::DisplayBacktrace as core::fmt::Display>::fmt
+             at src/libstd/sys_common/backtrace.rs:61
+   4: core::fmt::write
+             at src/libcore/fmt/mod.rs:1028
+   5: std::io::Write::write_fmt
+             at src/libstd/io/mod.rs:1412
+   6: std::sys_common::backtrace::_print
+             at src/libstd/sys_common/backtrace.rs:65
+   7: std::sys_common::backtrace::print
+             at src/libstd/sys_common/backtrace.rs:50
+   8: std::panicking::default_hook::{{closure}}
+             at src/libstd/panicking.rs:188
+   9: std::panicking::default_hook
+             at src/libstd/panicking.rs:205
+  10: std::panicking::rust_panic_with_hook
+             at src/libstd/panicking.rs:464
+  11: std::panicking::continue_panic_fmt
+             at src/libstd/panicking.rs:373
+  12: rust_begin_unwind
+             at src/libstd/panicking.rs:302
+  13: core::panicking::panic_fmt
+             at src/libcore/panicking.rs:139
+  14: core::panicking::panic
+             at src/libcore/panicking.rs:70
+  15: core::option::Option<T>::unwrap
+             at /rustc/73528e339aae0f17a15ffa49a8ac608f50c6cf14/src/libcore/macros.rs:41
+  16: paxconsola::eval::eval_forth
+             at src/eval.rs:70
+  17: paxconsola::main
+             at src/main.rs:107
+  18: std::rt::lang_start::{{closure}}
+             at /rustc/73528e339aae0f17a15ffa49a8ac608f50c6cf14/src/libstd/rt.rs:61
+  19: std::rt::lang_start_internal::{{closure}}
+             at src/libstd/rt.rs:48
+  20: std::panicking::try::do_call
+             at src/libstd/panicking.rs:287
+  21: __rust_maybe_catch_panic
+             at src/libpanic_unwind/lib.rs:78
+  22: std::panicking::try
+             at src/libstd/panicking.rs:265
+  23: std::panic::catch_unwind
+             at src/libstd/panic.rs:396
+  24: std::rt::lang_start_internal
+             at src/libstd/rt.rs:47
+  25: std::rt::lang_start
+             at /rustc/73528e339aae0f17a15ffa49a8ac608f50c6cf14/src/libstd/rt.rs:61
+  26: paxconsola::main
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.

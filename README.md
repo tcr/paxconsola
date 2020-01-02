@@ -10,6 +10,13 @@ cargo run -- examples/snake.txt --interactive
 cargo run -- examples/gb.txt --compile --no-prelude > ./snake/gb/pax_generated.asm
 ```
 
+## Snake on Gameboy
+
+```
+cd snake/gb
+make allrun
+```
+
 ## Inspiration
 
 * [NybbleForth](https://github.com/larsbrinkhoff/nybbleForth)

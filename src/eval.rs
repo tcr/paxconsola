@@ -22,7 +22,7 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
     while cindex < code.len() {
         let op = code[cindex].0.clone();
         cindex += 1;
-        
+
         // eprintln!("[op#{:>4}]  {}", format!("{}", cindex - 1), format!("{:?}", op));
         // eprintln!("                                stack: {:?}", stack);
         // eprintln!("                                  alt: {:?}", alt_stack);
@@ -108,7 +108,8 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
             // call
             Pax::Call(target) => {
                 stack.pop().unwrap();
-                // TODO lookup function target globally
+                // Look up function globally.
+                // TODO make this the primary way to interact with calls
                 let mut function_start = 0;
                 for (i, (c, _)) in code.iter().enumerate() {
                     if *c == Pax::Metadata(target.clone()) {
@@ -116,7 +117,7 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
                         break;
                     }
                 }
-                assert!(function_start != 0, "couldnt overwrite function location");
+                assert!(function_start != 0, "couldnt determine function location");
 
                 alt_stack.push(cindex as u32);
                 cindex = function_start as _;
@@ -129,8 +130,7 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
                 do_level.pop();
             }
             // jump (recurse)
-            Pax::JumpIf0 => {
-                let dest = stack.pop().unwrap();
+            Pax::JumpIf0(dest) => {
                 let cond = stack.pop().unwrap();
                 if cond == 0 {
                     cindex = dest as _;
