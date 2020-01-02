@@ -11,18 +11,23 @@ pub enum ParseMode {
     Variable,
 }
 
+struct Span {
+    start: usize,
+    end: usize,
+}
+
+impl Span {
+    fn len(&self) -> usize {
+        self.end - self.start
+    }
+}
+
 #[derive(Debug)]
 pub struct MarkerGroup {
     #[allow(unused)]
     name: String,
-    target_indices: Vec<(usize, MarkerType)>,
+    target_indices: Vec<usize>,
     source_index: usize,
-}
-
-#[derive(Debug, Clone, Copy)]
-enum MarkerType {
-    Jump,
-    Call,
 }
 
 impl MarkerGroup {
@@ -36,14 +41,14 @@ impl MarkerGroup {
 
     fn push_marker(&mut self, output: &mut Vec<Located<Pax>>, pos: Pos) {
         let index = output.len();
-        output.push((Pax::JumpIf0(self.source_index as _), pos));
-        self.target_indices.push((index, MarkerType::Jump));
+        output.push((Pax::JumpIf0(self.source_index as _, 0), pos));
+        self.target_indices.push(index);
     }
 
     fn update(&self, output: &mut Vec<Located<Pax>>) {
-        for (target, ty) in &self.target_indices {
+        for target in &self.target_indices {
             // println!("[{}]: {:?}", self.name, target);
-            output[*target].0 = Pax::JumpIf0(self.source_index as _);
+            output[*target].0 = Pax::JumpIf0(self.source_index as _, 0);
         }
     }
 }
@@ -101,6 +106,10 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
 
                         let group = MarkerGroup::new(word, function_offset);
                         functions.push(group);
+
+                        // Flow control for recurse
+                        let group = MarkerGroup::new(word, function_offset);
+                        flow_markers.push(group);
 
                         output.push((Pax::Metadata(word.to_string()), pos));
                     }
@@ -185,8 +194,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                             // flow control
                             "recurse" => {
                                 output.push((Pax::PushLiteral(0), pos));
-                                let group = functions.last_mut().unwrap();
-                                group.push_marker(&mut output, pos);
+                                // Address root flow group
+                                flow_markers[0].push_marker(&mut output, pos);
                                 continue;
                             }
                             "begin" => {
@@ -275,10 +284,15 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                             "%" => output.push((Pax::Remainder, pos)),
 
                             ":" => {
-                                assert_eq!(flow_markers.len(), 0, "expected empty loop stack");
+                                assert_eq!(flow_markers.len(), 0, "expected empty flow stack");
                                 parse_mode = ParseMode::FunctionName;
                             }
-                            ";" => output.push((Pax::Exit, pos)),
+                            ";" => {
+                                assert_eq!(flow_markers.len(), 1, "expected flow stack with just recurse");
+                                let recurse_group = flow_markers.pop().unwrap();
+                                used_flow_markers.push(recurse_group);
+                                output.push((Pax::Exit, pos));
+                            }
 
                             "c!" => output.push((Pax::Store8, pos)),
                             "c@" => output.push((Pax::Load8, pos)),
@@ -312,41 +326,49 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
             let func = &mut functions[key];
             // eprintln!("moving {:?} to end", func.name);
 
-            let offset_start = func.source_index;
-            let mut offset_end = offset_start;
-            while output[offset_end].0 != Pax::Exit {
+            let span = {
+                let offset_start = func.source_index;
+                let mut offset_end = offset_start;
+                while output[offset_end].0 != Pax::Exit {
+                    offset_end += 1;
+                }
                 offset_end += 1;
-            }
-            offset_end += 1;
-            let adjust = offset_end - offset_start;
+
+                Span {
+                    start: offset_start,
+                    end: offset_end,
+                }
+            };
 
             // Extract this function, re-append to end.
-            let func_code: Vec<_> = output.splice(offset_start..offset_end, vec![]).collect();
+            let func_code: Vec<_> = output.splice(span.start..span.end, vec![]).collect();
             let new_func_offset = output.len();
             output.extend(func_code);
-            let adjust_inner = new_func_offset - offset_start;
-            // Update function position.
+            let adjust_inner = new_func_offset - span.start;
 
-            // Now relocate all other indexes.
+            // Relocate all marker groups.
             let mut groups = vec![];
             groups.extend(functions.iter_mut());
             groups.extend(used_flow_markers.iter_mut());
             for func in groups {
-                if func.source_index >= offset_end {
+                if func.source_index >= span.end {
                     // eprintln!("----> func.source_index {:?} -= adjust {:?}", func, adjust);
-                    func.source_index -= adjust;
-                } else if func.source_index >= offset_start {
+                    func.source_index -= span.len();
+                } else if func.source_index >= span.start {
                     // eprintln!("----> func.source_index {:?} += adjust {:?}", func, adjust);
                     func.source_index += adjust_inner;
                 }
+            }
 
-                for (target, _) in &mut func.target_indices {
-                    if *target >= offset_end {
+            // Relocate interior markers.
+            for func in used_flow_markers.iter_mut() {
+                for target in &mut func.target_indices {
+                    if *target >= span.end {
                         // after function
-                        *target -= adjust;
-                    } else if *target >= offset_start {
+                        *target -= span.len();
+                    } else if *target >= span.start {
                         // inside function
-                        *target += new_func_offset - offset_start;
+                        *target += new_func_offset - span.start;
                     }
                 }
             }
@@ -355,7 +377,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
 
     // Finalize function positions
     let mut groups = vec![];
-    groups.extend(functions.iter_mut());
+    // groups.extend(functions.iter_mut());
     groups.extend(used_flow_markers.iter_mut());
     for function in groups {
         function.update(&mut output);

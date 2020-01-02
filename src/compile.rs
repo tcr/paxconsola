@@ -88,7 +88,7 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             GbIr::Pop,
         ],
         // ( cond -- )
-        Pax::JumpIf0(addr) => vec![
+        Pax::JumpIf0(addr, _) => vec![
             GbIr::CopyToE,
             GbIr::Pop,
             GbIr::JumpIfEIs0(format!(".opcode_{}", addr)),

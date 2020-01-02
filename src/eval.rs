@@ -120,8 +120,8 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
                 cindex = alt_stack.pop().unwrap() as usize;
             }
-            // jump (recurse)
-            Pax::JumpIf0(dest) => {
+            // jump if TOS == 0
+            Pax::JumpIf0(dest, _) => {
                 let cond = stack.pop().unwrap();
                 if cond == 0 {
                     cindex = dest as _;

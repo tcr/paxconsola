@@ -30,5 +30,5 @@ pub enum Pax {
 
     Stop,
 
-    JumpIf0(usize),
+    JumpIf0(usize, usize),
 }
