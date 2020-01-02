@@ -4,7 +4,7 @@ use termion::{clear, cursor, style};
 use termion::raw::IntoRawMode;
 use termion::input::TermRead;
 
-pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
+pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
     let mut stack: Vec<u32> = vec![];
     let mut alt_stack: Vec<u32> = vec![];
 
@@ -20,7 +20,7 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
     let mut cindex = 0;
     let mut frame = 0;
     while cindex < code.len() {
-        let op = code[cindex].clone();
+        let op = code[cindex].0.clone();
         cindex += 1;
         
         // eprintln!("[op#{:>4}]  {}", format!("{}", cindex - 1), format!("{:?}", op));

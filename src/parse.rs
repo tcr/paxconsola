@@ -3,35 +3,47 @@ use indexmap::IndexMap;
 use lazy_static::*;
 use regex::Regex;
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct Pos {
-    line: usize,
-    col: usize,
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
-    Word(String, Pos),
-    Literal(isize, Pos),
+    Word(String),
+    Literal(isize),
 }
 
 #[derive(Debug, Clone)]
 pub struct Parser {
     pub code: String,
+    pub pos: Pos,
 }
 
 impl Parser {
     pub fn new(code: &str) -> Parser {
         Parser {
             code: code.to_string(),
+            pos: Pos {
+                line: 1,
+                col: 1,
+            }
         }
+    }
+
+    pub fn move_forward(&mut self, length: usize) -> Pos {
+        for c in self.code[..length].chars() {
+            if c == '\n' {
+                self.pos.line += 1;
+                self.pos.col = 1;
+            } else {
+                self.pos.col += 1;
+            }
+        }
+        self.code = self.code[length..].to_string();
+        self.pos.clone()
     }
 }
 
 impl Iterator for Parser {
-    type Item = Token;
+    type Item = Located<Token>;
 
-    fn next(&mut self) -> Option<Token> {
+    fn next(&mut self) -> Option<Located<Token>> {
         lazy_static! {
             static ref RE_INT: Regex =
                 Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
@@ -42,21 +54,21 @@ impl Iterator for Parser {
         if code_input.is_empty() {
             return None;
         }
+        let pos_at = self.move_forward(self.code.len() - code_input.len());
 
         let matches = RE_INT.captures(&code_input);
         match matches {
             Some(cap) => {
-                self.code = cap[2].to_string();
+                self.move_forward(self.code.len() - cap[2].len());
+
                 if let Some(index) = cap[1].find("$") {
-                    return Some(Token::Literal(
+                    return Some((Token::Literal(
                         isize::from_str_radix(&cap[1][index + 1..], 16).unwrap(),
-                        Default::default(),
-                    ));
+                    ), pos_at));
                 } else {
-                    return Some(Token::Literal(
+                    return Some((Token::Literal(
                         cap[1].parse::<isize>().unwrap(),
-                        Default::default(),
-                    ));
+                    ), pos_at));
                 }
             }
             _ => {}
@@ -65,8 +77,8 @@ impl Iterator for Parser {
         let matches = RE_WORD.captures(&code_input);
         match matches {
             Some(cap) => {
-                self.code = cap[2].to_string();
-                return Some(Token::Word(cap[1].to_string(), Default::default()));
+                self.move_forward(self.code.len() - cap[2].len());
+                return Some((Token::Word(cap[1].to_string()), pos_at));
             }
             _ => {}
         }
@@ -100,21 +112,21 @@ impl MarkerGroup {
         }
     }
 
-    fn push_marker(&mut self, output: &mut Vec<Pax>) {
+    fn push_marker(&mut self, output: &mut Vec<Located<Pax>>, pos: Pos) {
         let index = output.len();
-        output.push(Pax::PushLabel(self.source_index as isize));
+        output.push((Pax::PushLabel(self.source_index as isize), pos));
         self.target_indices.push(index);
     }
 
-    fn update(&self, output: &mut Vec<Pax>) {
+    fn update(&self, output: &mut Vec<Located<Pax>>) {
         for target in &self.target_indices {
             // println!("[{}]: {:?}", self.name, target);
-            output[*target] = Pax::PushLabel(self.source_index as isize);
+            output[*target].0 = Pax::PushLabel(self.source_index as isize);
         }
     }
 }
 
-pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
+pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
     lazy_static! {
         static ref RE_COMMENTS: Regex = Regex::new(r"(?m)\\.*$").unwrap();
     }
@@ -126,7 +138,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
     let parser = Parser::new(&code);
 
-    let mut output: Vec<Pax> = vec![];
+    let mut output: Vec<Located<Pax>> = vec![];
     let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
     let mut functions: Vec<MarkerGroup> = vec![];
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
@@ -136,13 +148,13 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
-    for token in parser {
-        // eprintln!("[token] {:?}", token);
+    for (token, pos) in parser {
+        // eprintln!("[token] {:?} at {:?}", token, pos);
         previous_tokens.push(token.clone());
 
         match parse_mode {
             ParseMode::CommentParens => match token {
-                Token::Word(ref word, _) => {
+                Token::Word(ref word) => {
                     if word == ")" {
                         parse_mode = ParseMode::Default;
                     }
@@ -151,7 +163,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             },
             ParseMode::Variable => {
                 match token {
-                    Token::Word(ref word, _) => {
+                    Token::Word(ref word) => {
                         variables.insert(word.to_string(), variable_offset);
                         variable_offset += 1;
                     }
@@ -161,14 +173,14 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
             ParseMode::FunctionName => {
                 match token {
-                    Token::Word(ref word, _) => {
+                    Token::Word(ref word) => {
                         // output.push(Pax::Function);
                         let function_offset = output.len(); // don't include first word
 
                         let group = MarkerGroup::new(word, function_offset);
                         functions.push(group);
 
-                        output.push(Pax::Metadata(word.to_string()));
+                        output.push((Pax::Metadata(word.to_string()), pos));
                     }
                     _ => panic!("expected function name"),
                 }
@@ -176,7 +188,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
             ParseMode::ConstantName(value) => {
                 match token {
-                    Token::Word(ref word, _) => {
+                    Token::Word(ref word) => {
                         constants.insert(word.to_string(), value);
                     }
                     _ => panic!("expected constant name"),
@@ -185,7 +197,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
             }
             ParseMode::Default => {
                 match token {
-                    Token::Word(word, pos) => {
+                    Token::Word(word) => {
                         // Skip comments
                         if word == "(" {
                             parse_mode = ParseMode::CommentParens;
@@ -200,18 +212,18 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                         // Constants shadow all terms
                         if constants.contains_key(word.as_str()) {
-                            output.push(Pax::PushLiteral(constants[word.as_str()] as isize));
+                            output.push((Pax::PushLiteral(constants[word.as_str()] as isize), pos));
                             continue;
                         }
                         // Functions shadow all terms
                         if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
-                            group.push_marker(&mut output);
-                            output.push(Pax::Call);
+                            group.push_marker(&mut output, pos);
+                            output.push((Pax::Call, pos));
                             continue;
                         }
                         // Variables shadow all terms
                         if variables.contains_key(word.as_str()) {
-                            output.push(Pax::PushLiteral(variables[word.as_str()] as isize));
+                            output.push((Pax::PushLiteral(variables[word.as_str()] as isize), pos));
                             continue;
                         }
 
@@ -219,7 +231,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             // compiler keyword
                             "allot" => {
                                 if previous_tokens[previous_tokens.len() - 2]
-                                    == Token::Word("cells".to_string(), pos)
+                                    == Token::Word("cells".to_string())
                                 {
                                     // Hack for removing cells reference from fn group
                                     functions
@@ -231,8 +243,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                                     let cells = &previous_tokens[previous_tokens.len() - 3];
                                     match cells {
-                                        Token::Word(_, _) => panic!("Expected literal"),
-                                        Token::Literal(cells, _) => {
+                                        Token::Word(_) => panic!("Expected literal"),
+                                        Token::Literal(cells) => {
                                             // eprintln!("allocating {}", cells);
                                             output.pop(); // Call
                                             output.pop(); // "cells"
@@ -248,8 +260,8 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             "constant" => {
                                 let cells = &previous_tokens[previous_tokens.len() - 2];
                                 match cells {
-                                    Token::Word(_, _) => panic!("Expected literal"),
-                                    Token::Literal(value, _) => {
+                                    Token::Word(_) => panic!("Expected literal"),
+                                    Token::Literal(value) => {
                                         // eprintln!("constant {}", value);
                                         output.pop(); // value
 
@@ -260,10 +272,10 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                             // flow control
                             "recurse" => {
-                                output.push(Pax::PushLiteral(0));
+                                output.push((Pax::PushLiteral(0), pos));
                                 let group = functions.last_mut().unwrap();
-                                group.push_marker(&mut output);
-                                output.push(Pax::JumpIf0);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::JumpIf0, pos));
                                 continue;
                             }
                             "begin" => {
@@ -273,13 +285,13 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<begin>", "expected begin loop");
-                                group.push_marker(&mut output);
-                                output.push(Pax::JumpIf0);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::JumpIf0, pos));
                                 used_flow_markers.push(group);
                             }
                             "do" => {
-                                output.push(Pax::AltPush);
-                                output.push(Pax::AltPush);
+                                output.push((Pax::AltPush, pos));
+                                output.push((Pax::AltPush, pos));
                                 flow_markers.push(MarkerGroup::new("<do>", output.len()));
                             }
                             "loop" => {
@@ -287,14 +299,14 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                     .iter_mut()
                                     .find(|c| c.name == "loopimpl")
                                     .expect("no :loopimpl defn found");
-                                group.push_marker(&mut output);
-                                output.push(Pax::Call);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::Call, pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(&mut output);
-                                output.push(Pax::JumpIf0);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::JumpIf0, pos));
                                 used_flow_markers.push(group);
                             }
                             "-loop" => {
@@ -302,20 +314,20 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                     .iter_mut()
                                     .find(|c| c.name == "-loopimpl")
                                     .expect("no :loopimpl defn found");
-                                group.push_marker(&mut output);
-                                output.push(Pax::Call);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::Call, pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(&mut output);
-                                output.push(Pax::JumpIf0);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::JumpIf0, pos));
                                 used_flow_markers.push(group);
                             }
                             "if" => {
                                 let mut group = MarkerGroup::new("<if>", output.len());
-                                group.push_marker(&mut output);
-                                output.push(Pax::JumpIf0);
+                                group.push_marker(&mut output, pos);
+                                output.push((Pax::JumpIf0, pos));
 
                                 flow_markers.push(group);
                             }
@@ -323,9 +335,9 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                                 let mut if_group =
                                     flow_markers.pop().expect("did not match marker group");
                                 let mut else_group = MarkerGroup::new("<else>", output.len());
-                                output.push(Pax::PushLiteral(0)); // Always yes
-                                else_group.push_marker(&mut output);
-                                output.push(Pax::JumpIf0);
+                                output.push((Pax::PushLiteral(0), pos)); // Always yes
+                                else_group.push_marker(&mut output, pos);
+                                output.push((Pax::JumpIf0, pos));
 
                                 flow_markers.push(else_group);
 
@@ -340,37 +352,37 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
                             }
 
                             // pax
-                            "+" => output.push(Pax::Add),
-                            ">r" => output.push(Pax::AltPush),
-                            "r>" => output.push(Pax::AltPop),
-                            "!" => output.push(Pax::Store),
-                            "@" => output.push(Pax::Load),
-                            "nand" => output.push(Pax::Nand),
+                            "+" => output.push((Pax::Add, pos)),
+                            ">r" => output.push((Pax::AltPush, pos)),
+                            "r>" => output.push((Pax::AltPop, pos)),
+                            "!" => output.push((Pax::Store, pos)),
+                            "@" => output.push((Pax::Load, pos)),
+                            "nand" => output.push((Pax::Nand, pos)),
                             // pax debug
-                            "print" => output.push(Pax::Print),
-                            "debugger" => output.push(Pax::Debugger),
+                            "print" => output.push((Pax::Print, pos)),
+                            "debugger" => output.push((Pax::Debugger, pos)),
 
-                            "=" => output.push(Pax::Equals),
-                            "%" => output.push(Pax::Remainder),
+                            "=" => output.push((Pax::Equals, pos)),
+                            "%" => output.push((Pax::Remainder, pos)),
 
                             ":" => {
                                 assert_eq!(flow_markers.len(), 0, "expected empty loop stack");
                                 parse_mode = ParseMode::FunctionName;
                             }
-                            ";" => output.push(Pax::Exit),
+                            ";" => output.push((Pax::Exit, pos)),
 
-                            "c!" => output.push(Pax::Store8),
-                            "c@" => output.push(Pax::Load8),
+                            "c!" => output.push((Pax::Store8, pos)),
+                            "c@" => output.push((Pax::Load8, pos)),
 
-                            "sleep" => output.push(Pax::Sleep),
+                            "sleep" => output.push((Pax::Sleep, pos)),
 
                             _ => {
                                 panic!("unknown value: {:?}", word);
                             }
                         }
                     }
-                    Token::Literal(lit, _) => {
-                        output.push(Pax::PushLiteral(lit as isize));
+                    Token::Literal(lit) => {
+                        output.push((Pax::PushLiteral(lit as isize), pos));
                     }
                 }
             }
@@ -379,7 +391,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
     assert_eq!(flow_markers.len(), 0, "did not exhaust all flow markers");
 
-    output.push(Pax::Stop);
+    output.push((Pax::Stop, Default::default()));
 
     // eprintln!("---> {:?}", output);
 
@@ -393,7 +405,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
             let offset_start = func.source_index;
             let mut offset_end = offset_start;
-            while output[offset_end] != Pax::Exit {
+            while output[offset_end].0 != Pax::Exit {
                 offset_end += 1;
             }
             offset_end += 1;

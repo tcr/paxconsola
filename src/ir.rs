@@ -6,10 +6,10 @@ pub enum Pax {
     Call,
     Exit,
     
-    AltPop, 
     Add,
     Nand,
     Remainder,
+    AltPop,
     AltPush,
     Store,
 

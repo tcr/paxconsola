@@ -315,14 +315,14 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
 }
 
 
-pub fn cross_compile_forth_gb(code: Vec<Pax>) {
+pub fn cross_compile_forth_gb(code: Vec<Located<Pax>>) {
 
     let mut idx = 0;
-    for (i, op) in code.iter().enumerate() {
+    for (i, (op, pos)) in code.iter().enumerate() {
         println!("
-; [pax_ir] {:?}
+; [pax_ir] {:?}, file.fs: {:?}
 .opcode_{}:
-        ", op, i);
+        ", op, pos, i);
 
         translate_to_gb(op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(&mut idx, g));
     }
