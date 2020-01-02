@@ -3,18 +3,24 @@ use std::io::prelude::*;
 use termion::{clear, cursor, style};
 use termion::raw::IntoRawMode;
 use termion::input::TermRead;
+use indexmap::IndexMap;
 
 pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
     let mut stack: Vec<u32> = vec![];
     let mut alt_stack: Vec<u32> = vec![];
 
-    // (index, limit, loop start)
-    let mut do_level: Vec<usize> = vec![0];
-
     // TODO could look up max variable allocation from compiled artifact.
     let mut variables: Vec<u32> = vec![0; 1024*64];
 
     let mut use_graphics = false;
+
+    // function list
+    let mut function_map = IndexMap::new();
+    for (i, (c, _)) in code.iter().enumerate() {
+        if let Pax::Metadata(ref name) = c {
+            function_map.insert(name.to_string(), i as u32);
+        }
+    }
 
     // eprintln!("[code] {:?}", code);
     let mut cindex = 0;
@@ -110,24 +116,15 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
                 stack.pop().unwrap();
                 // Look up function globally.
                 // TODO make this the primary way to interact with calls
-                let mut function_start = 0;
-                for (i, (c, _)) in code.iter().enumerate() {
-                    if *c == Pax::Metadata(target.clone()) {
-                        function_start = i as u32;
-                        break;
-                    }
-                }
-                assert!(function_start != 0, "couldnt determine function location");
+                let function_start = *function_map.get(&target).expect("couldnt determine function location");
 
                 alt_stack.push(cindex as u32);
                 cindex = function_start as _;
-                do_level.push(0);
             }
             // ;
             Pax::Exit => {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
                 cindex = alt_stack.pop().unwrap() as usize;
-                do_level.pop();
             }
             // jump (recurse)
             Pax::JumpIf0(dest) => {

@@ -15,8 +15,14 @@ pub enum ParseMode {
 pub struct MarkerGroup {
     #[allow(unused)]
     name: String,
-    target_indices: Vec<(usize, bool)>,
+    target_indices: Vec<(usize, MarkerType)>,
     source_index: usize,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum MarkerType {
+    Jump,
+    Call,
 }
 
 impl MarkerGroup {
@@ -28,23 +34,25 @@ impl MarkerGroup {
         }
     }
 
-    fn push_marker(&mut self, output: &mut Vec<Located<Pax>>, pos: Pos, is_jump: bool) {
+    fn push_marker(&mut self, output: &mut Vec<Located<Pax>>, pos: Pos, ty: MarkerType) {
         let index = output.len();
-        if is_jump {
-            output.push((Pax::JumpIf0(self.source_index as _), pos));
-        } else {
-            output.push((Pax::PushLabel(self.source_index as isize), pos));
+        match ty {
+            MarkerType::Jump => output.push((Pax::JumpIf0(self.source_index as _), pos)),
+            MarkerType::Call => output.push((Pax::PushLabel(self.source_index as isize), pos)),
         }
-        self.target_indices.push((index, is_jump));
+        self.target_indices.push((index, ty));
     }
 
     fn update(&self, output: &mut Vec<Located<Pax>>) {
-        for (target, is_jump) in &self.target_indices {
+        for (target, ty) in &self.target_indices {
             // println!("[{}]: {:?}", self.name, target);
-            if *is_jump {
-                output[*target].0 = Pax::JumpIf0(self.source_index as _);
-            } else {
-                output[*target].0 = Pax::PushLabel(self.source_index as isize);
+            match ty {
+                MarkerType::Jump => {
+                    output[*target].0 = Pax::JumpIf0(self.source_index as _)
+                },
+                MarkerType::Call => {
+                    output[*target].0 = Pax::PushLabel(self.source_index as isize);
+                }
             }
         }
     }
@@ -141,7 +149,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                         }
                         // Functions shadow all terms
                         if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
-                            group.push_marker(&mut output, pos, false);
+                            group.push_marker(&mut output, pos, MarkerType::Call);
                             output.push((Pax::Call(word.to_string()), pos));
                             continue;
                         }
@@ -198,7 +206,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                             "recurse" => {
                                 output.push((Pax::PushLiteral(0), pos));
                                 let group = functions.last_mut().unwrap();
-                                group.push_marker(&mut output, pos, true);
+                                group.push_marker(&mut output, pos, MarkerType::Jump);
                                 continue;
                             }
                             "begin" => {
@@ -209,7 +217,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<begin>", "expected begin loop");
-                                group.push_marker(&mut output, pos, true);
+                                group.push_marker(&mut output, pos, MarkerType::Jump);
                                 used_flow_markers.push(group);
                             }
                             "do" => {
@@ -223,13 +231,13 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     .iter_mut()
                                     .find(|c| c.name == "loopimpl")
                                     .expect("no :loopimpl defn found");
-                                group.push_marker(&mut output, pos, false);
+                                group.push_marker(&mut output, pos, MarkerType::Call);
                                 output.push((Pax::Call(group.name.clone()), pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(&mut output, pos, true);
+                                group.push_marker(&mut output, pos, MarkerType::Jump);
                                 used_flow_markers.push(group);
                             }
                             "-loop" => {
@@ -237,18 +245,18 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     .iter_mut()
                                     .find(|c| c.name == "-loopimpl")
                                     .expect("no :loopimpl defn found");
-                                group.push_marker(&mut output, pos, false);
+                                group.push_marker(&mut output, pos, MarkerType::Call);
                                 output.push((Pax::Call(group.name.clone()), pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(&mut output, pos, true);
+                                group.push_marker(&mut output, pos, MarkerType::Jump);
                                 used_flow_markers.push(group);
                             }
                             "if" => {
                                 let mut group = MarkerGroup::new("<if>", output.len());
-                                group.push_marker(&mut output, pos, true);
+                                group.push_marker(&mut output, pos, MarkerType::Jump);
 
                                 flow_markers.push(group);
                             }
@@ -257,7 +265,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     flow_markers.pop().expect("did not match marker group");
                                 let mut else_group = MarkerGroup::new("<else>", output.len());
                                 output.push((Pax::PushLiteral(0), pos)); // Always yes
-                                else_group.push_marker(&mut output, pos, true);
+                                else_group.push_marker(&mut output, pos, MarkerType::Jump);
 
                                 flow_markers.push(else_group);
                                 if_group.source_index = output.len();
