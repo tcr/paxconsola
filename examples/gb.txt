@@ -3,22 +3,81 @@ $C004 constant last-key
 $C006 constant temp
 $9800 constant graphics
 
+: cells ;
+
+: drop    if then ;
+: 2drop   + drop ;
+
+: swap   >r temp ! r> temp @ ;
+: over   >r temp ! temp @ r> temp @ ;
+: rot    >r swap r> swap ;
+
+\ note: must preserve return address!
+: r@   r> r> temp ! temp @ >r temp @ swap >r ;
+
+: dup    temp ! temp @ temp @ ;
+: 2dup   over over ;
+: ?dup   temp ! temp @ if temp @ temp @ then ;
+
+: invert   -1 nand ;
+: negate   invert 1 + ;
+: -        negate + ;
+
+: 1+   1 + ;
+: 1-   -1 + ;
+: +!   dup >r @ + r> ! ;
+: 0=   if 0 else -1 then ;
+: =    - 0= ;
+: <>   = 0= ;
+: ==   - 0= ;
+
+: or   invert swap invert nand ;
+: xor   2dup nand 1+ dup + + + ;
+: and   nand invert ;
+
+\ return stack pops off index, then limit, reverse of initial stack order
+\ compare, if equal then cleanup and return 1, else increase index, push, return 0
+\ note: must preserve return address!
+: loopimpl r> r> r> 1+ 2dup = if 2drop 1 else >r >r 0 then swap >r ;
+: -loopimpl r> r> rot r> swap - 2dup = if 2drop 1 else >r >r 0 then swap >r ;
+
+\ note: must preserve return address!
+: i r> r> r> temp ! temp @ >r >r >r temp @ ;
+: j r> r> r> r> r> temp ! temp @ >r >r >r >r >r temp @ ;
+
+: * >r 0 r> 0 do over + loop swap drop ;
+
+
+
+
 37 constant left
 38 constant up
 39 constant right
 40 constant down
 
-: drop    if then ;
-: over   >r temp ! temp @ r> temp @ ;
+: move-right 18 graphics 3 + c! ;
+: move-left 30 graphics c! ;
+: move-up 19 graphics 2 + c! ;
+: move-down 20 graphics 1 + c! ;
 
-: move-right 18 graphics 3 + ! ;
-: move-left 21 graphics ! ;
-: move-up 19 graphics 2 + ! ;
-: move-down 20 graphics 1 + ! ;
+(
+
+: initialize
+  6 2 do
+    6 2 do
+      30 graphics j 32 * + i + c!
+    loop
+  loop ;
+
+initialize
+
+)
 
 last-key @ 
   left over = if move-left else
   up over    = if move-up else
-  right over = if move-right else
-  down over  = if move-down
-  then then then then
+  right over  = if move-right
+  then then then
+
+last-key @ down = if move-down then
+last-key @ down = if move-down then

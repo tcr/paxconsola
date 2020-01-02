@@ -11,9 +11,9 @@ pub enum GbIr {
     // ( a -- a a )
     Dup,                        // dup hl onto stack
     // ( a -- value )
-    ReplaceLiteral(usize),      // TOS = $nn
+    ReplaceLiteral(u16),      // TOS = $nn
     // ( a -- value )
-    ReplaceLabel(usize),        // TOS = .opcode_${nn}
+    ReplaceLabel(u16),        // TOS = .opcode_${nn}
     // ( a b -- b )
     NipIntoDE,                  // store [stack - 1] into de
     // ( a -- a )
@@ -34,12 +34,19 @@ pub enum GbIr {
     CompareDEAndReplace,
     // ( a -- result )
     ReplaceAddWithDE,
+    // ( a -- result )
+    ReplaceNandWithDE,
     // ( addr -- )
     PushRetAddr,
     // ( -- )
     AltDupFromTOS,
     // ( a -- peek )
     AltPop,
+
+    // ( addr -- value )
+    ReplaceLoad8,
+    // ( addr -- addr )
+    StoreDE8,
 }
 
 fn translate_to_gb(op: Pax) -> Vec<GbIr> {
@@ -62,10 +69,20 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         Pax::Load => vec![
             GbIr::ReplaceLoad,
         ],
+        // ( address -- value )
+        Pax::Load8 => vec![
+            GbIr::ReplaceLoad8,
+        ],
         // ( value address -- )
         Pax::Store => vec![
             GbIr::NipIntoDE,
             GbIr::StoreDE,
+            GbIr::Pop,
+        ],
+        // ( value address -- )
+        Pax::Store8 => vec![
+            GbIr::NipIntoDE,
+            GbIr::StoreDE8,
             GbIr::Pop,
         ],
         // ( cond addr -- )
@@ -93,6 +110,11 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             GbIr::NipIntoDE,
             GbIr::ReplaceAddWithDE,
         ],
+        // ( a b -- c )
+        Pax::Nand => vec![
+            GbIr::NipIntoDE,
+            GbIr::ReplaceNandWithDE,
+        ],
         // ( a -- )
         Pax::AltPush => vec![
             GbIr::AltDupFromTOS,
@@ -104,7 +126,6 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             GbIr::AltPop,
         ],
         // Pax::Remainder => vec![],
-        // Pax::Nand => vec![],
         // Pax::Multiply => vec![],
         Pax::Print => vec![
             // nah
@@ -192,6 +213,20 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     ld l, b
             ");
         }
+        GbIr::ReplaceLoad8 =>  {
+            gb_output!("
+    ld a, [hl]
+    ld l, a
+    xor a
+    ld h, a
+            ");
+        }
+        GbIr::StoreDE8 => {
+            gb_output!("
+    ld a, e
+    ld [hl],a
+            ");
+        }
         GbIr::StoreDE => {
             gb_output!("
     ld a, e
@@ -237,6 +272,18 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     add hl, de
             ");
         }
+        GbIr::ReplaceNandWithDE => {
+            gb_output!("
+    ld a,l
+    and a,e
+    cpl
+    ld l,a
+    ld a,h
+    and a,d
+    cpl
+    ld h,a
+            ");
+        }
         GbIr::AltDupFromTOS => {
             gb_output!("
     push hl
@@ -250,6 +297,13 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
         GbIr::Ret => {
             gb_output!("
     ret
+
+
+
+
+
+
+; function start
             ");
         }
         GbIr::PopAndCall => {

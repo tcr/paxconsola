@@ -52,7 +52,7 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 stack.push(b.wrapping_add(d));
             }
             // ! (store value in variable)
-            Pax::Store => {
+            Pax::Store8 | Pax::Store => {
                 let name = stack.pop().unwrap();
                 let value = stack.pop().unwrap();
                 variables[name as usize] = value;
@@ -79,7 +79,7 @@ pub fn eval_forth(code: Vec<Pax>, interactive: bool) -> Vec<u32> {
                 }
             }
             // @ (get)
-            Pax::Load => {
+            Pax::Load8 | Pax::Load => {
                 let name = stack.pop().unwrap();
 
                 if name == 577 {

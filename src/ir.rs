@@ -13,6 +13,9 @@ pub enum Pax {
     AltPush,
     Store,
 
+    Load8,
+    Store8,
+
     PushLiteral(isize),
     PushLabel(isize),
 

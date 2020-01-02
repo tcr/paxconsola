@@ -329,11 +329,15 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Pax> {
 
                             "=" => output.push(Pax::Equals),
                             "%" => output.push(Pax::Remainder),
+
                             ":" => {
                                 assert_eq!(flow_markers.len(), 0, "expected empty loop stack");
                                 parse_mode = ParseMode::FunctionName;
                             }
                             ";" => output.push(Pax::Exit),
+
+                            "c!" => output.push(Pax::Store8),
+                            "c@" => output.push(Pax::Load8),
 
                             "sleep" => output.push(Pax::Sleep),
 
