@@ -38,32 +38,14 @@
 ; [pax_ir] Call("over"), file.fs:77:8
 .opcode_3:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_over")
-    ld hl,.PAX_FN_over
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_over")
+    call .PAX_FN_over
 
 ; [pax_ir] Call("="), file.fs:77:13
 .opcode_4:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(9), file.fs:77:15
 .opcode_5:
@@ -85,17 +67,8 @@
 ; [pax_ir] Call("move-left"), file.fs:77:18
 .opcode_6:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_move2Dleft")
-    ld hl,.PAX_FN_move2Dleft
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_move2Dleft")
+    call .PAX_FN_move2Dleft
 
 ; [pax_ir] PushLiteral(0), file.fs:77:28
 .opcode_7:
@@ -147,32 +120,14 @@
 ; [pax_ir] Call("over"), file.fs:78:6
 .opcode_11:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_over")
-    ld hl,.PAX_FN_over
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_over")
+    call .PAX_FN_over
 
 ; [pax_ir] Call("="), file.fs:78:14
 .opcode_12:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(17), file.fs:78:16
 .opcode_13:
@@ -194,17 +149,8 @@
 ; [pax_ir] Call("move-up"), file.fs:78:19
 .opcode_14:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_move2Dup")
-    ld hl,.PAX_FN_move2Dup
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_move2Dup")
+    call .PAX_FN_move2Dup
 
 ; [pax_ir] PushLiteral(0), file.fs:78:27
 .opcode_15:
@@ -256,32 +202,14 @@
 ; [pax_ir] Call("over"), file.fs:79:9
 .opcode_19:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_over")
-    ld hl,.PAX_FN_over
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_over")
+    call .PAX_FN_over
 
 ; [pax_ir] Call("="), file.fs:79:15
 .opcode_20:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(23), file.fs:79:17
 .opcode_21:
@@ -303,17 +231,8 @@
 ; [pax_ir] Call("move-right"), file.fs:79:20
 .opcode_22:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_move2Dright")
-    ld hl,.PAX_FN_move2Dright
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_move2Dright")
+    call .PAX_FN_move2Dright
 
 ; [pax_ir] BranchTarget, file.fs:80:3
 .opcode_23:
@@ -366,17 +285,8 @@
 ; [pax_ir] Call("="), file.fs:82:17
 .opcode_29:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(32), file.fs:82:19
 .opcode_30:
@@ -398,17 +308,8 @@
 ; [pax_ir] Call("move-down"), file.fs:82:22
 .opcode_31:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_move2Ddown")
-    ld hl,.PAX_FN_move2Ddown
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_move2Ddown")
+    call .PAX_FN_move2Ddown
 
 ; [pax_ir] BranchTarget, file.fs:82:32
 .opcode_32:
@@ -453,17 +354,8 @@
 ; [pax_ir] Call("="), file.fs:83:17
 .opcode_36:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(39), file.fs:83:19
 .opcode_37:
@@ -485,17 +377,8 @@
 ; [pax_ir] Call("move-down"), file.fs:83:22
 .opcode_38:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_move2Ddown")
-    ld hl,.PAX_FN_move2Ddown
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_move2Ddown")
+    call .PAX_FN_move2Ddown
 
 ; [pax_ir] BranchTarget, file.fs:83:32
 .opcode_39:
@@ -520,13 +403,6 @@
     ; [gb_ir] Metadata("cells")
     ; [metadata] "cells"
 .PAX_FN_cells:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Exit, file.fs:6:9
 .opcode_42:
@@ -547,13 +423,6 @@
     ; [gb_ir] Metadata("drop")
     ; [metadata] "drop"
 .PAX_FN_drop:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] JumpIf0(45), file.fs:8:11
 .opcode_44:
@@ -595,13 +464,6 @@
     ; [gb_ir] Metadata("2drop")
     ; [metadata] "2drop"
 .PAX_FN_2drop:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Add, file.fs:9:11
 .opcode_48:
@@ -620,17 +482,8 @@
 ; [pax_ir] Call("drop"), file.fs:9:13
 .opcode_49:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_drop")
-    ld hl,.PAX_FN_drop
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_drop")
+    call .PAX_FN_drop
 
 ; [pax_ir] Exit, file.fs:9:18
 .opcode_50:
@@ -651,13 +504,6 @@
     ; [gb_ir] Metadata("swap")
     ; [metadata] "swap"
 .PAX_FN_swap:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPush, file.fs:11:10
 .opcode_52:
@@ -764,13 +610,6 @@
     ; [gb_ir] Metadata("over")
     ; [metadata] "over"
 .PAX_FN_over:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPush, file.fs:12:10
 .opcode_60:
@@ -900,13 +739,6 @@
     ; [gb_ir] Metadata("rot")
     ; [metadata] "rot"
 .PAX_FN_rot:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPush, file.fs:13:10
 .opcode_70:
@@ -924,17 +756,8 @@
 ; [pax_ir] Call("swap"), file.fs:13:13
 .opcode_71:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] AltPop, file.fs:13:18
 .opcode_72:
@@ -952,17 +775,8 @@
 ; [pax_ir] Call("swap"), file.fs:13:21
 .opcode_73:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] Exit, file.fs:13:26
 .opcode_74:
@@ -983,13 +797,6 @@
     ; [gb_ir] Metadata("r@")
     ; [metadata] "r@"
 .PAX_FN_r40:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPop, file.fs:16:8
 .opcode_76:
@@ -1116,17 +923,8 @@
 ; [pax_ir] Call("swap"), file.fs:16:38
 .opcode_85:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] AltPush, file.fs:16:43
 .opcode_86:
@@ -1160,13 +958,6 @@
     ; [gb_ir] Metadata("dup")
     ; [metadata] "dup"
 .PAX_FN_dup:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(49158), file.fs:18:10
 .opcode_89:
@@ -1270,43 +1061,18 @@
     ; [gb_ir] Metadata("2dup")
     ; [metadata] "2dup"
 .PAX_FN_2dup:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("over"), file.fs:19:10
 .opcode_97:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_over")
-    ld hl,.PAX_FN_over
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_over")
+    call .PAX_FN_over
 
 ; [pax_ir] Call("over"), file.fs:19:15
 .opcode_98:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_over")
-    ld hl,.PAX_FN_over
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_over")
+    call .PAX_FN_over
 
 ; [pax_ir] Exit, file.fs:19:20
 .opcode_99:
@@ -1327,13 +1093,6 @@
     ; [gb_ir] Metadata("?dup")
     ; [metadata] "?dup"
 .PAX_FN_3Fdup:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(49158), file.fs:20:10
 .opcode_101:
@@ -1481,13 +1240,6 @@
     ; [gb_ir] Metadata("invert")
     ; [metadata] "invert"
 .PAX_FN_invert:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(-1), file.fs:22:12
 .opcode_113:
@@ -1542,28 +1294,12 @@
     ; [gb_ir] Metadata("negate")
     ; [metadata] "negate"
 .PAX_FN_negate:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("invert"), file.fs:23:12
 .opcode_117:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_invert")
-    ld hl,.PAX_FN_invert
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_invert")
+    call .PAX_FN_invert
 
 ; [pax_ir] PushLiteral(1), file.fs:23:19
 .opcode_118:
@@ -1611,28 +1347,12 @@
     ; [gb_ir] Metadata("-")
     ; [metadata] "-"
 .PAX_FN_2D:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("negate"), file.fs:24:12
 .opcode_122:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_negate")
-    ld hl,.PAX_FN_negate
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_negate")
+    call .PAX_FN_negate
 
 ; [pax_ir] Add, file.fs:24:19
 .opcode_123:
@@ -1667,13 +1387,6 @@
     ; [gb_ir] Metadata("1+")
     ; [metadata] "1+"
 .PAX_FN_12B:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(1), file.fs:26:8
 .opcode_126:
@@ -1721,13 +1434,6 @@
     ; [gb_ir] Metadata("1-")
     ; [metadata] "1-"
 .PAX_FN_12D:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(-1), file.fs:27:8
 .opcode_130:
@@ -1775,28 +1481,12 @@
     ; [gb_ir] Metadata("+!")
     ; [metadata] "+!"
 .PAX_FN_2B21:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("dup"), file.fs:28:8
 .opcode_134:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_dup")
-    ld hl,.PAX_FN_dup
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_dup")
+    call .PAX_FN_dup
 
 ; [pax_ir] AltPush, file.fs:28:12
 .opcode_135:
@@ -1891,13 +1581,6 @@
     ; [gb_ir] Metadata("0=")
     ; [metadata] "0="
 .PAX_FN_03D:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] JumpIf0(146), file.fs:29:8
 .opcode_142:
@@ -1999,43 +1682,18 @@
     ; [gb_ir] Metadata("=")
     ; [metadata] "="
 .PAX_FN_3D:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("-"), file.fs:30:8
 .opcode_151:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2D")
-    ld hl,.PAX_FN_2D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2D")
+    call .PAX_FN_2D
 
 ; [pax_ir] Call("0="), file.fs:30:10
 .opcode_152:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_03D")
-    ld hl,.PAX_FN_03D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_03D")
+    call .PAX_FN_03D
 
 ; [pax_ir] Exit, file.fs:30:13
 .opcode_153:
@@ -2056,43 +1714,18 @@
     ; [gb_ir] Metadata("<>")
     ; [metadata] "<>"
 .PAX_FN_3C3E:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("="), file.fs:31:8
 .opcode_155:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] Call("0="), file.fs:31:10
 .opcode_156:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_03D")
-    ld hl,.PAX_FN_03D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_03D")
+    call .PAX_FN_03D
 
 ; [pax_ir] Exit, file.fs:31:13
 .opcode_157:
@@ -2113,43 +1746,18 @@
     ; [gb_ir] Metadata("==")
     ; [metadata] "=="
 .PAX_FN_3D3D:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("-"), file.fs:32:8
 .opcode_159:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2D")
-    ld hl,.PAX_FN_2D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2D")
+    call .PAX_FN_2D
 
 ; [pax_ir] Call("0="), file.fs:32:10
 .opcode_160:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_03D")
-    ld hl,.PAX_FN_03D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_03D")
+    call .PAX_FN_03D
 
 ; [pax_ir] Exit, file.fs:32:13
 .opcode_161:
@@ -2170,58 +1778,24 @@
     ; [gb_ir] Metadata("or")
     ; [metadata] "or"
 .PAX_FN_or:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("invert"), file.fs:34:8
 .opcode_163:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_invert")
-    ld hl,.PAX_FN_invert
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_invert")
+    call .PAX_FN_invert
 
 ; [pax_ir] Call("swap"), file.fs:34:15
 .opcode_164:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] Call("invert"), file.fs:34:20
 .opcode_165:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_invert")
-    ld hl,.PAX_FN_invert
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_invert")
+    call .PAX_FN_invert
 
 ; [pax_ir] Nand, file.fs:34:27
 .opcode_166:
@@ -2263,28 +1837,12 @@
     ; [gb_ir] Metadata("xor")
     ; [metadata] "xor"
 .PAX_FN_xor:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Call("2dup"), file.fs:35:9
 .opcode_169:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2dup")
-    ld hl,.PAX_FN_2dup
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2dup")
+    call .PAX_FN_2dup
 
 ; [pax_ir] Nand, file.fs:35:14
 .opcode_170:
@@ -2310,32 +1868,14 @@
 ; [pax_ir] Call("1+"), file.fs:35:19
 .opcode_171:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_12B")
-    ld hl,.PAX_FN_12B
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_12B")
+    call .PAX_FN_12B
 
 ; [pax_ir] Call("dup"), file.fs:35:22
 .opcode_172:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_dup")
-    ld hl,.PAX_FN_dup
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_dup")
+    call .PAX_FN_dup
 
 ; [pax_ir] Add, file.fs:35:26
 .opcode_173:
@@ -2398,13 +1938,6 @@
     ; [gb_ir] Metadata("and")
     ; [metadata] "and"
 .PAX_FN_and:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] Nand, file.fs:36:9
 .opcode_178:
@@ -2430,17 +1963,8 @@
 ; [pax_ir] Call("invert"), file.fs:36:14
 .opcode_179:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_invert")
-    ld hl,.PAX_FN_invert
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_invert")
+    call .PAX_FN_invert
 
 ; [pax_ir] Exit, file.fs:36:21
 .opcode_180:
@@ -2461,13 +1985,6 @@
     ; [gb_ir] Metadata("loopimpl")
     ; [metadata] "loopimpl"
 .PAX_FN_loopimpl:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPop, file.fs:41:12
 .opcode_182:
@@ -2511,47 +2028,20 @@
 ; [pax_ir] Call("1+"), file.fs:41:21
 .opcode_185:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_12B")
-    ld hl,.PAX_FN_12B
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_12B")
+    call .PAX_FN_12B
 
 ; [pax_ir] Call("2dup"), file.fs:41:24
 .opcode_186:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2dup")
-    ld hl,.PAX_FN_2dup
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2dup")
+    call .PAX_FN_2dup
 
 ; [pax_ir] Call("="), file.fs:41:29
 .opcode_187:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(193), file.fs:41:31
 .opcode_188:
@@ -2573,17 +2063,8 @@
 ; [pax_ir] Call("2drop"), file.fs:41:34
 .opcode_189:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2drop")
-    ld hl,.PAX_FN_2drop
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2drop")
+    call .PAX_FN_2drop
 
 ; [pax_ir] PushLiteral(1), file.fs:41:40
 .opcode_190:
@@ -2678,17 +2159,8 @@
 ; [pax_ir] Call("swap"), file.fs:41:60
 .opcode_198:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] AltPush, file.fs:41:65
 .opcode_199:
@@ -2722,13 +2194,6 @@
     ; [gb_ir] Metadata("-loopimpl")
     ; [metadata] "-loopimpl"
 .PAX_FN_2Dloopimpl:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPop, file.fs:42:13
 .opcode_202:
@@ -2759,17 +2224,8 @@
 ; [pax_ir] Call("rot"), file.fs:42:19
 .opcode_204:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_rot")
-    ld hl,.PAX_FN_rot
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_rot")
+    call .PAX_FN_rot
 
 ; [pax_ir] AltPop, file.fs:42:23
 .opcode_205:
@@ -2787,62 +2243,26 @@
 ; [pax_ir] Call("swap"), file.fs:42:26
 .opcode_206:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] Call("-"), file.fs:42:31
 .opcode_207:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2D")
-    ld hl,.PAX_FN_2D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2D")
+    call .PAX_FN_2D
 
 ; [pax_ir] Call("2dup"), file.fs:42:33
 .opcode_208:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2dup")
-    ld hl,.PAX_FN_2dup
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2dup")
+    call .PAX_FN_2dup
 
 ; [pax_ir] Call("="), file.fs:42:38
 .opcode_209:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_3D")
-    ld hl,.PAX_FN_3D
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_3D")
+    call .PAX_FN_3D
 
 ; [pax_ir] JumpIf0(215), file.fs:42:40
 .opcode_210:
@@ -2864,17 +2284,8 @@
 ; [pax_ir] Call("2drop"), file.fs:42:43
 .opcode_211:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_2drop")
-    ld hl,.PAX_FN_2drop
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_2drop")
+    call .PAX_FN_2drop
 
 ; [pax_ir] PushLiteral(1), file.fs:42:49
 .opcode_212:
@@ -2969,17 +2380,8 @@
 ; [pax_ir] Call("swap"), file.fs:42:69
 .opcode_220:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] AltPush, file.fs:42:74
 .opcode_221:
@@ -3013,13 +2415,6 @@
     ; [gb_ir] Metadata("i")
     ; [metadata] "i"
 .PAX_FN_i:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPop, file.fs:45:5
 .opcode_224:
@@ -3201,13 +2596,6 @@
     ; [gb_ir] Metadata("j")
     ; [metadata] "j"
 .PAX_FN_j:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPop, file.fs:46:5
 .opcode_238:
@@ -3441,13 +2829,6 @@
     ; [gb_ir] Metadata("*")
     ; [metadata] "*"
 .PAX_FN_2A:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] AltPush, file.fs:48:5
 .opcode_256:
@@ -3534,17 +2915,8 @@
 ; [pax_ir] Call("over"), file.fs:48:18
 .opcode_263:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_over")
-    ld hl,.PAX_FN_over
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_over")
+    call .PAX_FN_over
 
 ; [pax_ir] Add, file.fs:48:23
 .opcode_264:
@@ -3563,17 +2935,8 @@
 ; [pax_ir] Call("loopimpl"), file.fs:48:25
 .opcode_265:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_loopimpl")
-    ld hl,.PAX_FN_loopimpl
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_loopimpl")
+    call .PAX_FN_loopimpl
 
 ; [pax_ir] JumpIf0(262), file.fs:48:25
 .opcode_266:
@@ -3595,32 +2958,14 @@
 ; [pax_ir] Call("swap"), file.fs:48:30
 .opcode_267:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_swap")
-    ld hl,.PAX_FN_swap
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_swap")
+    call .PAX_FN_swap
 
 ; [pax_ir] Call("drop"), file.fs:48:35
 .opcode_268:
         
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-    ; [gb_ir] ReplaceLabel(".PAX_FN_drop")
-    ld hl,.PAX_FN_drop
-    ; [gb_ir] Call
-    call EMULATE_JP_HL
+    ; [gb_ir] Call(".PAX_FN_drop")
+    call .PAX_FN_drop
 
 ; [pax_ir] Exit, file.fs:48:40
 .opcode_269:
@@ -3641,13 +2986,6 @@
     ; [gb_ir] Metadata("move-right")
     ; [metadata] "move-right"
 .PAX_FN_move2Dright:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(18), file.fs:58:14
 .opcode_271:
@@ -3743,13 +3081,6 @@
     ; [gb_ir] Metadata("move-left")
     ; [metadata] "move-left"
 .PAX_FN_move2Dleft:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(30), file.fs:59:13
 .opcode_278:
@@ -3818,13 +3149,6 @@
     ; [gb_ir] Metadata("move-up")
     ; [metadata] "move-up"
 .PAX_FN_move2Dup:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(19), file.fs:60:11
 .opcode_283:
@@ -3920,13 +3244,6 @@
     ; [gb_ir] Metadata("move-down")
     ; [metadata] "move-down"
 .PAX_FN_move2Ddown:
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
 
 ; [pax_ir] PushLiteral(20), file.fs:61:13
 .opcode_290:
