@@ -13,7 +13,7 @@ pub enum GbIr {
     // ( a -- value )
     ReplaceLiteral(u16),      // TOS = $nn
     // ( a -- value )
-    ReplaceLabel(u16),        // TOS = .opcode_${nn}
+    ReplaceLabel(String),       // TOS = label
     // ( a b -- b )
     NipIntoDE,                  // store [stack - 1] into de
     // ( a -- a )
@@ -63,7 +63,7 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         // ( -- label )
         Pax::PushLabel(value) => vec![
             GbIr::Dup,
-            GbIr::ReplaceLabel(value as _)
+            GbIr::ReplaceLabel(format!(".opcode_{}", value))
         ],
         // ( address -- value )
         Pax::Load => vec![
@@ -98,8 +98,10 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             GbIr::CompareDEAndReplace,
         ],
         // ( address -- )
-        Pax::Call => vec![
-            GbIr::PopAndCall
+        Pax::Call(target) => vec![
+            GbIr::Dup,
+            GbIr::ReplaceLabel(format!(".PAX_{}", target)),
+            GbIr::PopAndCall,
         ],
         // ( -- )
         Pax::Exit | Pax::Stop => vec![
@@ -158,7 +160,8 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     match op {
         GbIr::Metadata(s) => gb_output!("
     ; [metadata] {:?}
-        ", s),
+.PAX_{}:
+        ", s, s),
         GbIr::Dup => {
             gb_output!("
     dec c
@@ -186,7 +189,7 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
         }
         GbIr::ReplaceLabel(lit) => {
             gb_output!("
-    ld hl,.opcode_{lit}
+    ld hl,{lit}
             ", lit=lit);
         }
         GbIr::NipIntoDE => {
@@ -322,7 +325,7 @@ pub fn cross_compile_forth_gb(code: Vec<Located<Pax>>) {
     let mut idx = 0;
     for (i, (op, pos)) in code.iter().enumerate() {
         println!("
-; [pax_ir] {:?}, file.fs: {:?}
+; [pax_ir] {:?}, file.fs:{}
 .opcode_{}:
         ", op, pos, i);
 

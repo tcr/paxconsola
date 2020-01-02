@@ -3,7 +3,7 @@ pub enum Pax {
     // pax
     // todo noop
     Load,
-    Call,
+    Call(String),
     Exit,
     
     Add,

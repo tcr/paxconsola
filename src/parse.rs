@@ -134,7 +134,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                         // Functions shadow all terms
                         if let Some(group) = functions.iter_mut().find(|c| c.name == word) {
                             group.push_marker(&mut output, pos);
-                            output.push((Pax::Call, pos));
+                            output.push((Pax::Call(word.to_string()), pos));
                             continue;
                         }
                         // Variables shadow all terms
@@ -218,7 +218,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     .find(|c| c.name == "loopimpl")
                                     .expect("no :loopimpl defn found");
                                 group.push_marker(&mut output, pos);
-                                output.push((Pax::Call, pos));
+                                output.push((Pax::Call(group.name.clone()), pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
@@ -233,7 +233,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Vec<Located<Pax>> {
                                     .find(|c| c.name == "-loopimpl")
                                     .expect("no :loopimpl defn found");
                                 group.push_marker(&mut output, pos);
-                                output.push((Pax::Call, pos));
+                                output.push((Pax::Call(group.name.clone()), pos));
 
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");

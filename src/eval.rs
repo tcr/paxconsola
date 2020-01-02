@@ -106,8 +106,18 @@ pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
                 stack.push(b);
             }
             // call
-            Pax::Call => {
-                let function_start = stack.pop().unwrap();
+            Pax::Call(target) => {
+                stack.pop().unwrap();
+                // TODO lookup function target globally
+                let mut function_start = 0;
+                for (i, (c, _)) in code.iter().enumerate() {
+                    if *c == Pax::Metadata(target.clone()) {
+                        function_start = i as u32;
+                        break;
+                    }
+                }
+                assert!(function_start != 0, "couldnt overwrite function location");
+
                 alt_stack.push(cindex as u32);
                 cindex = function_start as _;
                 do_level.push(0);
