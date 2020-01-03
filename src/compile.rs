@@ -18,8 +18,6 @@ pub enum GbIr {
     Dup,                        // dup hl onto stack
     // ( a -- value )
     ReplaceLiteral(u16),      // TOS = $nn
-    // ( a -- value )
-    ReplaceLabel(String),       // TOS = label
     // ( a b -- b )
     NipIntoDE,                  // store [stack - 1] into de
     // ( a -- a )
@@ -122,7 +120,6 @@ fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
             GbIr::AltPop,
         ],
         // Pax::Remainder => vec![],
-        // Pax::Multiply => vec![],
         Pax::Print => vec![
             // nah
         ],
@@ -183,11 +180,6 @@ PAX_FN_{}:
             ");
         }
         GbIr::ReplaceLiteral(lit) => {
-            gb_output!("
-    ld hl,{lit}
-            ", lit=lit);
-        }
-        GbIr::ReplaceLabel(lit) => {
             gb_output!("
     ld hl,{lit}
             ", lit=lit);
@@ -307,6 +299,36 @@ PAX_FN_{}:
 
 pub fn cross_compile_forth_gb(program: Program) {
     for (name, code) in program {
+        let mut result = vec![];
+        for (i, (op, pos)) in code.iter().enumerate() {
+            result.extend(translate_to_gb(i, op.to_owned()));
+        }
+
+        // In-place optimizations.
+        let mut i = 0;
+        while i < result.len() {
+            let op = &result[i];
+            i += 1;
+
+            match op {
+                GbIr::Pop => {
+                    if let (Some(GbIr::Dup), Some(GbIr::ReplaceLiteral(_))) = (result.get(i), result.get(i + 1)) {
+                        eprintln!("optimizing [pop, dup, replace]");
+                        i -= 1;
+                        let _ = result.splice(i..i+2, vec![]);
+                        continue;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        for gbir in result {
+            cross_compile_ir_gb(gbir);
+            println!();
+        }
+
+        /*
         for (i, (op, pos)) in code.iter().enumerate() {
             println!("
     ; [pax_ir:{}] {:?}, file.fs:{}
@@ -314,5 +336,6 @@ pub fn cross_compile_forth_gb(program: Program) {
 
             translate_to_gb(i, op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(g));
         }
+        */
     }
 }
