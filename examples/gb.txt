@@ -55,23 +55,19 @@ $9800 constant graphics
 39 constant right
 40 constant down
 
-: move-right 18 graphics 3 + c! ;
-: move-left 30 graphics c! ;
-: move-up 19 graphics 2 + c! ;
-: move-down 20 graphics 1 + c! ;
-
-(
+: move-right 23 graphics 67 + c! ;
+: move-left 21 graphics 65 + c! ;
+: move-up 22 graphics 34 + c! ;
+: move-down 24 graphics 98 + c! ;
 
 : initialize
-  6 2 do
+  13 9 do
     6 2 do
       30 graphics j 32 * + i + c!
     loop
   loop ;
 
-initialize
-
-)
+\ initialize
 
 last-key @
   left over = if move-left else

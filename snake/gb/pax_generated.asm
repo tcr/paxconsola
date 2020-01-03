@@ -1,5 +1,5 @@
 
-    ; [pax_ir:0] PushLiteral(49156), file.fs:76:1
+    ; [pax_ir:0] PushLiteral(49156), file.fs:72:1
             
     ; [gb_ir] Dup
     dec c
@@ -11,7 +11,7 @@
     ; [gb_ir] ReplaceLiteral(49156)
     ld hl,49156
 
-    ; [pax_ir:1] Load, file.fs:76:10
+    ; [pax_ir:1] Load, file.fs:72:10
             
     ; [gb_ir] ReplaceLoad
     ldi a, [hl]
@@ -20,7 +20,7 @@
     ld h, a
     ld l, b
 
-    ; [pax_ir:2] PushLiteral(37), file.fs:77:3
+    ; [pax_ir:2] PushLiteral(37), file.fs:73:3
             
     ; [gb_ir] Dup
     dec c
@@ -32,17 +32,17 @@
     ; [gb_ir] ReplaceLiteral(37)
     ld hl,37
 
-    ; [pax_ir:3] Call("over"), file.fs:77:8
+    ; [pax_ir:3] Call("over"), file.fs:73:8
             
     ; [gb_ir] Call("PAX_FN_over")
     call PAX_FN_over
 
-    ; [pax_ir:4] Call("="), file.fs:77:13
+    ; [pax_ir:4] Call("="), file.fs:73:13
             
     ; [gb_ir] Call("PAX_FN_3D")
     call PAX_FN_3D
 
-    ; [pax_ir:5] JumpIf0(9), file.fs:77:15
+    ; [pax_ir:5] JumpIf0(9), file.fs:73:15
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -58,12 +58,12 @@
     cp $0
     jp z,.target_9
 
-    ; [pax_ir:6] Call("move-left"), file.fs:77:18
+    ; [pax_ir:6] Call("move-left"), file.fs:73:18
             
     ; [gb_ir] Call("PAX_FN_move2Dleft")
     call PAX_FN_move2Dleft
 
-    ; [pax_ir:7] PushLiteral(0), file.fs:77:28
+    ; [pax_ir:7] PushLiteral(0), file.fs:73:28
             
     ; [gb_ir] Dup
     dec c
@@ -75,7 +75,7 @@
     ; [gb_ir] ReplaceLiteral(0)
     ld hl,0
 
-    ; [pax_ir:8] JumpIf0(34), file.fs:77:28
+    ; [pax_ir:8] JumpIf0(34), file.fs:73:28
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -91,12 +91,12 @@
     cp $0
     jp z,.target_34
 
-    ; [pax_ir:9] BranchTarget, file.fs:77:28
+    ; [pax_ir:9] BranchTarget, file.fs:73:28
             
     ; [gb_ir] Label(".target_9")
 .target_9:
 
-    ; [pax_ir:10] PushLiteral(38), file.fs:78:3
+    ; [pax_ir:10] PushLiteral(38), file.fs:74:3
             
     ; [gb_ir] Dup
     dec c
@@ -108,17 +108,17 @@
     ; [gb_ir] ReplaceLiteral(38)
     ld hl,38
 
-    ; [pax_ir:11] Call("over"), file.fs:78:6
+    ; [pax_ir:11] Call("over"), file.fs:74:6
             
     ; [gb_ir] Call("PAX_FN_over")
     call PAX_FN_over
 
-    ; [pax_ir:12] Call("="), file.fs:78:14
+    ; [pax_ir:12] Call("="), file.fs:74:14
             
     ; [gb_ir] Call("PAX_FN_3D")
     call PAX_FN_3D
 
-    ; [pax_ir:13] JumpIf0(17), file.fs:78:16
+    ; [pax_ir:13] JumpIf0(17), file.fs:74:16
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -134,12 +134,12 @@
     cp $0
     jp z,.target_17
 
-    ; [pax_ir:14] Call("move-up"), file.fs:78:19
+    ; [pax_ir:14] Call("move-up"), file.fs:74:19
             
     ; [gb_ir] Call("PAX_FN_move2Dup")
     call PAX_FN_move2Dup
 
-    ; [pax_ir:15] PushLiteral(0), file.fs:78:27
+    ; [pax_ir:15] PushLiteral(0), file.fs:74:27
             
     ; [gb_ir] Dup
     dec c
@@ -151,7 +151,7 @@
     ; [gb_ir] ReplaceLiteral(0)
     ld hl,0
 
-    ; [pax_ir:16] JumpIf0(33), file.fs:78:27
+    ; [pax_ir:16] JumpIf0(33), file.fs:74:27
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -167,12 +167,12 @@
     cp $0
     jp z,.target_33
 
-    ; [pax_ir:17] BranchTarget, file.fs:78:27
+    ; [pax_ir:17] BranchTarget, file.fs:74:27
             
     ; [gb_ir] Label(".target_17")
 .target_17:
 
-    ; [pax_ir:18] PushLiteral(39), file.fs:79:3
+    ; [pax_ir:18] PushLiteral(39), file.fs:75:3
             
     ; [gb_ir] Dup
     dec c
@@ -184,17 +184,17 @@
     ; [gb_ir] ReplaceLiteral(39)
     ld hl,39
 
-    ; [pax_ir:19] Call("over"), file.fs:79:9
+    ; [pax_ir:19] Call("over"), file.fs:75:9
             
     ; [gb_ir] Call("PAX_FN_over")
     call PAX_FN_over
 
-    ; [pax_ir:20] Call("="), file.fs:79:15
+    ; [pax_ir:20] Call("="), file.fs:75:15
             
     ; [gb_ir] Call("PAX_FN_3D")
     call PAX_FN_3D
 
-    ; [pax_ir:21] JumpIf0(25), file.fs:79:17
+    ; [pax_ir:21] JumpIf0(25), file.fs:75:17
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -210,12 +210,12 @@
     cp $0
     jp z,.target_25
 
-    ; [pax_ir:22] Call("move-right"), file.fs:79:20
+    ; [pax_ir:22] Call("move-right"), file.fs:75:20
             
     ; [gb_ir] Call("PAX_FN_move2Dright")
     call PAX_FN_move2Dright
 
-    ; [pax_ir:23] PushLiteral(0), file.fs:79:31
+    ; [pax_ir:23] PushLiteral(0), file.fs:75:31
             
     ; [gb_ir] Dup
     dec c
@@ -227,7 +227,7 @@
     ; [gb_ir] ReplaceLiteral(0)
     ld hl,0
 
-    ; [pax_ir:24] JumpIf0(32), file.fs:79:31
+    ; [pax_ir:24] JumpIf0(32), file.fs:75:31
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -243,12 +243,12 @@
     cp $0
     jp z,.target_32
 
-    ; [pax_ir:25] BranchTarget, file.fs:79:31
+    ; [pax_ir:25] BranchTarget, file.fs:75:31
             
     ; [gb_ir] Label(".target_25")
 .target_25:
 
-    ; [pax_ir:26] PushLiteral(40), file.fs:80:3
+    ; [pax_ir:26] PushLiteral(40), file.fs:76:3
             
     ; [gb_ir] Dup
     dec c
@@ -260,17 +260,17 @@
     ; [gb_ir] ReplaceLiteral(40)
     ld hl,40
 
-    ; [pax_ir:27] Call("over"), file.fs:80:8
+    ; [pax_ir:27] Call("over"), file.fs:76:8
             
     ; [gb_ir] Call("PAX_FN_over")
     call PAX_FN_over
 
-    ; [pax_ir:28] Call("="), file.fs:80:13
+    ; [pax_ir:28] Call("="), file.fs:76:13
             
     ; [gb_ir] Call("PAX_FN_3D")
     call PAX_FN_3D
 
-    ; [pax_ir:29] JumpIf0(31), file.fs:80:15
+    ; [pax_ir:29] JumpIf0(31), file.fs:76:15
             
     ; [gb_ir] CopyToE
     ld e,l
@@ -286,27 +286,27 @@
     cp $0
     jp z,.target_31
 
-    ; [pax_ir:30] Call("move-down"), file.fs:80:18
+    ; [pax_ir:30] Call("move-down"), file.fs:76:18
             
     ; [gb_ir] Call("PAX_FN_move2Ddown")
     call PAX_FN_move2Ddown
 
-    ; [pax_ir:31] BranchTarget, file.fs:81:3
+    ; [pax_ir:31] BranchTarget, file.fs:77:3
             
     ; [gb_ir] Label(".target_31")
 .target_31:
 
-    ; [pax_ir:32] BranchTarget, file.fs:81:8
+    ; [pax_ir:32] BranchTarget, file.fs:77:8
             
     ; [gb_ir] Label(".target_32")
 .target_32:
 
-    ; [pax_ir:33] BranchTarget, file.fs:81:13
+    ; [pax_ir:33] BranchTarget, file.fs:77:13
             
     ; [gb_ir] Label(".target_33")
 .target_33:
 
-    ; [pax_ir:34] BranchTarget, file.fs:81:18
+    ; [pax_ir:34] BranchTarget, file.fs:77:18
             
     ; [gb_ir] Label(".target_34")
 .target_34:
@@ -2846,7 +2846,7 @@ PAX_FN_move2Dright:
     ; [gb_ir] Label(".target_1")
 .target_1:
 
-    ; [pax_ir:2] PushLiteral(18), file.fs:58:14
+    ; [pax_ir:2] PushLiteral(23), file.fs:58:14
             
     ; [gb_ir] Dup
     dec c
@@ -2855,8 +2855,8 @@ PAX_FN_move2Dright:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(18)
-    ld hl,18
+    ; [gb_ir] ReplaceLiteral(23)
+    ld hl,23
 
     ; [pax_ir:3] PushLiteral(38912), file.fs:58:17
             
@@ -2870,7 +2870,7 @@ PAX_FN_move2Dright:
     ; [gb_ir] ReplaceLiteral(38912)
     ld hl,38912
 
-    ; [pax_ir:4] PushLiteral(3), file.fs:58:26
+    ; [pax_ir:4] PushLiteral(67), file.fs:58:26
             
     ; [gb_ir] Dup
     dec c
@@ -2879,10 +2879,10 @@ PAX_FN_move2Dright:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(3)
-    ld hl,3
+    ; [gb_ir] ReplaceLiteral(67)
+    ld hl,67
 
-    ; [pax_ir:5] Add, file.fs:58:28
+    ; [pax_ir:5] Add, file.fs:58:29
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -2895,7 +2895,7 @@ PAX_FN_move2Dright:
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
 
-    ; [pax_ir:6] Store8, file.fs:58:30
+    ; [pax_ir:6] Store8, file.fs:58:31
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -2916,7 +2916,7 @@ PAX_FN_move2Dright:
     ld h, a
     inc c
 
-    ; [pax_ir:7] Exit, file.fs:58:33
+    ; [pax_ir:7] Exit, file.fs:58:34
             
     ; [gb_ir] Ret
     ret
@@ -2939,7 +2939,7 @@ PAX_FN_move2Dleft:
     ; [gb_ir] Label(".target_1")
 .target_1:
 
-    ; [pax_ir:2] PushLiteral(30), file.fs:59:13
+    ; [pax_ir:2] PushLiteral(21), file.fs:59:13
             
     ; [gb_ir] Dup
     dec c
@@ -2948,8 +2948,8 @@ PAX_FN_move2Dleft:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(30)
-    ld hl,30
+    ; [gb_ir] ReplaceLiteral(21)
+    ld hl,21
 
     ; [pax_ir:3] PushLiteral(38912), file.fs:59:16
             
@@ -2963,7 +2963,32 @@ PAX_FN_move2Dleft:
     ; [gb_ir] ReplaceLiteral(38912)
     ld hl,38912
 
-    ; [pax_ir:4] Store8, file.fs:59:25
+    ; [pax_ir:4] PushLiteral(65), file.fs:59:25
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(65)
+    ld hl,65
+
+    ; [pax_ir:5] Add, file.fs:59:28
+            
+    ; [gb_ir] NipIntoDE
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc c
+    ld a, [c]
+    ld d, a
+    inc c
+    ; [gb_ir] ReplaceAddWithDE
+    add hl, de
+
+    ; [pax_ir:6] Store8, file.fs:59:30
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -2984,7 +3009,7 @@ PAX_FN_move2Dleft:
     ld h, a
     inc c
 
-    ; [pax_ir:5] Exit, file.fs:59:28
+    ; [pax_ir:7] Exit, file.fs:59:33
             
     ; [gb_ir] Ret
     ret
@@ -3007,7 +3032,7 @@ PAX_FN_move2Dup:
     ; [gb_ir] Label(".target_1")
 .target_1:
 
-    ; [pax_ir:2] PushLiteral(19), file.fs:60:11
+    ; [pax_ir:2] PushLiteral(22), file.fs:60:11
             
     ; [gb_ir] Dup
     dec c
@@ -3016,8 +3041,8 @@ PAX_FN_move2Dup:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(19)
-    ld hl,19
+    ; [gb_ir] ReplaceLiteral(22)
+    ld hl,22
 
     ; [pax_ir:3] PushLiteral(38912), file.fs:60:14
             
@@ -3031,7 +3056,7 @@ PAX_FN_move2Dup:
     ; [gb_ir] ReplaceLiteral(38912)
     ld hl,38912
 
-    ; [pax_ir:4] PushLiteral(2), file.fs:60:23
+    ; [pax_ir:4] PushLiteral(34), file.fs:60:23
             
     ; [gb_ir] Dup
     dec c
@@ -3040,10 +3065,10 @@ PAX_FN_move2Dup:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(2)
-    ld hl,2
+    ; [gb_ir] ReplaceLiteral(34)
+    ld hl,34
 
-    ; [pax_ir:5] Add, file.fs:60:25
+    ; [pax_ir:5] Add, file.fs:60:26
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -3056,7 +3081,7 @@ PAX_FN_move2Dup:
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
 
-    ; [pax_ir:6] Store8, file.fs:60:27
+    ; [pax_ir:6] Store8, file.fs:60:28
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -3077,7 +3102,7 @@ PAX_FN_move2Dup:
     ld h, a
     inc c
 
-    ; [pax_ir:7] Exit, file.fs:60:30
+    ; [pax_ir:7] Exit, file.fs:60:31
             
     ; [gb_ir] Ret
     ret
@@ -3100,7 +3125,7 @@ PAX_FN_move2Ddown:
     ; [gb_ir] Label(".target_1")
 .target_1:
 
-    ; [pax_ir:2] PushLiteral(20), file.fs:61:13
+    ; [pax_ir:2] PushLiteral(24), file.fs:61:13
             
     ; [gb_ir] Dup
     dec c
@@ -3109,8 +3134,8 @@ PAX_FN_move2Ddown:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(20)
-    ld hl,20
+    ; [gb_ir] ReplaceLiteral(24)
+    ld hl,24
 
     ; [pax_ir:3] PushLiteral(38912), file.fs:61:16
             
@@ -3124,7 +3149,7 @@ PAX_FN_move2Ddown:
     ; [gb_ir] ReplaceLiteral(38912)
     ld hl,38912
 
-    ; [pax_ir:4] PushLiteral(1), file.fs:61:25
+    ; [pax_ir:4] PushLiteral(98), file.fs:61:25
             
     ; [gb_ir] Dup
     dec c
@@ -3133,10 +3158,10 @@ PAX_FN_move2Ddown:
     dec c
     ld a, l
     ld [c], a
-    ; [gb_ir] ReplaceLiteral(1)
-    ld hl,1
+    ; [gb_ir] ReplaceLiteral(98)
+    ld hl,98
 
-    ; [pax_ir:5] Add, file.fs:61:27
+    ; [pax_ir:5] Add, file.fs:61:28
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -3149,7 +3174,7 @@ PAX_FN_move2Ddown:
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
 
-    ; [pax_ir:6] Store8, file.fs:61:29
+    ; [pax_ir:6] Store8, file.fs:61:30
             
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -3170,7 +3195,276 @@ PAX_FN_move2Ddown:
     ld h, a
     inc c
 
-    ; [pax_ir:7] Exit, file.fs:61:32
+    ; [pax_ir:7] Exit, file.fs:61:33
+            
+    ; [gb_ir] Ret
+    ret
+
+
+
+
+
+
+; function start
+
+    ; [pax_ir:0] Metadata("initialize"), file.fs:63:3
+            
+    ; [gb_ir] Metadata("initialize")
+    ; [metadata] "initialize"
+PAX_FN_initialize:
+
+    ; [pax_ir:1] BranchTarget, file.fs:63:3
+            
+    ; [gb_ir] Label(".target_1")
+.target_1:
+
+    ; [pax_ir:2] PushLiteral(13), file.fs:64:3
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(13)
+    ld hl,13
+
+    ; [pax_ir:3] PushLiteral(9), file.fs:64:6
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(9)
+    ld hl,9
+
+    ; [pax_ir:4] AltPush, file.fs:64:8
+            
+    ; [gb_ir] AltDupFromTOS
+    push hl
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [pax_ir:5] AltPush, file.fs:64:8
+            
+    ; [gb_ir] AltDupFromTOS
+    push hl
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [pax_ir:6] BranchTarget, file.fs:64:8
+            
+    ; [gb_ir] Label(".target_6")
+.target_6:
+
+    ; [pax_ir:7] PushLiteral(6), file.fs:65:5
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(6)
+    ld hl,6
+
+    ; [pax_ir:8] PushLiteral(2), file.fs:65:7
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(2)
+    ld hl,2
+
+    ; [pax_ir:9] AltPush, file.fs:65:9
+            
+    ; [gb_ir] AltDupFromTOS
+    push hl
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [pax_ir:10] AltPush, file.fs:65:9
+            
+    ; [gb_ir] AltDupFromTOS
+    push hl
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [pax_ir:11] BranchTarget, file.fs:65:9
+            
+    ; [gb_ir] Label(".target_11")
+.target_11:
+
+    ; [pax_ir:12] PushLiteral(30), file.fs:66:7
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(30)
+    ld hl,30
+
+    ; [pax_ir:13] PushLiteral(38912), file.fs:66:10
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(38912)
+    ld hl,38912
+
+    ; [pax_ir:14] Call("j"), file.fs:66:19
+            
+    ; [gb_ir] Call("PAX_FN_j")
+    call PAX_FN_j
+
+    ; [pax_ir:15] PushLiteral(32), file.fs:66:21
+            
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+    ; [gb_ir] ReplaceLiteral(32)
+    ld hl,32
+
+    ; [pax_ir:16] Call("*"), file.fs:66:24
+            
+    ; [gb_ir] Call("PAX_FN_2A")
+    call PAX_FN_2A
+
+    ; [pax_ir:17] Add, file.fs:66:26
+            
+    ; [gb_ir] NipIntoDE
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc c
+    ld a, [c]
+    ld d, a
+    inc c
+    ; [gb_ir] ReplaceAddWithDE
+    add hl, de
+
+    ; [pax_ir:18] Call("i"), file.fs:66:28
+            
+    ; [gb_ir] Call("PAX_FN_i")
+    call PAX_FN_i
+
+    ; [pax_ir:19] Add, file.fs:66:30
+            
+    ; [gb_ir] NipIntoDE
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc c
+    ld a, [c]
+    ld d, a
+    inc c
+    ; [gb_ir] ReplaceAddWithDE
+    add hl, de
+
+    ; [pax_ir:20] Store8, file.fs:66:32
+            
+    ; [gb_ir] NipIntoDE
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc c
+    ld a, [c]
+    ld d, a
+    inc c
+    ; [gb_ir] StoreDE8
+    ld a, e
+    ld [hl],a
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [pax_ir:21] Call("loopimpl"), file.fs:67:5
+            
+    ; [gb_ir] Call("PAX_FN_loopimpl")
+    call PAX_FN_loopimpl
+
+    ; [pax_ir:22] JumpIf0(11), file.fs:67:5
+            
+    ; [gb_ir] CopyToE
+    ld e,l
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+    ; [gb_ir] JumpIfEIs0(".target_11")
+    ld a, e
+    cp $0
+    jp z,.target_11
+
+    ; [pax_ir:23] Call("loopimpl"), file.fs:68:3
+            
+    ; [gb_ir] Call("PAX_FN_loopimpl")
+    call PAX_FN_loopimpl
+
+    ; [pax_ir:24] JumpIf0(6), file.fs:68:3
+            
+    ; [gb_ir] CopyToE
+    ld e,l
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+    ; [gb_ir] JumpIfEIs0(".target_6")
+    ld a, e
+    cp $0
+    jp z,.target_6
+
+    ; [pax_ir:25] Exit, file.fs:68:8
             
     ; [gb_ir] Ret
     ret

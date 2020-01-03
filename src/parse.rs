@@ -347,7 +347,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
     functions.get_mut("main").unwrap().extend(output);
 
     // Strip unused functions.
-    if false {
+    if true {
         let mut used = IndexSet::<String>::new();
         used.insert("main".to_string());
         for (_name, body) in &functions {

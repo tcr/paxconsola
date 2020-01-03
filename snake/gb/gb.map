@@ -12,21 +12,21 @@ ROM Bank #0 (HOME):
   SECTION: $0060-$0060 ($0001 bytes) ["Joypad IRQ Vector"]
            $0060 = JOYPAD_VECT
   SECTION: $0100-$014F ($0050 bytes) ["Start"]
-  SECTION: $0CD8-$0EC7 ($01F0 bytes) ["Tiles"]
-           $0CD8 = TILE_DATA
-  SECTION: $08D8-$0CD7 ($0400 bytes) ["Map"]
-           $08D8 = MAP_DATA
-  SECTION: $0150-$08D7 ($0788 bytes) ["Program Start"]
+  SECTION: $0D89-$0F78 ($01F0 bytes) ["Tiles"]
+           $0D89 = TILE_DATA
+  SECTION: $0989-$0D88 ($0400 bytes) ["Map"]
+           $0989 = MAP_DATA
+  SECTION: $0150-$0988 ($0839 bytes) ["Program Start"]
            $0150 = START
-           $0811 = CLEAR_MAP
-           $0820 = LOAD_TILES
-           $0832 = LOAD_MAP
-           $07E9 = WAIT_VBLANK
-           $0844 = READ_JOYPAD
-           $0874 = JOY_RIGHT
-           $0883 = JOY_LEFT
-           $0892 = JOY_UP
-           $08A0 = JOY_DOWN
+           $08C2 = CLEAR_MAP
+           $08D1 = LOAD_TILES
+           $08E3 = LOAD_MAP
+           $089A = WAIT_VBLANK
+           $08F5 = READ_JOYPAD
+           $0925 = JOY_RIGHT
+           $0934 = JOY_LEFT
+           $0943 = JOY_UP
+           $0951 = JOY_DOWN
            $01A3 = PAX_VM
            $0186 = LOOP
            $02C0 = PAX_FN_over
@@ -35,13 +35,13 @@ ROM Bank #0 (HOME):
            $0765 = PAX_FN_move2Dleft
            $026F = PAX_VM.target_34
            $021B = PAX_VM.target_17
-           $0786 = PAX_FN_move2Dup
+           $0796 = PAX_FN_move2Dup
            $026F = PAX_VM.target_33
            $0250 = PAX_VM.target_25
            $0734 = PAX_FN_move2Dright
            $026F = PAX_VM.target_32
            $026F = PAX_VM.target_31
-           $07B7 = PAX_FN_move2Ddown
+           $07C7 = PAX_FN_move2Ddown
            $027E = PAX_FN_drop.target_3
            $0271 = PAX_FN_drop
            $028A = PAX_FN_swap
@@ -63,22 +63,27 @@ ROM Bank #0 (HOME):
            $05FE = PAX_FN_2Dloopimpl.target_19
            $0525 = PAX_FN_loopimpl
            $0713 = PAX_FN_2A.target_8
-           $07EC = WAIT_VBLANK.wait_vblank_loop
-           $0817 = CLEAR_MAP.clear_map_loop
-           $0829 = LOAD_TILES.load_tiles_loop
-           $083B = LOAD_MAP.load_map_loop
-           $08D6 = JOY_FALSE
+           $0669 = PAX_FN_j
+           $06E5 = PAX_FN_2A
+           $0609 = PAX_FN_i
+           $0838 = PAX_FN_initialize.target_11
+           $0818 = PAX_FN_initialize.target_6
+           $089D = WAIT_VBLANK.wait_vblank_loop
+           $08C8 = CLEAR_MAP.clear_map_loop
+           $08DA = LOAD_TILES.load_tiles_loop
+           $08EC = LOAD_MAP.load_map_loop
+           $0987 = JOY_FALSE
            $0483 = PAX_FN_03D.target_1
            $06E5 = PAX_FN_2A.target_1
            $0319 = PAX_FN_r40.target_1
            $0513 = PAX_FN_and
            $0428 = PAX_FN_2D.target_1
            $0304 = PAX_FN_rot.target_1
-           $08B8 = JOY_B
-           $08AE = JOY_A
+           $0969 = JOY_B
+           $095F = JOY_A
            $0734 = PAX_FN_move2Dright.target_1
            $0414 = PAX_FN_negate.target_1
-           $07B7 = PAX_FN_move2Ddown.target_1
+           $07C7 = PAX_FN_move2Ddown.target_1
            $02C0 = PAX_FN_over.target_1
            $0271 = PAX_FN_drop.target_1
            $0594 = PAX_FN_2Dloopimpl.target_1
@@ -88,11 +93,9 @@ ROM Bank #0 (HOME):
            $0444 = PAX_FN_12D
            $0270 = PAX_FN_cells
            $0609 = PAX_FN_i.target_1
-           $07FD = DMA_COPY
+           $08AE = DMA_COPY
            $0455 = PAX_FN_2B21
-           $08C2 = JOY_SELECT
-           $0609 = PAX_FN_i
-           $0669 = PAX_FN_j
+           $0973 = JOY_SELECT
            $036E = PAX_FN_dup.target_1
            $0594 = PAX_FN_2Dloopimpl
            $04E6 = PAX_FN_xor
@@ -101,17 +104,17 @@ ROM Bank #0 (HOME):
            $04E6 = PAX_FN_xor.target_1
            $0525 = PAX_FN_loopimpl.target_1
            $04C7 = PAX_FN_3D3D.target_1
-           $0786 = PAX_FN_move2Dup.target_1
+           $0796 = PAX_FN_move2Dup.target_1
+           $07F8 = PAX_FN_initialize.target_1
            $03AB = PAX_FN_3Fdup.target_1
            $03A4 = PAX_FN_2dup.target_1
            $0669 = PAX_FN_j.target_1
            $0513 = PAX_FN_and.target_1
            $04C0 = PAX_FN_3C3E.target_1
-           $08CC = JOY_START
+           $097D = JOY_START
            $04CE = PAX_FN_or
            $04B9 = PAX_FN_3D.target_1
            $027F = PAX_FN_2drop.target_1
-           $06E5 = PAX_FN_2A
            $0444 = PAX_FN_12D.target_1
            $0433 = PAX_FN_12B.target_1
            $03FC = PAX_FN_invert.target_1
@@ -119,7 +122,8 @@ ROM Bank #0 (HOME):
            $04C0 = PAX_FN_3C3E
            $04C7 = PAX_FN_3D3D
            $0270 = PAX_FN_cells.target_1
-    SLACK: $321D bytes
+           $07F8 = PAX_FN_initialize
+    SLACK: $316C bytes
 
 WRAM Bank #0:
   SECTION: $C000-$C007 ($0008 bytes) ["RAM Vars"]
