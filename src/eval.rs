@@ -5,7 +5,13 @@ use termion::raw::IntoRawMode;
 use termion::input::TermRead;
 use indexmap::IndexMap;
 
-pub fn eval_forth(code: Vec<Located<Pax>>, interactive: bool) -> Vec<u32> {
+pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
+    // Compact into bytecode array (unnecessarily).
+    let mut code = vec![];
+    for (_name, body) in program {
+        code.extend(body);
+    }
+
     let mut stack: Vec<u32> = vec![];
     let mut alt_stack: Vec<u32> = vec![];
 

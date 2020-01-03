@@ -98,9 +98,13 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         cross_compile_forth_gb(script);
     } else {
         if args.dump {
-            for (i, (op, pos)) in script.iter().enumerate() {
-                println!("[{:>3}]  {:?}", i, op);
-                println!("       ; {}:{}", args.file.to_string_lossy(), pos);
+            for (name, code) in script {
+                println!("{:?}:", name);
+                for (i, (op, pos)) in code.iter().enumerate() {
+                    println!("[{:>3}]  {:?}", i, op);
+                    println!("       ; {}:{}", args.file.to_string_lossy(), pos);
+                    println!();
+                }
                 println!();
             }
         } else {

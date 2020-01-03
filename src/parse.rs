@@ -58,7 +58,9 @@ impl MarkerGroup {
     }
 }
 
-pub fn parse_forth(buffer: Vec<u8>) -> Span {
+pub type Program = IndexMap<String, Span>;
+
+pub fn parse_forth(buffer: Vec<u8>) -> Program {
     lazy_static! {
         static ref RE_COMMENTS: Regex = Regex::new(r"(?m)\\.*$").unwrap();
     }
@@ -361,13 +363,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Span {
         functions = functions.into_iter().filter(|(k, _)| used.contains(k)).collect();
     }
 
-    // Compact into bytecode array (unnecessary).
-    let mut result = vec![];
-    for (name, body) in functions {
-        result.extend(body);
-    }
-
-    return result;
+    functions
 }
 
 /*

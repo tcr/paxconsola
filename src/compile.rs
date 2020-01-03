@@ -55,9 +55,11 @@ pub enum GbIr {
     ReplaceLoad8,
     // ( addr -- addr )
     StoreDE8,
+
+    Label(String),
 }
 
-fn translate_to_gb(op: Pax) -> Vec<GbIr> {
+fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
     match op {
         Pax::Metadata(s) => vec![
             GbIr::Metadata(s),
@@ -100,7 +102,7 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
         ],
         // ( address -- )
         Pax::Call(target) => vec![
-            GbIr::Call(format!(".PAX_FN_{}", name_slug(&target))),
+            GbIr::Call(format!("PAX_FN_{}", name_slug(&target))),
         ],
         // ( -- )
         Pax::Exit | Pax::Stop => vec![
@@ -132,7 +134,9 @@ fn translate_to_gb(op: Pax) -> Vec<GbIr> {
             // nah
         ],
         // ( -- )
-        Pax::BranchTarget => vec![],
+        Pax::BranchTarget => vec![
+            GbIr::Label(format!(".target_{}", i)),
+        ],
         op => {
             panic!("not yet implemented: {:?}", op);
         }
@@ -157,9 +161,13 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
     ; [gb_ir] {:?}
         ", op);
     match op {
+        GbIr::Label(label) => gb_output!("
+{}:
+        ", label),
+
         GbIr::Metadata(s) => gb_output!("
     ; [metadata] {:?}
-.PAX_FN_{}:
+PAX_FN_{}:
         ", s, name_slug(&s)),
         GbIr::Dup => {
             gb_output!("
@@ -320,20 +328,15 @@ pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
 }
 
 
-pub fn cross_compile_forth_gb(code: Vec<Located<Pax>>) {
+pub fn cross_compile_forth_gb(program: Program) {
+    for (name, code) in program {
+        let mut idx = 0;
+        for (i, (op, pos)) in code.iter().enumerate() {
+            println!("
+    ; [pax_ir:{}] {:?}, file.fs:{}
+            ", i, op, pos);
 
-    let mut idx = 0;
-    for (i, (op, pos)) in code.iter().enumerate() {
-        println!("
-; [pax_ir] {:?}, file.fs:{}
-.opcode_{}:
-        ", op, pos, i);
-
-        translate_to_gb(op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(&mut idx, g));
+            translate_to_gb(i, op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(&mut idx, g));
+        }
     }
-
-    println!("
-EMULATE_JP_HL:
-    jp	hl
-    ")
 }
