@@ -352,7 +352,7 @@ pub fn cross_compile_forth_gb(program: Program) {
         }
 
         // In-place optimizations.
-        const OPTIMIZE: bool = false;
+        const OPTIMIZE: bool = true;
         const PASSES: usize = 3;
         if OPTIMIZE {
             for _ in 0..PASSES {

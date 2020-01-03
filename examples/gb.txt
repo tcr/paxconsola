@@ -52,6 +52,12 @@ $9800 constant graphics
 
 
 
+
+
+
+20 constant width
+18 constant height
+
 37 constant left
 38 constant up
 39 constant right
@@ -62,12 +68,35 @@ $9800 constant graphics
 : move-up 22 graphics 34 + c! ;
 : move-down 24 graphics 98 + c! ;
 
-: initialize
+: initialize_old
   18 0 do
     20 0 do
       6 graphics j 32 * + i + c!
     loop
   loop ;
+
+: convert-x-y ( x y -- offset )  32 cells * + ;
+: draw ( color x y -- )  convert-x-y graphics + c! ;
+: draw-white ( x y -- )  6 rot rot draw ;
+: draw-black ( x y -- )  23 rot rot draw ;
+
+: draw-walls
+  width 0 do
+    i 0 draw-black
+    i height 1 - draw-black
+  loop
+  height 0 do
+    0 i draw-black
+    width 1 - i draw-black
+  loop ;
+
+: initialize
+  width 0 do
+    height 0 do
+      j i draw-white
+    loop
+  loop
+  draw-walls ;
 
 \ Initialize only once
 initialized @ 0= if initialize then
