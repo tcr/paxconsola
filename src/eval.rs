@@ -49,9 +49,6 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
                 stack.push(lit as u32);
             }
 
-            Pax::Equals => {
-                unimplemented!();
-            }
             // nand
             Pax::Nand => {
                 let z = stack.pop().unwrap();

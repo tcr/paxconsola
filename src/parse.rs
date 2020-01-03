@@ -321,7 +321,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
                             "print" => current(&mut stack).push((Pax::Print, pos)),
                             "debugger" => current(&mut stack).push((Pax::Debugger, pos)),
 
-                            "=" => current(&mut stack).push((Pax::Equals, pos)),
                             "%" => current(&mut stack).push((Pax::Remainder, pos)),
 
                             "c!" => current(&mut stack).push((Pax::Store8, pos)),

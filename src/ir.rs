@@ -26,7 +26,6 @@ pub enum Pax {
     Print,
     Debugger,
     Sleep, // todo: should be "yieldframe"
-    Equals,
 
     Stop,
 

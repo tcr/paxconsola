@@ -38,8 +38,6 @@ pub enum GbIr {
     StoreDE,
     // ( -- )
     JumpIfEIs0(String),         // label destination
-    // ( b -- cond )
-    CompareDEAndReplace,
     // ( a -- result )
     ReplaceAddWithDE,
     // ( a -- result )
@@ -94,11 +92,6 @@ fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
             GbIr::CopyToE,
             GbIr::Pop,
             GbIr::JumpIfEIs0(format!(".target_{}", offset)),
-        ],
-        // ( a b -- cond )
-        Pax::Equals => vec![
-            GbIr::NipIntoDE,
-            GbIr::CompareDEAndReplace,
         ],
         // ( address -- )
         Pax::Call(target) => vec![
@@ -156,7 +149,7 @@ macro_rules! gb_output {
     );
 }
 
-pub fn cross_compile_ir_gb(idx: &mut usize, op: GbIr) {
+pub fn cross_compile_ir_gb(op: GbIr) {
     gb_output!("
     ; [gb_ir] {:?}
         ", op);
@@ -264,22 +257,6 @@ PAX_FN_{}:
     jp z,{}
             ", addr);
         }
-        GbIr::CompareDEAndReplace => {
-            gb_output!("
-    ld a, d
-    cp h
-    jp nz,.next_{index_1}
-    ld a, e
-    cp l
-    jp nz,.next_{index_1}
-    ld hl, $1
-    jp .next_{index_2}
-.next_{index_1}:
-    ld hl, $0
-.next_{index_2}:
-            ", index_1 = idx, index_2 = *idx + 1);
-            *idx += 2;
-        }
         GbIr::ReplaceAddWithDE => {
             gb_output!("
     add hl, de
@@ -330,13 +307,12 @@ PAX_FN_{}:
 
 pub fn cross_compile_forth_gb(program: Program) {
     for (name, code) in program {
-        let mut idx = 0;
         for (i, (op, pos)) in code.iter().enumerate() {
             println!("
     ; [pax_ir:{}] {:?}, file.fs:{}
             ", i, op, pos);
 
-            translate_to_gb(i, op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(&mut idx, g));
+            translate_to_gb(i, op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(g));
         }
     }
 }
