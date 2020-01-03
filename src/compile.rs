@@ -24,6 +24,8 @@ pub enum GbIr {
     CopyToA,                    // copy TOS to register A
     // ( a -- a )
     CopyToE,                    // copy TOS to register E
+    // ( a -- a )
+    CopyToDE,             // copy TOS to register DE
     // ( a -- )
     Pop,                        // pop stack, load TOS into hl
     // ( -- )
@@ -32,6 +34,8 @@ pub enum GbIr {
     Ret,
     // ( addr -- value )
     ReplaceLoad,
+    // ( -- value )
+    ReplaceLoadDirect(u16),
     // ( addr -- addr )
     StoreDE,
     // ( -- )
@@ -53,6 +57,9 @@ pub enum GbIr {
     StoreDE8,
 
     Label(String),
+    SetE(u8),
+    Invert,
+    Inc,
 }
 
 fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
@@ -200,6 +207,17 @@ PAX_FN_{}:
     ld e,l
             ");
         }
+        GbIr::SetE(value) => {
+            gb_output!("
+    ld e,{}
+            ", value);
+        }
+        GbIr::CopyToDE => {
+            gb_output!("
+    ld e,l
+    ld d,h
+            ");
+        }
         GbIr::CopyToA => {
             gb_output!("
     ; Move to accumulator for comparison
@@ -215,6 +233,14 @@ PAX_FN_{}:
     ld l, b
             ");
         }
+        GbIr::ReplaceLoadDirect(addr) =>  {
+            gb_output!("
+    ld a, [{}]
+    ld l, a
+    ld a, [{}+1]
+    ld h, a
+            ", addr, addr);
+        }
         GbIr::ReplaceLoad8 =>  {
             gb_output!("
     ld a, [hl]
@@ -224,7 +250,13 @@ PAX_FN_{}:
             ");
         }
         GbIr::StoreDE8 => {
+            // HACK wait for VRAM to be available
             gb_output!("
+.wait:
+    ld   a,[$0FF41]
+    bit  1,a       ; Wait until Mode is 0 or 1
+    jr   nz,.wait
+
     ld a, e
     ld [hl],a
             ");
@@ -266,6 +298,16 @@ PAX_FN_{}:
     ld h,a
             ");
         }
+        GbIr::Invert => {
+            gb_output!("
+    ld a,l
+    cpl
+    ld l,a
+    ld a,h
+    cpl
+    ld h,a
+            ");
+        }
         GbIr::AltDupFromTOS => {
             gb_output!("
     push hl
@@ -274,6 +316,11 @@ PAX_FN_{}:
         GbIr::AltPop => {
             gb_output!("
     pop hl
+            ");
+        }
+        GbIr::Inc => {
+            gb_output!("
+    inc hl
             ");
         }
         GbIr::Ret => {
@@ -305,21 +352,82 @@ pub fn cross_compile_forth_gb(program: Program) {
         }
 
         // In-place optimizations.
-        let mut i = 0;
-        while i < result.len() {
-            let op = &result[i];
-            i += 1;
+        const OPTIMIZE: bool = false;
+        const PASSES: usize = 3;
+        if OPTIMIZE {
+            for _ in 0..PASSES {
+                let mut i = 0;
+                while i < result.len() {
+                    let op = &result[i];
+                    i += 1;
 
-            match op {
-                GbIr::Pop => {
-                    if let (Some(GbIr::Dup), Some(GbIr::ReplaceLiteral(_))) = (result.get(i), result.get(i + 1)) {
-                        eprintln!("optimizing [pop, dup, replace]");
-                        i -= 1;
-                        let _ = result.splice(i..i+2, vec![]);
-                        continue;
+                    match op {
+                        GbIr::Pop => {
+                            if let (Some(GbIr::Dup), Some(GbIr::ReplaceLiteral(_))) = (result.get(i), result.get(i + 1)) {
+                                eprintln!("optimizing [pop, dup, replace literal]");
+                                i -= 1;
+                                let _ = result.splice(i..i+2, vec![]);
+                                continue;
+                            }
+                        }
+                        GbIr::ReplaceLiteral(addr) => {
+                            let addr = *addr;
+                            if let Some(GbIr::ReplaceLoad) = result.get(i) {
+                                eprintln!("optimizing [replace literal, replace load]");
+                                i -= 1;
+                                let _ = result.splice(i..i+2, vec![
+                                    GbIr::ReplaceLoadDirect(addr)
+                                ]);
+                                continue;
+                            }
+                        }
+                        GbIr::CopyToDE => {
+                            if let (Some(GbIr::ReplaceLiteral(65535)), Some(GbIr::ReplaceNandWithDE)) = (result.get(i), result.get(i + 1)) {
+                                eprintln!("optimizing [copy to de, replace literal -1, replace nand with de]");
+                                i -= 1;
+                                let _ = result.splice(i..i+3, vec![
+                                    GbIr::Invert
+                                ]);
+                                continue;
+                            }
+
+                            if let (Some(GbIr::ReplaceLiteral(1)), Some(GbIr::ReplaceAddWithDE)) = (result.get(i), result.get(i + 1)) {
+                                eprintln!("optimizing [copy to de, replace literal 1, replace add with de]");
+                                i -= 1;
+                                let _ = result.splice(i..i+3, vec![
+                                    GbIr::Inc,
+                                ]);
+                                continue;
+                            }
+                        }
+
+                        GbIr::Dup => {
+                            if let (Some(GbIr::ReplaceLiteral(value)), Some(GbIr::NipIntoDE)) = (result.get(i), result.get(i + 1)) {
+                                let value = *value;
+                                eprintln!("optimizing [dup, replace literal, nip]");
+                                i -= 1;
+                                let _ = result.splice(i..i+3, vec![
+                                    GbIr::CopyToDE,
+                                    GbIr::ReplaceLiteral(value)
+                                ]);
+                                continue;
+                            }
+
+                            if let (Some(GbIr::ReplaceLiteral(value)), Some(GbIr::CopyToE), Some(GbIr::Pop)) = (result.get(i), result.get(i + 1), result.get(1 + 2)) {
+                                let value = *value;
+                                if value < 256 {
+                                    eprintln!("optimizing [dup, replace literal, copy to e, pop]");
+                                    i -= 1;
+                                    let _ = result.splice(i..i+4, vec![
+                                        GbIr::SetE(value as u8),
+                                    ]);
+                                    continue;
+                                }
+                            }
+                        }
+                        _ => {}
                     }
                 }
-                _ => {}
             }
         }
 

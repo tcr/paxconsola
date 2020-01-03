@@ -23,9 +23,7 @@ COPY_DATA:
 	reti
 
 SECTION "VBlank IRQ",ROM0[$40]
-	ld  a,$1
-	ld  [vblank_flag],a
-	reti
+	jp VBLANK_IRQ
 
 SECTION	"LCD IRQ Vector",ROM0[$48]
 LCD_VECT:

@@ -1,6 +1,8 @@
 
-$C004 constant last-key
-$C006 constant temp
+$C020 constant last-key
+$C022 constant temp
+$C024 constant initialized
+
 $9800 constant graphics
 
 : cells ;
@@ -61,13 +63,15 @@ $9800 constant graphics
 : move-down 24 graphics 98 + c! ;
 
 : initialize
-  13 9 do
-    6 2 do
-      30 graphics j 32 * + i + c!
+  18 0 do
+    20 0 do
+      6 graphics j 32 * + i + c!
     loop
   loop ;
 
-\ initialize
+\ Initialize only once
+initialized @ 0= if initialize then
+1 initialized !
 
 last-key @
   left over = if move-left else

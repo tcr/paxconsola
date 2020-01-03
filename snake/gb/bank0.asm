@@ -43,6 +43,8 @@ START:
 	xor a
 	ld [pax_var_last_key], a
 	ld [pax_var_last_key+1], a
+	ld [pax_var_initialized], a
+	ld [pax_var_initialized+1], a
 
 	ld a, $ba
 	ld [$fffe], a
@@ -51,13 +53,13 @@ START:
 
 	;call DMA_COPY    ;move DMA routine to HRAM
 LOOP:
-	call WAIT_VBLANK
-
 	call READ_JOYPAD
 	call JOY_RIGHT
 	call JOY_LEFT
 	call JOY_UP
 	call JOY_DOWN
+
+	call WAIT_VBLANK
 
 	; Set forth stack to end of zero page RAM
 	ld c,$fe
@@ -78,6 +80,13 @@ PAX_VM:
 ;-------------
 ; Subroutines
 ;-------------
+
+VBLANK_IRQ:
+	ld  [vblank_temp], a
+	ld  a,$1
+	ld  [vblank_flag],a
+	ld  a,[vblank_temp]
+	reti
 
 WAIT_VBLANK:
 	ld  hl,vblank_flag
@@ -245,9 +254,16 @@ joypad_down:
 db                   ;dow/up/lef/rig/sta/sel/a/b
 joypad_pressed:
 db
+vblank_temp:
+db
+
+SECTION "Pax Vars",WRAM0[$C020]
 pax_var_last_key:
 db
 db
 pax_var_temp:
+db
+db
+pax_var_initialized:
 db
 db
