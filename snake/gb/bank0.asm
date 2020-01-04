@@ -45,6 +45,8 @@ START:
 	ld [pax_var_last_key+1], a
 	ld [pax_var_initialized], a
 	ld [pax_var_initialized+1], a
+	ld [pax_var_frame], a
+	ld [pax_var_frame+1], a
 
 	ld a, $ba
 	ld [$fffe], a
@@ -265,5 +267,14 @@ pax_var_temp:
 db
 db
 pax_var_initialized:
+db
+db
+pax_var_x:
+db
+db
+pax_var_y:
+db
+db
+pax_var_frame:
 db
 db

@@ -2,6 +2,9 @@
 $C020 constant last-key
 $C022 constant temp
 $C024 constant initialized
+$C026 constant ram_x
+$C028 constant ram_y
+$C030 constant frame
 
 $9800 constant graphics
 
@@ -91,16 +94,23 @@ $9800 constant graphics
   loop ;
 
 : initialize
+  (
   width 0 do
     height 0 do
       j i draw-white
     loop
   loop
-  draw-walls ;
+  )
+  draw-walls
+  6 ram_x !
+  8 ram_y !
+  ;
 
 \ Initialize only once
 initialized @ 0= if initialize then
 1 initialized !
+
+(
 
 last-key @
   left over = if move-left else
@@ -108,3 +118,31 @@ last-key @
   right over  = if move-right else
   down over = if move-down
   then then then then
+
+)
+
+: check-collision ( -- flag )
+  \ get current x/y position
+  ram_x @ ram_y @
+
+  \ get color at current position
+  convert-x-y graphics + c@
+
+  \ leave boolean flag on stack
+  0= if else begin 0 until then ;
+
+: clear ram_x @ ram_y @ draw-white ;
+
+ram_x @ ram_y @ draw-black
+
+frame @ 1+ dup frame !
+5 = if 0 frame !
+
+last-key @
+  left over = if clear ram_x @ 1- dup ram_x ! ram_y check-collision draw-black else
+  up over    = if clear ram_x ram_y @ 1- dup ram_y ! check-collision draw-black else
+  right over  = if clear ram_x @ 1+ dup ram_x ! ram_y check-collision draw-black else
+  down over = if clear ram_x ram_y @ 1+ dup ram_y ! check-collision  draw-black
+  then then then then
+
+then
