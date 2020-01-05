@@ -56,6 +56,11 @@ START:
 	ld [pax_var_frame], a
 	ld [pax_var_frame+1], a
 
+	ld a,$08
+	ld [pax_var_random], a
+	ld a,$00
+	ld [pax_var_random+1], a
+
 	ld a, $ba
 	ld [$fffe], a
 	ld a, $dd
@@ -270,6 +275,9 @@ db
 
 SECTION "Pax System Vars",WRAM0[$C020]
 pax_var_last_key:   ; hardcoded at
+db
+db
+pax_var_random:   ; hardcoded at
 db
 db
 
