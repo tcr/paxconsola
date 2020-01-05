@@ -24,6 +24,14 @@ START:
 	ldh [rLCDC],a 	 ;LCD off
 	ldh [rSTAT],a
 
+	; clear ram
+	; xor a
+	; ld hl, $C0FF
+; .loop_clear:
+	; ldd [hl], a   ; 11001110 11111111
+	; bit 7, h
+	; jr nz,.loop_clear
+
 	ld  a,%11100100  ;shade palette (11 10 01 00)
 	ldh [rBGP],a 	 ;setup palettes
 	ldh [rOCPD],a
@@ -70,6 +78,7 @@ LOOP:
 
 	;call _HRAM		 ;call DMA routine from HRAM
 	jp LOOP
+
 
 ;-------------
 ; Pax Forth VM
@@ -259,10 +268,13 @@ db
 vblank_temp:
 db
 
-SECTION "Pax Vars",WRAM0[$C020]
-pax_var_last_key:
+SECTION "Pax System Vars",WRAM0[$C020]
+pax_var_last_key:   ; hardcoded at
 db
 db
+
+
+SECTION "Pax User Vars",WRAM0[$C040]
 pax_var_temp:
 db
 db

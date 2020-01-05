@@ -6,10 +6,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49188)
-    ld a, [49188]
+    ; [gb_ir] ReplaceLoadDirect(49218)
+    ld a, [49218]
     ld l, a
-    ld a, [49188+1]
+    ld a, [49218+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_03D")
@@ -52,8 +52,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49188)
-    ld hl,49188
+    ; [gb_ir] ReplaceLiteral(49218)
+    ld hl,49218
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -61,10 +61,10 @@
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(49190)
-    ld a, [49190]
+    ; [gb_ir] ReplaceLoadDirect(49220)
+    ld a, [49220]
     ld l, a
-    ld a, [49190+1]
+    ld a, [49220+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -75,10 +75,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49192)
-    ld a, [49192]
+    ; [gb_ir] ReplaceLoadDirect(49222)
+    ld a, [49222]
     ld l, a
-    ld a, [49192+1]
+    ld a, [49222+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_draw2Dblack")
@@ -92,10 +92,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49200)
-    ld a, [49200]
+    ; [gb_ir] ReplaceLoadDirect(49224)
+    ld a, [49224]
     ld l, a
-    ld a, [49200+1]
+    ld a, [49224+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_12B")
@@ -108,8 +108,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49200)
-    ld hl,49200
+    ; [gb_ir] ReplaceLiteral(49224)
+    ld hl,49224
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -134,10 +134,10 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_97")
+    ; [gb_ir] JumpIfEIs0(".target_93")
     ld a, e
     cp $0
-    jp z,.target_97
+    jp z,.target_93
 
     ; [gb_ir] Dup
     dec c
@@ -154,8 +154,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49200)
-    ld hl,49200
+    ; [gb_ir] ReplaceLiteral(49224)
+    ld hl,49224
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -197,13 +197,10 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_44")
+    ; [gb_ir] JumpIfEIs0(".target_43")
     ld a, e
     cp $0
-    jp z,.target_44
-
-    ; [gb_ir] Call("PAX_FN_clear")
-    call PAX_FN_clear
+    jp z,.target_43
 
     ; [gb_ir] Dup
     dec c
@@ -213,10 +210,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49190)
-    ld a, [49190]
+    ; [gb_ir] ReplaceLoadDirect(49220)
+    ld a, [49220]
     ld l, a
-    ld a, [49190+1]
+    ld a, [49220+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_12D")
@@ -229,8 +226,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49190)
-    ld hl,49190
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -238,8 +235,8 @@
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLiteral(49192)
-    ld hl,49192
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] Call("PAX_FN_check2Dcollision")
     call PAX_FN_check2Dcollision
@@ -269,13 +266,13 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_96")
+    ; [gb_ir] JumpIfEIs0(".target_92")
     ld a, e
     cp $0
-    jp z,.target_96
+    jp z,.target_92
 
-    ; [gb_ir] Label(".target_44")
-.target_44:
+    ; [gb_ir] Label(".target_43")
+.target_43:
 
     ; [gb_ir] Dup
     dec c
@@ -305,13 +302,10 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_61")
+    ; [gb_ir] JumpIfEIs0(".target_59")
     ld a, e
     cp $0
-    jp z,.target_61
-
-    ; [gb_ir] Call("PAX_FN_clear")
-    call PAX_FN_clear
+    jp z,.target_59
 
     ; [gb_ir] Dup
     dec c
@@ -321,8 +315,8 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(49190)
-    ld hl,49190
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] Dup
     dec c
@@ -332,10 +326,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49192)
-    ld a, [49192]
+    ; [gb_ir] ReplaceLoadDirect(49222)
+    ld a, [49222]
     ld l, a
-    ld a, [49192+1]
+    ld a, [49222+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_12D")
@@ -348,8 +342,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49192)
-    ld hl,49192
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -393,13 +387,13 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_95")
+    ; [gb_ir] JumpIfEIs0(".target_91")
     ld a, e
     cp $0
-    jp z,.target_95
+    jp z,.target_91
 
-    ; [gb_ir] Label(".target_61")
-.target_61:
+    ; [gb_ir] Label(".target_59")
+.target_59:
 
     ; [gb_ir] Dup
     dec c
@@ -429,13 +423,10 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_78")
+    ; [gb_ir] JumpIfEIs0(".target_75")
     ld a, e
     cp $0
-    jp z,.target_78
-
-    ; [gb_ir] Call("PAX_FN_clear")
-    call PAX_FN_clear
+    jp z,.target_75
 
     ; [gb_ir] Dup
     dec c
@@ -445,10 +436,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49190)
-    ld a, [49190]
+    ; [gb_ir] ReplaceLoadDirect(49220)
+    ld a, [49220]
     ld l, a
-    ld a, [49190+1]
+    ld a, [49220+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_12B")
@@ -461,8 +452,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49190)
-    ld hl,49190
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -470,8 +461,8 @@
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLiteral(49192)
-    ld hl,49192
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] Call("PAX_FN_check2Dcollision")
     call PAX_FN_check2Dcollision
@@ -501,13 +492,13 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_94")
+    ; [gb_ir] JumpIfEIs0(".target_90")
     ld a, e
     cp $0
-    jp z,.target_94
+    jp z,.target_90
 
-    ; [gb_ir] Label(".target_78")
-.target_78:
+    ; [gb_ir] Label(".target_75")
+.target_75:
 
     ; [gb_ir] Dup
     dec c
@@ -537,13 +528,10 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_93")
+    ; [gb_ir] JumpIfEIs0(".target_89")
     ld a, e
     cp $0
-    jp z,.target_93
-
-    ; [gb_ir] Call("PAX_FN_clear")
-    call PAX_FN_clear
+    jp z,.target_89
 
     ; [gb_ir] Dup
     dec c
@@ -553,8 +541,8 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(49190)
-    ld hl,49190
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] Dup
     dec c
@@ -564,10 +552,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49192)
-    ld a, [49192]
+    ; [gb_ir] ReplaceLoadDirect(49222)
+    ld a, [49222]
     ld l, a
-    ld a, [49192+1]
+    ld a, [49222+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_12B")
@@ -580,8 +568,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49192)
-    ld hl,49192
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -603,20 +591,20 @@
     ; [gb_ir] Call("PAX_FN_draw2Dblack")
     call PAX_FN_draw2Dblack
 
+    ; [gb_ir] Label(".target_89")
+.target_89:
+
+    ; [gb_ir] Label(".target_90")
+.target_90:
+
+    ; [gb_ir] Label(".target_91")
+.target_91:
+
+    ; [gb_ir] Label(".target_92")
+.target_92:
+
     ; [gb_ir] Label(".target_93")
 .target_93:
-
-    ; [gb_ir] Label(".target_94")
-.target_94:
-
-    ; [gb_ir] Label(".target_95")
-.target_95:
-
-    ; [gb_ir] Label(".target_96")
-.target_96:
-
-    ; [gb_ir] Label(".target_97")
-.target_97:
 
     ; [gb_ir] Ret
     ret
@@ -723,8 +711,8 @@ PAX_FN_swap:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLiteral(49186)
-    ld hl,49186
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -768,10 +756,10 @@ PAX_FN_swap:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -794,8 +782,8 @@ PAX_FN_over:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLiteral(49186)
-    ld hl,49186
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -812,10 +800,10 @@ PAX_FN_over:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -837,10 +825,10 @@ PAX_FN_over:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -909,8 +897,8 @@ PAX_FN_dup:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49186)
-    ld hl,49186
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -918,10 +906,10 @@ PAX_FN_dup:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -932,10 +920,10 @@ PAX_FN_dup:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -1387,8 +1375,8 @@ PAX_FN_i:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49186)
-    ld hl,49186
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -1396,10 +1384,10 @@ PAX_FN_i:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] AltDupFromTOS
@@ -1427,10 +1415,10 @@ PAX_FN_i:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -1509,8 +1497,8 @@ PAX_FN_j:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49186)
-    ld hl,49186
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -1518,10 +1506,10 @@ PAX_FN_j:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] AltDupFromTOS
@@ -1571,10 +1559,10 @@ PAX_FN_j:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLoadDirect(49186)
-    ld a, [49186]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [49186+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -1814,8 +1802,8 @@ PAX_FN_draw2Dwhite:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(6)
-    ld hl,6
+    ; [gb_ir] ReplaceLiteral(0)
+    ld hl,0
 
     ; [gb_ir] Call("PAX_FN_rot")
     call PAX_FN_rot
@@ -2125,6 +2113,147 @@ PAX_FN_initialize:
     ; [gb_ir] Label(".target_1")
 .target_1:
 
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+
+    ; [gb_ir] ReplaceLiteral(20)
+    ld hl,20
+
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+
+    ; [gb_ir] ReplaceLiteral(0)
+    ld hl,0
+
+    ; [gb_ir] AltDupFromTOS
+    push hl
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] AltDupFromTOS
+    push hl
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] Label(".target_6")
+.target_6:
+
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+
+    ; [gb_ir] ReplaceLiteral(18)
+    ld hl,18
+
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+
+    ; [gb_ir] ReplaceLiteral(0)
+    ld hl,0
+
+    ; [gb_ir] AltDupFromTOS
+    push hl
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] AltDupFromTOS
+    push hl
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] Label(".target_11")
+.target_11:
+
+    ; [gb_ir] Call("PAX_FN_j")
+    call PAX_FN_j
+
+    ; [gb_ir] Call("PAX_FN_i")
+    call PAX_FN_i
+
+    ; [gb_ir] Call("PAX_FN_draw2Dwhite")
+    call PAX_FN_draw2Dwhite
+
+    ; [gb_ir] Call("PAX_FN_loopimpl")
+    call PAX_FN_loopimpl
+
+    ; [gb_ir] CopyToE
+    ld e,l
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] JumpIfEIs0(".target_11")
+    ld a, e
+    cp $0
+    jp z,.target_11
+
+    ; [gb_ir] Call("PAX_FN_loopimpl")
+    call PAX_FN_loopimpl
+
+    ; [gb_ir] CopyToE
+    ld e,l
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] JumpIfEIs0(".target_6")
+    ld a, e
+    cp $0
+    jp z,.target_6
+
     ; [gb_ir] Call("PAX_FN_draw2Dwalls")
     call PAX_FN_draw2Dwalls
 
@@ -2143,8 +2272,8 @@ PAX_FN_initialize:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49190)
-    ld hl,49190
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -2159,8 +2288,8 @@ PAX_FN_initialize:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(49192)
-    ld hl,49192
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -2201,10 +2330,10 @@ PAX_FN_check2Dcollision:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49190)
-    ld a, [49190]
+    ; [gb_ir] ReplaceLoadDirect(49220)
+    ld a, [49220]
     ld l, a
-    ld a, [49190+1]
+    ld a, [49220+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -2215,10 +2344,10 @@ PAX_FN_check2Dcollision:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(49192)
-    ld a, [49192]
+    ; [gb_ir] ReplaceLoadDirect(49222)
+    ld a, [49222]
     ld l, a
-    ld a, [49192+1]
+    ld a, [49222+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_convert2Dx2Dy")
@@ -2326,54 +2455,6 @@ PAX_FN_check2Dcollision:
 
     ; [gb_ir] Label(".target_18")
 .target_18:
-
-    ; [gb_ir] Ret
-    ret
-
-
-
-
-
-
-; function start
-
-    ; [gb_ir] Metadata("clear")
-    ; [metadata] "clear"
-PAX_FN_clear:
-
-    ; [gb_ir] Label(".target_1")
-.target_1:
-
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-
-    ; [gb_ir] ReplaceLoadDirect(49190)
-    ld a, [49190]
-    ld l, a
-    ld a, [49190+1]
-    ld h, a
-
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
-
-    ; [gb_ir] ReplaceLoadDirect(49192)
-    ld a, [49192]
-    ld l, a
-    ld a, [49192+1]
-    ld h, a
-
-    ; [gb_ir] Call("PAX_FN_draw2Dwhite")
-    call PAX_FN_draw2Dwhite
 
     ; [gb_ir] Ret
     ret

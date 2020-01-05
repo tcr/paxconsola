@@ -1,12 +1,12 @@
 
 $C020 constant last-key
-$C022 constant temp
-$C024 constant initialized
-$C026 constant ram_x
-$C028 constant ram_y
-$C030 constant frame
-
 $9800 constant graphics
+
+variable temp
+variable initialized
+variable ram_x
+variable ram_y
+variable frame
 
 : cells ;
 
@@ -71,16 +71,9 @@ $9800 constant graphics
 : move-up 22 graphics 34 + c! ;
 : move-down 24 graphics 98 + c! ;
 
-: initialize_old
-  18 0 do
-    20 0 do
-      6 graphics j 32 * + i + c!
-    loop
-  loop ;
-
 : convert-x-y ( x y -- offset )  32 cells * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
-: draw-white ( x y -- )  6 rot rot draw ;
+: draw-white ( x y -- )  0 rot rot draw ;
 : draw-black ( x y -- )  23 rot rot draw ;
 
 : draw-walls
@@ -94,13 +87,11 @@ $9800 constant graphics
   loop ;
 
 : initialize
-  (
   width 0 do
     height 0 do
       j i draw-white
     loop
   loop
-  )
   draw-walls
   6 ram_x !
   8 ram_y !
@@ -139,10 +130,10 @@ frame @ 1+ dup frame !
 5 = if 0 frame !
 
 last-key @
-  left over = if clear ram_x @ 1- dup ram_x ! ram_y check-collision draw-black else
-  up over    = if clear ram_x ram_y @ 1- dup ram_y ! check-collision draw-black else
-  right over  = if clear ram_x @ 1+ dup ram_x ! ram_y check-collision draw-black else
-  down over = if clear ram_x ram_y @ 1+ dup ram_y ! check-collision  draw-black
+  left over = if ram_x @ 1- dup ram_x ! ram_y check-collision draw-black else
+  up over    = if ram_x ram_y @ 1- dup ram_y ! check-collision draw-black else
+  right over  = if ram_x @ 1+ dup ram_x ! ram_y check-collision draw-black else
+  down over = if ram_x ram_y @ 1+ dup ram_y ! check-collision  draw-black
   then then then then
 
 then

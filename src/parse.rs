@@ -75,7 +75,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
     let mut functions: IndexMap<String, Span> = IndexMap::new();
     let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
-    let mut variable_offset: usize = 0;
+    let mut variable_offset: usize = 0xC040;
 
     let mut flow_markers: Vec<MarkerGroup> = vec![];
     let mut used_flow_markers: Vec<MarkerGroup> = vec![];
@@ -108,7 +108,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
                 match token {
                     Token::Word(ref word) => {
                         variables.insert(word.to_string(), variable_offset);
-                        variable_offset += 1;
+                        variable_offset += 2;
                     }
                     _ => panic!("expected variable name"),
                 }
@@ -187,7 +187,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
                                             // eprintln!("allocating {}", cells);
                                             current(&mut stack).pop(); // "cells"
                                             current(&mut stack).pop(); // value
-                                            variable_offset += *cells as usize;
+                                            variable_offset += (*cells as usize) * 2;
                                         }
                                     }
                                 } else {
