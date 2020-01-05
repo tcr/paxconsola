@@ -638,23 +638,6 @@
 
 ; function start
 
-    ; [gb_ir] Metadata("cells")
-    ; [metadata] "cells"
-PAX_FN_cells:
-
-    ; [gb_ir] Label(".target_1")
-.target_1:
-
-    ; [gb_ir] Ret
-    ret
-
-
-
-
-
-
-; function start
-
     ; [gb_ir] Metadata("drop")
     ; [metadata] "drop"
 PAX_FN_drop:
@@ -970,6 +953,38 @@ PAX_FN_2dup:
 
     ; [gb_ir] Call("PAX_FN_over")
     call PAX_FN_over
+
+    ; [gb_ir] Ret
+    ret
+
+
+
+
+
+
+; function start
+
+    ; [gb_ir] Metadata("cells")
+    ; [metadata] "cells"
+PAX_FN_cells:
+
+    ; [gb_ir] Label(".target_1")
+.target_1:
+
+    ; [gb_ir] Call("PAX_FN_dup")
+    call PAX_FN_dup
+
+    ; [gb_ir] NipIntoDE
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc c
+    ld a, [c]
+    ld d, a
+    inc c
+
+    ; [gb_ir] ReplaceAddWithDE
+    add hl, de
 
     ; [gb_ir] Ret
     ret

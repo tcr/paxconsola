@@ -8,7 +8,6 @@ variable ram_x
 variable ram_y
 variable frame
 
-: cells ;
 
 : drop    if then ;
 : 2drop   + drop ;
@@ -23,6 +22,8 @@ variable frame
 : dup    temp ! temp @ temp @ ;
 : 2dup   over over ;
 : ?dup   temp ! temp @ if temp @ temp @ then ;
+
+: cells dup + ;
 
 : invert   -1 nand ;
 : negate   invert 1 + ;
