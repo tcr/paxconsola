@@ -52,24 +52,40 @@ variable frame
 
 : * >r 0 r> 0 do over + loop swap drop ;
 
+\ end stdlib
 
 
 
 
 
 
-20 constant width
-18 constant height
+\ start of snake.txt
+
+variable snake-x-head
+500 cells allot
+
+variable snake-y-head
+500 cells allot
+
+variable apple-x
+variable apple-y
 
 37 constant left
 38 constant up
 39 constant right
 40 constant down
 
-: move-right 23 graphics 67 + c! ;
-: move-left 21 graphics 65 + c! ;
-: move-up 22 graphics 34 + c! ;
-: move-down 24 graphics 98 + c! ;
+20 constant width
+18 constant height
+
+variable direction
+variable length
+
+: snake-x ( offset -- address )
+  cells snake-x-head + ;
+
+: snake-y ( offset -- address )
+  cells snake-y-head + ;
 
 : convert-x-y ( x y -- offset )  32 cells * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
@@ -86,6 +102,18 @@ variable frame
     width 1 - i draw-black
   loop ;
 
+: initialize-snake
+  4 length !
+  length @ 1 + 0 do
+    8 i - i snake-x !
+    8 i snake-y !
+  loop
+  right direction ! ;
+
+: set-apple-position apple-x ! apple-y ! ;
+
+: initialize-apple  2 2 set-apple-position ;
+
 : initialize
   width 0 do
     height 0 do
@@ -93,24 +121,28 @@ variable frame
     loop
   loop
   draw-walls
-  6 ram_x !
-  8 ram_y !
-  ;
+  initialize-snake
+  initialize-apple
+  8 ram_x !
+  6 ram_y ! ;
 
 \ Initialize only once
 initialized @ 0= if initialize then
 1 initialized !
 
-(
 
-last-key @
-  left over = if move-left else
-  up over    = if move-up else
-  right over  = if move-right else
-  down over = if move-down
-  then then then then
+\ game runtime
 
-)
+: draw-snake
+  length @ 0 do
+    i snake-x @ i snake-y @ draw-black
+  loop
+  length @ snake-x @
+  length @ snake-y @
+  draw-white ;
+
+: draw-apple
+  apple-x @ apple-y @ draw-black ;
 
 : check-collision ( -- flag )
   \ get current x/y position
@@ -124,10 +156,17 @@ last-key @
 
 : clear ram_x @ ram_y @ draw-white ;
 
+\ every frame ?
 ram_x @ ram_y @ draw-black
 
+\ frameskip
 frame @ 1+ dup frame !
-5 = if 0 frame !
+4 = if 0 frame !
+
+
+
+draw-snake
+draw-apple
 
 last-key @
   left over = if ram_x @ 1- dup ram_x ! ram_y check-collision draw-black else
@@ -136,4 +175,36 @@ last-key @
   down over = if ram_x ram_y @ 1+ dup ram_y ! check-collision  draw-black
   then then then then
 
+\ end frameskip
 then
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(
+
+: move-right 23 graphics 67 + c! ;
+: move-left 21 graphics 65 + c! ;
+: move-up 22 graphics 34 + c! ;
+: move-down 24 graphics 98 + c! ;
+
+last-key @
+  left over = if move-left else
+  up over    = if move-up else
+  right over  = if move-right else
+  down over = if move-down
+  then then then then
+
+)
