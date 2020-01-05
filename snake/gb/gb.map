@@ -12,22 +12,22 @@ ROM Bank #0 (HOME):
   SECTION: $0060-$0060 ($0001 bytes) ["Joypad IRQ Vector"]
            $0060 = JOYPAD_VECT
   SECTION: $0100-$014F ($0050 bytes) ["Start"]
-  SECTION: $0CA7-$0E96 ($01F0 bytes) ["Tiles"]
-           $0CA7 = TILE_DATA
-  SECTION: $08A7-$0CA6 ($0400 bytes) ["Map"]
-           $08A7 = MAP_DATA
-  SECTION: $0150-$08A6 ($0757 bytes) ["Program Start"]
-           $07AC = VBLANK_IRQ
+  SECTION: $0CAD-$0E9C ($01F0 bytes) ["Tiles"]
+           $0CAD = TILE_DATA
+  SECTION: $08AD-$0CAC ($0400 bytes) ["Map"]
+           $08AD = MAP_DATA
+  SECTION: $0150-$08AC ($075D bytes) ["Program Start"]
+           $07B2 = VBLANK_IRQ
            $0150 = START
-           $07E0 = CLEAR_MAP
-           $07EF = LOAD_TILES
-           $0801 = LOAD_MAP
-           $0813 = READ_JOYPAD
-           $0843 = JOY_RIGHT
-           $0852 = JOY_LEFT
-           $0861 = JOY_UP
-           $086F = JOY_DOWN
-           $07B8 = WAIT_VBLANK
+           $07E6 = CLEAR_MAP
+           $07F5 = LOAD_TILES
+           $0807 = LOAD_MAP
+           $0819 = READ_JOYPAD
+           $0849 = JOY_RIGHT
+           $0858 = JOY_LEFT
+           $0867 = JOY_UP
+           $0875 = JOY_DOWN
+           $07BE = WAIT_VBLANK
            $01AF = PAX_VM
            $0192 = LOOP
            $0480 = PAX_FN_03D
@@ -40,7 +40,7 @@ ROM Bank #0 (HOME):
            $03B3 = PAX_VM.target_97
            $03F8 = PAX_FN_over
            $02A0 = PAX_VM.target_44
-           $078B = PAX_FN_clear
+           $0791 = PAX_FN_clear
            $0479 = PAX_FN_12D
            $0725 = PAX_FN_check2Dcollision
            $03B3 = PAX_VM.target_96
@@ -73,30 +73,31 @@ ROM Bank #0 (HOME):
            $0668 = PAX_FN_draw2Dwalls.target_6
            $06C2 = PAX_FN_draw2Dwalls.target_21
            $0648 = PAX_FN_draw2Dwalls
-           $0774 = PAX_FN_check2Dcollision.target_14
-           $078A = PAX_FN_check2Dcollision.target_18
-           $0774 = PAX_FN_check2Dcollision.target_15
+           $074A = PAX_FN_check2Dcollision.wait
+           $077A = PAX_FN_check2Dcollision.target_14
+           $0790 = PAX_FN_check2Dcollision.target_18
+           $077A = PAX_FN_check2Dcollision.target_15
            $0622 = PAX_FN_draw2Dwhite
-           $07BB = WAIT_VBLANK.wait_vblank_loop
-           $07E6 = CLEAR_MAP.clear_map_loop
-           $07F8 = LOAD_TILES.load_tiles_loop
-           $080A = LOAD_MAP.load_map_loop
-           $08A5 = JOY_FALSE
+           $07C1 = WAIT_VBLANK.wait_vblank_loop
+           $07EC = CLEAR_MAP.clear_map_loop
+           $07FE = LOAD_TILES.load_tiles_loop
+           $0810 = LOAD_MAP.load_map_loop
+           $08AB = JOY_FALSE
            $0480 = PAX_FN_03D.target_1
            $05AA = PAX_FN_2A.target_1
            $046C = PAX_FN_2D.target_1
            $0424 = PAX_FN_rot.target_1
-           $0887 = JOY_B
-           $087D = JOY_A
+           $088D = JOY_B
+           $0883 = JOY_A
            $0467 = PAX_FN_negate.target_1
            $0635 = PAX_FN_draw2Dblack.target_1
            $03F8 = PAX_FN_over.target_1
            $03B5 = PAX_FN_drop.target_1
            $0622 = PAX_FN_draw2Dwhite.target_1
-           $078B = PAX_FN_clear.target_1
+           $0791 = PAX_FN_clear.target_1
            $0512 = PAX_FN_i.target_1
-           $07CC = DMA_COPY
-           $0891 = JOY_SELECT
+           $07D2 = DMA_COPY
+           $0897 = JOY_SELECT
            $0604 = PAX_FN_draw.target_1
            $0550 = PAX_FN_j
            $0439 = PAX_FN_dup.target_1
@@ -108,14 +109,14 @@ ROM Bank #0 (HOME):
            $0459 = PAX_FN_2dup.target_1
            $0550 = PAX_FN_j.target_1
            $0725 = PAX_FN_check2Dcollision.target_1
-           $089B = JOY_START
+           $08A1 = JOY_START
            $04A8 = PAX_FN_3D.target_1
            $03C3 = PAX_FN_2drop.target_1
            $0479 = PAX_FN_12D.target_1
            $0477 = PAX_FN_12B.target_1
            $0460 = PAX_FN_invert.target_1
            $03B4 = PAX_FN_cells.target_1
-    SLACK: $3251 bytes
+    SLACK: $324B bytes
 
 WRAM Bank #0:
   SECTION: $C000-$C004 ($0005 bytes) ["RAM Vars"]

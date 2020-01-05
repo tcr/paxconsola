@@ -243,6 +243,11 @@ PAX_FN_{}:
         }
         GbIr::ReplaceLoad8 =>  {
             gb_output!("
+.wait:
+    ld   a,[$0FF41]
+    bit  1,a       ; Wait until Mode is 0 or 1
+    jr   nz,.wait
+
     ld a, [hl]
     ld l, a
     xor a
