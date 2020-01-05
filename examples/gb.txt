@@ -88,7 +88,7 @@ variable length
 : snake-y ( offset -- address )
   cells snake-y-head + ;
 
-: convert-x-y ( x y -- offset )  32 cells * + ;
+: convert-x-y ( x y -- offset )  32 * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
 : draw-white ( x y -- )  0 rot rot draw ;
 : draw-black ( x y -- )  23 rot rot draw ;
