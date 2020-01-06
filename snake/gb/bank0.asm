@@ -5,9 +5,9 @@
 ;-------------
 
 	INCLUDE "hardware.asm"
-  INCLUDE "header.asm"
+  	INCLUDE "header.asm"
 	INCLUDE "tiles.asm"
-  INCLUDE "map.asm"
+  	INCLUDE "map.asm"
 
 ;-------------
 ; Start
@@ -39,7 +39,7 @@ START:
 
 	call CLEAR_MAP
 	call LOAD_TILES
-	call LOAD_MAP
+	; call LOAD_MAP
 
 	ld  a,%11010011  ;turn on LCD, BG0, OBJ0, etc
 	ldh [rLCDC],a    ;load LCD flags
@@ -48,25 +48,22 @@ START:
 	ld HL,$CFFF
 	ld SP, HL
 	; Clear memory locations
-	xor a
-	ld [pax_var_last_key], a
-	ld [pax_var_last_key+1], a
-	ld [pax_var_initialized], a
-	ld [pax_var_initialized+1], a
-	ld [pax_var_frame], a
-	ld [pax_var_frame+1], a
+	call CLEAR_RAM
 
-	ld a,$08
-	ld [pax_var_random], a
-	ld a,$00
-	ld [pax_var_random+1], a
+	; Seed the rng from DIV register
+	ld a,[$fff4]
+	ld [Seed], a
+	xor $33
+	ld [Seed+1], a
+	xor $a7
+	ld [Seed+2], a
 
+	; Set end of HRAM marker. (Could be removed)
 	ld a, $ba
 	ld [$fffe], a
 	ld a, $dd
 	ld [$ffff], a
 
-	;call DMA_COPY    ;move DMA routine to HRAM
 LOOP:
 	call READ_JOYPAD
 	call JOY_RIGHT
@@ -77,9 +74,15 @@ LOOP:
 	call WAIT_VBLANK
 
 	; Set forth stack to end of zero page RAM
-	ld c,$fe
+	ld c, $fe
 	ld hl, $0
 	call PAX_VM
+
+	; store random number in pax_var_random
+	call RandomNumber
+	ld [pax_var_random],a
+	call RandomNumber
+	ld [pax_var_random+1],a
 
 	;call _HRAM		 ;call DMA routine from HRAM
 	jp LOOP
@@ -129,13 +132,14 @@ CLEAR_MAP:
 	ld  hl,_SCRN0    ;load map0 ram
 	ld  bc,$400
 .clear_map_loop
-	ld  a,$0
+	ld  a,$6
 	ld  [hli],a      ;clear tile, increment hl
 	dec bc
 	ld  a,b
 	or  c
 	jr  nz,.clear_map_loop
 	ret
+
 
 LOAD_TILES:
 	ld  hl,TILE_DATA
@@ -163,6 +167,19 @@ LOAD_MAP:
 	ld  a,b
 	or  c
 	jr  nz,.load_map_loop
+	ret
+
+
+CLEAR_RAM:
+	ld  hl,$C000    ;load game ram
+	ld  bc,$200
+.loop
+	ld  a,$0
+	ld  [hli],a      ;clear tile, increment hl
+	dec bc
+	ld  a,b
+	or  c
+	jr  nz,.loop
 	ret
 
 READ_JOYPAD:
@@ -261,6 +278,51 @@ JOY_FALSE:
 	ld a,d
 	ret
 
+
+
+
+RandomNumber:
+
+        ld      hl,Seed
+
+        ld      a,[hl+]
+
+        sra     a
+
+        sra     a
+
+        sra     a
+
+        xor     [hl]
+
+        inc     hl
+
+        rra
+
+        rl      [hl]
+
+        dec     hl
+
+        rl      [hl]
+
+        dec     hl
+
+        rl      [hl]
+
+        ld      a,[$fff4]          ; get divider register to increase
+
+randomness
+
+        add     [hl]
+
+        ret
+
+
+
+
+
+
+
 SECTION "RAM Vars",WRAM0[$C000]
 vblank_flag:
 db
@@ -271,6 +333,10 @@ db                   ;dow/up/lef/rig/sta/sel/a/b
 joypad_pressed:
 db
 vblank_temp:
+db
+Seed:
+db
+db
 db
 
 SECTION "Pax System Vars",WRAM0[$C020]
@@ -287,12 +353,6 @@ pax_var_temp:
 db
 db
 pax_var_initialized:
-db
-db
-pax_var_x:
-db
-db
-pax_var_y:
 db
 db
 pax_var_frame:

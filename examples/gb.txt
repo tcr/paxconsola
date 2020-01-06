@@ -5,8 +5,6 @@ $9800 constant graphics
 
 variable temp
 variable initialized
-variable ram_x
-variable ram_y
 variable frame
 
 
@@ -54,6 +52,9 @@ variable frame
 
 : * >r 0 r> 0 do over + loop swap drop ;
 
+: 0<   $8000 nand invert if -1 else 0 then ;
+: % ( value divisor -- modulus ) begin 2dup - dup 0< if rot drop + -1 else rot drop swap 0 then until ;
+
 \ end stdlib
 
 
@@ -63,7 +64,7 @@ variable frame
 
 \ start of snake.txt
 
-: random random-register @ ;
+: random random-register @ 255 and swap % ;
 
 variable snake-x-head
 500 cells allot
@@ -117,7 +118,7 @@ variable length
 
 : set-apple-position apple-x ! apple-y ! ;
 
-: initialize-apple  2 2 set-apple-position ;
+: initialize-apple  8 13 set-apple-position ;
 
 : initialize
   width 0 do
@@ -127,9 +128,7 @@ variable length
   loop
   draw-walls
   initialize-snake
-  initialize-apple
-  8 ram_x !
-  6 ram_y ! ;
+  initialize-apple ;
 
 \ Initialize only once
 initialized @ 0= if initialize then
@@ -186,12 +185,14 @@ initialized @ 0= if initialize then
   0 last-key ! ;
 
 \ get random x or y position within playable area
-: random-position ( -- pos )
+: random-x-position ( -- pos )
   width 4 - random 2 + ;
+: random-y-position ( -- pos )
+  height 4 - random 2 + ;
 
 : move-apple
   apple-x @ apple-y @ draw-white
-  random-position random-position
+  random-x-position random-y-position
   set-apple-position ;
 
 : grow-snake  1 length +! ;
@@ -234,7 +235,7 @@ initialized @ 0= if initialize then
 
 \ frameskip
 frame @ 1+ dup frame !
-3 = if 0 frame !
+4 = if 0 frame !
 
 draw-snake
 draw-apple

@@ -94,7 +94,7 @@ fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
         ],
         // ( cond -- )
         Pax::JumpIf0(offset) => vec![
-            GbIr::CopyToE,
+            GbIr::CopyToDE,
             GbIr::Pop,
             GbIr::JumpIfEIs0(format!(".target_{}", offset)),
         ],
@@ -281,8 +281,8 @@ PAX_FN_{}:
         }
         GbIr::JumpIfEIs0(addr) => {
             gb_output!("
-    ld a, e
-    cp $0
+    ld a,d
+    or e
     jp z,{}
             ", addr);
         }
