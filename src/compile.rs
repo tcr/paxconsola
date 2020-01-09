@@ -129,7 +129,6 @@ fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
             GbIr::Dup,
             GbIr::AltPop,
         ],
-        // Pax::Remainder => vec![],
         Pax::Print => vec![
             // nah
         ],

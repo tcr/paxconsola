@@ -93,7 +93,7 @@ LOOP:
 ;-------------
 
 PAX_VM:
-	INCLUDE "pax_generated.asm"
+	INCLUDE "generated/pax_generated.asm"
 	ret
 
 ;-------------
