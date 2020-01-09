@@ -4,10 +4,10 @@
 ; Includes
 ;-------------
 
-	INCLUDE "hardware.asm"
-  	INCLUDE "header.asm"
-	INCLUDE "tiles.asm"
-  	INCLUDE "map.asm"
+	INCLUDE "kernel/hardware.asm"
+  	INCLUDE "kernel/header.asm"
+	INCLUDE "kernel/tiles.asm"
+  	INCLUDE "kernel/map.asm"
 
 ;-------------
 ; Start
@@ -280,7 +280,7 @@ JOY_FALSE:
 
 
 
-
+; http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html
 RandomNumber:
 
         ld      hl,Seed

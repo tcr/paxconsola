@@ -17,3 +17,4 @@ lazy_static = "*"
 indexmap = "*"
 color-backtrace = { version = "0.3" }
 percent-encoding = "*"
+itertools = "0.8.2"

@@ -1,7 +1,7 @@
-OBJS = bank0.asm
+OBJS = kernel/bank0.asm
 OBJS_NAME = bank0
 
-OBJ_NAME = gb
+OBJ_NAME = paxconsola
 
 ASM = rgbasm
 
@@ -15,7 +15,7 @@ all : $(OBJS)
 	$(FIX) -v $(OBJ_NAME).gb
 	rm $(OBJS_NAME).obj
 
-allrun:
+run:
 	make
 	rboy -x 6 gb.gb
 

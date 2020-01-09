@@ -1,9 +1,12 @@
 #![allow(dead_code)]
 
+use indexmap::{IndexSet, IndexMap};
 use crate::*;
 use lazy_static::*;
 use regex::Regex;
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC, AsciiSet};
+use std::iter::FromIterator;
+use itertools::Itertools;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -39,7 +42,7 @@ pub enum GbIr {
     // ( addr -- addr )
     StoreDE,
     // ( -- )
-    JumpIfEIs0(String),         // label destination
+    JumpIfDEIs0(String),         // label destination
     // ( a -- result )
     ReplaceAddWithDE,
     // ( a -- result )
@@ -96,14 +99,14 @@ fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
         Pax::JumpIf0(offset) => vec![
             GbIr::CopyToDE,
             GbIr::Pop,
-            GbIr::JumpIfEIs0(format!(".target_{}", offset)),
+            GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
         // ( address -- )
         Pax::Call(target) => vec![
             GbIr::Call(format!("PAX_FN_{}", name_slug(&target))),
         ],
         // ( -- )
-        Pax::Exit | Pax::Stop => vec![
+        Pax::Exit => vec![
             GbIr::Ret
         ],
         // ( a b -- c )
@@ -279,7 +282,7 @@ PAX_FN_{}:
     push hl
             ");
         }
-        GbIr::JumpIfEIs0(addr) => {
+        GbIr::JumpIfDEIs0(addr) => {
             gb_output!("
     ld a,d
     or e
@@ -348,8 +351,172 @@ PAX_FN_{}:
     }
 }
 
+pub type StackInfo = Vec<(Pax, Pos, Vec<String>)>;
+
+#[derive(Debug, Clone)]
+struct StackGroup {
+    args: usize,
+    index: usize,
+    stack: Vec<String>,
+    values: IndexMap<String, StackItem>,
+    code: StackInfo,
+    history: Vec<StackInfo>,
+}
+
+#[derive(Debug, Clone)]
+pub struct StackItem {
+    id: String,
+    ancestors: IndexSet<String>,
+    stored: bool,
+}
+
+impl StackGroup {
+    fn new() -> StackGroup {
+        StackGroup {
+            args: 0,
+            index: 0,
+            stack: vec![],
+            values: IndexMap::new(),
+            code: vec![],
+            history: vec![],
+        }
+    }
+
+    fn record_op(&mut self, op: &(Pax, Pos)) {
+        self.code.push((op.0.clone(), op.1.clone(), self.stack.clone()));
+    }
+
+    fn reset(&mut self) {
+        self.history.push(self.code.clone());
+
+        self.index = 0;
+        self.stack = vec![];
+        self.values = IndexMap::new();
+    }
+
+    fn push(&mut self, ancestors: &[String]) {
+        let value = format!("S{}", self.index);
+        self.index += 1;
+
+        self.stack.push(value.clone());
+        self.values.insert(value.clone(), StackItem {
+            id: value.clone(),
+            ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
+            stored: false,
+        });
+    }
+
+    fn pop(&mut self, stored: bool) -> String {
+        if let Some(value) = self.stack.pop() {
+            let mut iter = vec![value.clone()];
+
+            if stored {
+                while let Some(iter_value) = iter.pop() {
+                    let value_item = self.values.get_mut(&iter_value).unwrap();
+                    value_item.stored = true;
+                    iter.extend(value_item.ancestors.clone());
+                }
+            }
+
+            value
+        } else {
+            let value = format!("A{}", self.args);
+            self.args += 1;
+
+            self.stack.insert(0, value.clone());
+
+            self.values.insert(value.clone(), StackItem {
+                id: value.clone(),
+                ancestors: IndexSet::new(),
+                stored: false,
+            });
+            value
+        }
+    }
+}
+
+// FIXME TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
+
+// TODO use these to model stacks and merging logic, converge on ExitStack after minimizing loops
+// once there's full coverage of all/most functions, can refactor GbIr generation to do explicit
+// loads (for example).
+// can also do function inlining. Splice in Pax Ir, readjust JumpIf0 targets
+// and rename temporaries / converge arguments / convert return values. If inlining works do auto
+// inline for up to N opcodes (determined from stack vector) and see if there is speed improvement
+// or,
+// recursively solve call ependencies to correct local stacks
+pub enum Stack {
+    ExitStack(StackInfo),
+    StopStack(StackInfo),
+    JumpIf0Stack(StackInfo),
+    BranchTargetStack(StackInfo),
+    CallStack(StackInfo),
+}
+
+pub fn generate_dataflow(program: Program) {
+    let mut program_stacks = IndexMap::new();
+    for (name, code) in program {
+        let mut stack = StackGroup::new();
+
+        // Create dataflow analysis
+        for op in code {
+            // eprintln!("{:?}", op.0);
+            stack.record_op(&op);
+
+            match op.0 {
+                Pax::Metadata(_) | Pax::Debugger => {
+                    // noop
+                }
+                Pax::AltPush | Pax::Sleep | Pax::Print => {
+                    stack.pop(true);
+                }
+                Pax::Load | Pax::Load8 => {
+                    let s0 = stack.pop(true);
+                    stack.push(&[s0]);
+                }
+                Pax::Add | Pax::Nand => {
+                    let s0 = stack.pop(false);
+                    let s1 = stack.pop(false);
+                    stack.push(&[s0, s1]);
+                }
+                Pax::Store | Pax::Store8 => {
+                    stack.pop(true);
+                    stack.pop(true);
+                }
+                Pax::AltPop | Pax::PushLiteral(_) => {
+                    stack.push(&[]);
+                }
+                Pax::Exit | Pax::Call(_) | Pax::BranchTarget | Pax::JumpIf0(_) => {
+                    // We'll resolve these in later passes.
+                    // next block
+                    // eprintln!("---> stack for {} opcodes: {:?}", fnlen, stack.values);
+                    stack.reset();
+                }
+            }
+            // eprintln!(" ... [stack: {:?}]", stack.stack);
+        }
+        stack.reset();
+        program_stacks.insert(name, stack.history);
+
+        // program_stacks.get_mut(&name).unwrap().push(stack);
+        // eprintln!("{:?}", program_stacks.get(&name));
+    }
+
+    for (name, list) in &program_stacks {
+        eprintln!("{}:", name);
+        for stack in list.last() {
+            eprintln!(
+                "    {:?}",
+                stack.iter().map(|(o, p, s)| s.to_owned()).flatten().unique().collect::<Vec<String>>(),
+            );
+        }
+    }
+}
 
 pub fn cross_compile_forth_gb(program: Program) {
+    // generate_dataflow(program);
+    // std::process::exit(0);
+
     for (name, code) in program {
         let mut result = vec![];
         for (i, (op, pos)) in code.iter().enumerate() {
@@ -404,6 +571,16 @@ pub fn cross_compile_forth_gb(program: Program) {
                                 ]);
                                 continue;
                             }
+
+                            if let (Some(GbIr::Pop), Some(GbIr::JumpIfDEIs0(ref label1)), Some(GbIr::Label(ref label2))) = (result.get(i), result.get(i+1), result.get(i+2)) {
+                                if label1 == label2 {
+                                    eprintln!("optimizing [copy to de, pop, jump to next label, next label]");
+                                    i -= 1;
+                                    let _ = result.splice(i..i+4, vec![
+                                        GbIr::Pop,
+                                    ]);
+                                }
+                            }
                         }
 
                         GbIr::Dup => {
@@ -418,17 +595,17 @@ pub fn cross_compile_forth_gb(program: Program) {
                                 continue;
                             }
 
-                            if let (Some(GbIr::ReplaceLiteral(value)), Some(GbIr::CopyToE), Some(GbIr::Pop)) = (result.get(i), result.get(i + 1), result.get(1 + 2)) {
-                                let value = *value;
-                                if value < 256 {
-                                    eprintln!("optimizing [dup, replace literal, copy to e, pop]");
-                                    i -= 1;
-                                    let _ = result.splice(i..i+4, vec![
-                                        GbIr::SetE(value as u8),
-                                    ]);
-                                    continue;
-                                }
-                            }
+                            // TODO could this can be uncommented once it works with DE values? just
+                            // we don't have to assume u8
+                            // if let (Some(GbIr::ReplaceLiteral(value)), Some(GbIr::CopyToDE), Some(GbIr::Pop)) = (result.get(i), result.get(i + 1), result.get(1 + 2)) {
+                            //     let value = *value;
+                            //     eprintln!("optimizing [dup, replace literal, copy to e, pop]");
+                            //     i -= 1;
+                            //     let _ = result.splice(i..i+4, vec![
+                            //         GbIr::SetDE(value as u8),
+                            //     ]);
+                            //     continue;
+                            // }
                         }
                         _ => {}
                     }

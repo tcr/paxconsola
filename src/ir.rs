@@ -8,7 +8,6 @@ pub enum Pax {
 
     Add,
     Nand,
-    Remainder,
     AltPop,
     AltPush,
     Store,
@@ -26,8 +25,6 @@ pub enum Pax {
     Print,
     Debugger,
     Sleep, // todo: should be "yieldframe"
-
-    Stop,
 
     JumpIf0(usize),
 }

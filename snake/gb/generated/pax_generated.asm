@@ -27,7 +27,7 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_5")
+    ; [gb_ir] JumpIfDEIs0(".target_5")
     ld a,d
     or e
     jp z,.target_5
@@ -105,7 +105,7 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_36")
+    ; [gb_ir] JumpIfDEIs0(".target_36")
     ld a,d
     or e
     jp z,.target_36
@@ -175,7 +175,7 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_31")
+    ; [gb_ir] JumpIfDEIs0(".target_31")
     ld a,d
     or e
     jp z,.target_31
@@ -203,7 +203,7 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_35")
+    ; [gb_ir] JumpIfDEIs0(".target_35")
     ld a,d
     or e
     jp z,.target_35
@@ -266,10 +266,6 @@ PAX_FN_drop:
     ; [gb_ir] Label(".target_1")
 .target_1:
 
-    ; [gb_ir] CopyToDE
-    ld e,l
-    ld d,h
-
     ; [gb_ir] Pop
     ld a, [c]
     ld l, a
@@ -277,14 +273,6 @@ PAX_FN_drop:
     ld a, [c]
     ld h, a
     inc c
-
-    ; [gb_ir] JumpIfEIs0(".target_3")
-    ld a,d
-    or e
-    jp z,.target_3
-
-    ; [gb_ir] Label(".target_3")
-.target_3:
 
     ; [gb_ir] Ret
     ret
@@ -821,7 +809,7 @@ PAX_FN_03D:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_6")
+    ; [gb_ir] JumpIfDEIs0(".target_6")
     ld a,d
     or e
     jp z,.target_6
@@ -860,7 +848,7 @@ PAX_FN_03D:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_8")
+    ; [gb_ir] JumpIfDEIs0(".target_8")
     ld a,d
     or e
     jp z,.target_8
@@ -1060,7 +1048,7 @@ PAX_FN_loopimpl:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_13")
+    ; [gb_ir] JumpIfDEIs0(".target_13")
     ld a,d
     or e
     jp z,.target_13
@@ -1102,7 +1090,7 @@ PAX_FN_loopimpl:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_17")
+    ; [gb_ir] JumpIfDEIs0(".target_17")
     ld a,d
     or e
     jp z,.target_17
@@ -1221,7 +1209,7 @@ PAX_FN_2Dloopimpl:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_15")
+    ; [gb_ir] JumpIfDEIs0(".target_15")
     ld a,d
     or e
     jp z,.target_15
@@ -1263,7 +1251,7 @@ PAX_FN_2Dloopimpl:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_19")
+    ; [gb_ir] JumpIfDEIs0(".target_19")
     ld a,d
     or e
     jp z,.target_19
@@ -1649,7 +1637,7 @@ PAX_FN_2A:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_8")
+    ; [gb_ir] JumpIfDEIs0(".target_8")
     ld a,d
     or e
     jp z,.target_8
@@ -1709,7 +1697,7 @@ PAX_FN_03C:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_9")
+    ; [gb_ir] JumpIfDEIs0(".target_9")
     ld a,d
     or e
     jp z,.target_9
@@ -1748,7 +1736,7 @@ PAX_FN_03C:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_11")
+    ; [gb_ir] JumpIfDEIs0(".target_11")
     ld a,d
     or e
     jp z,.target_11
@@ -1814,7 +1802,7 @@ PAX_FN_25:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_14")
+    ; [gb_ir] JumpIfDEIs0(".target_14")
     ld a,d
     or e
     jp z,.target_14
@@ -1871,7 +1859,7 @@ PAX_FN_25:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_19")
+    ; [gb_ir] JumpIfDEIs0(".target_19")
     ld a,d
     or e
     jp z,.target_19
@@ -1914,7 +1902,7 @@ PAX_FN_25:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_2")
+    ; [gb_ir] JumpIfDEIs0(".target_2")
     ld a,d
     or e
     jp z,.target_2
@@ -2330,7 +2318,7 @@ PAX_FN_draw2Dwalls:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_6")
+    ; [gb_ir] JumpIfDEIs0(".target_6")
     ld a,d
     or e
     jp z,.target_6
@@ -2445,7 +2433,7 @@ PAX_FN_draw2Dwalls:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_21")
+    ; [gb_ir] JumpIfDEIs0(".target_21")
     ld a,d
     or e
     jp z,.target_21
@@ -2621,7 +2609,7 @@ PAX_FN_initialize2Dsnake:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_12")
+    ; [gb_ir] JumpIfDEIs0(".target_12")
     ld a,d
     or e
     jp z,.target_12
@@ -2891,7 +2879,7 @@ PAX_FN_initialize:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_11")
+    ; [gb_ir] JumpIfDEIs0(".target_11")
     ld a,d
     or e
     jp z,.target_11
@@ -2911,7 +2899,7 @@ PAX_FN_initialize:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_6")
+    ; [gb_ir] JumpIfDEIs0(".target_6")
     ld a,d
     or e
     jp z,.target_6
@@ -3153,7 +3141,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_11")
+    ; [gb_ir] JumpIfDEIs0(".target_11")
     ld a,d
     or e
     jp z,.target_11
@@ -3184,7 +3172,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_36")
+    ; [gb_ir] JumpIfDEIs0(".target_36")
     ld a,d
     or e
     jp z,.target_36
@@ -3221,7 +3209,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_19")
+    ; [gb_ir] JumpIfDEIs0(".target_19")
     ld a,d
     or e
     jp z,.target_19
@@ -3252,7 +3240,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_35")
+    ; [gb_ir] JumpIfDEIs0(".target_35")
     ld a,d
     or e
     jp z,.target_35
@@ -3289,7 +3277,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_27")
+    ; [gb_ir] JumpIfDEIs0(".target_27")
     ld a,d
     or e
     jp z,.target_27
@@ -3320,7 +3308,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_34")
+    ; [gb_ir] JumpIfDEIs0(".target_34")
     ld a,d
     or e
     jp z,.target_34
@@ -3357,7 +3345,7 @@ PAX_FN_move2Dsnake2Dhead:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_33")
+    ; [gb_ir] JumpIfDEIs0(".target_33")
     ld a,d
     or e
     jp z,.target_33
@@ -3553,7 +3541,7 @@ PAX_FN_move2Dsnake2Dtail:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_7")
+    ; [gb_ir] JumpIfDEIs0(".target_7")
     ld a,d
     or e
     jp z,.target_7
@@ -3726,7 +3714,7 @@ PAX_FN_turn2Dup:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_7")
+    ; [gb_ir] JumpIfDEIs0(".target_7")
     ld a,d
     or e
     jp z,.target_7
@@ -3798,7 +3786,7 @@ PAX_FN_turn2Dleft:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_7")
+    ; [gb_ir] JumpIfDEIs0(".target_7")
     ld a,d
     or e
     jp z,.target_7
@@ -3870,7 +3858,7 @@ PAX_FN_turn2Ddown:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_7")
+    ; [gb_ir] JumpIfDEIs0(".target_7")
     ld a,d
     or e
     jp z,.target_7
@@ -3942,7 +3930,7 @@ PAX_FN_turn2Dright:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_7")
+    ; [gb_ir] JumpIfDEIs0(".target_7")
     ld a,d
     or e
     jp z,.target_7
@@ -4028,7 +4016,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_9")
+    ; [gb_ir] JumpIfDEIs0(".target_9")
     ld a,d
     or e
     jp z,.target_9
@@ -4059,7 +4047,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_34")
+    ; [gb_ir] JumpIfDEIs0(".target_34")
     ld a,d
     or e
     jp z,.target_34
@@ -4096,7 +4084,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_17")
+    ; [gb_ir] JumpIfDEIs0(".target_17")
     ld a,d
     or e
     jp z,.target_17
@@ -4127,7 +4115,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_33")
+    ; [gb_ir] JumpIfDEIs0(".target_33")
     ld a,d
     or e
     jp z,.target_33
@@ -4164,7 +4152,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_25")
+    ; [gb_ir] JumpIfDEIs0(".target_25")
     ld a,d
     or e
     jp z,.target_25
@@ -4195,7 +4183,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_32")
+    ; [gb_ir] JumpIfDEIs0(".target_32")
     ld a,d
     or e
     jp z,.target_32
@@ -4232,7 +4220,7 @@ PAX_FN_change2Ddirection:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_31")
+    ; [gb_ir] JumpIfDEIs0(".target_31")
     ld a,d
     or e
     jp z,.target_31
@@ -4624,7 +4612,7 @@ PAX_FN_check2Dapple:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_16")
+    ; [gb_ir] JumpIfDEIs0(".target_16")
     ld a,d
     or e
     jp z,.target_16
@@ -4832,7 +4820,7 @@ PAX_FN_draw2Dsnake:
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfEIs0(".target_7")
+    ; [gb_ir] JumpIfDEIs0(".target_7")
     ld a,d
     or e
     jp z,.target_7

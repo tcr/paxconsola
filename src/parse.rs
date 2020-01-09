@@ -321,8 +321,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
                             "print" => current(&mut stack).push((Pax::Print, pos)),
                             "debugger" => current(&mut stack).push((Pax::Debugger, pos)),
 
-                            "%" => current(&mut stack).push((Pax::Remainder, pos)),
-
                             "c!" => current(&mut stack).push((Pax::Store8, pos)),
                             "c@" => current(&mut stack).push((Pax::Load8, pos)),
 
@@ -342,7 +340,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
     assert_eq!(flow_markers.len(), 0, "did not exhaust all flow markers");
     assert_eq!(stack.len(), 1, "did not exhaust all functions");
     let (_main, mut output) = stack.pop().unwrap();
-    output.push((Pax::Stop, Default::default()));
+    output.push((Pax::Exit, Default::default()));
     functions.get_mut("main").unwrap().extend(output);
 
     // Strip unused functions.

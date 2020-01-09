@@ -122,6 +122,9 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
             // ;
             Pax::Exit => {
                 // eprintln!("[call] done: {:?} {:?}", alt_stack, variables.get(&0));
+                if alt_stack.len() == 0 {
+                    break;
+                }
                 cindex = alt_stack.pop().unwrap() as usize;
                 current_function.pop();
             }
@@ -135,21 +138,11 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
                     assert_eq!(code[cindex].0, Pax::BranchTarget);
                 }
             }
-            Pax::Stop => {
-                break;
-            }
 
 
             Pax::Metadata(_) => {
                 // no-op
                 current_function.push(cindex - 1);
-            }
-            // %
-            Pax::Remainder => {
-                let b = stack.pop().unwrap();
-                let d = stack.pop().unwrap();
-                stack.push(d % b);
-                // panic!("remainder not implemented");
             }
 
             // print
