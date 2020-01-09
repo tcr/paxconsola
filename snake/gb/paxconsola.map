@@ -217,11 +217,9 @@ WRAM Bank #0:
   SECTION: $C020-$C023 ($0004 bytes) ["Pax System Vars"]
            $C022 = pax_var_random
            $C020 = pax_var_last_key
-  SECTION: $C040-$C045 ($0006 bytes) ["Pax User Vars"]
-           $C040 = pax_var_temp
-           $C044 = pax_var_frame
-           $C042 = pax_var_initialized
-    SLACK: $0FEE bytes
+  SECTION: $C040 ($0 bytes) ["Pax User Vars"]
+           $C040 = pax_user_vars
+    SLACK: $0FF4 bytes
 
 WRAM Bank #1:
   EMPTY

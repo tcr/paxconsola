@@ -16,12 +16,12 @@ all : generated/pax_generated.asm $(OBJS)
 	rm $(OBJS_NAME).obj
 
 generated/pax_generated.asm: snake.pax
-	cargo run -- snake.pax --no-prelude --compile > generated/pax_generated.asm
+	cargo run -- snake.pax --compile > generated/pax_generated.asm
 
 run:
 	make
-	rboy -x 6 gb.gb
+	rboy -x 6 paxconsola.gb
 
 debug:
 	make
-	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 gb.gb
+	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 paxconsola.gb

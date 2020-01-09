@@ -8,13 +8,6 @@ use paxconsola::*;
 
 const PRELUDE: &str = r"
 
-: cells ;
-
-\ Positions synced with VM (for now)
-variable graphics 575 cells allot \ 0-575
-variable last-key \ 576
-variable random-register \ 577
-
 : drop    if then ;
 : 2drop   + drop ;
 
@@ -29,6 +22,8 @@ variable  temp \ 578
 : dup    temp ! temp @ temp @ ;
 : 2dup   over over ;
 : ?dup   temp ! temp @ if temp @ temp @ then ;
+
+: cells dup + ;
 
 : invert   -1 nand ;
 : negate   invert 1 + ;
@@ -61,8 +56,6 @@ variable  temp \ 578
 : 0<   $8000 nand invert if -1 else 0 then ;
 : % ( value divisor -- modulus ) begin 2dup - dup 0< if rot drop + -1 else rot drop swap 0 then until ;
 
-: random random-register @ swap % ;
-
 ";
 
 #[derive(StructOpt, Debug)]
@@ -93,6 +86,18 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     let mut code = vec![];
     if !args.no_prelude {
         code.extend(PRELUDE.as_bytes());
+        if !args.compile && !args.dump { 
+            code.extend(r"
+
+\ Positions synced with VM (for now)
+variable graphics 575 cells allot \ 0-575
+variable last-key \ 576
+variable random-register \ 577
+
+: random random-register @ swap % ;
+
+            ".as_bytes());
+        }
     }
     code.extend(&buffer);
     let script = parse_forth(code);

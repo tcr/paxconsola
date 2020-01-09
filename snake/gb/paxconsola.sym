@@ -203,6 +203,4 @@
 00:C003 joypad_pressed
 00:C022 pax_var_random
 00:C020 pax_var_last_key
-00:C040 pax_var_temp
-00:C044 pax_var_frame
-00:C042 pax_var_initialized
+00:C040 pax_user_vars

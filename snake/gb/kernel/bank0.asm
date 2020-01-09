@@ -349,12 +349,4 @@ db
 
 
 SECTION "Pax User Vars",WRAM0[$C040]
-pax_var_temp:
-db
-db
-pax_var_initialized:
-db
-db
-pax_var_frame:
-db
-db
+pax_user_vars:
