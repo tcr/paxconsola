@@ -2,29 +2,28 @@
 pub enum Pax {
     // pax
     // todo noop
-    Load,
-    Call(String),
+    Metadata(String),
     Exit,
 
-    Add,
-    Nand,
-    AltPop,
-    AltPush,
-    Store,
-
-    Load8,
-    Store8,
-
-    BranchTarget,
+    Call(String),
 
     PushLiteral(isize),
+    Add,
+    Nand,
 
-    Metadata(String),
+    AltPop,
+    AltPush,
+
+    Load,
+    Load8,
+    Store8,
+    Store,
+
+    BranchTarget,
+    JumpIf0(usize),
 
     // pax debug
     Print,
     Debugger,
     Sleep, // todo: should be "yieldframe"
-
-    JumpIf0(usize),
 }

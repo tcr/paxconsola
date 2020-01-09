@@ -9,11 +9,14 @@ LINK = rgblink
 
 FIX = rgbfix
 
-all : $(OBJS)
+all : generated/pax_generated.asm $(OBJS)
 	$(ASM) -E -o$(OBJS_NAME).obj $(OBJS)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJS_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb
 	rm $(OBJS_NAME).obj
+
+generated/pax_generated.asm: snake.pax
+	cargo run -- snake.pax --no-prelude --compile > generated/pax_generated.asm
 
 run:
 	make
