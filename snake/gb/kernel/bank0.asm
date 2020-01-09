@@ -132,7 +132,7 @@ CLEAR_MAP:
 	ld  hl,_SCRN0    ;load map0 ram
 	ld  bc,$400
 .clear_map_loop
-	ld  a,$6
+	ld  a,$1
 	ld  [hli],a      ;clear tile, increment hl
 	dec bc
 	ld  a,b

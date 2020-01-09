@@ -386,11 +386,14 @@ impl StackGroup {
     }
 
     fn reset(&mut self) {
-        self.history.push(self.code.clone());
+        if !self.code.is_empty() {
+            self.history.push(self.code.clone());
+        }
 
         self.index = 0;
         self.stack = vec![];
         self.values = IndexMap::new();
+        self.code = vec![];
     }
 
     fn push(&mut self, ancestors: &[String]) {
@@ -501,13 +504,119 @@ pub fn generate_dataflow(program: Program) {
         // eprintln!("{:?}", program_stacks.get(&name));
     }
 
-    for (name, list) in &program_stacks {
+    for (name, stacks) in &program_stacks {
         eprintln!("{}:", name);
-        for stack in list.last() {
+        for commands in stacks {
+            for command in commands {
+                eprintln!(
+                    "    {:?}",
+                    command,
+                );
+            }
             eprintln!(
-                "    {:?}",
-                stack.iter().map(|(o, p, s)| s.to_owned()).flatten().unique().collect::<Vec<String>>(),
+                "    ---",
             );
+        }
+    }
+
+    #[derive(Clone, Debug)]
+    pub struct StackMap(IndexMap<String, Vec<StackInfo>>);
+
+    impl StackMap {
+        fn each_ir<T>(&mut self, name: &str, mut func: impl FnMut(Pax) -> T) -> Vec<T> {
+            let mut values = vec![];
+            for stack in self.0.get(name).unwrap() {
+                for command in stack {
+                    values.push(func(command.0.to_owned()));
+                }
+            }
+            values
+        }
+
+        fn names(&self) -> Vec<String> {
+            self.0.keys().cloned().collect()
+        }
+
+        fn merge_stacks(&mut self, name: &str, func: impl Fn(usize, Pax) -> bool) {
+            let stacks = self.0.get(name).unwrap();
+
+            let mut command_index = 0;
+            let mut stack_append = vec![];
+            for commands in stacks.clone() {
+                command_index += commands.len();
+                stack_append.push(func(command_index - 1, commands.last().map(|x| x.0.clone()).unwrap()));
+            }
+
+            let mut result_stacks = vec![];
+            let mut start_with = vec![];
+            for (commands, append) in stacks.clone().into_iter().zip(stack_append.into_iter()) {
+                start_with.extend(commands);
+                if !append {
+                    result_stacks.push(start_with.clone());
+                    // clear start_with array
+                    start_with = vec![];
+                }
+            }
+            self.0.insert(name.to_string(), result_stacks);
+        }
+    }
+
+    let mut functions = StackMap(program_stacks.clone());
+
+    // Connect unused BranchTargets.
+    for name in functions.names() {
+        // List jump targets for this function.
+        let mut used_targets = IndexSet::new();
+        functions.each_ir(&name, |ir| {
+            if let Pax::JumpIf0(target) = ir {
+                used_targets.insert(target);
+            }
+        });
+
+        functions.merge_stacks(&name, |command_index, command| {
+            eprintln!("command_index: {:?}", command_index);
+            if let Pax::BranchTarget = command {
+                !used_targets.contains(&command_index)
+            } else {
+                false
+            }
+        });
+    }
+    eprintln!();
+    eprintln!();
+
+    // Index which functions have just one stack.
+    for _ in 0..4 {
+        let mut functions_single = IndexSet::new();
+        for name in functions.names() {
+            if functions.0.get(&name).unwrap().len() == 1 {
+                functions_single.insert(name.to_owned());
+            }
+        }
+        eprintln!("single fns: {:?}", functions_single);
+        eprintln!();
+
+        // Merge resulting call stacks that have unified input stacks.
+        for name in functions.names() {
+            functions.merge_stacks(&name, |_, ir| {
+                if let Pax::Call(name) = ir {
+                    functions_single.contains(&name)
+                } else {
+                    false
+                }
+            });
+        }
+    }
+
+    for (name, stacks) in &functions.0 {
+        eprintln!("{}:", name);
+        eprintln!(
+            "    stacks {}",
+            stacks.len()
+        );
+
+        for stack in stacks {
+            eprintln!("     - {:?}", stack.last());
         }
     }
 }

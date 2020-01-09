@@ -87,8 +87,8 @@
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLiteral(4)
-    ld hl,4
+    ; [gb_ir] ReplaceLiteral(2)
+    ld hl,2
 
     ; [gb_ir] Call("PAX_FN_3D")
     call PAX_FN_3D
@@ -2179,8 +2179,82 @@ PAX_FN_draw2Dblack:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(23)
-    ld hl,23
+    ; [gb_ir] ReplaceLiteral(2)
+    ld hl,2
+
+    ; [gb_ir] Call("PAX_FN_rot")
+    call PAX_FN_rot
+
+    ; [gb_ir] Call("PAX_FN_rot")
+    call PAX_FN_rot
+
+    ; [gb_ir] Call("PAX_FN_draw")
+    call PAX_FN_draw
+
+    ; [gb_ir] Ret
+    ret
+
+
+
+
+
+
+; function start
+
+    ; [gb_ir] Metadata("draw-snake-tile")
+    ; [metadata] "draw-snake-tile"
+PAX_FN_draw2Dsnake2Dtile:
+
+    ; [gb_ir] Label(".target_1")
+.target_1:
+
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+
+    ; [gb_ir] ReplaceLiteral(3)
+    ld hl,3
+
+    ; [gb_ir] Call("PAX_FN_rot")
+    call PAX_FN_rot
+
+    ; [gb_ir] Call("PAX_FN_rot")
+    call PAX_FN_rot
+
+    ; [gb_ir] Call("PAX_FN_draw")
+    call PAX_FN_draw
+
+    ; [gb_ir] Ret
+    ret
+
+
+
+
+
+
+; function start
+
+    ; [gb_ir] Metadata("draw-apple-tile")
+    ; [metadata] "draw-apple-tile"
+PAX_FN_draw2Dapple2Dtile:
+
+    ; [gb_ir] Label(".target_1")
+.target_1:
+
+    ; [gb_ir] Dup
+    dec c
+    ld a, h
+    ld [c], a
+    dec c
+    ld a, l
+    ld [c], a
+
+    ; [gb_ir] ReplaceLiteral(4)
+    ld hl,4
 
     ; [gb_ir] Call("PAX_FN_rot")
     call PAX_FN_rot
@@ -4802,8 +4876,8 @@ PAX_FN_draw2Dsnake:
     ld h, a
     ld l, b
 
-    ; [gb_ir] Call("PAX_FN_draw2Dblack")
-    call PAX_FN_draw2Dblack
+    ; [gb_ir] Call("PAX_FN_draw2Dsnake2Dtile")
+    call PAX_FN_draw2Dsnake2Dtile
 
     ; [gb_ir] Call("PAX_FN_loopimpl")
     call PAX_FN_loopimpl
@@ -4921,8 +4995,8 @@ PAX_FN_draw2Dapple:
     ld a, [51228+1]
     ld h, a
 
-    ; [gb_ir] Call("PAX_FN_draw2Dblack")
-    call PAX_FN_draw2Dblack
+    ; [gb_ir] Call("PAX_FN_draw2Dapple2Dtile")
+    call PAX_FN_draw2Dapple2Dtile
 
     ; [gb_ir] Ret
     ret

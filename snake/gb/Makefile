@@ -9,7 +9,7 @@ LINK = rgblink
 
 FIX = rgbfix
 
-all : generated/pax_generated.asm $(OBJS)
+all : generated/tiles.bin generated/pax_generated.asm $(OBJS)
 	$(ASM) -E -o$(OBJS_NAME).obj $(OBJS)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJS_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb
@@ -17,6 +17,9 @@ all : generated/pax_generated.asm $(OBJS)
 
 generated/pax_generated.asm: snake.pax
 	cargo run -- snake.pax --compile > generated/pax_generated.asm
+
+generated/tiles.bin: tiles.png
+	rgbgfx -o generated/tiles.bin tiles.png
 
 run:
 	make

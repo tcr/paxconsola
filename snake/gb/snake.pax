@@ -37,7 +37,9 @@ variable length
 : convert-x-y ( x y -- offset )  32 * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
 : draw-white ( x y -- )  0 rot rot draw ;
-: draw-black ( x y -- )  23 rot rot draw ;
+: draw-black ( x y -- )  2 rot rot draw ;
+: draw-snake-tile ( x y -- )  3 rot rot draw ;
+: draw-apple-tile ( x y -- )  4 rot rot draw ;
 
 : draw-walls
   width 0 do
@@ -158,14 +160,14 @@ initialized @ 0= if initialize then
 
 : draw-snake
   length @ 0 do
-    i snake-x @ i snake-y @ draw-black
+    i snake-x @ i snake-y @ draw-snake-tile
   loop
   length @ snake-x @
   length @ snake-y @
   draw-white ;
 
 : draw-apple
-  apple-x @ apple-y @ draw-black ;
+  apple-x @ apple-y @ draw-apple-tile ;
 
 
 
@@ -176,7 +178,7 @@ initialized @ 0= if initialize then
 
 \ frameskip
 frame @ 1+ dup frame !
-4 = if 0 frame !
+2 = if 0 frame !
 
 draw-snake
 draw-apple
