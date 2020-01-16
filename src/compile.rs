@@ -6,7 +6,6 @@ use lazy_static::*;
 use regex::Regex;
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC, AsciiSet};
 use std::iter::FromIterator;
-use itertools::Itertools;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -350,93 +349,6 @@ PAX_FN_{}:
     }
 }
 
-pub type StackInfo = Vec<(Pax, Pos, Vec<String>)>;
-
-#[derive(Debug, Clone)]
-struct StackGroup {
-    args: usize,
-    index: usize,
-    stack: Vec<String>,
-    values: IndexMap<String, StackItem>,
-    code: StackInfo,
-    history: Vec<StackInfo>,
-}
-
-#[derive(Debug, Clone)]
-pub struct StackItem {
-    id: String,
-    ancestors: IndexSet<String>,
-    stored: bool,
-}
-
-impl StackGroup {
-    fn new() -> StackGroup {
-        StackGroup {
-            args: 0,
-            index: 0,
-            stack: vec![],
-            values: IndexMap::new(),
-            code: vec![],
-            history: vec![],
-        }
-    }
-
-    fn record_op(&mut self, op: &(Pax, Pos)) {
-        self.code.push((op.0.clone(), op.1.clone(), self.stack.clone()));
-    }
-
-    fn reset(&mut self) {
-        if !self.code.is_empty() {
-            self.history.push(self.code.clone());
-        }
-
-        self.index = 0;
-        self.stack = vec![];
-        self.values = IndexMap::new();
-        self.code = vec![];
-    }
-
-    fn push(&mut self, ancestors: &[String]) {
-        let value = format!("S{}", self.index);
-        self.index += 1;
-
-        self.stack.push(value.clone());
-        self.values.insert(value.clone(), StackItem {
-            id: value.clone(),
-            ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
-            stored: false,
-        });
-    }
-
-    fn pop(&mut self, stored: bool) -> String {
-        if let Some(value) = self.stack.pop() {
-            let mut iter = vec![value.clone()];
-
-            if stored {
-                while let Some(iter_value) = iter.pop() {
-                    let value_item = self.values.get_mut(&iter_value).unwrap();
-                    value_item.stored = true;
-                    iter.extend(value_item.ancestors.clone());
-                }
-            }
-
-            value
-        } else {
-            let value = format!("A{}", self.args);
-            self.args += 1;
-
-            self.stack.insert(0, value.clone());
-
-            self.values.insert(value.clone(), StackItem {
-                id: value.clone(),
-                ancestors: IndexSet::new(),
-                stored: false,
-            });
-            value
-        }
-    }
-}
-
 // FIXME TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
 // TODO use these to model stacks and merging logic, converge on ExitStack after minimizing loops
@@ -447,14 +359,8 @@ impl StackGroup {
 // inline for up to N opcodes (determined from stack vector) and see if there is speed improvement
 // or,
 // recursively solve call ependencies to correct local stacks
-pub enum Stack {
-    ExitStack(StackInfo),
-    StopStack(StackInfo),
-    JumpIf0Stack(StackInfo),
-    BranchTargetStack(StackInfo),
-    CallStack(StackInfo),
-}
 
+/*
 pub fn generate_dataflow(program: Program) {
     let mut program_stacks = IndexMap::new();
     for (name, code) in program {
@@ -620,14 +526,385 @@ pub fn generate_dataflow(program: Program) {
         }
     }
 }
+*/
+
+
+pub type Analyzed<T> = (T, Vec<String>, Vec<String>, Option<String>);
+
+pub type BlockSpan = Vec<Analyzed<Located<SuperPax>>>;
+
+#[derive(Debug, Clone)]
+pub enum Block {
+    ExitBlock(BlockSpan),
+    JumpIf0Block(BlockSpan),
+    BranchTargetBlock(BlockSpan),
+    CallBlock(BlockSpan),
+}
+
+impl Block {
+    fn commands(&'_ self) -> &'_ BlockSpan {
+        match self {
+            Block::ExitBlock(ref commands) => commands,
+            Block::JumpIf0Block(ref commands) => commands,
+            Block::BranchTargetBlock(ref commands) => commands,
+            Block::CallBlock(ref commands) => commands,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct StackGroup {
+    index: usize,
+    data_stack: Vec<String>,
+    return_stack: Vec<String>,
+    temp: Option<String>,
+    values: IndexMap<String, StackItem>,
+    current_block: BlockSpan,
+    blocks: Vec<Block>,
+}
+
+#[derive(Debug, Clone)]
+pub struct StackItem {
+    id: String,
+    ancestors: IndexSet<String>,
+    stored: bool,
+}
+
+impl StackGroup {
+    fn new() -> StackGroup {
+        StackGroup {
+            index: 0,
+            data_stack: vec![],
+            return_stack: vec![],
+            temp: None,
+            values: IndexMap::new(),
+            current_block: vec![],
+            blocks: vec![],
+        }
+    }
+
+    fn record_op(&mut self, op: &Located<SuperPax>) {
+        self.current_block.push((op.to_owned(), self.data_stack.clone(), self.return_stack.clone(), self.temp.clone()));
+    }
+
+    fn drop_last_op(&mut self) {
+        self.current_block.pop();
+    }
+
+    fn exit_block(&mut self) {
+        self.blocks.push(Block::ExitBlock(self.current_block.clone()));
+        self.reset();
+    }
+
+    fn jump_if_0_block(&mut self) {
+        self.blocks.push(Block::JumpIf0Block(self.current_block.clone()));
+        self.reset();
+    }
+
+    fn branch_target_block(&mut self) {
+        self.blocks.push(Block::BranchTargetBlock(self.current_block.clone()));
+        self.reset();
+    }
+
+    fn call_block(&mut self) {
+        self.blocks.push(Block::CallBlock(self.current_block.clone()));
+        self.reset();
+    }
+
+    fn reset(&mut self) {
+        self.index = 0;
+        self.data_stack = vec![];
+        self.return_stack = vec![];
+        self.values = IndexMap::new();
+        self.current_block = vec![];
+    }
+
+    fn push_literal(&mut self) {
+        let value = format!("L{}", self.index);
+        self.index += 1;
+
+        self.data_stack.push(value.clone());
+        self.values.insert(value.clone(), StackItem {
+            id: value.clone(),
+            ancestors: IndexSet::new(),
+            stored: false,
+        });
+    }
+
+    fn push_data(&mut self, ancestors: &[String]) {
+        let value = format!("T{}", self.index);
+        self.index += 1;
+
+        self.data_stack.push(value.clone());
+        self.values.insert(value.clone(), StackItem {
+            id: value.clone(),
+            ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
+            stored: false,
+        });
+    }
+
+    fn push_return_stack(&mut self) {
+        let reg = self.pop_data(false);
+        self.return_stack.push(reg);
+    }
+
+    fn pop_return_stack(&mut self) {
+        let ret = if let Some(ret) = self.return_stack.pop() {
+            ret
+        } else {
+            let value = format!("R{}", self.index);
+            self.index += 1;
+
+            for command in &mut self.current_block {
+                command.2.insert(0, value.clone());
+            }
+
+            self.values.insert(value.clone(), StackItem {
+                id: value.clone(),
+                ancestors: IndexSet::new(),
+                stored: false,
+            });
+            value
+        };
+        self.data_stack.push(ret);
+    }
+
+    fn pop_data(&mut self, stored: bool) -> String {
+        if let Some(value) = self.data_stack.pop() {
+            let mut iter = vec![value.clone()];
+
+            if stored {
+                while let Some(iter_value) = iter.pop() {
+                    let value_item = self.values.get_mut(&iter_value).unwrap();
+                    value_item.stored = true;
+                    iter.extend(value_item.ancestors.clone());
+                }
+            }
+
+            value
+        } else {
+            let value = format!("D{}", self.index);
+            self.index += 1;
+
+            for command in &mut self.current_block {
+                command.1.insert(0, value.clone());
+            }
+
+            self.values.insert(value.clone(), StackItem {
+                id: value.clone(),
+                ancestors: IndexSet::new(),
+                stored: false,
+            });
+            value
+        }
+    }
+
+    fn load_temp(&mut self) -> String {
+        self.data_stack.push(self.temp.clone().unwrap());
+
+        // Bump temporary counter
+        let label = format!("{}{}", &self.temp.as_ref().unwrap()[0..1], self.index);
+        self.temp = Some(label.clone());
+        self.index += 1;
+        label
+
+    }
+
+    fn store_temp(&mut self) {
+        let ret = self.pop_data(false);
+        self.temp = Some(ret);
+    }
+}
+
+// Extends the regular Pax IR with some simple opcodes that
+// are more practical for refactoring—might be worth formalizing
+// since they're just supersets of lower protocol, or not
+#[derive(Debug, PartialEq, Clone)]
+pub enum SuperPax {
+    Pax(Pax),
+    Drop,
+    StoreTemp,
+
+    // AltPop(register that was popped)
+    AltPop(String),
+    // LoadTemp(temp reg pushed to stack, upserted temp reg)
+    LoadTemp(String, String),
+}
+
+
+// first: literal -> see if used,
+//     if added to (become temporary), check if temporary is dropped (default true?)
+//     else if stored to temp...
+
+// or, walk backward from last stack position and use, and only recover it when needed
+
+pub type SuperSpan = Vec<Located<SuperPax>>;
+
+fn propagate_constants(program: Program) {
+    // First we want to analyze the whole program and identify basic blocks.
+    let mut program_stacks = IndexMap::new();
+    for (name, code) in program {
+        let mut stack = StackGroup::new();
+
+        // Create dataflow analysis
+        let mut code_iter = code.iter().enumerate().peekable();
+        while let Some((i, op)) = code_iter.next() {
+            match op.0 {
+                Pax::PushLiteral(value) => {
+                    // Temp values
+                    if value == 49216 {
+                        // SuperPax::LoadTemp
+                        if let Some((_, &(Pax::Load, _))) = code_iter.peek() {
+                            // stack.drop_last_op();
+
+                            stack.record_op(&(SuperPax::LoadTemp(
+                                stack.temp.clone().unwrap(),
+                                stack.temp.clone().map(|x| format!("{}{}", &x[0..1], stack.index)).unwrap(),
+                            ), op.1.clone()));
+                            stack.load_temp();
+
+                            code_iter.next();
+                            continue;
+                        }
+                        // SuperPax::StoreTemp
+                        if let Some((_, &(Pax::Store, _))) = code_iter.peek() {
+                            // stack.drop_last_op();
+
+                            stack.record_op(&(SuperPax::StoreTemp, op.1.clone()));
+                            stack.store_temp();
+
+                            code_iter.next();
+                            continue;
+                        }
+                    }
+                }
+                Pax::JumpIf0(target) => {
+                    // SuperPax::Drop
+                    if let Some((_, &(Pax::BranchTarget, _))) = code_iter.peek() {
+                        if target == i + 1 {
+                            // stack.drop_last_op();
+                            stack.record_op(&(SuperPax::Drop, op.1.clone()));
+                            stack.pop_data(false);
+
+                            code_iter.next();
+                            continue;
+                        }
+                    }
+                }
+                _ => {}
+            }
+
+            // inject
+            stack.record_op(&(SuperPax::Pax(op.0.clone()), op.1));
+
+            // eprintln!("{:?}", op.0);
+            match op.0 {
+                // SuperPax::Drop => {
+                //     stack.pop_data(false);
+                // }
+                // SuperPax::LoadTemp => {
+                //     stack.load_temp();
+                // }
+                // SuperPax::StoreTemp => {
+                //     stack.store_temp();
+                // }
+
+                Pax::Metadata(_) |
+                Pax::Debugger |
+                Pax::BranchTarget => {
+                    // noop
+                }
+                Pax::Sleep |
+                Pax::Print => {
+                    stack.pop_data(true);
+                }
+                Pax::AltPush => {
+                    stack.push_return_stack();
+                }
+                Pax::AltPop => {
+                    // stack.drop_last_op();
+                    // let label = stack.return_stack.last().clone().unwrap_or(&"R?!!!!!!!".to_string()).to_owned();
+                    // stack.record_op(&(SuperPax::AltPop(label), op.1.clone()));
+                    stack.pop_return_stack();
+                }
+                Pax::Load |
+                Pax::Load8 => {
+                    let s0 = stack.pop_data(true);
+                    stack.push_data(&[s0]);
+                }
+                Pax::Add |
+                Pax::Nand => {
+                    let s0 = stack.pop_data(false);
+                    let s1 = stack.pop_data(false);
+                    stack.push_data(&[s0, s1]);
+                }
+                Pax::Store |
+                Pax::Store8 => {
+                    stack.pop_data(false);
+                    stack.pop_data(true);
+                }
+                Pax::PushLiteral(value) => {
+                    stack.push_literal();
+                }
+
+                Pax::Exit => stack.exit_block(),
+                Pax::Call(_) => stack.call_block(),
+                // Pax::BranchTarget => stack.branch_target_block(),
+                Pax::JumpIf0(target) => {
+                    stack.jump_if_0_block();
+                }
+            }
+
+            // eprintln!(" ... [stack: {:?}]", stack.stack);
+        }
+
+        // stack.reset();
+        program_stacks.insert(name, stack.blocks);
+
+        // program_stacks.get_mut(&name).unwrap().push(stack);
+        // eprintln!("{:?}", program_stacks.get(&name));
+    }
+
+    // NOTE debug values
+    for (name, stacks) in &program_stacks {
+        if name != "main" {
+            continue;
+        }
+
+        eprintln!("{}:", name);
+        for block in stacks {
+            for command in block.commands() {
+                eprintln!(
+                    "                        data: {:?}",
+                    command.1,
+                );
+                eprintln!(
+                    "                        retn: {:?}",
+                    command.2,
+                );
+                eprintln!(
+                    "                        temp: {}",
+                    command.3.clone().unwrap_or("".to_string()),
+                );
+                eprintln!(
+                    "    {:?}\n",
+                    (command.0).0,
+                );
+            }
+            eprintln!(
+                "\n  ---",
+            );
+        }
+    }
+}
 
 pub fn cross_compile_forth_gb(program: Program) {
-    // generate_dataflow(program);
-    // std::process::exit(0);
+    propagate_constants(program);
+    std::process::exit(0);
 
-    for (name, code) in program {
+    for (_name, code) in program {
         let mut result = vec![];
-        for (i, (op, pos)) in code.iter().enumerate() {
+        for (i, (op, _pos)) in code.iter().enumerate() {
             result.extend(translate_to_gb(i, op.to_owned()));
         }
 

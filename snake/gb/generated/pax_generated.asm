@@ -105,10 +105,10 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfDEIs0(".target_36")
+    ; [gb_ir] JumpIfDEIs0(".target_35")
     ld a,d
     or e
-    jp z,.target_36
+    jp z,.target_35
 
     ; [gb_ir] Dup
     dec c
@@ -203,51 +203,25 @@
     ld h, a
     inc c
 
-    ; [gb_ir] JumpIfDEIs0(".target_35")
+    ; [gb_ir] JumpIfDEIs0(".target_34")
     ld a,d
     or e
-    jp z,.target_35
+    jp z,.target_34
 
     ; [gb_ir] Label(".target_31")
 .target_31:
 
-    ; [gb_ir] Dup
-    dec c
-    ld a, h
-    ld [c], a
-    dec c
-    ld a, l
-    ld [c], a
+    ; [gb_ir] Call("PAX_FN_initialize2Dsnake")
+    call PAX_FN_initialize2Dsnake
 
-    ; [gb_ir] ReplaceLiteral(0)
-    ld hl,0
+    ; [gb_ir] Call("PAX_FN_initialize2Dapple")
+    call PAX_FN_initialize2Dapple
 
-    ; [gb_ir] CopyToDE
-    ld e,l
-    ld d,h
-
-    ; [gb_ir] ReplaceLiteral(49218)
-    ld hl,49218
-
-    ; [gb_ir] StoreDE
-    ld a, e
-    ldi [hl],a
-    ld a, d
-    ldd [hl],a
-
-    ; [gb_ir] Pop
-    ld a, [c]
-    ld l, a
-    inc c
-    ld a, [c]
-    ld h, a
-    inc c
+    ; [gb_ir] Label(".target_34")
+.target_34:
 
     ; [gb_ir] Label(".target_35")
 .target_35:
-
-    ; [gb_ir] Label(".target_36")
-.target_36:
 
     ; [gb_ir] Ret
     ret
