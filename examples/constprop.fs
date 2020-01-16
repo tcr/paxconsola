@@ -9,8 +9,6 @@
 
 begin
 
-\ block start v
-
 >r temp ! temp @ r> temp @ +
 
 r> r> 1 +

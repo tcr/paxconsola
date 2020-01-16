@@ -535,19 +535,28 @@ pub type BlockSpan = Vec<Analyzed<Located<SuperPax>>>;
 
 #[derive(Debug, Clone)]
 pub enum Block {
-    ExitBlock(BlockSpan),
-    JumpIf0Block(BlockSpan),
-    BranchTargetBlock(BlockSpan),
-    CallBlock(BlockSpan),
+    ExitBlock(BlockSpan, IndexMap<String, StackItem>),
+    JumpIf0Block(BlockSpan, IndexMap<String, StackItem>),
+    BranchTargetBlock(BlockSpan, IndexMap<String, StackItem>),
+    CallBlock(BlockSpan, IndexMap<String, StackItem>),
 }
 
 impl Block {
     fn commands(&'_ self) -> &'_ BlockSpan {
         match self {
-            Block::ExitBlock(ref commands) => commands,
-            Block::JumpIf0Block(ref commands) => commands,
-            Block::BranchTargetBlock(ref commands) => commands,
-            Block::CallBlock(ref commands) => commands,
+            Block::ExitBlock(ref commands, ..) => commands,
+            Block::JumpIf0Block(ref commands, ..) => commands,
+            Block::BranchTargetBlock(ref commands, ..) => commands,
+            Block::CallBlock(ref commands, ..) => commands,
+        }
+    }
+
+    fn registers(&'_ self) -> &'_ IndexMap<String, StackItem> {
+        match self {
+            Block::ExitBlock(.., ref regs) => regs,
+            Block::JumpIf0Block(.., ref regs) => regs,
+            Block::BranchTargetBlock(.., ref regs) => regs,
+            Block::CallBlock(.., ref regs) => regs,
         }
     }
 }
@@ -568,6 +577,7 @@ pub struct StackItem {
     id: String,
     ancestors: IndexSet<String>,
     stored: bool,
+    literal: Option<isize>,
 }
 
 impl StackGroup {
@@ -592,22 +602,22 @@ impl StackGroup {
     }
 
     fn exit_block(&mut self) {
-        self.blocks.push(Block::ExitBlock(self.current_block.clone()));
+        self.blocks.push(Block::ExitBlock(self.current_block.clone(), self.values.clone()));
         self.reset();
     }
 
     fn jump_if_0_block(&mut self) {
-        self.blocks.push(Block::JumpIf0Block(self.current_block.clone()));
+        self.blocks.push(Block::JumpIf0Block(self.current_block.clone(), self.values.clone()));
         self.reset();
     }
 
     fn branch_target_block(&mut self) {
-        self.blocks.push(Block::BranchTargetBlock(self.current_block.clone()));
+        self.blocks.push(Block::BranchTargetBlock(self.current_block.clone(), self.values.clone()));
         self.reset();
     }
 
     fn call_block(&mut self) {
-        self.blocks.push(Block::CallBlock(self.current_block.clone()));
+        self.blocks.push(Block::CallBlock(self.current_block.clone(), self.values.clone()));
         self.reset();
     }
 
@@ -619,16 +629,18 @@ impl StackGroup {
         self.current_block = vec![];
     }
 
-    fn push_literal(&mut self) {
-        let value = format!("L{}", self.index);
+    fn push_literal(&mut self, value: isize) -> String {
+        let target = format!("L{}", self.index);
         self.index += 1;
 
-        self.data_stack.push(value.clone());
-        self.values.insert(value.clone(), StackItem {
-            id: value.clone(),
+        self.data_stack.push(target.clone());
+        self.values.insert(target.clone(), StackItem {
+            id: target.clone(),
             ancestors: IndexSet::new(),
             stored: false,
+            literal: Some(value),
         });
+        target
     }
 
     fn push_data(&mut self, ancestors: &[String]) {
@@ -640,15 +652,17 @@ impl StackGroup {
             id: value.clone(),
             ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
             stored: false,
+            literal: None,
         });
     }
 
-    fn push_return_stack(&mut self) {
+    fn push_return_stack(&mut self) -> String {
         let reg = self.pop_data(false);
-        self.return_stack.push(reg);
+        self.return_stack.push(reg.clone());
+        reg
     }
 
-    fn pop_return_stack(&mut self) {
+    fn pop_return_stack(&mut self) -> String {
         let ret = if let Some(ret) = self.return_stack.pop() {
             ret
         } else {
@@ -663,13 +677,16 @@ impl StackGroup {
                 id: value.clone(),
                 ancestors: IndexSet::new(),
                 stored: false,
+                literal: None,
             });
             value
         };
-        self.data_stack.push(ret);
+        self.data_stack.push(ret.clone());
+        ret
     }
 
     fn pop_data(&mut self, stored: bool) -> String {
+        // If there is a register on the data stack, pop it.
         if let Some(value) = self.data_stack.pop() {
             let mut iter = vec![value.clone()];
 
@@ -683,6 +700,7 @@ impl StackGroup {
 
             value
         } else {
+            // Otherwise, create a new argument and inject it.
             let value = format!("D{}", self.index);
             self.index += 1;
 
@@ -694,25 +712,30 @@ impl StackGroup {
                 id: value.clone(),
                 ancestors: IndexSet::new(),
                 stored: false,
+                literal: None,
             });
             value
         }
     }
 
-    fn load_temp(&mut self) -> String {
-        self.data_stack.push(self.temp.clone().unwrap());
+    fn load_temp(&mut self) -> (String, String) {
+        let target = self.temp.clone().unwrap();
+        self.data_stack.push(target.clone());
 
         // Bump temporary counter
-        let label = format!("{}{}", &self.temp.as_ref().unwrap()[0..1], self.index);
-        self.temp = Some(label.clone());
+        let next_target = format!("{}{}", &self.temp.as_ref().unwrap()[0..1], self.index);
+        self.temp = Some(next_target.clone());
         self.index += 1;
-        label
-
+        let mut stack_item = self.values.get(&target).unwrap().clone();
+        stack_item.id = next_target.clone();
+        self.values.insert(next_target.clone(), stack_item);
+        (target, next_target)
     }
 
-    fn store_temp(&mut self) {
+    fn store_temp(&mut self) -> String {
         let ret = self.pop_data(false);
-        self.temp = Some(ret);
+        self.temp = Some(ret.clone());
+        ret
     }
 }
 
@@ -723,12 +746,18 @@ impl StackGroup {
 pub enum SuperPax {
     Pax(Pax),
     Drop,
-    StoreTemp,
+
+    // PushLiteral(temp reg pushed to stack, value)
+    PushLiteral(String, isize),
 
     // AltPop(register that was popped)
     AltPop(String),
-    // LoadTemp(temp reg pushed to stack, upserted temp reg)
+    // AltPush(register that was pushed)
+    AltPush(String),
+    // LoadTemp(temp reg pushed to data stack, upserted temp reg)
     LoadTemp(String, String),
+    // StoreTemp(data reg stored in temp, upserted temp reg)
+    StoreTemp(String),
 }
 
 
@@ -755,23 +784,19 @@ fn propagate_constants(program: Program) {
                     if value == 49216 {
                         // SuperPax::LoadTemp
                         if let Some((_, &(Pax::Load, _))) = code_iter.peek() {
-                            // stack.drop_last_op();
-
+                            let (target, next_target) = stack.load_temp();
                             stack.record_op(&(SuperPax::LoadTemp(
-                                stack.temp.clone().unwrap(),
-                                stack.temp.clone().map(|x| format!("{}{}", &x[0..1], stack.index)).unwrap(),
+                                target,
+                                next_target,
                             ), op.1.clone()));
-                            stack.load_temp();
 
                             code_iter.next();
                             continue;
                         }
                         // SuperPax::StoreTemp
                         if let Some((_, &(Pax::Store, _))) = code_iter.peek() {
-                            // stack.drop_last_op();
-
-                            stack.record_op(&(SuperPax::StoreTemp, op.1.clone()));
-                            stack.store_temp();
+                            let reg = stack.store_temp();
+                            stack.record_op(&(SuperPax::StoreTemp(reg), op.1.clone()));
 
                             code_iter.next();
                             continue;
@@ -782,9 +807,8 @@ fn propagate_constants(program: Program) {
                     // SuperPax::Drop
                     if let Some((_, &(Pax::BranchTarget, _))) = code_iter.peek() {
                         if target == i + 1 {
-                            // stack.drop_last_op();
-                            stack.record_op(&(SuperPax::Drop, op.1.clone()));
                             stack.pop_data(false);
+                            stack.record_op(&(SuperPax::Drop, op.1.clone()));
 
                             code_iter.next();
                             continue;
@@ -794,24 +818,10 @@ fn propagate_constants(program: Program) {
                 _ => {}
             }
 
-            // inject
-            stack.record_op(&(SuperPax::Pax(op.0.clone()), op.1));
-
             // eprintln!("{:?}", op.0);
             match op.0 {
-                // SuperPax::Drop => {
-                //     stack.pop_data(false);
-                // }
-                // SuperPax::LoadTemp => {
-                //     stack.load_temp();
-                // }
-                // SuperPax::StoreTemp => {
-                //     stack.store_temp();
-                // }
-
                 Pax::Metadata(_) |
-                Pax::Debugger |
-                Pax::BranchTarget => {
+                Pax::Debugger => {
                     // noop
                 }
                 Pax::Sleep |
@@ -819,13 +829,14 @@ fn propagate_constants(program: Program) {
                     stack.pop_data(true);
                 }
                 Pax::AltPush => {
-                    stack.push_return_stack();
+                    let reg = stack.push_return_stack();
+                    stack.record_op(&(SuperPax::AltPush(reg), op.1.clone()));
+                    continue;
                 }
                 Pax::AltPop => {
-                    // stack.drop_last_op();
-                    // let label = stack.return_stack.last().clone().unwrap_or(&"R?!!!!!!!".to_string()).to_owned();
-                    // stack.record_op(&(SuperPax::AltPop(label), op.1.clone()));
-                    stack.pop_return_stack();
+                    let reg = stack.pop_return_stack();
+                    stack.record_op(&(SuperPax::AltPop(reg), op.1.clone()));
+                    continue;
                 }
                 Pax::Load |
                 Pax::Load8 => {
@@ -844,16 +855,21 @@ fn propagate_constants(program: Program) {
                     stack.pop_data(true);
                 }
                 Pax::PushLiteral(value) => {
-                    stack.push_literal();
+                    let target = stack.push_literal(value);
+                    stack.record_op(&(SuperPax::PushLiteral(target, value), op.1.clone()));
+                    continue;
                 }
 
                 Pax::Exit => stack.exit_block(),
                 Pax::Call(_) => stack.call_block(),
-                // Pax::BranchTarget => stack.branch_target_block(),
+                Pax::BranchTarget => stack.branch_target_block(),
                 Pax::JumpIf0(target) => {
                     stack.jump_if_0_block();
                 }
             }
+
+            // inject
+            stack.record_op(&(SuperPax::Pax(op.0.clone()), op.1));
 
             // eprintln!(" ... [stack: {:?}]", stack.stack);
         }
@@ -866,14 +882,81 @@ fn propagate_constants(program: Program) {
     }
 
     // NOTE debug values
-    for (name, stacks) in &program_stacks {
+    for (name, stack_blocks) in &program_stacks {
         if name != "main" {
             continue;
         }
 
+        for block in &stack_blocks[0..3] {
+            let mut reg_blacklist = IndexSet::new();
+
+            let mut command_count = 0;
+            let new_commands = block.commands().iter().rev().map(|command| {
+                // eprintln!("{:?}\n----> {:?}", command.0, reg_blacklist);
+                let mut result = (command.0).0.clone();
+
+                match &result {
+                    SuperPax::LoadTemp(reg, next_reg) if reg_blacklist.contains(reg) => {
+                        return None;
+                    }
+                    SuperPax::AltPush(reg) if reg_blacklist.contains(reg) => {
+                        return None;
+                    }
+                    SuperPax::AltPop(reg) if reg_blacklist.contains(reg) => {
+                        return None;
+                    }
+                    SuperPax::PushLiteral(reg, _) if reg_blacklist.contains(reg) => {
+                        return None;
+                    }
+                    SuperPax::StoreTemp(reg) if reg_blacklist.contains(reg) => {
+                        return None;
+                    }
+                    _ => {}
+                }
+
+                if command.1.last().map(|reg| reg.starts_with("L")).unwrap_or(false) {
+                    let reg = command.1.last().unwrap().clone();
+                    if let Some(StackItem { literal: Some(lit), .. }) = block.registers().get(&reg) {
+                        // eprintln!("      ^-> {:?} <= {:?}", reg.clone(), lit);
+                        match &result {
+                            SuperPax::AltPop(target_reg) if reg == *target_reg => {
+                                reg_blacklist.insert(target_reg.clone());
+                                result = SuperPax::PushLiteral(target_reg.clone(), *lit);
+                            }
+                            SuperPax::LoadTemp(target_reg, next_reg) if reg == *target_reg => {
+                                reg_blacklist.insert(target_reg.clone());
+                                result = SuperPax::PushLiteral(target_reg.clone(), *lit);
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                Some(result)
+            }).collect::<Vec<_>>().into_iter().rev().collect::<Vec<_>>();
+
+            for command in new_commands {
+                eprintln!(
+                    "    {:?}",
+                    command,
+                );
+                command_count += 1;
+            }
+
+            eprintln!(
+                "\n  {} entries out of {}.\n  ---",
+                command_count,
+                block.commands().len(),
+            );
+        }
+
         eprintln!("{}:", name);
-        for block in stacks {
+        for block in &stack_blocks[0..2] {
             for command in block.commands() {
+                eprintln!(
+                    "    {:?}:",
+                    (command.0).0,
+                );
                 eprintln!(
                     "                        data: {:?}",
                     command.1,
@@ -886,13 +969,11 @@ fn propagate_constants(program: Program) {
                     "                        temp: {}",
                     command.3.clone().unwrap_or("".to_string()),
                 );
-                eprintln!(
-                    "    {:?}\n",
-                    (command.0).0,
-                );
+                eprintln!();
             }
             eprintln!(
-                "\n  ---",
+                "\n  {} entries.\n  ---",
+                block.commands().len(),
             );
         }
     }
