@@ -529,16 +529,20 @@ pub fn generate_dataflow(program: Program) {
 */
 
 
+/// (opcode, data registers, return registers, temp register)
 pub type Analyzed<T> = (T, Vec<String>, Vec<String>, Option<String>);
 
 pub type BlockSpan = Vec<Analyzed<Located<SuperPax>>>;
 
+pub type DataRegs = Vec<String>;
+
 #[derive(Debug, Clone)]
 pub enum Block {
-    ExitBlock(BlockSpan, IndexMap<String, StackItem>),
-    JumpIf0Block(BlockSpan, IndexMap<String, StackItem>),
-    BranchTargetBlock(BlockSpan, IndexMap<String, StackItem>),
-    CallBlock(BlockSpan, IndexMap<String, StackItem>),
+    // (Vec of dataflow analyzed/position-based commands, data stack registers, global registers analysis.)
+    ExitBlock(BlockSpan, DataRegs, IndexMap<String, StackItem>),
+    JumpIf0Block(BlockSpan, DataRegs, IndexMap<String, StackItem>),
+    BranchTargetBlock(BlockSpan, DataRegs, IndexMap<String, StackItem>),
+    CallBlock(BlockSpan, DataRegs, IndexMap<String, StackItem>),
 }
 
 impl Block {
@@ -559,6 +563,19 @@ impl Block {
             Block::CallBlock(.., ref regs) => regs,
         }
     }
+
+    fn enter_stack(&self) -> DataRegs {
+        match self {
+            Block::ExitBlock(_, ref start_stack, _) => start_stack.clone(),
+            Block::JumpIf0Block(_, ref start_stack, _) => start_stack.clone(),
+            Block::BranchTargetBlock(_, ref start_stack, _) => start_stack.clone(),
+            Block::CallBlock(_, ref start_stack, _) => start_stack.clone(),
+        }
+    }
+
+    fn exit_stack(&self) -> Option<Vec<String>> {
+        self.commands().last().map(|a| a.1.clone())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -570,6 +587,7 @@ struct StackGroup {
     values: IndexMap<String, StackItem>,
     current_block: BlockSpan,
     blocks: Vec<Block>,
+    start_stack: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -590,6 +608,7 @@ impl StackGroup {
             values: IndexMap::new(),
             current_block: vec![],
             blocks: vec![],
+            start_stack: vec![],
         }
     }
 
@@ -602,31 +621,32 @@ impl StackGroup {
     }
 
     fn exit_block(&mut self) {
-        self.blocks.push(Block::ExitBlock(self.current_block.clone(), self.values.clone()));
+        self.blocks.push(Block::ExitBlock(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
         self.reset();
     }
 
     fn jump_if_0_block(&mut self) {
-        self.blocks.push(Block::JumpIf0Block(self.current_block.clone(), self.values.clone()));
+        self.blocks.push(Block::JumpIf0Block(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
         self.reset();
     }
 
     fn branch_target_block(&mut self) {
-        self.blocks.push(Block::BranchTargetBlock(self.current_block.clone(), self.values.clone()));
+        self.blocks.push(Block::BranchTargetBlock(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
         self.reset();
     }
 
     fn call_block(&mut self) {
-        self.blocks.push(Block::CallBlock(self.current_block.clone(), self.values.clone()));
+        self.blocks.push(Block::CallBlock(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
         self.reset();
     }
 
     fn reset(&mut self) {
-        self.index = 0;
+        // self.index = 0;
         self.data_stack = vec![];
         self.return_stack = vec![];
         self.values = IndexMap::new();
         self.current_block = vec![];
+        self.start_stack = vec![];
     }
 
     fn push_literal(&mut self, value: isize) -> String {
@@ -669,6 +689,7 @@ impl StackGroup {
             let value = format!("R{}", self.index);
             self.index += 1;
 
+            // TODO insertion
             for command in &mut self.current_block {
                 command.2.insert(0, value.clone());
             }
@@ -704,6 +725,8 @@ impl StackGroup {
             let value = format!("D{}", self.index);
             self.index += 1;
 
+            // TODO insertion
+            self.start_stack.insert(0, value.clone());
             for command in &mut self.current_block {
                 command.1.insert(0, value.clone());
             }
@@ -746,6 +769,8 @@ impl StackGroup {
 pub enum SuperPax {
     Pax(Pax),
     Drop,
+
+    BranchTarget(usize),
 
     // PushLiteral(temp reg pushed to stack, value)
     PushLiteral(String, isize),
@@ -820,6 +845,17 @@ fn propagate_constants(program: Program) {
 
             // eprintln!("{:?}", op.0);
             match op.0 {
+                Pax::PushLiteral(value) => {
+                    let target = stack.push_literal(value);
+                    stack.record_op(&(SuperPax::PushLiteral(target, value), op.1.clone()));
+                    continue;
+                }
+                Pax::BranchTarget => {
+                    stack.record_op(&(SuperPax::BranchTarget(i), op.1.clone()));
+                    stack.branch_target_block();
+                    continue;
+                },
+
                 Pax::Metadata(_) |
                 Pax::Debugger => {
                     // noop
@@ -854,25 +890,48 @@ fn propagate_constants(program: Program) {
                     stack.pop_data(false);
                     stack.pop_data(true);
                 }
-                Pax::PushLiteral(value) => {
-                    let target = stack.push_literal(value);
-                    stack.record_op(&(SuperPax::PushLiteral(target, value), op.1.clone()));
-                    continue;
-                }
 
-                Pax::Exit => stack.exit_block(),
-                Pax::Call(_) => stack.call_block(),
-                Pax::BranchTarget => stack.branch_target_block(),
+                Pax::Exit => {}
+                Pax::Call(_) => {},
                 Pax::JumpIf0(target) => {
-                    stack.jump_if_0_block();
-                }
+                    stack.pop_data(false);
+                },
             }
 
             // inject
             stack.record_op(&(SuperPax::Pax(op.0.clone()), op.1));
 
+            // close blocks
+            match op.0 {
+                Pax::Exit => stack.exit_block(),
+                Pax::Call(_) => stack.call_block(),
+                Pax::JumpIf0(target) => stack.jump_if_0_block(),
+                _ => {},
+            }
+
             // eprintln!(" ... [stack: {:?}]", stack.stack);
         }
+
+        let mut jump_targets = IndexMap::new();
+        let mut branch_targets = IndexMap::new();
+        for block in &stack.blocks {
+            for op in block.commands() {
+                match op.0 {
+                    (SuperPax::BranchTarget(target), pos) => {
+                        branch_targets.insert(target, op.1.clone());
+                    },
+                    (SuperPax::Pax(Pax::JumpIf0(target)), pos) => {
+                        jump_targets.insert(target, op.1.clone());
+                    },
+                    _ => {},
+                }
+            }
+        }
+        // Uncomment if can merge keys set to IndexSet
+        // assert!(jump_targets.is_subset(&branch_targets), "jump to non-branch targets");
+
+        eprintln!("----> jump:   {:?}", jump_targets);
+        eprintln!("      branch: {:?}", branch_targets);
 
         // stack.reset();
         program_stacks.insert(name, stack.blocks);
@@ -951,7 +1010,8 @@ fn propagate_constants(program: Program) {
         }
 
         eprintln!("{}:", name);
-        for block in &stack_blocks[0..2] {
+        for (i, block) in stack_blocks[0..11].iter().enumerate() {
+            eprintln!("block[{}]", i);
             for command in block.commands() {
                 eprintln!(
                     "    {:?}:",
@@ -976,6 +1036,127 @@ fn propagate_constants(program: Program) {
                 block.commands().len(),
             );
         }
+    }
+    eprintln!();
+    eprintln!();
+    eprintln!();
+    eprintln!();
+    eprintln!();
+    eprintln!();
+
+    // TODO could rewrite argument detection structure to be its own pass
+    // instead of computing in flow analysis below; arg count is static for whole fn
+
+
+    // TODO this implements a dataflow iterator that walks over blocks in the graph and
+    // queues branching statements (nonzero path) for later.
+    for (name, stack_blocks) in &program_stacks {
+        if name != "main" {
+            continue;
+        }
+
+        {
+            let mut visited = IndexSet::new();
+            let mut conditions = std::collections::VecDeque::<usize>::new();
+            conditions.push_front(0);
+            while let Some(cond) = conditions.pop_back() {
+                // index of block iteration
+                let mut previous_block: Option<Option<DataRegs>> = None;
+                let mut i = cond;
+                'block: while i < stack_blocks.len() {
+                    let block: &Block = &stack_blocks[i];
+
+                    if visited.contains(&i) {
+                        println!("unified[{}], ending block search.", i);
+                        break;
+                    }
+
+                    println!("block[{}]", i);
+
+                    // Check if we can merge stack with previous block.
+                    if let Some(ref last) = previous_block {
+                        println!("merge? with previous block: {:?}", last);
+                        println!("                   current: {:?}", block.enter_stack());
+                        let mut truncated = last.clone().unwrap_or(vec![]).into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
+                        truncated.extend(block.enter_stack());
+                        println!("                    merged: {:?}", truncated);
+                    }
+
+                    for command in block.commands() {
+                        println!("  {:?}\n    {:?}", (command.0).0, command.1);
+                    }
+                    visited.insert(i);
+
+                    match block.commands().last() {
+                        Some(((SuperPax::BranchTarget(target), ..), ..)) => {
+                            // Only stop if flag is passed in saying to stop.
+                        }
+                        Some(((SuperPax::Pax(Pax::JumpIf0(target)), ..), ..)) => {
+                            // noop
+                            // let commands = blocks[i].commands();
+                            let mut is_absolute = false;
+                            if block.commands().len() > 1 {
+                                if let Some(((SuperPax::PushLiteral(.., 0), ..), ..)) = block.commands().get(block.commands().len() - 2) {
+                                    is_absolute = true;
+                                }
+                            }
+
+                            // Jump immediate
+                            for (b_index, b) in stack_blocks.iter().enumerate() {
+                                if let Some(((SuperPax::BranchTarget(bt), ..), ..)) = b.commands().last() {
+                                    if bt == target {
+                                        // Invoke branch as though we jumped (nonzero).
+                                        // b_index + 1 is the block following the BranchTarget we're jumping to.
+                                        if is_absolute {
+                                            i = b_index + 1;
+                                            println!("  absolute jump: {:?}", i);
+                                            continue 'block;
+                                        } else {
+                                            // only iterate future branches, not reverse ones (which are loops)
+                                            if b_index + 1 > i {
+                                                conditions.push_front(b_index + 1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+
+                    i += 1;
+                    previous_block = Some(block.exit_stack());
+                }
+                println!("next cond.\n");
+            }
+        }
+
+        // eprintln!("{}:", name);
+        // for block in stack_blocks {
+        //     for command in block.commands() {
+        //         eprintln!(
+        //             "    {:?}:",
+        //             (command.0).0,
+        //         );
+        //         eprintln!(
+        //             "                        data: {:?}",
+        //             command.1,
+        //         );
+        //         eprintln!(
+        //             "                        retn: {:?}",
+        //             command.2,
+        //         );
+        //         eprintln!(
+        //             "                        temp: {}",
+        //             command.3.clone().unwrap_or("".to_string()),
+        //         );
+        //         eprintln!();
+        //     }
+        //     eprintln!(
+        //         "\n  {} entries.\n  ---",
+        //         block.commands().len(),
+        //     );
+        // }
     }
 }
 

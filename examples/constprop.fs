@@ -1,4 +1,4 @@
-3 14 * print
+\ 3 14 * print
 
 
 \ expanded version
@@ -16,9 +16,11 @@ r> r> 1 +
 >r temp ! temp @ r> temp @
 >r temp ! temp @ r> temp @
 
--
+-1 nand 1 + + \ -
 
-if 0 else -1 then if + if then 1 else >r >r 0 then
+if 0 else -1 then
+
+if + if then 1 else >r >r 0 then
 
 \ block end ^
 
