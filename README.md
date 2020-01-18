@@ -17,6 +17,12 @@ cd snake/gb
 make allrun
 ```
 
+Analysis for compilation:
+
+```
+RUST_BACKTRACE=1 cargo run -- examples/constprop.fs --compile
+```
+
 ## Inspiration
 
 * [NybbleForth](https://github.com/larsbrinkhoff/nybbleForth)

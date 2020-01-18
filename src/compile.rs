@@ -851,6 +851,7 @@ fn propagate_constants(program: Program) {
                     continue;
                 }
                 Pax::BranchTarget => {
+                    // FIXME this should inline the block number, not the opcode number
                     stack.record_op(&(SuperPax::BranchTarget(i), op.1.clone()));
                     stack.branch_target_block();
                     continue;
@@ -1061,7 +1062,7 @@ fn propagate_constants(program: Program) {
             conditions.push_front(0);
             while let Some(cond) = conditions.pop_back() {
                 // index of block iteration
-                let mut previous_block: Option<Option<DataRegs>> = None;
+                let mut previous_block: Option<DataRegs> = None;
                 let mut i = cond;
                 'block: while i < stack_blocks.len() {
                     let block: &Block = &stack_blocks[i];
@@ -1074,16 +1075,25 @@ fn propagate_constants(program: Program) {
                     println!("block[{}]", i);
 
                     // Check if we can merge stack with previous block.
-                    if let Some(ref last) = previous_block {
+                    let truncated = if let Some(ref last) = previous_block {
                         println!("merge? with previous block: {:?}", last);
                         println!("                   current: {:?}", block.enter_stack());
-                        let mut truncated = last.clone().unwrap_or(vec![]).into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
-                        truncated.extend(block.enter_stack());
-                        println!("                    merged: {:?}", truncated);
-                    }
+                        let mut truncated = last.clone().into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
+                        let mut trunc2 = truncated.clone();
+                        trunc2.extend(block.enter_stack());
+                        println!("                    merged: {:?}", trunc2);
+                        truncated
+                    } else {
+                        vec![]
+                    };
 
                     for command in block.commands() {
-                        println!("  {:?}\n    {:?}", (command.0).0, command.1);
+                        let mut trunc2 = truncated.clone();
+                        // FIXME uncomment this to extend printed reg list with inherited list,
+                        // but also this method needs to forward it via exit_stack() or otherwise
+                        // it doesn't propagate!
+                        // trunc2.extend(command.1.clone());
+                        println!("  {:?}\n    {:?}", (command.0).0, truncated);
                     }
                     visited.insert(i);
 
@@ -1125,7 +1135,7 @@ fn propagate_constants(program: Program) {
                     }
 
                     i += 1;
-                    previous_block = Some(block.exit_stack());
+                    previous_block = block.exit_stack();
                 }
                 println!("next cond.\n");
             }
