@@ -573,8 +573,10 @@ fn propagate_constants(program: Program) {
       // let mut rewrite_regs = IndexMap::new();
 
       while let Some(cond) = conditions.pop_back() {
-        // index of block iteration
+        // Cache the stack of the previous block execution.
         let mut previous_block: Option<DataRegs> = None;
+
+        // We iterate through blocks using an index.
         let mut i = cond;
         'block: while i < stack_blocks.len() {
           let block: &Block = &stack_blocks[i];
