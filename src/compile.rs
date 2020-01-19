@@ -594,7 +594,6 @@ struct StackGroup {
 pub struct StackItem {
     id: String,
     ancestors: IndexSet<String>,
-    stored: bool,
     literal: Option<isize>,
 }
 
@@ -657,7 +656,6 @@ impl StackGroup {
         self.values.insert(target.clone(), StackItem {
             id: target.clone(),
             ancestors: IndexSet::new(),
-            stored: false,
             literal: Some(value),
         });
         target
@@ -671,7 +669,6 @@ impl StackGroup {
         self.values.insert(value.clone(), StackItem {
             id: value.clone(),
             ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
-            stored: false,
             literal: None,
         });
     }
@@ -697,7 +694,6 @@ impl StackGroup {
             self.values.insert(value.clone(), StackItem {
                 id: value.clone(),
                 ancestors: IndexSet::new(),
-                stored: false,
                 literal: None,
             });
             value
@@ -714,7 +710,6 @@ impl StackGroup {
             if stored {
                 while let Some(iter_value) = iter.pop() {
                     let value_item = self.values.get_mut(&iter_value).unwrap();
-                    value_item.stored = true;
                     iter.extend(value_item.ancestors.clone());
                 }
             }
@@ -734,7 +729,6 @@ impl StackGroup {
             self.values.insert(value.clone(), StackItem {
                 id: value.clone(),
                 ancestors: IndexSet::new(),
-                stored: false,
                 literal: None,
             });
             value
@@ -1076,24 +1070,31 @@ fn propagate_constants(program: Program) {
 
                     // Check if we can merge stack with previous block.
                     let truncated = if let Some(ref last) = previous_block {
-                        println!("merge? with previous block: {:?}", last);
-                        println!("                   current: {:?}", block.enter_stack());
+                        // println!("merge? with previous block: {:?}", last);
+                        // println!("                   current: {:?}", block.enter_stack());
                         let mut truncated = last.clone().into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
                         let mut trunc2 = truncated.clone();
                         trunc2.extend(block.enter_stack());
-                        println!("                    merged: {:?}", trunc2);
+                        // println!("                    merged: {:?}", trunc2);
+
+                        // FIXME propagate registers literal values from previous block into this one
+
                         truncated
                     } else {
                         vec![]
                     };
 
+                    // Print stack stack.
+                    {
+                        let mut trunc2 = truncated.clone();
+                        trunc2.extend(block.enter_stack());
+                        println!("    {:?}", trunc2);
+                    }
+
                     for command in block.commands() {
                         let mut trunc2 = truncated.clone();
-                        // FIXME uncomment this to extend printed reg list with inherited list,
-                        // but also this method needs to forward it via exit_stack() or otherwise
-                        // it doesn't propagate!
-                        // trunc2.extend(command.1.clone());
-                        println!("  {:?}\n    {:?}", (command.0).0, truncated);
+                        trunc2.extend(command.1.clone());
+                        println!("  {:?}\n    {:?}", (command.0).0, trunc2);
                     }
                     visited.insert(i);
 
@@ -1135,7 +1136,9 @@ fn propagate_constants(program: Program) {
                     }
 
                     i += 1;
-                    previous_block = block.exit_stack();
+                    let mut trunc2 = truncated.clone();
+                    trunc2.extend(block.exit_stack().unwrap_or(vec![]));
+                    previous_block = Some(trunc2);
                 }
                 println!("next cond.\n");
             }
