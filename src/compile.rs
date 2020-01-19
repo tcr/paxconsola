@@ -1089,13 +1089,12 @@ fn propagate_constants(program: Program) {
                         vec![]
                     };
 
-                    // Print stack stack.
+                    // Print out all stacks and interleaving commands.
                     {
                         let mut trunc2 = truncated.clone();
                         trunc2.extend(block.enter_stack());
                         println!("    {:?}", trunc2);
                     }
-
                     for command in block.commands() {
                         let mut trunc2 = truncated.clone();
                         trunc2.extend(command.1.clone());
