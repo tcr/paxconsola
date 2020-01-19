@@ -1,15 +1,18 @@
 #![allow(dead_code)]
 
-use indexmap::{IndexSet, IndexMap};
 use crate::*;
+use indexmap::{IndexMap, IndexSet};
 use lazy_static::*;
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC, AsciiSet};
 use std::iter::FromIterator;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
-    utf8_percent_encode(name, &NON_ALPHA).to_string().replace("%", "").to_string()
+    utf8_percent_encode(name, &NON_ALPHA)
+        .to_string()
+        .replace("%", "")
+        .to_string()
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -17,19 +20,19 @@ pub enum GbIr {
     Metadata(String),
 
     // ( a -- a a )
-    Dup,                        // dup hl onto stack
+    Dup, // dup hl onto stack
     // ( a -- value )
-    ReplaceLiteral(u16),      // TOS = $nn
+    ReplaceLiteral(u16), // TOS = $nn
     // ( a b -- b )
-    NipIntoDE,                  // store [stack - 1] into de
+    NipIntoDE, // store [stack - 1] into de
     // ( a -- a )
-    CopyToA,                    // copy TOS to register A
+    CopyToA, // copy TOS to register A
     // ( a -- a )
-    CopyToE,                    // copy TOS to register E
+    CopyToE, // copy TOS to register E
     // ( a -- a )
-    CopyToDE,             // copy TOS to register DE
+    CopyToDE, // copy TOS to register DE
     // ( a -- )
-    Pop,                        // pop stack, load TOS into hl
+    Pop, // pop stack, load TOS into hl
     // ( -- )
     Call(String),
     // ( -- )
@@ -41,7 +44,7 @@ pub enum GbIr {
     // ( addr -- addr )
     StoreDE,
     // ( -- )
-    JumpIfDEIs0(String),         // label destination
+    JumpIfDEIs0(String), // label destination
     // ( a -- result )
     ReplaceAddWithDE,
     // ( a -- result )
@@ -66,34 +69,17 @@ pub enum GbIr {
 
 fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
     match op {
-        Pax::Metadata(s) => vec![
-            GbIr::Metadata(s),
-        ],
+        Pax::Metadata(s) => vec![GbIr::Metadata(s)],
         // ( -- value )
-        Pax::PushLiteral(value) => vec![
-            GbIr::Dup,
-            GbIr::ReplaceLiteral(value as _),
-        ],
+        Pax::PushLiteral(value) => vec![GbIr::Dup, GbIr::ReplaceLiteral(value as _)],
         // ( address -- value )
-        Pax::Load => vec![
-            GbIr::ReplaceLoad,
-        ],
+        Pax::Load => vec![GbIr::ReplaceLoad],
         // ( address -- value )
-        Pax::Load8 => vec![
-            GbIr::ReplaceLoad8,
-        ],
+        Pax::Load8 => vec![GbIr::ReplaceLoad8],
         // ( value address -- )
-        Pax::Store => vec![
-            GbIr::NipIntoDE,
-            GbIr::StoreDE,
-            GbIr::Pop,
-        ],
+        Pax::Store => vec![GbIr::NipIntoDE, GbIr::StoreDE, GbIr::Pop],
         // ( value address -- )
-        Pax::Store8 => vec![
-            GbIr::NipIntoDE,
-            GbIr::StoreDE8,
-            GbIr::Pop,
-        ],
+        Pax::Store8 => vec![GbIr::NipIntoDE, GbIr::StoreDE8, GbIr::Pop],
         // ( cond -- )
         Pax::JumpIf0(offset) => vec![
             GbIr::CopyToDE,
@@ -101,40 +87,22 @@ fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
             GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
         // ( address -- )
-        Pax::Call(target) => vec![
-            GbIr::Call(format!("PAX_FN_{}", name_slug(&target))),
-        ],
+        Pax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
         // ( -- )
-        Pax::Exit => vec![
-            GbIr::Ret
-        ],
+        Pax::Exit => vec![GbIr::Ret],
         // ( a b -- c )
-        Pax::Add => vec![
-            GbIr::NipIntoDE,
-            GbIr::ReplaceAddWithDE,
-        ],
+        Pax::Add => vec![GbIr::NipIntoDE, GbIr::ReplaceAddWithDE],
         // ( a b -- c )
-        Pax::Nand => vec![
-            GbIr::NipIntoDE,
-            GbIr::ReplaceNandWithDE,
-        ],
+        Pax::Nand => vec![GbIr::NipIntoDE, GbIr::ReplaceNandWithDE],
         // ( a -- )
-        Pax::AltPush => vec![
-            GbIr::AltDupFromTOS,
-            GbIr::Pop,
-        ],
+        Pax::AltPush => vec![GbIr::AltDupFromTOS, GbIr::Pop],
         // ( a -- )
-        Pax::AltPop => vec![
-            GbIr::Dup,
-            GbIr::AltPop,
-        ],
+        Pax::AltPop => vec![GbIr::Dup, GbIr::AltPop],
         Pax::Print => vec![
             // nah
         ],
         // ( -- )
-        Pax::BranchTarget => vec![
-            GbIr::Label(format!(".target_{}", i)),
-        ],
+        Pax::BranchTarget => vec![GbIr::Label(format!(".target_{}", i))],
         op => {
             panic!("not yet implemented: {:?}", op);
         }
@@ -155,45 +123,63 @@ macro_rules! gb_output {
 }
 
 pub fn cross_compile_ir_gb(op: GbIr) {
-    gb_output!("
+    gb_output!(
+        "
     ; [gb_ir] {:?}
-        ", op);
+        ",
+        op
+    );
     match op {
-        GbIr::Label(label) => gb_output!("
+        GbIr::Label(label) => gb_output!(
+            "
 {}:
-        ", label),
+        ",
+            label
+        ),
 
-        GbIr::Metadata(s) => gb_output!("
+        GbIr::Metadata(s) => gb_output!(
+            "
     ; [metadata] {:?}
 PAX_FN_{}:
-        ", s, name_slug(&s)),
+        ",
+            s,
+            name_slug(&s)
+        ),
         GbIr::Dup => {
-            gb_output!("
+            gb_output!(
+                "
     dec c
     ld a, h
     ld [c], a
     dec c
     ld a, l
     ld [c], a
-            ");
+            "
+            );
         }
         GbIr::Pop => {
-            gb_output!("
+            gb_output!(
+                "
     ld a, [c]
     ld l, a
     inc c
     ld a, [c]
     ld h, a
     inc c
-            ");
+            "
+            );
         }
         GbIr::ReplaceLiteral(lit) => {
-            gb_output!("
+            gb_output!(
+                "
     ld hl,{lit}
-            ", lit=lit);
+            ",
+                lit = lit
+            );
         }
         GbIr::NipIntoDE => {
-            gb_output!("
+            gb_output!(
+                "
     ; Move second item to TOS
     ld a, [c]
     ld e, a
@@ -201,49 +187,66 @@ PAX_FN_{}:
     ld a, [c]
     ld d, a
     inc c
-            ");
+            "
+            );
         }
         GbIr::CopyToE => {
-            gb_output!("
+            gb_output!(
+                "
     ld e,l
-            ");
+            "
+            );
         }
         GbIr::SetE(value) => {
-            gb_output!("
+            gb_output!(
+                "
     ld e,{}
-            ", value);
+            ",
+                value
+            );
         }
         GbIr::CopyToDE => {
-            gb_output!("
+            gb_output!(
+                "
     ld e,l
     ld d,h
-            ");
+            "
+            );
         }
         GbIr::CopyToA => {
-            gb_output!("
+            gb_output!(
+                "
     ; Move to accumulator for comparison
     ld a,l
-            ");
+            "
+            );
         }
-        GbIr::ReplaceLoad =>  {
-            gb_output!("
+        GbIr::ReplaceLoad => {
+            gb_output!(
+                "
     ldi a, [hl]
     ld b, a
     ldd a, [hl]
     ld h, a
     ld l, b
-            ");
+            "
+            );
         }
-        GbIr::ReplaceLoadDirect(addr) =>  {
-            gb_output!("
+        GbIr::ReplaceLoadDirect(addr) => {
+            gb_output!(
+                "
     ld a, [{}]
     ld l, a
     ld a, [{}+1]
     ld h, a
-            ", addr, addr);
+            ",
+                addr,
+                addr
+            );
         }
-        GbIr::ReplaceLoad8 =>  {
-            gb_output!("
+        GbIr::ReplaceLoad8 => {
+            gb_output!(
+                "
 .wait:
     ld   a,[$0FF41]
     bit  1,a       ; Wait until Mode is 0 or 1
@@ -253,11 +256,13 @@ PAX_FN_{}:
     ld l, a
     xor a
     ld h, a
-            ");
+            "
+            );
         }
         GbIr::StoreDE8 => {
             // HACK wait for VRAM to be available
-            gb_output!("
+            gb_output!(
+                "
 .wait:
     ld   a,[$0FF41]
     bit  1,a       ; Wait until Mode is 0 or 1
@@ -265,35 +270,46 @@ PAX_FN_{}:
 
     ld a, e
     ld [hl],a
-            ");
+            "
+            );
         }
         GbIr::StoreDE => {
-            gb_output!("
+            gb_output!(
+                "
     ld a, e
     ldi [hl],a
     ld a, d
     ldd [hl],a
-            ");
+            "
+            );
         }
         GbIr::PushRetAddr => {
-            gb_output!("
+            gb_output!(
+                "
     push hl
-            ");
+            "
+            );
         }
         GbIr::JumpIfDEIs0(addr) => {
-            gb_output!("
+            gb_output!(
+                "
     ld a,d
     or e
     jp z,{}
-            ", addr);
+            ",
+                addr
+            );
         }
         GbIr::ReplaceAddWithDE => {
-            gb_output!("
+            gb_output!(
+                "
     add hl, de
-            ");
+            "
+            );
         }
         GbIr::ReplaceNandWithDE => {
-            gb_output!("
+            gb_output!(
+                "
     ld a,l
     and a,e
     cpl
@@ -302,35 +318,45 @@ PAX_FN_{}:
     and a,d
     cpl
     ld h,a
-            ");
+            "
+            );
         }
         GbIr::Invert => {
-            gb_output!("
+            gb_output!(
+                "
     ld a,l
     cpl
     ld l,a
     ld a,h
     cpl
     ld h,a
-            ");
+            "
+            );
         }
         GbIr::AltDupFromTOS => {
-            gb_output!("
+            gb_output!(
+                "
     push hl
-            ");
+            "
+            );
         }
         GbIr::AltPop => {
-            gb_output!("
+            gb_output!(
+                "
     pop hl
-            ");
+            "
+            );
         }
         GbIr::Inc => {
-            gb_output!("
+            gb_output!(
+                "
     inc hl
-            ");
+            "
+            );
         }
         GbIr::Ret => {
-            gb_output!("
+            gb_output!(
+                "
     ret
 
 
@@ -339,12 +365,16 @@ PAX_FN_{}:
 
 
 ; function start
-            ");
+            "
+            );
         }
         GbIr::Call(label) => {
-            gb_output!("
+            gb_output!(
+                "
     call {}
-            ", label);
+            ",
+                label
+            );
         }
     }
 }
@@ -528,7 +558,6 @@ pub fn generate_dataflow(program: Program) {
 }
 */
 
-
 /// (opcode, data registers, return registers, temp register)
 pub type Analyzed<T> = (T, Vec<String>, Vec<String>, Option<String>);
 
@@ -612,7 +641,12 @@ impl StackGroup {
     }
 
     fn record_op(&mut self, op: &Located<SuperPax>) {
-        self.current_block.push((op.to_owned(), self.data_stack.clone(), self.return_stack.clone(), self.temp.clone()));
+        self.current_block.push((
+            op.to_owned(),
+            self.data_stack.clone(),
+            self.return_stack.clone(),
+            self.temp.clone(),
+        ));
     }
 
     fn drop_last_op(&mut self) {
@@ -620,22 +654,38 @@ impl StackGroup {
     }
 
     fn exit_block(&mut self) {
-        self.blocks.push(Block::ExitBlock(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
+        self.blocks.push(Block::ExitBlock(
+            self.current_block.clone(),
+            self.start_stack.clone(),
+            self.values.clone(),
+        ));
         self.reset();
     }
 
     fn jump_if_0_block(&mut self) {
-        self.blocks.push(Block::JumpIf0Block(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
+        self.blocks.push(Block::JumpIf0Block(
+            self.current_block.clone(),
+            self.start_stack.clone(),
+            self.values.clone(),
+        ));
         self.reset();
     }
 
     fn branch_target_block(&mut self) {
-        self.blocks.push(Block::BranchTargetBlock(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
+        self.blocks.push(Block::BranchTargetBlock(
+            self.current_block.clone(),
+            self.start_stack.clone(),
+            self.values.clone(),
+        ));
         self.reset();
     }
 
     fn call_block(&mut self) {
-        self.blocks.push(Block::CallBlock(self.current_block.clone(), self.start_stack.clone(), self.values.clone()));
+        self.blocks.push(Block::CallBlock(
+            self.current_block.clone(),
+            self.start_stack.clone(),
+            self.values.clone(),
+        ));
         self.reset();
     }
 
@@ -653,11 +703,14 @@ impl StackGroup {
         self.index += 1;
 
         self.data_stack.push(target.clone());
-        self.values.insert(target.clone(), StackItem {
-            id: target.clone(),
-            ancestors: IndexSet::new(),
-            literal: Some(value),
-        });
+        self.values.insert(
+            target.clone(),
+            StackItem {
+                id: target.clone(),
+                ancestors: IndexSet::new(),
+                literal: Some(value),
+            },
+        );
         target
     }
 
@@ -666,11 +719,14 @@ impl StackGroup {
         self.index += 1;
 
         self.data_stack.push(value.clone());
-        self.values.insert(value.clone(), StackItem {
-            id: value.clone(),
-            ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
-            literal: None,
-        });
+        self.values.insert(
+            value.clone(),
+            StackItem {
+                id: value.clone(),
+                ancestors: IndexSet::from_iter(ancestors.to_owned().into_iter()),
+                literal: None,
+            },
+        );
     }
 
     fn push_return_stack(&mut self) -> String {
@@ -691,11 +747,14 @@ impl StackGroup {
                 command.2.insert(0, value.clone());
             }
 
-            self.values.insert(value.clone(), StackItem {
-                id: value.clone(),
-                ancestors: IndexSet::new(),
-                literal: None,
-            });
+            self.values.insert(
+                value.clone(),
+                StackItem {
+                    id: value.clone(),
+                    ancestors: IndexSet::new(),
+                    literal: None,
+                },
+            );
             value
         };
         self.data_stack.push(ret.clone());
@@ -726,11 +785,14 @@ impl StackGroup {
                 command.1.insert(0, value.clone());
             }
 
-            self.values.insert(value.clone(), StackItem {
-                id: value.clone(),
-                ancestors: IndexSet::new(),
-                literal: None,
-            });
+            self.values.insert(
+                value.clone(),
+                StackItem {
+                    id: value.clone(),
+                    ancestors: IndexSet::new(),
+                    literal: None,
+                },
+            );
             value
         }
     }
@@ -779,7 +841,6 @@ pub enum SuperPax {
     StoreTemp(String),
 }
 
-
 // first: literal -> see if used,
 //     if added to (become temporary), check if temporary is dropped (default true?)
 //     else if stored to temp...
@@ -804,10 +865,10 @@ fn propagate_constants(program: Program) {
                         // SuperPax::LoadTemp
                         if let Some((_, &(Pax::Load, _))) = code_iter.peek() {
                             let (target, next_target) = stack.load_temp();
-                            stack.record_op(&(SuperPax::LoadTemp(
-                                target,
-                                next_target,
-                            ), op.1.clone()));
+                            stack.record_op(&(
+                                SuperPax::LoadTemp(target, next_target),
+                                op.1.clone(),
+                            ));
 
                             code_iter.next();
                             continue;
@@ -849,14 +910,12 @@ fn propagate_constants(program: Program) {
                     stack.record_op(&(SuperPax::BranchTarget(i), op.1.clone()));
                     stack.branch_target_block();
                     continue;
-                },
+                }
 
-                Pax::Metadata(_) |
-                Pax::Debugger => {
+                Pax::Metadata(_) | Pax::Debugger => {
                     // noop
                 }
-                Pax::Sleep |
-                Pax::Print => {
+                Pax::Sleep | Pax::Print => {
                     stack.pop_data(true);
                 }
                 Pax::AltPush => {
@@ -869,28 +928,25 @@ fn propagate_constants(program: Program) {
                     stack.record_op(&(SuperPax::AltPop(reg), op.1.clone()));
                     continue;
                 }
-                Pax::Load |
-                Pax::Load8 => {
+                Pax::Load | Pax::Load8 => {
                     let s0 = stack.pop_data(true);
                     stack.push_data(&[s0]);
                 }
-                Pax::Add |
-                Pax::Nand => {
+                Pax::Add | Pax::Nand => {
                     let s0 = stack.pop_data(false);
                     let s1 = stack.pop_data(false);
                     stack.push_data(&[s0, s1]);
                 }
-                Pax::Store |
-                Pax::Store8 => {
+                Pax::Store | Pax::Store8 => {
                     stack.pop_data(false);
                     stack.pop_data(true);
                 }
 
                 Pax::Exit => {}
-                Pax::Call(_) => {},
+                Pax::Call(_) => {}
                 Pax::JumpIf0(_target) => {
                     stack.pop_data(false);
-                },
+                }
             }
 
             // inject
@@ -901,7 +957,7 @@ fn propagate_constants(program: Program) {
                 Pax::Exit => stack.exit_block(),
                 Pax::Call(_) => stack.call_block(),
                 Pax::JumpIf0(_target) => stack.jump_if_0_block(),
-                _ => {},
+                _ => {}
             }
 
             // eprintln!(" ... [stack: {:?}]", stack.stack);
@@ -914,11 +970,11 @@ fn propagate_constants(program: Program) {
                 match op.0 {
                     (SuperPax::BranchTarget(target), _pos) => {
                         branch_targets.insert(target, op.1.clone());
-                    },
+                    }
                     (SuperPax::Pax(Pax::JumpIf0(target)), _pos) => {
                         jump_targets.insert(target, op.1.clone());
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
         }
@@ -945,55 +1001,68 @@ fn propagate_constants(program: Program) {
             let mut reg_blacklist = IndexSet::new();
 
             let mut command_count = 0;
-            let new_commands = block.commands().iter().rev().map(|command| {
-                // eprintln!("{:?}\n----> {:?}", command.0, reg_blacklist);
-                let mut result = (command.0).0.clone();
+            let new_commands = block
+                .commands()
+                .iter()
+                .rev()
+                .map(|command| {
+                    // eprintln!("{:?}\n----> {:?}", command.0, reg_blacklist);
+                    let mut result = (command.0).0.clone();
 
-                match &result {
-                    SuperPax::LoadTemp(reg, _next_reg) if reg_blacklist.contains(reg) => {
-                        return None;
+                    match &result {
+                        SuperPax::LoadTemp(reg, _next_reg) if reg_blacklist.contains(reg) => {
+                            return None;
+                        }
+                        SuperPax::AltPush(reg) if reg_blacklist.contains(reg) => {
+                            return None;
+                        }
+                        SuperPax::AltPop(reg) if reg_blacklist.contains(reg) => {
+                            return None;
+                        }
+                        SuperPax::PushLiteral(reg, _) if reg_blacklist.contains(reg) => {
+                            return None;
+                        }
+                        SuperPax::StoreTemp(reg) if reg_blacklist.contains(reg) => {
+                            return None;
+                        }
+                        _ => {}
                     }
-                    SuperPax::AltPush(reg) if reg_blacklist.contains(reg) => {
-                        return None;
-                    }
-                    SuperPax::AltPop(reg) if reg_blacklist.contains(reg) => {
-                        return None;
-                    }
-                    SuperPax::PushLiteral(reg, _) if reg_blacklist.contains(reg) => {
-                        return None;
-                    }
-                    SuperPax::StoreTemp(reg) if reg_blacklist.contains(reg) => {
-                        return None;
-                    }
-                    _ => {}
-                }
 
-                if command.1.last().map(|reg| reg.starts_with("L")).unwrap_or(false) {
-                    let reg = command.1.last().unwrap().clone();
-                    if let Some(StackItem { literal: Some(lit), .. }) = block.registers().get(&reg) {
-                        // eprintln!("      ^-> {:?} <= {:?}", reg.clone(), lit);
-                        match &result {
-                            SuperPax::AltPop(target_reg) if reg == *target_reg => {
-                                reg_blacklist.insert(target_reg.clone());
-                                result = SuperPax::PushLiteral(target_reg.clone(), *lit);
+                    if command
+                        .1
+                        .last()
+                        .map(|reg| reg.starts_with("L"))
+                        .unwrap_or(false)
+                    {
+                        let reg = command.1.last().unwrap().clone();
+                        if let Some(StackItem {
+                            literal: Some(lit), ..
+                        }) = block.registers().get(&reg)
+                        {
+                            // eprintln!("      ^-> {:?} <= {:?}", reg.clone(), lit);
+                            match &result {
+                                SuperPax::AltPop(target_reg) if reg == *target_reg => {
+                                    reg_blacklist.insert(target_reg.clone());
+                                    result = SuperPax::PushLiteral(target_reg.clone(), *lit);
+                                }
+                                SuperPax::LoadTemp(target_reg, _next_reg) if reg == *target_reg => {
+                                    reg_blacklist.insert(target_reg.clone());
+                                    result = SuperPax::PushLiteral(target_reg.clone(), *lit);
+                                }
+                                _ => {}
                             }
-                            SuperPax::LoadTemp(target_reg, _next_reg) if reg == *target_reg => {
-                                reg_blacklist.insert(target_reg.clone());
-                                result = SuperPax::PushLiteral(target_reg.clone(), *lit);
-                            }
-                            _ => {}
                         }
                     }
-                }
 
-                Some(result)
-            }).collect::<Vec<_>>().into_iter().rev().collect::<Vec<_>>();
+                    Some(result)
+                })
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect::<Vec<_>>();
 
             for command in new_commands {
-                eprintln!(
-                    "    {:?}",
-                    command,
-                );
+                eprintln!("    {:?}", command,);
                 command_count += 1;
             }
 
@@ -1008,28 +1077,16 @@ fn propagate_constants(program: Program) {
         for (i, block) in stack_blocks[0..11].iter().enumerate() {
             eprintln!("block[{}]", i);
             for command in block.commands() {
-                eprintln!(
-                    "    {:?}:",
-                    (command.0).0,
-                );
-                eprintln!(
-                    "                        data: {:?}",
-                    command.1,
-                );
-                eprintln!(
-                    "                        retn: {:?}",
-                    command.2,
-                );
+                eprintln!("    {:?}:", (command.0).0,);
+                eprintln!("                        data: {:?}", command.1,);
+                eprintln!("                        retn: {:?}", command.2,);
                 eprintln!(
                     "                        temp: {}",
                     command.3.clone().unwrap_or("".to_string()),
                 );
                 eprintln!();
             }
-            eprintln!(
-                "\n  {} entries.\n  ---",
-                block.commands().len(),
-            );
+            eprintln!("\n  {} entries.\n  ---", block.commands().len(),);
         }
     }
     eprintln!();
@@ -1041,7 +1098,6 @@ fn propagate_constants(program: Program) {
 
     // TODO could rewrite argument detection structure to be its own pass
     // instead of computing in flow analysis below; arg count is static for whole fn
-
 
     // TODO this implements a dataflow iterator that walks over blocks in the graph and
     // queues branching statements (nonzero path) for later.
@@ -1072,7 +1128,13 @@ fn propagate_constants(program: Program) {
                     let truncated = if let Some(ref last) = previous_block {
                         // println!("merge? with previous block: {:?}", last);
                         // println!("                   current: {:?}", block.enter_stack());
-                        let truncated = last.clone().into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
+                        let truncated = last
+                            .clone()
+                            .into_iter()
+                            .rev()
+                            .skip(block.enter_stack().len())
+                            .rev()
+                            .collect::<DataRegs>();
                         let mut trunc2 = truncated.clone();
                         trunc2.extend(block.enter_stack());
                         // println!("                    merged: {:?}", trunc2);
@@ -1113,14 +1175,18 @@ fn propagate_constants(program: Program) {
                             // let commands = blocks[i].commands();
                             let mut is_absolute = false;
                             if block.commands().len() > 1 {
-                                if let Some(((SuperPax::PushLiteral(.., 0), ..), ..)) = block.commands().get(block.commands().len() - 2) {
+                                if let Some(((SuperPax::PushLiteral(.., 0), ..), ..)) =
+                                    block.commands().get(block.commands().len() - 2)
+                                {
                                     is_absolute = true;
                                 }
                             }
 
                             // Jump immediate
                             for (b_index, b) in stack_blocks.iter().enumerate() {
-                                if let Some(((SuperPax::BranchTarget(bt), ..), ..)) = b.commands().last() {
+                                if let Some(((SuperPax::BranchTarget(bt), ..), ..)) =
+                                    b.commands().last()
+                                {
                                     if bt == target {
                                         // Invoke branch as though we jumped (nonzero).
                                         // b_index + 1 is the block following the BranchTarget we're jumping to.
@@ -1202,10 +1268,12 @@ pub fn cross_compile_forth_gb_real(program: Program) {
 
                     match op {
                         GbIr::Pop => {
-                            if let (Some(GbIr::Dup), Some(GbIr::ReplaceLiteral(_))) = (result.get(i), result.get(i + 1)) {
+                            if let (Some(GbIr::Dup), Some(GbIr::ReplaceLiteral(_))) =
+                                (result.get(i), result.get(i + 1))
+                            {
                                 eprintln!("optimizing [pop, dup, replace literal]");
                                 i -= 1;
-                                let _ = result.splice(i..i+2, vec![]);
+                                let _ = result.splice(i..i + 2, vec![]);
                                 continue;
                             }
                         }
@@ -1214,51 +1282,57 @@ pub fn cross_compile_forth_gb_real(program: Program) {
                             if let Some(GbIr::ReplaceLoad) = result.get(i) {
                                 eprintln!("optimizing [replace literal, replace load]");
                                 i -= 1;
-                                let _ = result.splice(i..i+2, vec![
-                                    GbIr::ReplaceLoadDirect(addr)
-                                ]);
+                                let _ =
+                                    result.splice(i..i + 2, vec![GbIr::ReplaceLoadDirect(addr)]);
                                 continue;
                             }
                         }
                         GbIr::CopyToDE => {
-                            if let (Some(GbIr::ReplaceLiteral(65535)), Some(GbIr::ReplaceNandWithDE)) = (result.get(i), result.get(i + 1)) {
+                            if let (
+                                Some(GbIr::ReplaceLiteral(65535)),
+                                Some(GbIr::ReplaceNandWithDE),
+                            ) = (result.get(i), result.get(i + 1))
+                            {
                                 eprintln!("optimizing [copy to de, replace literal -1, replace nand with de]");
                                 i -= 1;
-                                let _ = result.splice(i..i+3, vec![
-                                    GbIr::Invert
-                                ]);
+                                let _ = result.splice(i..i + 3, vec![GbIr::Invert]);
                                 continue;
                             }
 
-                            if let (Some(GbIr::ReplaceLiteral(1)), Some(GbIr::ReplaceAddWithDE)) = (result.get(i), result.get(i + 1)) {
+                            if let (Some(GbIr::ReplaceLiteral(1)), Some(GbIr::ReplaceAddWithDE)) =
+                                (result.get(i), result.get(i + 1))
+                            {
                                 eprintln!("optimizing [copy to de, replace literal 1, replace add with de]");
                                 i -= 1;
-                                let _ = result.splice(i..i+3, vec![
-                                    GbIr::Inc,
-                                ]);
+                                let _ = result.splice(i..i + 3, vec![GbIr::Inc]);
                                 continue;
                             }
 
-                            if let (Some(GbIr::Pop), Some(GbIr::JumpIfDEIs0(ref label1)), Some(GbIr::Label(ref label2))) = (result.get(i), result.get(i+1), result.get(i+2)) {
+                            if let (
+                                Some(GbIr::Pop),
+                                Some(GbIr::JumpIfDEIs0(ref label1)),
+                                Some(GbIr::Label(ref label2)),
+                            ) = (result.get(i), result.get(i + 1), result.get(i + 2))
+                            {
                                 if label1 == label2 {
                                     eprintln!("optimizing [copy to de, pop, jump to next label, next label]");
                                     i -= 1;
-                                    let _ = result.splice(i..i+4, vec![
-                                        GbIr::Pop,
-                                    ]);
+                                    let _ = result.splice(i..i + 4, vec![GbIr::Pop]);
                                 }
                             }
                         }
 
                         GbIr::Dup => {
-                            if let (Some(GbIr::ReplaceLiteral(value)), Some(GbIr::NipIntoDE)) = (result.get(i), result.get(i + 1)) {
+                            if let (Some(GbIr::ReplaceLiteral(value)), Some(GbIr::NipIntoDE)) =
+                                (result.get(i), result.get(i + 1))
+                            {
                                 let value = *value;
                                 eprintln!("optimizing [dup, replace literal, nip]");
                                 i -= 1;
-                                let _ = result.splice(i..i+3, vec![
-                                    GbIr::CopyToDE,
-                                    GbIr::ReplaceLiteral(value)
-                                ]);
+                                let _ = result.splice(
+                                    i..i + 3,
+                                    vec![GbIr::CopyToDE, GbIr::ReplaceLiteral(value)],
+                                );
                                 continue;
                             }
 
@@ -1286,13 +1360,13 @@ pub fn cross_compile_forth_gb_real(program: Program) {
         }
 
         /*
-        for (i, (op, pos)) in code.iter().enumerate() {
-            println!("
-    ; [pax_ir:{}] {:?}, file.fs:{}
-            ", i, op, pos);
+            for (i, (op, pos)) in code.iter().enumerate() {
+                println!("
+        ; [pax_ir:{}] {:?}, file.fs:{}
+                ", i, op, pos);
 
-            translate_to_gb(i, op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(g));
-        }
-        */
+                translate_to_gb(i, op.to_owned()).into_iter().for_each(|g| cross_compile_ir_gb(g));
+            }
+            */
     }
 }

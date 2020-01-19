@@ -17,14 +17,14 @@ fn main() {
         }
         let captures = re_check.captures(&contents).unwrap();
         let expected = captures[1].split_whitespace().collect::<Vec<_>>();
-        
+
         let cmd = Command::new("cargo")
             .arg("run")
             .arg("--")
             .arg(path)
             .output()
             .expect("failed to execute process");
-        
+
         let output = String::from_utf8_lossy(&cmd.stdout).trim().to_string();
         let found = output.split_whitespace().collect::<Vec<_>>();
         eprintln!("[forth] expected: {:?}", expected);

@@ -357,7 +357,10 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
                 }
             }
         }
-        functions = functions.into_iter().filter(|(k, _)| used.contains(k)).collect();
+        functions = functions
+            .into_iter()
+            .filter(|(k, _)| used.contains(k))
+            .collect();
     }
 
     functions

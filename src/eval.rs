@@ -1,9 +1,9 @@
 use crate::*;
-use std::io::prelude::*;
-use termion::{clear, cursor, style};
-use termion::raw::IntoRawMode;
-use termion::input::TermRead;
 use indexmap::IndexMap;
+use std::io::prelude::*;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
+use termion::{clear, cursor, style};
 
 pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
     // Compact into bytecode array (unnecessarily).
@@ -16,7 +16,7 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
     let mut alt_stack: Vec<u32> = vec![];
 
     // TODO could look up max variable allocation from compiled artifact.
-    let mut variables: Vec<u32> = vec![0; 1024*64];
+    let mut variables: Vec<u32> = vec![0; 1024 * 64];
 
     let mut use_graphics = false;
 
@@ -43,7 +43,7 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
         match op {
             Pax::BranchTarget => {
                 // noop
-            },
+            }
 
             Pax::PushLiteral(lit) => {
                 stack.push(lit as u32);
@@ -68,7 +68,7 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
                 variables[name as usize] = value;
 
                 if interactive {
-                    if name < 24*24 {
+                    if name < 24 * 24 {
                         eprintln!("[store] setting graphics var: {}", name as usize);
                         let x = name % 24;
                         let y = (name - x) / 24;
@@ -82,7 +82,15 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
                         }
                         // eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
                         let color = if value == 0 { "@" } else { "_" };
-                        write!(stdout, "{}{}{}{}", style::Reset, cursor::Goto(x as u16 + 1, y as u16 + 1), color, cursor::Goto(1, 25)).unwrap();
+                        write!(
+                            stdout,
+                            "{}{}{}{}",
+                            style::Reset,
+                            cursor::Goto(x as u16 + 1, y as u16 + 1),
+                            color,
+                            cursor::Goto(1, 25)
+                        )
+                        .unwrap();
                         eprintln!("[store] setting graphics var: {}", name as usize);
                         let _ = stdout.flush();
                     }
@@ -114,7 +122,9 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
             // call
             Pax::Call(target) => {
                 // Look up function globally.
-                let function_start = *function_map.get(&target).expect("couldnt determine function location");
+                let function_start = *function_map
+                    .get(&target)
+                    .expect("couldnt determine function location");
 
                 alt_stack.push(cindex as u32);
                 cindex = function_start as _;
@@ -138,7 +148,6 @@ pub fn eval_forth(program: Program, interactive: bool) -> Vec<u32> {
                     assert_eq!(code[cindex].0, Pax::BranchTarget);
                 }
             }
-
 
             Pax::Metadata(_) => {
                 // no-op

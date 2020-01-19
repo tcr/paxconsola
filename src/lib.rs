@@ -1,13 +1,13 @@
 pub mod compile;
-pub mod parse;
-pub mod ir;
 pub mod eval;
+pub mod ir;
 pub mod location;
+pub mod parse;
 pub mod tokenizer;
 
-pub use location::*;
-pub use ir::*;
 pub use compile::*;
-pub use parse::*;
 pub use eval::*;
+pub use ir::*;
+pub use location::*;
+pub use parse::*;
 pub use tokenizer::*;

@@ -18,10 +18,7 @@ impl Tokenizer {
     pub fn new(code: &str) -> Tokenizer {
         Tokenizer {
             code: code.to_string(),
-            pos: Pos {
-                line: 1,
-                col: 1,
-            }
+            pos: Pos { line: 1, col: 1 },
         }
     }
 
@@ -61,13 +58,12 @@ impl Iterator for Tokenizer {
                 self.move_forward(self.code.len() - cap[2].len());
 
                 if let Some(index) = cap[1].find("$") {
-                    return Some((Token::Literal(
-                        isize::from_str_radix(&cap[1][index + 1..], 16).unwrap(),
-                    ), pos_at));
+                    return Some((
+                        Token::Literal(isize::from_str_radix(&cap[1][index + 1..], 16).unwrap()),
+                        pos_at,
+                    ));
                 } else {
-                    return Some((Token::Literal(
-                        cap[1].parse::<isize>().unwrap(),
-                    ), pos_at));
+                    return Some((Token::Literal(cap[1].parse::<isize>().unwrap()), pos_at));
                 }
             }
             _ => {}

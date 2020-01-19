@@ -1,10 +1,10 @@
 #![allow(deprecated)]
 
-use std::io::prelude::*;
+use paxconsola::*;
 use std::fs::File;
+use std::io::prelude::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use paxconsola::*;
 
 const PRELUDE: &str = r"
 
@@ -80,14 +80,16 @@ struct Args {
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
     let mut file = File::open(&args.file).unwrap_or_else(|err| panic!("{}", err));
-    let mut buffer = Vec::with_capacity(file.metadata().map(|m|m.len()).unwrap_or(0) as usize);
-    file.read_to_end(&mut buffer).unwrap_or_else(|err| panic!("{}", err));
+    let mut buffer = Vec::with_capacity(file.metadata().map(|m| m.len()).unwrap_or(0) as usize);
+    file.read_to_end(&mut buffer)
+        .unwrap_or_else(|err| panic!("{}", err));
 
     let mut code = vec![];
     if !args.no_prelude {
         code.extend(PRELUDE.as_bytes());
-        if !args.compile && !args.dump { 
-            code.extend(r"
+        if !args.compile && !args.dump {
+            code.extend(
+                r"
 
 \ Positions synced with VM (for now)
 variable graphics 575 cells allot \ 0-575
@@ -96,7 +98,9 @@ variable random-register \ 577
 
 : random random-register @ swap % ;
 
-            ".as_bytes());
+            "
+                .as_bytes(),
+            );
         }
     }
     code.extend(&buffer);
