@@ -1078,6 +1078,11 @@ fn propagate_constants(program: Program) {
                         // println!("                    merged: {:?}", trunc2);
 
                         // FIXME propagate registers literal values from previous block into this one
+                        // create a rewrite map for all registers here on out.
+                        // replace all registers when printing with it.
+                        // more importantly use that register literal information for optimization targets.
+                        // make compatible with literal propagation over branches though.
+                        // then can be used to optimize whole functions.
 
                         truncated
                     } else {
