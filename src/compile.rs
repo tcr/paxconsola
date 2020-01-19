@@ -888,7 +888,7 @@ fn propagate_constants(program: Program) {
 
                 Pax::Exit => {}
                 Pax::Call(_) => {},
-                Pax::JumpIf0(target) => {
+                Pax::JumpIf0(_target) => {
                     stack.pop_data(false);
                 },
             }
@@ -900,7 +900,7 @@ fn propagate_constants(program: Program) {
             match op.0 {
                 Pax::Exit => stack.exit_block(),
                 Pax::Call(_) => stack.call_block(),
-                Pax::JumpIf0(target) => stack.jump_if_0_block(),
+                Pax::JumpIf0(_target) => stack.jump_if_0_block(),
                 _ => {},
             }
 
@@ -912,10 +912,10 @@ fn propagate_constants(program: Program) {
         for block in &stack.blocks {
             for op in block.commands() {
                 match op.0 {
-                    (SuperPax::BranchTarget(target), pos) => {
+                    (SuperPax::BranchTarget(target), _pos) => {
                         branch_targets.insert(target, op.1.clone());
                     },
-                    (SuperPax::Pax(Pax::JumpIf0(target)), pos) => {
+                    (SuperPax::Pax(Pax::JumpIf0(target)), _pos) => {
                         jump_targets.insert(target, op.1.clone());
                     },
                     _ => {},
@@ -950,7 +950,7 @@ fn propagate_constants(program: Program) {
                 let mut result = (command.0).0.clone();
 
                 match &result {
-                    SuperPax::LoadTemp(reg, next_reg) if reg_blacklist.contains(reg) => {
+                    SuperPax::LoadTemp(reg, _next_reg) if reg_blacklist.contains(reg) => {
                         return None;
                     }
                     SuperPax::AltPush(reg) if reg_blacklist.contains(reg) => {
@@ -977,7 +977,7 @@ fn propagate_constants(program: Program) {
                                 reg_blacklist.insert(target_reg.clone());
                                 result = SuperPax::PushLiteral(target_reg.clone(), *lit);
                             }
-                            SuperPax::LoadTemp(target_reg, next_reg) if reg == *target_reg => {
+                            SuperPax::LoadTemp(target_reg, _next_reg) if reg == *target_reg => {
                                 reg_blacklist.insert(target_reg.clone());
                                 result = SuperPax::PushLiteral(target_reg.clone(), *lit);
                             }
@@ -1072,7 +1072,7 @@ fn propagate_constants(program: Program) {
                     let truncated = if let Some(ref last) = previous_block {
                         // println!("merge? with previous block: {:?}", last);
                         // println!("                   current: {:?}", block.enter_stack());
-                        let mut truncated = last.clone().into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
+                        let truncated = last.clone().into_iter().rev().skip(block.enter_stack().len()).rev().collect::<DataRegs>();
                         let mut trunc2 = truncated.clone();
                         trunc2.extend(block.enter_stack());
                         // println!("                    merged: {:?}", trunc2);
@@ -1089,21 +1089,23 @@ fn propagate_constants(program: Program) {
                         vec![]
                     };
 
+                    // `truncated` is now our base stack and we can append all regsets to it.
+                    let rewrite_stack = |append_stack: &[String]| {
+                        let mut trunc2 = truncated.clone();
+                        trunc2.extend(append_stack.to_owned());
+                        trunc2
+                    };
+
                     // Print out all stacks and interleaving commands.
-                    {
-                        let mut trunc2 = truncated.clone();
-                        trunc2.extend(block.enter_stack());
-                        println!("    {:?}", trunc2);
-                    }
+                    println!("    {:?}", rewrite_stack(&block.enter_stack()));
                     for command in block.commands() {
-                        let mut trunc2 = truncated.clone();
-                        trunc2.extend(command.1.clone());
-                        println!("  {:?}\n    {:?}", (command.0).0, trunc2);
+                        println!("  {:?}\n    {:?}", (command.0).0, rewrite_stack(&command.1));
                     }
                     visited.insert(i);
 
+                    // Determine what the next block target is going to be.
                     match block.commands().last() {
-                        Some(((SuperPax::BranchTarget(target), ..), ..)) => {
+                        Some(((SuperPax::BranchTarget(_target), ..), ..)) => {
                             // Only stop if flag is passed in saying to stop.
                         }
                         Some(((SuperPax::Pax(Pax::JumpIf0(target)), ..), ..)) => {
@@ -1140,9 +1142,7 @@ fn propagate_constants(program: Program) {
                     }
 
                     i += 1;
-                    let mut trunc2 = truncated.clone();
-                    trunc2.extend(block.exit_stack().unwrap_or(vec![]));
-                    previous_block = Some(trunc2);
+                    previous_block = Some(rewrite_stack(&block.exit_stack().unwrap_or(vec![])));
                 }
                 println!("next cond.\n");
             }
@@ -1180,7 +1180,10 @@ fn propagate_constants(program: Program) {
 pub fn cross_compile_forth_gb(program: Program) {
     propagate_constants(program);
     std::process::exit(0);
+}
 
+// TODO
+pub fn cross_compile_forth_gb_real(program: Program) {
     for (_name, code) in program {
         let mut result = vec![];
         for (i, (op, _pos)) in code.iter().enumerate() {
