@@ -1128,6 +1128,8 @@ fn propagate_constants(program: Program) {
                     let truncated = if let Some(ref last) = previous_block {
                         // println!("merge? with previous block: {:?}", last);
                         // println!("                   current: {:?}", block.enter_stack());
+
+                        // Get the exit stack from the previous block and truncate it with the enter stack of this one.
                         let truncated = last
                             .clone()
                             .into_iter()
@@ -1137,6 +1139,7 @@ fn propagate_constants(program: Program) {
                             .collect::<DataRegs>();
                         let mut trunc2 = truncated.clone();
                         trunc2.extend(block.enter_stack());
+
                         // println!("                    merged: {:?}", trunc2);
 
                         // FIXME propagate registers literal values from previous block into this one
