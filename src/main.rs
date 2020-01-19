@@ -61,25 +61,56 @@ variable  temp \ 578
 #[derive(StructOpt, Debug)]
 #[structopt(name = "paxconsola")]
 struct Args {
-    #[structopt(short, long)]
-    compile: bool,
-
-    #[structopt(short, long)]
-    interactive: bool,
-
-    #[structopt(short, long)]
-    dump: bool,
+    #[structopt(subcommand)] // Note that we mark a field as a subcommand
+    cmd: Command,
 
     #[structopt(long = "--no-prelude")]
     no_prelude: bool,
+}
 
+#[derive(StructOpt, Debug)]
+enum Command {
+    Compile {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+
+    Optimize {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+
+    Run {
+        #[structopt(short, long)]
+        interactive: bool,
+
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+
+    Dump {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+}
+
+#[derive(StructOpt, Debug)]
+struct FileOpts {
     #[structopt(name = "FILE", parse(from_os_str))]
     file: PathBuf,
 }
 
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
-    let mut file = File::open(&args.file).unwrap_or_else(|err| panic!("{}", err));
+    // Extract file
+    let arg_file = match &args.cmd {
+        Command::Compile { file, .. } => file.file.to_owned(),
+        Command::Optimize { file, .. } => file.file.to_owned(),
+        Command::Dump { file, .. } => file.file.to_owned(),
+        Command::Run { file, .. } => file.file.to_owned(),
+    };
+
+    let mut file = File::open(&arg_file).unwrap_or_else(|err| panic!("{}", err));
     let mut buffer = Vec::with_capacity(file.metadata().map(|m| m.len()).unwrap_or(0) as usize);
     file.read_to_end(&mut buffer)
         .unwrap_or_else(|err| panic!("{}", err));
@@ -87,7 +118,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     let mut code = vec![];
     if !args.no_prelude {
         code.extend(PRELUDE.as_bytes());
-        if !args.compile && !args.dump {
+        if let Command::Run { .. } = args.cmd {
             code.extend(
                 r"
 
@@ -106,21 +137,26 @@ variable random-register \ 577
     code.extend(&buffer);
     let script = parse_forth(code);
 
-    if args.compile {
-        cross_compile_forth_gb(script);
-    } else {
-        if args.dump {
+    match args.cmd {
+        Command::Compile { .. } => {
+            cross_compile_forth_gb(script);
+        }
+        Command::Optimize { .. } => {
+            optimize_forth(script);
+        }
+        Command::Dump { .. } => {
             for (name, code) in script {
                 println!("{:?}:", name);
                 for (i, (op, pos)) in code.iter().enumerate() {
                     println!("[{:>3}]  {:?}", i, op);
-                    println!("       ; {}:{}", args.file.to_string_lossy(), pos);
+                    println!("       ; {}:{}", arg_file.to_string_lossy(), pos);
                     println!();
                 }
                 println!();
             }
-        } else {
-            eval_forth(script, args.interactive);
+        }
+        Command::Run { interactive, .. } => {
+            eval_forth(script, interactive);
         }
     }
 
