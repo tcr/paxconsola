@@ -691,13 +691,24 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>, registers: &Stac
         eprintln!("block[{:?}]", block);
         let (_commands, blacklist) = propagate_literals_in_block(&blocks[block], registers);
         eprintln!("    blacklist {:?}", blacklist);
-        block_blacklist.insert(block, blacklist);
+        block_blacklist.insert(block, blacklist.clone());
+
+        if !blacklist.is_empty() {
+            for ((command, ..), ..) in blocks[block].commands() {
+                eprintln!("        command: {:?}", command);
+            }
+            eprintln!("    vs:");
+            for command in _commands {
+                eprintln!("        command: {:?}", command);
+            }
+        }
     }
 }
 
 fn dump_blocks(blocks: &[Block]) {
     for (i, block) in blocks.iter().enumerate() {
         println!("block[{}]", i);
+        eprintln!("                        data: {:?}", block.enter_stack());
         for command in block.commands() {
             eprintln!("    {:?}:", (command.0).0,);
             eprintln!("                        data: {:?}", command.1,);
@@ -715,6 +726,8 @@ fn dump_blocks(blocks: &[Block]) {
 pub fn optimize_forth(program: Program) {
     let mut block_analysis = analyze_blocks(program);
     if let Some((blocks, ref mut registers)) = block_analysis.get_mut("main") {
+        dump_blocks(&blocks);
+
         let graph = dataflow_graph(blocks.clone());
         connect_blocks(&graph, &blocks, registers);
 
@@ -728,7 +741,5 @@ pub fn optimize_forth(program: Program) {
         // println!();
 
         propagate_literals(&blocks, &graph, &*registers);
-
-        // dump_blocks(&block);
     }
 }
