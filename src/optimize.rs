@@ -287,7 +287,7 @@ fn analyze_block(block: &Block, reg_start: usize) -> Vec<StackState> {
             Self {
                 reg_index,
                 state: StackState::new(),
-                record: vec![],
+                record: vec![StackState::new()],
             }
         }
 
@@ -685,7 +685,10 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>, registers: &Stac
     for block_index in seq {
         let result = analyze_block(&blocks[block_index], 0);
         eprintln!("block[{}]", block_index);
-        for ((ref command, ..), ref state) in blocks[block_index].commands().iter().zip(result) {
+        eprintln!("        {:?}", &result[0]);
+        for ((ref command, ..), ref state) in
+            blocks[block_index].commands().iter().zip(&result[1..])
+        {
             eprintln!("  {:?}", command);
             eprintln!("        {:?}", state.data);
         }
