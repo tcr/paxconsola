@@ -2,7 +2,49 @@
 
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
-use petgraph::graph::Graph;
+use petgraph::graph::{Graph, NodeIndex};
+use petgraph::Direction;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+
+// Extends the regular Pax IR with some simple opcodes that
+// are more practical for refactoring—might be worth formalizing
+// since they're just supersets of lower protocol, or not
+#[derive(Debug, PartialEq, Clone)]
+pub enum SuperPax {
+    Drop,
+
+    BranchTarget(usize),
+
+    // PushLiteral(temp reg pushed to stack, value)
+    PushLiteral(isize),
+
+    AltPop,
+    AltPush,
+    LoadTemp,
+    StoreTemp,
+
+    // Pax ports
+    Metadata(String),
+    Exit,
+
+    Call(String),
+
+    Add,
+    Nand,
+
+    Load,
+    Load8,
+    Store8,
+    Store,
+
+    JumpIf0(usize),
+
+    // pax debug
+    Print,
+}
+
+pub type SuperSpan = Vec<Located<SuperPax>>;
 
 // FIXME TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
@@ -20,7 +62,6 @@ pub type RegList = Vec<Reg>;
 
 #[derive(Debug, Clone)]
 pub enum Block {
-    // (Vec of dataflow analyzed/position-based commands, data stack registers, global registers analysis.)
     ExitBlock(SuperSpan),
     JumpIf0Block(SuperSpan),
     BranchTargetBlock(SuperSpan),
@@ -109,45 +150,6 @@ impl StackGroup {
         self.current_block = vec![];
     }
 }
-
-// Extends the regular Pax IR with some simple opcodes that
-// are more practical for refactoring—might be worth formalizing
-// since they're just supersets of lower protocol, or not
-#[derive(Debug, PartialEq, Clone)]
-pub enum SuperPax {
-    Drop,
-
-    BranchTarget(usize),
-
-    // PushLiteral(temp reg pushed to stack, value)
-    PushLiteral(isize),
-
-    AltPop,
-    AltPush,
-    LoadTemp,
-    StoreTemp,
-
-    // Pax ports
-    Metadata(String),
-    Exit,
-
-    Call(String),
-
-    Add,
-    Nand,
-
-    Load,
-    Load8,
-    Store8,
-    Store,
-
-    JumpIf0(usize),
-
-    // pax debug
-    Print,
-}
-
-pub type SuperSpan = Vec<Located<SuperPax>>;
 
 fn analyze_blocks(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> {
     let mut program_stacks = IndexMap::new();
@@ -275,117 +277,126 @@ impl StackState {
     }
 }
 
-fn analyze_block(block: &Block, reg_start: usize) -> Vec<StackState> {
-    struct Analysis {
-        reg_index: usize,
-        state: StackState,
-        record: Vec<StackState>,
-    }
+#[derive(Clone, Debug)]
+struct Analysis {
+    reg_index: Arc<AtomicUsize>,
+    state: StackState,
+    record: Vec<StackState>,
+}
 
-    impl Analysis {
-        fn new(reg_index: usize) -> Self {
-            Self {
-                reg_index,
-                state: StackState::new(),
-                record: vec![StackState::new()],
-            }
-        }
-
-        fn result(self) -> Vec<StackState> {
-            self.record
-        }
-
-        // Push or inject new var reg.
-
-        fn push_data(&mut self, reg: Option<Reg>) -> Reg {
-            let reg = reg.unwrap_or_else(|| self.new_var());
-            self.state.data.push(reg.clone());
-            reg
-        }
-
-        fn push_return(&mut self, reg: Option<Reg>) -> Reg {
-            let reg = reg.unwrap_or_else(|| self.new_var());
-            self.state.ret.push(reg.clone());
-            reg
-        }
-
-        // Pop or inject with data/ret regs
-
-        fn pop_data(&mut self) -> Reg {
-            if let Some(reg) = self.state.data.pop() {
-                reg
-            } else {
-                // Inject new register.
-                let dropped_reg = self.new_data();
-                for prev_state in &mut self.record {
-                    prev_state.data.insert(0, dropped_reg.clone());
-                }
-                dropped_reg
-            }
-        }
-
-        fn pop_return(&mut self) -> Reg {
-            if let Some(reg) = self.state.ret.pop() {
-                reg
-            } else {
-                // Inject new register.
-                let dropped_reg = self.new_ret();
-                for prev_state in &mut self.record {
-                    prev_state.ret.insert(0, dropped_reg.clone());
-                }
-                dropped_reg
-            }
-        }
-
-        fn temp_store(&mut self, reg: Reg) {
-            self.state.temp = Some(reg);
-        }
-
-        fn temp_load(&mut self) -> Reg {
-            let reg = self.state.temp.clone().expect("no temp var to load!");
-            self.state.temp = Some(self.new_temp());
-            reg
-        }
-
-        // Register constructors.
-
-        fn new_data(&mut self) -> Reg {
-            let reg = format!("D{}", self.reg_index);
-            self.reg_index += 1;
-            reg
-        }
-
-        fn new_literal(&mut self) -> Reg {
-            let reg = format!("L{}", self.reg_index);
-            self.reg_index += 1;
-            reg
-        }
-
-        fn new_temp(&mut self) -> Reg {
-            let reg = format!("T{}", self.reg_index);
-            self.reg_index += 1;
-            reg
-        }
-
-        fn new_ret(&mut self) -> Reg {
-            let reg = format!("R{}", self.reg_index);
-            self.reg_index += 1;
-            reg
-        }
-
-        fn new_var(&mut self) -> Reg {
-            let reg = format!("V{}", self.reg_index);
-            self.reg_index += 1;
-            reg
-        }
-
-        fn record_state(&mut self) {
-            self.record.push(self.state.clone());
+impl Analysis {
+    fn from_index(reg_index: Arc<AtomicUsize>) -> Self {
+        Self {
+            reg_index,
+            state: StackState::new(),
+            record: vec![StackState::new()],
         }
     }
 
-    let mut analysis = Analysis::new(reg_start);
+    fn from_previous(previous: &Analysis) -> Self {
+        Self {
+            reg_index: previous.reg_index.clone(),
+            state: previous.exit_state(),
+            record: vec![previous.exit_state()],
+        }
+    }
 
+    fn new() -> Self {
+        Self {
+            reg_index: Arc::new(AtomicUsize::new(0)),
+            state: StackState::new(),
+            record: vec![StackState::new()],
+        }
+    }
+
+    fn result(&self) -> Vec<StackState> {
+        self.record.clone()
+    }
+
+    fn exit_state(&self) -> StackState {
+        self.record.last().unwrap().clone()
+    }
+
+    // Push or inject new var reg.
+
+    fn push_data(&mut self, reg: Option<Reg>) -> Reg {
+        let reg = reg.unwrap_or_else(|| self.new_var());
+        self.state.data.push(reg.clone());
+        reg
+    }
+
+    fn push_return(&mut self, reg: Option<Reg>) -> Reg {
+        let reg = reg.unwrap_or_else(|| self.new_var());
+        self.state.ret.push(reg.clone());
+        reg
+    }
+
+    // Pop or inject with data/ret regs
+
+    fn pop_data(&mut self) -> Reg {
+        if let Some(reg) = self.state.data.pop() {
+            reg
+        } else {
+            // Inject new register.
+            let dropped_reg = self.new_data();
+            for prev_state in &mut self.record {
+                prev_state.data.insert(0, dropped_reg.clone());
+            }
+            dropped_reg
+        }
+    }
+
+    fn pop_return(&mut self) -> Reg {
+        if let Some(reg) = self.state.ret.pop() {
+            reg
+        } else {
+            // Inject new register.
+            let dropped_reg = self.new_ret();
+            for prev_state in &mut self.record {
+                prev_state.ret.insert(0, dropped_reg.clone());
+            }
+            dropped_reg
+        }
+    }
+
+    fn temp_store(&mut self, reg: Reg) {
+        self.state.temp = Some(reg);
+    }
+
+    fn temp_load(&mut self) -> Reg {
+        let reg = self.state.temp.clone().expect("no temp var to load!");
+        self.state.temp = Some(self.new_temp());
+        reg
+    }
+
+    // Register constructors.
+
+    fn new_data(&mut self) -> Reg {
+        format!("D{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    }
+
+    fn new_literal(&mut self) -> Reg {
+        format!("L{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    }
+
+    fn new_temp(&mut self) -> Reg {
+        format!("T{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    }
+
+    fn new_ret(&mut self) -> Reg {
+        format!("R{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    }
+
+    fn new_var(&mut self) -> Reg {
+        format!("V{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    }
+
+    fn record_state(&mut self) {
+        self.record.push(self.state.clone());
+    }
+}
+
+fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
     for command in block.commands() {
         use SuperPax::*;
         match (command.0).clone() {
@@ -424,7 +435,8 @@ fn analyze_block(block: &Block, reg_start: usize) -> Vec<StackState> {
             }
 
             LoadTemp => {
-                analysis.temp_load();
+                let reg = analysis.temp_load();
+                analysis.push_data(Some(reg));
             }
 
             StoreTemp => {
@@ -444,7 +456,7 @@ fn analyze_block(block: &Block, reg_start: usize) -> Vec<StackState> {
         analysis.record_state();
     }
 
-    analysis.result()
+    analysis
 }
 
 /// Composes blocks together into a graph.
@@ -671,7 +683,7 @@ fn propagate_literals_in_block(
 }
 */
 
-fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>, registers: &StackMap) {
+fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>) {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
     let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
@@ -682,17 +694,54 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>, registers: &Stac
 
     eprintln!();
     eprintln!("ANALYZE");
-    for block_index in seq {
-        let result = analyze_block(&blocks[block_index], 0);
+    let mut analyses = IndexMap::<usize, Analysis>::new();
+    let mut reg_index = Arc::new(AtomicUsize::new(0));
+    for block_index in seq.clone() {
+        let mut incoming = graph
+            .neighbors_directed(NodeIndex::new(block_index), Direction::Incoming)
+            .map(|idx| idx.index() as usize)
+            .collect::<Vec<_>>();
+        incoming.sort();
+
+        let next_analysis = if incoming.len() == 0 {
+            Analysis::from_index(reg_index.clone())
+        } else if incoming
+            .iter()
+            .find(|x| analyses.get(*x).is_none())
+            .is_some()
+        {
+            // Missing a previous analysis means we might be in a loop.
+            eprintln!();
+            eprintln!("block[{}] loop start.", block_index);
+            Analysis::from_index(reg_index.clone())
+        } else if incoming.len() > 1 {
+            // Having two previous analysis means we joined from a branch.
+            eprintln!();
+            eprintln!("block[{}] joining from branch.", block_index);
+            Analysis::from_index(reg_index.clone())
+        } else {
+            // Pick the first analysis.
+            Analysis::from_previous(analyses.get(&incoming[0]).unwrap())
+        };
+
+        let analysis = analyze_block(&blocks[block_index], next_analysis);
+        analyses.insert(block_index, analysis.clone());
         eprintln!("block[{}]", block_index);
-        eprintln!("        {:?}", &result[0]);
+
+        let result = analysis.result();
+        eprintln!("        {:?}", &result[0].data);
         for ((ref command, ..), ref state) in
             blocks[block_index].commands().iter().zip(&result[1..])
         {
             eprintln!("  {:?}", command);
             eprintln!("        {:?}", state.data);
         }
+
+        // Store the analysis.
+        analyses.insert(block_index, analysis);
     }
+    eprintln!();
+    eprintln!();
 
     // Iterate block sequence in perform constant propagation.
     // seq.reverse();
@@ -700,19 +749,19 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>, registers: &Stac
     // let mut block_blacklist = IndexMap::new();
     // for block in seq {
     //     eprintln!("block[{:?}]", block);
-    //     let (_commands, blacklist) = propagate_literals_in_block(&blocks[block], registers);
-    //     eprintln!("    blacklist {:?}", blacklist);
-    //     block_blacklist.insert(block, blacklist.clone());
+    //     // let (_commands, blacklist) = propagate_literals_in_block(&blocks[block], registers);
+    //     // eprintln!("    blacklist {:?}", blacklist);
+    //     // block_blacklist.insert(block, blacklist.clone());
 
-    //     if !blacklist.is_empty() {
-    //         for ((command, ..), ..) in blocks[block].commands() {
-    //             eprintln!("        command: {:?}", command);
-    //         }
-    //         eprintln!("    vs:");
-    //         for command in _commands {
-    //             eprintln!("        command: {:?}", command);
-    //         }
+    //     // if !blacklist.is_empty() {
+    //     for (command, ..) in blocks[block].commands() {
+    //         eprintln!("        command: {:?}", command);
     //     }
+    //     // eprintln!("    vs:");
+    //     // for command in _commands {
+    //     //     eprintln!("        command: {:?}", command);
+    //     // }
+    //     // }
     // }
 }
 
@@ -736,7 +785,7 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>, registers: &Stac
 
 pub fn optimize_forth(program: Program) {
     let mut block_analysis = analyze_blocks(program);
-    if let Some((blocks, ref mut registers)) = block_analysis.get_mut("main") {
+    if let Some((blocks, _)) = block_analysis.get_mut("main") {
         // dump_blocks(&blocks);
 
         let graph = dataflow_graph(blocks.clone());
@@ -751,6 +800,6 @@ pub fn optimize_forth(program: Program) {
         // println!();
         // println!();
 
-        propagate_literals(&blocks, &graph, &*registers);
+        propagate_literals(&blocks, &graph);
     }
 }
