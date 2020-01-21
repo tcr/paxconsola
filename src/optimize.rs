@@ -814,7 +814,10 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
         for (i, state) in result.iter().enumerate() {
             eprintln!("        data: {:?}", state.data);
             eprintln!("        retn: {:?}", state.ret);
-            eprintln!("        temp: {:?}", state.temp.unwrap_or("".to_string()));
+            eprintln!(
+                "        temp: {:?}",
+                state.temp.clone().unwrap_or("".to_string())
+            );
             if let Some(command) = commands.get(i) {
                 eprintln!("  {:?}", command.0);
             }
