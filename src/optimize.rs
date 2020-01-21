@@ -327,19 +327,18 @@ impl Analysis {
         let prev_state = previous.exit_state();
 
         let mut enter_state = prev_state.clone();
-        enter_state
-            .data
-            .iter_mut()
+        enter_state.data.iter_mut().for_each(|d| {
             // FIXME this is a hack for testing, and shouldn't be committed:
-            .skip_while(|d| *d == "L0")
-            .for_each(|d| {
+            if *d != "L0" && *d != "L1" {
                 *d = previous.registers.borrow_mut().allocate("D", None);
-            });
-        enter_state.ret = enter_state
-            .ret
-            .iter()
-            .map(|_| previous.registers.borrow_mut().allocate("R", None))
-            .collect();
+            }
+        });
+        enter_state.ret.iter_mut().for_each(|d| {
+            // FIXME this is a hack for testing, and shouldn't be committed:
+            if *d != "L1" {
+                *d = previous.registers.borrow_mut().allocate("R", None);
+            }
+        });
         enter_state.temp = None;
 
         Self {
@@ -686,9 +685,8 @@ fn propagate_literals_in_block(
     block: &Block,
     analysis: &Analysis,
     registers: SharedRegFile,
-) -> (SuperSpan, IndexSet<String>) {
-    let mut reg_blacklist = IndexSet::new();
-
+    reg_blacklist: &mut IndexSet<Reg>,
+) -> SuperSpan {
     let new_commands = block
         .commands()
         .iter()
@@ -707,9 +705,12 @@ fn propagate_literals_in_block(
                         return None;
                     }
                 }
-                // SuperPax::AltPush(_) if reg_blacklist.contains(reg) => {
-                //     return None;
-                // }
+                SuperPax::AltPush => {
+                    let reg = next_stack.as_ref().unwrap().ret.last().unwrap();
+                    if reg_blacklist.contains(&*reg) {
+                        return None;
+                    }
+                }
                 SuperPax::StoreTemp => {
                     let reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
                     if reg_blacklist.contains(&*reg) {
@@ -744,7 +745,7 @@ fn propagate_literals_in_block(
         .rev()
         .collect::<Vec<_>>();
 
-    (new_commands, reg_blacklist)
+    new_commands
 }
 
 fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
@@ -839,7 +840,10 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
     // TODO break this out into a const prop method
 
     {
-        eprintln!("program: no optimization");
+        eprintln!(
+            "program: {} commands (unmodified)",
+            blocks.iter().map(|x| x.commands().len()).sum::<usize>()
+        );
         for (block_index, block) in blocks.iter().enumerate() {
             eprintln!("  block[{}]", block_index);
 
@@ -847,13 +851,21 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
                 eprintln!("    {:?}", command.0);
             }
         }
+        eprintln!();
+        eprintln!();
 
         let mut blocks = blocks.to_owned();
+        let mut reg_blacklist = IndexSet::new();
         eprintln!("propagate:");
-        for (i, ref mut block) in blocks.iter_mut().enumerate() {
+        for i in seq.clone().into_iter().rev() {
+            let block = &mut blocks[i];
             if let Some(analysis) = analyses.get(&i) {
-                let (new_commands, reg_blacklist) =
-                    propagate_literals_in_block(&block, analysis, registers.clone());
+                let new_commands = propagate_literals_in_block(
+                    &block,
+                    analysis,
+                    registers.clone(),
+                    &mut reg_blacklist,
+                );
                 eprintln!("block[{}]:", i);
                 eprintln!("    literals: {:?}", reg_blacklist);
                 *block.commands_mut() = new_commands;
@@ -862,7 +874,10 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
         eprintln!();
         eprintln!();
 
-        eprintln!("program: optimized");
+        eprintln!(
+            "program: {} commands (optimized)",
+            blocks.iter().map(|x| x.commands().len()).sum::<usize>()
+        );
         for (block_index, block) in blocks.iter().enumerate() {
             eprintln!("  block[{}]", block_index);
 
