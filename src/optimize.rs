@@ -327,15 +327,15 @@ impl Analysis {
         let prev_state = previous.exit_state();
 
         let mut enter_state = prev_state.clone();
+        // FIXME this is a hack for testing, and shouldn't be committed:
+        let exempt = vec!["L0", "L1", "V8", "V10"];
         enter_state.data.iter_mut().for_each(|d| {
-            // FIXME this is a hack for testing, and shouldn't be committed:
-            if *d != "L0" && *d != "L1" {
+            if !exempt.contains(d) {
                 *d = previous.registers.borrow_mut().allocate("D", None);
             }
         });
         enter_state.ret.iter_mut().for_each(|d| {
-            // FIXME this is a hack for testing, and shouldn't be committed:
-            if *d != "L1" {
+            if !exempt.contains(d) {
                 *d = previous.registers.borrow_mut().allocate("R", None);
             }
         });
