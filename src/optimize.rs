@@ -327,11 +327,14 @@ impl Analysis {
         let prev_state = previous.exit_state();
 
         let mut enter_state = prev_state.clone();
-        enter_state.data = enter_state
+        enter_state
             .data
-            .iter()
-            .map(|_| previous.registers.borrow_mut().allocate("D", None))
-            .collect();
+            .iter_mut()
+            // FIXME this is a hack for testing, and shouldn't be committed:
+            .skip_while(|d| *d == "L0")
+            .for_each(|d| {
+                *d = previous.registers.borrow_mut().allocate("D", None);
+            });
         enter_state.ret = enter_state
             .ret
             .iter()
