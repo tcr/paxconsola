@@ -401,7 +401,13 @@ impl Analysis {
 
     fn temp_load(&mut self) -> Reg {
         let reg = self.state.temp.clone().expect("no temp var to load!");
-        self.state.temp = Some(self.new_temp());
+        let literal = self
+            .registers
+            .borrow()
+            .registers
+            .get(&reg)
+            .and_then(|x| x.literal.clone());
+        self.state.temp = Some(self.new_temp(literal));
         reg
     }
 
@@ -429,8 +435,8 @@ impl Analysis {
         self.registers.borrow_mut().allocate("L", Some(value))
     }
 
-    fn new_temp(&mut self) -> Reg {
-        self.registers.borrow_mut().allocate("T", None)
+    fn new_temp(&mut self, value: Option<isize>) -> Reg {
+        self.registers.borrow_mut().allocate("T", value)
     }
 
     fn new_var(&mut self) -> Reg {
@@ -459,19 +465,19 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
                 let a = analysis.pop_data();
                 let b = analysis.pop_data();
 
-                // if let Some(RegMeta {
-                //     literal: Some(a_value),
-                //     ..
-                // }) = analysis.registers.borrow().registers.get(&a)
-                // {
-                //     if let Some(RegMeta {
-                //         literal: Some(b_value),
-                //         ..
-                //     }) = analysis.registers.borrow().registers.get(&b)
-                //     {
-                //         panic!("opt: A={}={:?} B={}={:?}", a, a_value, b, b_value);
-                //     }
-                // }
+                if let Some(RegMeta {
+                    literal: Some(a_value),
+                    ..
+                }) = analysis.registers.borrow().registers.get(&a)
+                {
+                    if let Some(RegMeta {
+                        literal: Some(b_value),
+                        ..
+                    }) = analysis.registers.borrow().registers.get(&b)
+                    {
+                        panic!("opt: A={}={:?} B={}={:?}", a, a_value, b, b_value);
+                    }
+                }
 
                 let reg = analysis.new_var();
                 analysis.push_data(reg);
@@ -724,7 +730,7 @@ fn propagate_literals_in_block(
                     literal: Some(lit), ..
                 }) = registers.borrow().registers.get(target_reg)
                 {
-                    eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
+                    // eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
                     reg_blacklist.insert(target_reg.clone());
                     return Some((SuperPax::PushLiteral(*lit), input_command.1));
                 }
@@ -806,7 +812,9 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
         let result = analysis.result();
         let commands = blocks[block_index].commands();
         for (i, state) in result.iter().enumerate() {
-            eprintln!("        {:?}", state.data);
+            eprintln!("        data: {:?}", state.data);
+            eprintln!("        retn: {:?}", state.ret);
+            eprintln!("        temp: {:?}", state.temp);
             if let Some(command) = commands.get(i) {
                 eprintln!("  {:?}", command.0);
             }
@@ -828,8 +836,8 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
     // TODO break this out into a const prop method
 
     {
+        eprintln!("program: no optimization");
         for (block_index, block) in blocks.iter().enumerate() {
-            eprintln!("program: no optimization");
             eprintln!("  block[{}]", block_index);
 
             for command in blocks[block_index].commands() {
@@ -851,8 +859,8 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
         eprintln!();
         eprintln!();
 
+        eprintln!("program: optimized");
         for (block_index, block) in blocks.iter().enumerate() {
-            eprintln!("program: optimized");
             eprintln!("  block[{}]", block_index);
 
             for command in blocks[block_index].commands() {

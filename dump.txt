@@ -1,0 +1,411 @@
+warning: unused variable: `a`
+   --> src/optimize.rs:459:21
+    |
+459 |                 let a = analysis.pop_data();
+    |                     ^ help: consider prefixing with an underscore: `_a`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `b`
+   --> src/optimize.rs:460:21
+    |
+460 |                 let b = analysis.pop_data();
+    |                     ^ help: consider prefixing with an underscore: `_b`
+
+warning: unused variable: `target`
+   --> src/optimize.rs:507:26
+    |
+507 |             BranchTarget(target) => {}
+    |                          ^^^^^^ help: consider prefixing with an underscore: `_target`
+
+warning: unused variable: `block`
+   --> src/optimize.rs:831:27
+    |
+831 |         for (block_index, block) in blocks.iter().enumerate() {
+    |                           ^^^^^ help: consider prefixing with an underscore: `_block`
+
+warning: unused variable: `block`
+   --> src/optimize.rs:854:27
+    |
+854 |         for (block_index, block) in blocks.iter().enumerate() {
+    |                           ^^^^^ help: consider prefixing with an underscore: `_block`
+
+warning: variable does not need to be mutable
+   --> src/optimize.rs:693:17
+    |
+693 |             let mut command = (input_command.0).clone();
+    |                 ----^^^^^^^
+    |                 |
+    |                 help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+    Finished dev [unoptimized + debuginfo] target(s) in 0.06s
+     Running `target/debug/paxconsola optimize examples/constprop.fs`
+
+[[[[[ANALYZE]]]]]]
+block[0]
+        []
+  PushLiteral(14)
+        ["L0"]
+  PushLiteral(3)
+        ["L0", "L1"]
+  AltPush
+        ["L0"]
+  PushLiteral(0)
+        ["L0", "L2"]
+  AltPop
+        ["L0", "L2", "L1"]
+  PushLiteral(0)
+        ["L0", "L2", "L1", "L3"]
+  AltPush
+        ["L0", "L2", "L1"]
+  AltPush
+        ["L0", "L2"]
+  BranchTarget(8)
+        ["L0", "L2"]
+
+block[1] loop start.
+block[1]
+        ["L0", "D4"]
+  AltPush
+        ["L0"]
+  StoreTemp
+        []
+  LoadTemp
+        ["L0"]
+  AltPop
+        ["L0", "D4"]
+  LoadTemp
+        ["L0", "D4", "T7"]
+  Add
+        ["L0", "V9"]
+  AltPop
+        ["L0", "V9", "R6"]
+  AltPop
+        ["L0", "V9", "R6", "R5"]
+  PushLiteral(1)
+        ["L0", "V9", "R6", "R5", "L10"]
+  Add
+        ["L0", "V9", "R6", "V11"]
+  AltPush
+        ["L0", "V9", "R6"]
+  StoreTemp
+        ["L0", "V9"]
+  LoadTemp
+        ["L0", "V9", "R6"]
+  AltPop
+        ["L0", "V9", "R6", "V11"]
+  LoadTemp
+        ["L0", "V9", "R6", "V11", "T12"]
+  AltPush
+        ["L0", "V9", "R6", "V11"]
+  StoreTemp
+        ["L0", "V9", "R6"]
+  LoadTemp
+        ["L0", "V9", "R6", "V11"]
+  AltPop
+        ["L0", "V9", "R6", "V11", "T12"]
+  LoadTemp
+        ["L0", "V9", "R6", "V11", "T12", "T14"]
+  PushLiteral(-1)
+        ["L0", "V9", "R6", "V11", "T12", "T14", "L16"]
+  Nand
+        ["L0", "V9", "R6", "V11", "T12", "V17"]
+  PushLiteral(1)
+        ["L0", "V9", "R6", "V11", "T12", "V17", "L18"]
+  Add
+        ["L0", "V9", "R6", "V11", "T12", "V19"]
+  Add
+        ["L0", "V9", "R6", "V11", "V20"]
+  JumpIf0(47)
+        ["L0", "V9", "R6", "V11"]
+block[2]
+        ["L0", "V9", "R6", "V11"]
+  PushLiteral(0)
+        ["L0", "V9", "R6", "V11", "L21"]
+  PushLiteral(0)
+        ["L0", "V9", "R6", "V11", "L21", "L22"]
+  JumpIf0(49)
+        ["L0", "V9", "R6", "V11", "L21"]
+block[4]
+        ["L0", "V9", "R6", "V11"]
+  PushLiteral(-1)
+        ["L0", "V9", "R6", "V11", "L23"]
+  BranchTarget(49)
+        ["L0", "V9", "R6", "V11", "L23"]
+
+block[5] joining from branch.
+block[5]
+        ["L0", "D24", "D25", "D26", "D27"]
+  JumpIf0(57)
+        ["L0", "D24", "D25", "D26"]
+block[6]
+        ["L0", "D24", "D25", "D26"]
+  Add
+        ["L0", "D24", "V28"]
+  Drop
+        ["L0", "D24"]
+  PushLiteral(1)
+        ["L0", "D24", "L29"]
+  PushLiteral(0)
+        ["L0", "D24", "L29", "L30"]
+  JumpIf0(61)
+        ["L0", "D24", "L29"]
+block[8]
+        ["L0", "D24", "D25", "D26"]
+  AltPush
+        ["L0", "D24", "D25"]
+  AltPush
+        ["L0", "D24"]
+  PushLiteral(0)
+        ["L0", "D24", "L31"]
+  BranchTarget(61)
+        ["L0", "D24", "L31"]
+
+block[9] joining from branch.
+block[9]
+        ["L0", "D32", "D33"]
+  JumpIf0(8)
+        ["L0", "D32"]
+block[10]
+        ["L0", "D32"]
+  AltPush
+        ["L0"]
+  StoreTemp
+        []
+  AltPop
+        ["D32"]
+  LoadTemp
+        ["D32", "L0"]
+  Drop
+        ["D32"]
+  Print
+        []
+  Exit
+        []
+
+
+registers:
+  L0: RegMeta { literal: Some(14) }
+  L1: RegMeta { literal: Some(3) }
+  L2: RegMeta { literal: Some(0) }
+  L3: RegMeta { literal: Some(0) }
+  D4: RegMeta { literal: None }
+  R5: RegMeta { literal: None }
+  R6: RegMeta { literal: None }
+  T7: RegMeta { literal: None }
+  T8: RegMeta { literal: None }
+  V9: RegMeta { literal: None }
+  L10: RegMeta { literal: Some(1) }
+  V11: RegMeta { literal: None }
+  T12: RegMeta { literal: None }
+  T13: RegMeta { literal: None }
+  T14: RegMeta { literal: None }
+  T15: RegMeta { literal: None }
+  L16: RegMeta { literal: Some(-1) }
+  V17: RegMeta { literal: None }
+  L18: RegMeta { literal: Some(1) }
+  V19: RegMeta { literal: None }
+  V20: RegMeta { literal: None }
+  L21: RegMeta { literal: Some(0) }
+  L22: RegMeta { literal: Some(0) }
+  L23: RegMeta { literal: Some(-1) }
+  D24: RegMeta { literal: None }
+  D25: RegMeta { literal: None }
+  D26: RegMeta { literal: None }
+  D27: RegMeta { literal: None }
+  V28: RegMeta { literal: None }
+  L29: RegMeta { literal: Some(1) }
+  L30: RegMeta { literal: Some(0) }
+  L31: RegMeta { literal: Some(0) }
+  D32: RegMeta { literal: None }
+  D33: RegMeta { literal: None }
+  R34: RegMeta { literal: None }
+  R35: RegMeta { literal: None }
+  T36: RegMeta { literal: None }
+
+
+program: no optimization
+  block[0]
+    PushLiteral(14)
+    PushLiteral(3)
+    AltPush
+    PushLiteral(0)
+    AltPop
+    PushLiteral(0)
+    AltPush
+    AltPush
+    BranchTarget(8)
+program: no optimization
+  block[1]
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    Add
+    AltPop
+    AltPop
+    PushLiteral(1)
+    Add
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    PushLiteral(-1)
+    Nand
+    PushLiteral(1)
+    Add
+    Add
+    JumpIf0(47)
+program: no optimization
+  block[2]
+    PushLiteral(0)
+    PushLiteral(0)
+    JumpIf0(49)
+program: no optimization
+  block[3]
+    BranchTarget(47)
+program: no optimization
+  block[4]
+    PushLiteral(-1)
+    BranchTarget(49)
+program: no optimization
+  block[5]
+    JumpIf0(57)
+program: no optimization
+  block[6]
+    Add
+    Drop
+    PushLiteral(1)
+    PushLiteral(0)
+    JumpIf0(61)
+program: no optimization
+  block[7]
+    BranchTarget(57)
+program: no optimization
+  block[8]
+    AltPush
+    AltPush
+    PushLiteral(0)
+    BranchTarget(61)
+program: no optimization
+  block[9]
+    JumpIf0(8)
+program: no optimization
+  block[10]
+    AltPush
+    StoreTemp
+    AltPop
+    LoadTemp
+    Drop
+    Print
+    Exit
+propagate:
+      ^-> "L1" <= 3
+block[0]:
+    literals: {"L1"}
+      ^-> "L0" <= 14
+block[1]:
+    literals: {"L0"}
+block[2]:
+    literals: {}
+block[4]:
+    literals: {}
+block[5]:
+    literals: {}
+block[6]:
+    literals: {}
+block[8]:
+    literals: {}
+block[9]:
+    literals: {}
+      ^-> "L0" <= 14
+block[10]:
+    literals: {"L0"}
+
+
+program: optimized
+  block[0]
+    PushLiteral(14)
+    AltPush
+    PushLiteral(0)
+    PushLiteral(3)
+    PushLiteral(0)
+    AltPush
+    AltPush
+    BranchTarget(8)
+program: optimized
+  block[1]
+    AltPush
+    PushLiteral(14)
+    AltPop
+    LoadTemp
+    Add
+    AltPop
+    AltPop
+    PushLiteral(1)
+    Add
+    AltPush
+    LoadTemp
+    AltPop
+    LoadTemp
+    AltPush
+    LoadTemp
+    AltPop
+    LoadTemp
+    PushLiteral(-1)
+    Nand
+    PushLiteral(1)
+    Add
+    Add
+    JumpIf0(47)
+program: optimized
+  block[2]
+    PushLiteral(0)
+    PushLiteral(0)
+    JumpIf0(49)
+program: optimized
+  block[3]
+    BranchTarget(47)
+program: optimized
+  block[4]
+    PushLiteral(-1)
+    BranchTarget(49)
+program: optimized
+  block[5]
+    JumpIf0(57)
+program: optimized
+  block[6]
+    Add
+    Drop
+    PushLiteral(1)
+    PushLiteral(0)
+    JumpIf0(61)
+program: optimized
+  block[7]
+    BranchTarget(57)
+program: optimized
+  block[8]
+    AltPush
+    AltPush
+    PushLiteral(0)
+    BranchTarget(61)
+program: optimized
+  block[9]
+    JumpIf0(8)
+program: optimized
+  block[10]
+    AltPush
+    AltPop
+    PushLiteral(14)
+    Drop
+    Print
+    Exit
