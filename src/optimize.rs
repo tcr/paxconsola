@@ -330,12 +330,12 @@ impl Analysis {
         // FIXME this is a hack for testing, and shouldn't be committed:
         let exempt = vec!["L0", "L1", "V8", "V10"];
         enter_state.data.iter_mut().for_each(|d| {
-            if !exempt.contains(d) {
+            if !exempt.contains(&d.as_str()) {
                 *d = previous.registers.borrow_mut().allocate("D", None);
             }
         });
         enter_state.ret.iter_mut().for_each(|d| {
-            if !exempt.contains(d) {
+            if !exempt.contains(&d.as_str()) {
                 *d = previous.registers.borrow_mut().allocate("R", None);
             }
         });
@@ -603,84 +603,6 @@ fn dataflow_graph(stack_blocks: Vec<Block>) -> Graph<(), i32> {
     Graph::<(), i32>::from_edges(&edges)
 }
 
-/// Modify a block list and a register list by connecting block stacks.
-/*
-fn connect_blocks(graph: &Graph<(), i32>, blocks: &[Block], registers: &mut StackMap) {
-    // Walk graph, do assignment of previous registers
-    let mut exit_stacks = IndexMap::<_, RegList>::new();
-    let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
-    while let Some(block_index) = bfs.next(&graph) {
-        eprintln!("node[{:?}]:", block_index.index());
-
-        // Get exit stack for current block.
-        let relative_enter_stack = blocks[block_index.index() as usize].enter_stack();
-        let relative_exit_stack = blocks[block_index.index() as usize]
-            .exit_stack()
-            .unwrap_or(vec![]);
-        // eprintln!("------- our exit stack: {:?}", relative_exit_stack);
-
-        // Iterate incoming edges on the graph.
-        let mut exit_stack: RegList = relative_exit_stack.clone();
-        for n in graph.neighbors_directed(block_index, Direction::Incoming) {
-            // Lookup their stacks
-            if let Some(incoming_stack) = exit_stacks.get(&n) {
-                eprintln!(
-                    "    neighbor[{}] data stack: {:?}",
-                    n.index(),
-                    incoming_stack
-                );
-
-                // Rewrite the exit stack to be [incoming stack [new stack overlayed at end] ]
-                let prefix = incoming_stack
-                    .clone()
-                    .into_iter()
-                    .rev()
-                    .skip(relative_exit_stack.len())
-                    .rev()
-                    .collect::<Vec<_>>();
-                exit_stack = prefix.clone();
-                exit_stack.extend(relative_exit_stack.clone());
-
-                // If there is no backward jump to the previous block,
-                // forward literal values across the barrier by updating the registers map.
-                // if n.index() < block_index.index() {
-                //     for (next_reg, prev_reg) in relative_enter_stack
-                //         .iter()
-                //         .zip(incoming_stack.iter().skip(prefix.len()))
-                //     {
-                //         // rewrite_regs.insert(next_reg.to_owned(), prev_reg.to_owned());
-                //         if let Some(StackItem {
-                //             literal: Some(prev_literal),
-                //             ..
-                //         }) = registers.get(prev_reg).map(|x| x.clone())
-                //         {
-                //             if let Some(StackItem {
-                //                 literal: ref mut next_literal,
-                //                 ..
-                //             }) = registers.get_mut(next_reg)
-                //             {
-                //                 assert!(next_literal.is_none());
-                //                 *next_literal = Some(prev_literal.clone());
-                //             }
-                //         }
-                //     }
-                // }
-            } else {
-                eprintln!("    loop[{}]", n.index());
-            }
-        }
-
-        eprintln!(
-            "node[{:?}] data stack: {:?}",
-            block_index.index(),
-            exit_stack
-        );
-        eprintln!();
-        exit_stacks.insert(block_index, exit_stack);
-    }
-}
-*/
-
 fn propagate_literals_in_block(
     block: &Block,
     analysis: &Analysis,
@@ -694,12 +616,13 @@ fn propagate_literals_in_block(
         .rev()
         .map(|(i, input_command)| {
             // eprintln!("{:?}\n----> {:?}", command.0, reg_blacklist);
-            let mut command = (input_command.0).clone();
+            let command = (input_command.0).clone();
             let stack: StackState = analysis.result()[i].clone();
             let next_stack: Option<StackState> = analysis.result().get(i + 1).map(|x| x.clone());
 
             match &command {
-                SuperPax::AltPop | SuperPax::LoadTemp | SuperPax::PushLiteral(_) => {
+                // If the register is in a blacklist, drop this command.
+                SuperPax::AltPop | SuperPax::PushLiteral(_) => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
                         return None;
@@ -712,15 +635,55 @@ fn propagate_literals_in_block(
                     }
                 }
                 SuperPax::StoreTemp => {
+                    // Blacklist previous temp value.
+                    if let Some(ref temp_reg) = stack.temp {
+                        reg_blacklist.insert(temp_reg.clone());
+                    }
+
                     let reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
                     if reg_blacklist.contains(&*reg) {
                         return None;
                     }
+                }
+
+                SuperPax::LoadTemp => {
+                    let next_reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
+                    let reg = next_stack.as_ref().unwrap().data.last().unwrap();
+
+                    // If we are used to load a temp value, de-blacklist this register.
+                    if !reg_blacklist.contains(&*next_reg) {
+                        reg_blacklist.remove(reg);
+                    }
+                    // Else if this register is in a blacklist, drop this command.
+                    if reg_blacklist.contains(&*reg) {
+                        return None;
+                    }
+                }
+
+                // Blacklist is viral.
+                SuperPax::Add | SuperPax::Nand => {
+                    let reg = next_stack.as_ref().unwrap().data.last().unwrap();
+                    if reg_blacklist.contains(&*reg) {
+                        // TODO want an easy way to specify last_two
+                        let input_regs = stack.data.iter().rev().take(2).rev().collect::<Vec<_>>();
+                        for reg in input_regs {
+                            reg_blacklist.insert(reg.to_owned());
+                        }
+                        return None;
+                    }
+                }
+
+                // Drop command can ignore their values entirely.
+                SuperPax::Drop => {
+                    let reg = stack.data.last().unwrap();
+                    reg_blacklist.insert(reg.clone());
                     return None;
                 }
                 _ => {}
             }
 
+            // When a TOS register load is a literal, replace with
+            // a direct literal load and blacklist the register.
             let target_reg = match &command {
                 SuperPax::AltPop => next_stack.as_ref().and_then(|s| s.data.last()),
                 SuperPax::LoadTemp => stack.temp.as_ref(),
