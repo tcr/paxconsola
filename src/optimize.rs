@@ -39,6 +39,7 @@ pub enum SuperPax {
     Store,
 
     JumpIf0(usize),
+    JumpAlways(usize),
 
     // pax debug
     Print,
@@ -92,6 +93,7 @@ type SharedRegFile = Arc<RefCell<RegFile>>;
 #[derive(Debug, Clone)]
 pub enum Block {
     ExitBlock(SuperSpan),
+    JumpAlways(SuperSpan),
     JumpIf0Block(SuperSpan),
     BranchTargetBlock(SuperSpan),
     CallBlock(SuperSpan),
@@ -102,6 +104,7 @@ impl Block {
         match self {
             Block::ExitBlock(ref commands) => commands,
             Block::JumpIf0Block(ref commands) => commands,
+            Block::JumpAlways(ref commands) => commands,
             Block::BranchTargetBlock(ref commands) => commands,
             Block::CallBlock(ref commands) => commands,
         }
@@ -111,6 +114,7 @@ impl Block {
         match self {
             Block::ExitBlock(ref mut commands) => commands,
             Block::JumpIf0Block(ref mut commands) => commands,
+            Block::JumpAlways(ref mut commands) => commands,
             Block::BranchTargetBlock(ref mut commands) => commands,
             Block::CallBlock(ref mut commands) => commands,
         }
@@ -166,6 +170,15 @@ impl StackGroup {
         self.reset();
     }
 
+    fn jump_always_block(&mut self) {
+        self.blocks.push(Block::JumpAlways(
+            self.current_block.clone(),
+            // self.start_stack.clone(),
+            // self.values.clone(),
+        ));
+        self.reset();
+    }
+
     fn branch_target_block(&mut self) {
         self.blocks.push(Block::BranchTargetBlock(
             self.current_block.clone(),
@@ -197,6 +210,7 @@ fn analyze_blocks(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> 
         // Create dataflow analysis
         let mut code_iter = code.iter().enumerate().peekable();
         while let Some((i, op)) = code_iter.next() {
+            // Peek matching.
             match op.0 {
                 Pax::PushLiteral(value) => {
                     // Temp values
@@ -216,6 +230,16 @@ fn analyze_blocks(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> 
                             continue;
                         }
                     }
+
+                    // Jump Always
+                    if value == 0 {
+                        if let Some((_, &(Pax::JumpIf0(ref target), _))) = code_iter.peek() {
+                            stack.record_op(&(SuperPax::JumpAlways(target.clone()), op.1));
+                            stack.jump_always_block();
+                            code_iter.next();
+                            continue;
+                        }
+                    }
                 }
                 Pax::JumpIf0(target) => {
                     // SuperPax::Drop
@@ -231,7 +255,7 @@ fn analyze_blocks(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> 
                 _ => {}
             }
 
-            // eprintln!("{:?}", op.0);
+            // Opcode matching.
             match op.0 {
                 Pax::PushLiteral(value) => {
                     stack.record_op(&(SuperPax::PushLiteral(value), op.1.clone()));
@@ -447,6 +471,7 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
     for command in block.commands() {
         use SuperPax::*;
         match (command.0).clone() {
+            JumpAlways(_) => {}
             Drop | JumpIf0(_) | Print => {
                 analysis.pop_data();
             }
@@ -609,7 +634,7 @@ fn propagate_literals_in_block(
     registers: SharedRegFile,
     reg_blacklist: &mut IndexSet<Reg>,
 ) -> SuperSpan {
-    let new_commands = block
+    let mut new_commands = block
         .commands()
         .iter()
         .enumerate()
@@ -632,6 +657,12 @@ fn propagate_literals_in_block(
                     let reg = next_stack.as_ref().unwrap().ret.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
                         return None;
+                    }
+                }
+                SuperPax::Exit => {
+                    // Blacklist previous temp value.
+                    if let Some(ref temp_reg) = stack.temp {
+                        reg_blacklist.insert(temp_reg.clone());
                     }
                 }
                 SuperPax::StoreTemp => {
@@ -707,6 +738,24 @@ fn propagate_literals_in_block(
         .filter_map(|x| x)
         .rev()
         .collect::<Vec<_>>();
+
+    // Peephole optimizations.
+    let mut splices = vec![];
+    new_commands
+        .windows(2)
+        .enumerate()
+        .for_each(|(i, window)| match window {
+            [(SuperPax::AltPush, _), (SuperPax::AltPop, _)] => {
+                splices.push(i);
+            }
+            _ => {}
+        });
+    let mut splice_delta = 0;
+    for mut splice in splices {
+        splice -= splice_delta;
+        new_commands.splice(splice..splice + 2, vec![]);
+        splice_delta += 2;
+    }
 
     new_commands
 }
