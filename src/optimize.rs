@@ -47,7 +47,7 @@ pub enum SuperPax {
 
 pub type SuperSpan = Vec<Located<SuperPax>>;
 
-// FIXME TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
+// TODO TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
 // TODO use these to model stacks and merging logic, converge on ExitStack after minimizing loops
 // once there's full coverage of all/most functions, can refactor GbIr generation to do explicit
@@ -261,7 +261,7 @@ fn analyze_blocks(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> 
                     stack.record_op(&(SuperPax::PushLiteral(value), op.1.clone()));
                 }
                 Pax::BranchTarget => {
-                    // FIXME this should inline the block number, not the opcode number
+                    // TODO this should inline the block number, not the opcode number
                     stack.record_op(&(SuperPax::BranchTarget(i), op.1.clone()));
                     stack.branch_target_block();
                 }
@@ -512,7 +512,6 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
                 analysis.pop_data();
             }
 
-            // FIXME correct these
             PushLiteral(value) => {
                 let reg = analysis.new_literal(value);
                 analysis.push_data(reg);
