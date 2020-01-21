@@ -4,7 +4,7 @@ use crate::*;
 use indexmap::{IndexMap, IndexSet};
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::cell::RefCell;
 use std::sync::Arc;
 
 // Extends the regular Pax IR with some simple opcodes that
@@ -61,6 +61,35 @@ pub type Reg = String;
 pub type RegList = Vec<Reg>;
 
 #[derive(Debug, Clone)]
+struct RegMeta {
+    literal: Option<isize>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RegFile {
+    index: usize,
+    registers: IndexMap<Reg, RegMeta>,
+}
+
+impl RegFile {
+    fn new() -> Self {
+        Self {
+            index: 0,
+            registers: IndexMap::new(),
+        }
+    }
+
+    fn allocate(&mut self, prefix: &str, literal: Option<isize>) -> Reg {
+        let reg = format!("{}{}", prefix, self.index);
+        self.index += 1;
+        self.registers.insert(reg.clone(), RegMeta { literal });
+        reg
+    }
+}
+
+type SharedRegFile = Arc<RefCell<RegFile>>;
+
+#[derive(Debug, Clone)]
 pub enum Block {
     ExitBlock(SuperSpan),
     JumpIf0Block(SuperSpan),
@@ -77,6 +106,15 @@ impl Block {
             Block::CallBlock(ref commands) => commands,
         }
     }
+
+    fn commands_mut(&'_ mut self) -> &'_ mut SuperSpan {
+        match self {
+            Block::ExitBlock(ref mut commands) => commands,
+            Block::JumpIf0Block(ref mut commands) => commands,
+            Block::BranchTargetBlock(ref mut commands) => commands,
+            Block::CallBlock(ref mut commands) => commands,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -86,13 +124,13 @@ struct StackGroup {
 }
 
 #[derive(Debug, Clone)]
-pub struct StackItem {
+struct StackItem {
     id: String,
     ancestors: IndexSet<String>,
     literal: Option<isize>,
 }
 
-pub type StackMap = IndexMap<String, StackItem>;
+type StackMap = IndexMap<String, StackItem>;
 
 impl StackGroup {
     fn new() -> StackGroup {
@@ -279,34 +317,53 @@ impl StackState {
 
 #[derive(Clone, Debug)]
 struct Analysis {
-    reg_index: Arc<AtomicUsize>,
+    registers: SharedRegFile,
     state: StackState,
     record: Vec<StackState>,
 }
 
 impl Analysis {
-    fn from_index(reg_index: Arc<AtomicUsize>) -> Self {
+    fn from_previous_masked(previous: &Analysis) -> Self {
+        let prev_state = previous.exit_state();
+
+        let mut enter_state = prev_state.clone();
+        enter_state.data = enter_state
+            .data
+            .iter()
+            .map(|_| previous.registers.borrow_mut().allocate("D", None))
+            .collect();
+        enter_state.ret = enter_state
+            .ret
+            .iter()
+            .map(|_| previous.registers.borrow_mut().allocate("R", None))
+            .collect();
+        enter_state.temp = None;
+
         Self {
-            reg_index,
-            state: StackState::new(),
-            record: vec![StackState::new()],
+            state: enter_state.clone(),
+            record: vec![enter_state],
+            registers: previous.registers.clone(),
         }
     }
 
     fn from_previous(previous: &Analysis) -> Self {
         Self {
-            reg_index: previous.reg_index.clone(),
             state: previous.exit_state(),
             record: vec![previous.exit_state()],
+            registers: previous.registers.clone(),
         }
     }
 
-    fn new() -> Self {
+    fn new(registers: SharedRegFile) -> Self {
         Self {
-            reg_index: Arc::new(AtomicUsize::new(0)),
             state: StackState::new(),
             record: vec![StackState::new()],
+            registers,
         }
+    }
+
+    fn record_state(&mut self) {
+        self.record.push(self.state.clone());
     }
 
     fn result(&self) -> Vec<StackState> {
@@ -319,44 +376,20 @@ impl Analysis {
 
     // Push or inject new var reg.
 
-    fn push_data(&mut self, reg: Option<Reg>) -> Reg {
-        let reg = reg.unwrap_or_else(|| self.new_var());
-        self.state.data.push(reg.clone());
-        reg
+    fn push_data(&mut self, reg: Reg) {
+        self.state.data.push(reg);
     }
 
-    fn push_return(&mut self, reg: Option<Reg>) -> Reg {
-        let reg = reg.unwrap_or_else(|| self.new_var());
-        self.state.ret.push(reg.clone());
-        reg
+    fn push_return(&mut self, reg: Reg) {
+        self.state.ret.push(reg);
     }
-
-    // Pop or inject with data/ret regs
 
     fn pop_data(&mut self) -> Reg {
-        if let Some(reg) = self.state.data.pop() {
-            reg
-        } else {
-            // Inject new register.
-            let dropped_reg = self.new_data();
-            for prev_state in &mut self.record {
-                prev_state.data.insert(0, dropped_reg.clone());
-            }
-            dropped_reg
-        }
+        self.state.data.pop().unwrap_or_else(|| self.require_data())
     }
 
     fn pop_return(&mut self) -> Reg {
-        if let Some(reg) = self.state.ret.pop() {
-            reg
-        } else {
-            // Inject new register.
-            let dropped_reg = self.new_ret();
-            for prev_state in &mut self.record {
-                prev_state.ret.insert(0, dropped_reg.clone());
-            }
-            dropped_reg
-        }
+        self.state.ret.pop().unwrap_or_else(|| self.require_ret())
     }
 
     fn temp_store(&mut self, reg: Reg) {
@@ -371,28 +404,34 @@ impl Analysis {
 
     // Register constructors.
 
-    fn new_data(&mut self) -> Reg {
-        format!("D{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    fn require_data(&mut self) -> Reg {
+        let reg = self.registers.borrow_mut().allocate("D", None);
+        // propagate backward
+        for prev_state in &mut self.record {
+            prev_state.data.insert(0, reg.clone());
+        }
+        reg
     }
 
-    fn new_literal(&mut self) -> Reg {
-        format!("L{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+    fn require_ret(&mut self) -> Reg {
+        let reg = self.registers.borrow_mut().allocate("R", None);
+        // propagate backward
+        for prev_state in &mut self.record {
+            prev_state.ret.insert(0, reg.clone());
+        }
+        reg
+    }
+
+    fn new_literal(&mut self, value: isize) -> Reg {
+        self.registers.borrow_mut().allocate("L", Some(value))
     }
 
     fn new_temp(&mut self) -> Reg {
-        format!("T{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
-    }
-
-    fn new_ret(&mut self) -> Reg {
-        format!("R{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
+        self.registers.borrow_mut().allocate("T", None)
     }
 
     fn new_var(&mut self) -> Reg {
-        format!("V{}", self.reg_index.fetch_add(1, Ordering::Relaxed))
-    }
-
-    fn record_state(&mut self) {
-        self.record.push(self.state.clone());
+        self.registers.borrow_mut().allocate("V", None)
     }
 }
 
@@ -405,17 +444,34 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
             }
             Load | Load8 => {
                 analysis.pop_data();
-                analysis.push_data(None);
+                let reg = analysis.new_var();
+                analysis.push_data(reg);
             }
             AltPush => {
                 let reg = analysis.pop_data();
-                analysis.push_return(Some(reg));
+                analysis.push_return(reg);
             }
 
             Add | Nand => {
-                analysis.pop_data();
-                analysis.pop_data();
-                analysis.push_data(None);
+                let a = analysis.pop_data();
+                let b = analysis.pop_data();
+
+                // if let Some(RegMeta {
+                //     literal: Some(a_value),
+                //     ..
+                // }) = analysis.registers.borrow().registers.get(&a)
+                // {
+                //     if let Some(RegMeta {
+                //         literal: Some(b_value),
+                //         ..
+                //     }) = analysis.registers.borrow().registers.get(&b)
+                //     {
+                //         panic!("opt: A={}={:?} B={}={:?}", a, a_value, b, b_value);
+                //     }
+                // }
+
+                let reg = analysis.new_var();
+                analysis.push_data(reg);
             }
 
             Store | Store8 => {
@@ -424,19 +480,19 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
             }
 
             // FIXME correct these
-            PushLiteral(_value) => {
-                let reg = analysis.new_literal();
-                analysis.push_data(Some(reg));
+            PushLiteral(value) => {
+                let reg = analysis.new_literal(value);
+                analysis.push_data(reg);
             }
 
             AltPop => {
                 let reg = analysis.pop_return();
-                analysis.push_data(Some(reg));
+                analysis.push_data(reg);
             }
 
             LoadTemp => {
                 let reg = analysis.temp_load();
-                analysis.push_data(Some(reg));
+                analysis.push_data(reg);
             }
 
             StoreTemp => {
@@ -617,61 +673,61 @@ fn connect_blocks(graph: &Graph<(), i32>, blocks: &[Block], registers: &mut Stac
 }
 */
 
-/*
 fn propagate_literals_in_block(
     block: &Block,
-    registers: &StackMap,
-) -> (Vec<SuperPax>, IndexSet<String>) {
+    analysis: &Analysis,
+    registers: SharedRegFile,
+) -> (SuperSpan, IndexSet<String>) {
     let mut reg_blacklist = IndexSet::new();
 
     let new_commands = block
         .commands()
         .iter()
+        .enumerate()
         .rev()
-        .map(|command| {
+        .map(|(i, input_command)| {
             // eprintln!("{:?}\n----> {:?}", command.0, reg_blacklist);
-            let mut result = (command.0).0.clone();
+            let mut command = (input_command.0).clone();
+            let stack: StackState = analysis.result()[i].clone();
+            let next_stack: Option<StackState> = analysis.result().get(i + 1).map(|x| x.clone());
 
-            match &result {
-                SuperPax::LoadTemp(reg, _next_reg) if reg_blacklist.contains(reg) => {
-                    return None;
+            match &command {
+                SuperPax::AltPop | SuperPax::LoadTemp | SuperPax::PushLiteral(_) => {
+                    let reg = next_stack.as_ref().unwrap().data.last().unwrap();
+                    if reg_blacklist.contains(&*reg) {
+                        return None;
+                    }
                 }
                 // SuperPax::AltPush(_) if reg_blacklist.contains(reg) => {
                 //     return None;
                 // }
-                SuperPax::AltPop(reg) if reg_blacklist.contains(reg) => {
-                    return None;
-                }
-                SuperPax::PushLiteral(reg, _) if reg_blacklist.contains(reg) => {
-                    return None;
-                }
-                SuperPax::StoreTemp(reg) if reg_blacklist.contains(reg) => {
+                SuperPax::StoreTemp => {
+                    let reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
+                    if reg_blacklist.contains(&*reg) {
+                        return None;
+                    }
                     return None;
                 }
                 _ => {}
             }
 
-            if let Some(reg) = command.1.last() {
-                if let Some(StackItem {
+            let target_reg = match &command {
+                SuperPax::AltPop => next_stack.as_ref().and_then(|s| s.data.last()),
+                SuperPax::LoadTemp => stack.temp.as_ref(),
+                _ => None,
+            };
+            if let Some(target_reg) = target_reg {
+                if let Some(RegMeta {
                     literal: Some(lit), ..
-                }) = registers.get(reg)
+                }) = registers.borrow().registers.get(target_reg)
                 {
-                    // eprintln!("      ^-> {:?} <= {:?}", reg.clone(), lit);
-                    match &result {
-                        SuperPax::AltPop(target_reg) if *reg == *target_reg => {
-                            reg_blacklist.insert(target_reg.clone());
-                            result = SuperPax::PushLiteral(target_reg.clone(), *lit);
-                        }
-                        SuperPax::LoadTemp(target_reg, _next_reg) if *reg == *target_reg => {
-                            reg_blacklist.insert(target_reg.clone());
-                            result = SuperPax::PushLiteral(target_reg.clone(), *lit);
-                        }
-                        _ => {}
-                    }
+                    eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
+                    reg_blacklist.insert(target_reg.clone());
+                    return Some((SuperPax::PushLiteral(*lit), input_command.1));
                 }
             }
 
-            Some(result)
+            Some((command, input_command.1))
         })
         .collect::<Vec<_>>()
         .into_iter()
@@ -681,9 +737,8 @@ fn propagate_literals_in_block(
 
     (new_commands, reg_blacklist)
 }
-*/
 
-fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>) {
+fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
     let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
@@ -692,10 +747,18 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>) {
         seq.push(block_index.index() as usize);
     }
 
+    // REVIEW The Analysis struct should hold the analyses of all blocks at once, injected
+    // in topological order, so that propagation of arguments from later blocks can happen
+    // on all blocks upstream (or parallel) to it. This would also allow splitting out
+    // the SharedRegFile and using it as a separate struct.
+    // This change isn't needed yet, because the main() function will never have an unknown
+    // number of values on the data or return stacks, they will always be empty. Blocks
+    // downstream from #0 don't have unknown stack requirements until a call site.
+
     eprintln!();
-    eprintln!("ANALYZE");
+    eprintln!("[[[[[ANALYZE]]]]]]");
     let mut analyses = IndexMap::<usize, Analysis>::new();
-    let mut reg_index = Arc::new(AtomicUsize::new(0));
+    let registers = Arc::new(RefCell::new(RegFile::new()));
     for block_index in seq.clone() {
         let mut incoming = graph
             .neighbors_directed(NodeIndex::new(block_index), Direction::Incoming)
@@ -704,21 +767,30 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>) {
         incoming.sort();
 
         let next_analysis = if incoming.len() == 0 {
-            Analysis::from_index(reg_index.clone())
+            Analysis::new(registers.clone())
         } else if incoming
             .iter()
             .find(|x| analyses.get(*x).is_none())
             .is_some()
         {
+            let prev_analysis = incoming
+                .iter()
+                .map(|x| analyses.get(x))
+                .find(|x| x.is_some())
+                .unwrap()
+                .unwrap();
+
             // Missing a previous analysis means we might be in a loop.
             eprintln!();
             eprintln!("block[{}] loop start.", block_index);
-            Analysis::from_index(reg_index.clone())
-        } else if incoming.len() > 1 {
+            Analysis::from_previous_masked(prev_analysis)
+        } else if let Some(prev) = incoming.get(1) {
+            let prev_analysis = analyses.get(prev).unwrap();
+
             // Having two previous analysis means we joined from a branch.
             eprintln!();
             eprintln!("block[{}] joining from branch.", block_index);
-            Analysis::from_index(reg_index.clone())
+            Analysis::from_previous_masked(prev_analysis)
         } else {
             // Pick the first analysis.
             Analysis::from_previous(analyses.get(&incoming[0]).unwrap())
@@ -729,12 +801,12 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>) {
         eprintln!("block[{}]", block_index);
 
         let result = analysis.result();
-        eprintln!("        {:?}", &result[0].data);
-        for ((ref command, ..), ref state) in
-            blocks[block_index].commands().iter().zip(&result[1..])
-        {
-            eprintln!("  {:?}", command);
+        let commands = blocks[block_index].commands();
+        for (i, state) in result.iter().enumerate() {
             eprintln!("        {:?}", state.data);
+            if let Some(command) = commands.get(i) {
+                eprintln!("  {:?}", command.0);
+            }
         }
 
         // Store the analysis.
@@ -743,27 +815,70 @@ fn propagate_literals(blocks: &[Block], graph: &Graph<(), i32>) {
     eprintln!();
     eprintln!();
 
-    // Iterate block sequence in perform constant propagation.
-    // seq.reverse();
+    eprintln!("registers:");
+    for (k, v) in &registers.borrow().registers {
+        eprintln!("  {}: {:?}", k, v);
+    }
+    eprintln!();
+    eprintln!();
 
-    // let mut block_blacklist = IndexMap::new();
-    // for block in seq {
-    //     eprintln!("block[{:?}]", block);
-    //     // let (_commands, blacklist) = propagate_literals_in_block(&blocks[block], registers);
-    //     // eprintln!("    blacklist {:?}", blacklist);
-    //     // block_blacklist.insert(block, blacklist.clone());
+    // TODO break this out into a const prop method
 
-    //     // if !blacklist.is_empty() {
-    //     for (command, ..) in blocks[block].commands() {
-    //         eprintln!("        command: {:?}", command);
-    //     }
-    //     // eprintln!("    vs:");
-    //     // for command in _commands {
-    //     //     eprintln!("        command: {:?}", command);
-    //     // }
-    //     // }
-    // }
+    {
+        for (block_index, block) in blocks.iter().enumerate() {
+            eprintln!("program: no optimization");
+            eprintln!("  block[{}]", block_index);
+
+            for command in blocks[block_index].commands() {
+                eprintln!("    {:?}", command.0);
+            }
+        }
+
+        let mut blocks = blocks.to_owned();
+        eprintln!("propagate:");
+        for (i, ref mut block) in blocks.iter_mut().enumerate() {
+            if let Some(analysis) = analyses.get(&i) {
+                let (new_commands, reg_blacklist) =
+                    propagate_literals_in_block(&block, analysis, registers.clone());
+                eprintln!("block[{}]:", i);
+                eprintln!("    literals: {:?}", reg_blacklist);
+                *block.commands_mut() = new_commands;
+            }
+        }
+        eprintln!();
+        eprintln!();
+
+        for (block_index, block) in blocks.iter().enumerate() {
+            eprintln!("program: optimized");
+            eprintln!("  block[{}]", block_index);
+
+            for command in blocks[block_index].commands() {
+                eprintln!("    {:?}", command.0);
+            }
+        }
+    }
 }
+
+// Iterate block sequence in perform constant propagation.
+// seq.reverse();
+
+// let mut block_blacklist = IndexMap::new();
+// for block in seq {
+//     eprintln!("block[{:?}]", block);
+//     // let (_commands, blacklist) = propagate_literals_in_block(&blocks[block], registers);
+//     // eprintln!("    blacklist {:?}", blacklist);
+//     // block_blacklist.insert(block, blacklist.clone());
+
+//     // if !blacklist.is_empty() {
+//     for (command, ..) in blocks[block].commands() {
+//         eprintln!("        command: {:?}", command);
+//     }
+//     // eprintln!("    vs:");
+//     // for command in _commands {
+//     //     eprintln!("        command: {:?}", command);
+//     // }
+//     // }
+// }
 
 // fn dump_blocks(blocks: &[Block]) {
 //     for (i, block) in blocks.iter().enumerate() {
@@ -800,6 +915,6 @@ pub fn optimize_forth(program: Program) {
         // println!();
         // println!();
 
-        propagate_literals(&blocks, &graph);
+        analyze_graph(&blocks, &graph);
     }
 }
