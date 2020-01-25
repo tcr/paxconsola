@@ -6,21 +6,21 @@ Some things you can run:
 
 ```sh
 ./check.sh
-cargo run -- examples/snake.txt --interactive
-cargo run -- examples/gb.txt --compile --no-prelude > ./snake/gb/pax_generated.asm
+cargo run -- run examples/snake.txt --interactive
+cargo run -- compile examples/gb.txt > ./snake/gb/pax_generated.asm
 ```
 
 ## Snake on Gameboy
 
 ```
 cd snake/gb
-make allrun
+make run
 ```
 
 Analysis for compilation:
 
 ```
-RUST_BACKTRACE=1 cargo run -- examples/constprop.fs --compile
+RUST_BACKTRACE=1 cargo run -- compile examples/constprop.fs
 ```
 
 ## Inspiration
