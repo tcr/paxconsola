@@ -206,7 +206,7 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                 }
                 Pax::BranchTarget => {
                     // TODO this should inline the block number, not the opcode number
-                    stack.record_op(&(SuperPax::BranchTarget(loc_to_block[i]), op.1.clone()));
+                    stack.record_op(&(SuperPax::BranchTarget(loc_to_block[&i]), op.1.clone()));
                     stack.branch_target_block();
                 }
                 Pax::AltPush => {

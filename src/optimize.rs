@@ -623,7 +623,7 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
             "program: {} commands (optimized)",
             blocks.iter().map(|x| x.commands().len()).sum::<usize>()
         );
-        for (block_index, block) in blocks.iter().enumerate() {
+        for (block_index, _block) in blocks.iter().enumerate() {
             eprintln!("  block[{}]", block_index);
 
             for command in blocks[block_index].commands() {
