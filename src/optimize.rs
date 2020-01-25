@@ -634,31 +634,115 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
 //     // }
 // }
 
-fn dump_blocks(blocks: &[Block]) {
-    for (i, block) in blocks.iter().enumerate() {
-        println!("  block[{}] with {} entries:", i, block.commands().len());
-        // eprintln!("                        data: {:?}", block.enter_stack());
-        for command in block.commands() {
-            eprintln!("    {:?}", (command.0),);
-            // eprintln!("                        data: {:?}", command.1,);
-            // eprintln!("                        retn: {:?}", command.2,);
-            // eprintln!(
-            //     "                        temp: {}",
-            //     command.3.clone().unwrap_or("".to_string()),
-            // );
-            // eprintln!();
+fn inline(program: &mut SuperPaxProgram, method: &str) {
+    let mut continue_pass = true;
+    'pass_loop: while continue_pass {
+        continue_pass = false;
+
+        let mut main = program.get(method).unwrap().clone();
+        dump_blocks(&main);
+
+        let mut i = 0;
+        let mut j = 0;
+        while let Some(block) = main.get(i) {
+            i += 1;
+            j += 1;
+
+            // Determine what the next block target is going to be.
+            match block.commands().last() {
+                Some((SuperPax::Call(target), ..)) => {
+                    eprintln!("call to {:?}", target);
+                    eprintln!();
+
+                    // Flag that this pass succeeded.
+                    continue_pass = true;
+
+                    // if target == "*" {
+                    // We want to inline this function. First grab our offsets.
+                    let mut inlined = program.get(target).unwrap().clone();
+                    dump_blocks(&inlined);
+
+                    // Rewrite the sequence we're inlining.
+                    for (i, inline_block) in inlined.iter_mut().enumerate() {
+                        match inline_block.commands_mut().last_mut() {
+                            Some((SuperPax::BranchTarget(ref mut target), ..))
+                            | Some((SuperPax::JumpIf0(ref mut target), ..))
+                            | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                                *target += j - 1;
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    let mut metadata_block = inlined[0].clone();
+                    metadata_block.commands_mut().splice(
+                        0..1,
+                        block.commands().clone().into_iter().rev().skip(1).rev(),
+                    );
+                    let mut inline_seq = inlined[1..inlined.len() - 1].to_owned(); // Pop first, last opcodes
+                    let mut exit_block_seq = inlined[inlined.len() - 1].clone();
+                    exit_block_seq.commands_mut().pop();
+
+                    // Refetch a mutable version of this method.
+                    let mut main_mut = program.get_mut(method).unwrap();
+
+                    // Now rewrite all targets.
+                    for (i, main_block) in main_mut.iter_mut().enumerate() {
+                        match main_block.commands_mut().last_mut() {
+                            Some((SuperPax::BranchTarget(ref mut target), ..))
+                            | Some((SuperPax::JumpIf0(ref mut target), ..))
+                            | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                                if *target >= j {
+                                    *target += inline_seq.len();
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    let next_j = j + inline_seq.len() + 1;
+
+                    // Combine current block.
+                    main_mut[j - 1] = metadata_block;
+                    // Combine next block.
+                    main_mut[j]
+                        .commands_mut()
+                        .splice(0..0, exit_block_seq.commands().clone());
+                    // Splice in new chunk.
+                    main_mut.splice(j..j, inline_seq);
+
+                    j = next_j;
+                    // }
+
+                    // Arbitrarily stop after this, though we could keep going,
+                    // instead just perform another pass
+                    continue 'pass_loop;
+                }
+                _ => {}
+            }
         }
-        eprintln!();
     }
 }
 
-pub fn optimize_forth(program: Program) {
-    let mut block_analysis = convert_to_superpax(program);
-    if let Some(blocks) = block_analysis.get_mut("main") {
-        dump_blocks(&blocks);
+fn dump_blocks(blocks: &[Block]) {
+    eprintln!("program:");
+    for (i, block) in blocks.iter().enumerate() {
+        println!("  block[{}] with {} entries:", i, block.commands().len());
+        for command in block.commands() {
+            eprintln!("    {:?}", (command.0),);
+        }
+    }
+    eprintln!();
+    eprintln!();
+}
 
-        let graph = dataflow_graph(blocks.clone());
-        // connect_blocks(&graph, &blocks, registers);
+pub fn optimize_forth(program: Program) {
+    let mut superprogram = convert_to_superpax(program);
+
+    inline(&mut superprogram, "main");
+
+    if let Some(blocks) = superprogram.get_mut("main") {
+        dump_blocks(&blocks);
 
         // println!("{:?}", graph);
         // println!();
@@ -669,6 +753,9 @@ pub fn optimize_forth(program: Program) {
         // println!();
         // println!();
 
-        analyze_graph(&blocks, &graph);
+        // let graph = dataflow_graph(blocks.clone());
+        // analyze_graph(&blocks, &graph);
     }
+
+    // Inlining.
 }
