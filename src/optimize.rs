@@ -279,7 +279,7 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
 
 /// Composes blocks together into a graph.
 fn dataflow_graph(stack_blocks: Vec<Block>) -> Graph<(), i32> {
-    // List of blocks we've already seen, so
+    // List of blocks we've already seen.
     let mut visited = IndexSet::new();
 
     // Starting conditions. Each block flow starts (originally from 0) at a block
@@ -297,61 +297,41 @@ fn dataflow_graph(stack_blocks: Vec<Block>) -> Graph<(), i32> {
 
             // If we've visited this block already, we can stop here.
             if visited.contains(&i) {
-                // println!("unified[{}], ending block search.", i);
                 break;
             }
-            // println!("block[{}]", i);
-
             visited.insert(i);
 
             // Determine what the next block target is going to be.
             match block.commands().last() {
                 Some((SuperPax::JumpIf0(target), ..)) => {
-                    // If the previous command was push literal 0, we can interpret
-                    // this to be an absolute jump.
-                    let mut is_absolute = false;
-                    if block.commands().len() > 1 {
-                        if let Some((SuperPax::PushLiteral(.., 0), ..)) =
-                            block.commands().get(block.commands().len() - 2)
-                        {
-                            is_absolute = true;
-                        }
-                    }
+                    // Inject next edge (for both absolute jump OR branch)
+                    let alt_target = target + 1;
+                    edges.push((i as u32, alt_target as u32));
 
-                    // Jump immediate
-                    for (b_index, b) in stack_blocks.iter().enumerate() {
-                        if let Some((SuperPax::BranchTarget(bt), ..)) = b.commands().last() {
-                            if bt == target {
-                                // Inject next edge (for both absolute jump OR branch)
-                                edges.push((i as u32, (b_index + 1) as u32));
-
-                                // Invoke branch as though we jumped (nonzero).
-                                // b_index + 1 is the block following the BranchTarget we're jumping to.
-                                if is_absolute {
-                                    i = b_index + 1;
-                                    // println!("  absolute jump: {:?}", i);
-                                    continue 'block;
-                                } else {
-                                    // only iterate future branches, not reverse ones (which are loops)
-                                    if b_index + 1 > i {
-                                        conditions.push_front(b_index + 1);
-                                    }
-                                }
-                            }
-                        }
+                    // Invoke branch as though we jumped (nonzero).
+                    // only iterate future branches, not reverse ones (which are loops)
+                    if alt_target > i {
+                        conditions.push_front(alt_target);
                     }
+                }
+                Some((SuperPax::JumpAlways(target), ..)) => {
+                    // Inject next edge (for both absolute jump OR branch)
+                    let alt_target = target + 1;
+                    edges.push((i as u32, alt_target as u32));
+
+                    // Invoke branch as though we jumped (nonzero).
+                    i = *target as usize;
                 }
                 _ => {}
             }
 
-            // Add new edge.
+            // Add new edge to the forthcoming block.
             if i < stack_blocks.len() - 1 {
                 edges.push((i as u32, (i + 1) as u32));
             }
 
             i += 1;
         }
-        // println!("next cond.\n");
     }
 
     Graph::<(), i32>::from_edges(&edges)
@@ -654,28 +634,28 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
 //     // }
 // }
 
-// fn dump_blocks(blocks: &[Block]) {
-//     for (i, block) in blocks.iter().enumerate() {
-//         println!("block[{}]", i);
-//         eprintln!("                        data: {:?}", block.enter_stack());
-//         for command in block.commands() {
-//             eprintln!("    {:?}:", (command.0).0,);
-//             eprintln!("                        data: {:?}", command.1,);
-//             eprintln!("                        retn: {:?}", command.2,);
-//             eprintln!(
-//                 "                        temp: {}",
-//                 command.3.clone().unwrap_or("".to_string()),
-//             );
-//             eprintln!();
-//         }
-//         eprintln!("\n  {} entries.\n  ---", block.commands().len(),);
-//     }
-// }
+fn dump_blocks(blocks: &[Block]) {
+    for (i, block) in blocks.iter().enumerate() {
+        println!("  block[{}] with {} entries:", i, block.commands().len());
+        // eprintln!("                        data: {:?}", block.enter_stack());
+        for command in block.commands() {
+            eprintln!("    {:?}", (command.0),);
+            // eprintln!("                        data: {:?}", command.1,);
+            // eprintln!("                        retn: {:?}", command.2,);
+            // eprintln!(
+            //     "                        temp: {}",
+            //     command.3.clone().unwrap_or("".to_string()),
+            // );
+            // eprintln!();
+        }
+        eprintln!();
+    }
+}
 
 pub fn optimize_forth(program: Program) {
     let mut block_analysis = convert_to_superpax(program);
     if let Some(blocks) = block_analysis.get_mut("main") {
-        // dump_blocks(&blocks);
+        dump_blocks(&blocks);
 
         let graph = dataflow_graph(blocks.clone());
         // connect_blocks(&graph, &blocks, registers);

@@ -130,28 +130,36 @@ impl BlockBuilder {
 }
 
 pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
-    let mut loc_to_block = IndexMap::new();
-    for (_name, code) in &program {
+    let mut program_stacks = IndexMap::new();
+    for (name, code) in program {
+        // Load indexes of BranchTarget opcodes.
+        let mut loc_to_block = IndexMap::new();
         let mut block_index = 0;
-        for (i, op) in code.iter().enumerate() {
+        let mut code_iter = code.iter().enumerate().peekable();
+        while let Some((i, op)) = code_iter.next() {
             match op.0 {
                 Pax::BranchTarget => {
                     loc_to_block.insert(i, block_index);
                     block_index += 1;
                 }
-                Pax::Call(_) | Pax::JumpIf0(_) | Pax::Exit => {
+                Pax::Call(_) | Pax::Exit => {
+                    block_index += 1;
+                }
+                Pax::JumpIf0(target) => {
+                    if let Some((_, &(Pax::BranchTarget, _))) = code_iter.peek() {
+                        if target == i + 1 {
+                            code_iter.next();
+                            continue;
+                        }
+                    }
                     block_index += 1;
                 }
                 _ => {}
             }
         }
-    }
 
-    let mut program_stacks = IndexMap::new();
-    for (name, code) in program {
+        // Convert to block list.
         let mut stack = BlockBuilder::new();
-
-        // Create dataflow analysis
         let mut code_iter = code.iter().enumerate().peekable();
         while let Some((i, op)) = code_iter.next() {
             // Peek matching.
@@ -178,7 +186,7 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                     // Jump Always
                     if value == 0 {
                         if let Some((_, &(Pax::JumpIf0(ref target), _))) = code_iter.peek() {
-                            stack.record_op(&(SuperPax::JumpAlways(target.clone()), op.1));
+                            stack.record_op(&(SuperPax::JumpAlways(loc_to_block[target]), op.1));
                             stack.jump_always_block();
                             code_iter.next();
                             continue;
