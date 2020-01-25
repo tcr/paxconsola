@@ -16,7 +16,7 @@ all : generated/tiles.bin generated/pax_generated.asm $(OBJS)
 	rm $(OBJS_NAME).obj
 
 generated/pax_generated.asm: snake.pax
-	cargo run -- snake.pax --compile > generated/pax_generated.asm
+	cargo run -- compile snake.pax > generated/pax_generated.asm
 
 generated/tiles.bin: tiles.png
 	rgbgfx -o generated/tiles.bin tiles.png

@@ -21,6 +21,7 @@ fn main() {
         let cmd = Command::new("cargo")
             .arg("run")
             .arg("--")
+            .arg("run")
             .arg(path)
             .output()
             .expect("failed to execute process");

@@ -202,7 +202,7 @@ impl StackGroup {
     }
 }
 
-fn analyze_blocks(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> {
+fn convert_to_superpax(program: Program) -> IndexMap<String, (Vec<Block>, StackMap)> {
     let mut program_stacks = IndexMap::new();
     for (name, code) in program {
         let mut stack = StackGroup::new();
@@ -402,6 +402,8 @@ impl Analysis {
 
     // Push or inject new var reg.
 
+    // TODO move to RegFile impl operating ON a mutable state ref
+
     fn push_data(&mut self, reg: Reg) {
         self.state.data.push(reg);
     }
@@ -533,7 +535,7 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
             }
 
             // Pax ports
-            BranchTarget(target) => {}
+            BranchTarget(_) => {}
             Metadata(_) => {}
             Exit => {}
 
@@ -939,7 +941,7 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
 // }
 
 pub fn optimize_forth(program: Program) {
-    let mut block_analysis = analyze_blocks(program);
+    let mut block_analysis = convert_to_superpax(program);
     if let Some((blocks, _)) = block_analysis.get_mut("main") {
         // dump_blocks(&blocks);
 
