@@ -130,6 +130,23 @@ impl BlockBuilder {
 }
 
 pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
+    let mut loc_to_block = IndexMap::new();
+    for (_name, code) in &program {
+        let mut block_index = 0;
+        for (i, op) in code.iter().enumerate() {
+            match op.0 {
+                Pax::BranchTarget => {
+                    loc_to_block.insert(i, block_index);
+                    block_index += 1;
+                }
+                Pax::Call(_) | Pax::JumpIf0(_) | Pax::Exit => {
+                    block_index += 1;
+                }
+                _ => {}
+            }
+        }
+    }
+
     let mut program_stacks = IndexMap::new();
     for (name, code) in program {
         let mut stack = BlockBuilder::new();
@@ -189,7 +206,7 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                 }
                 Pax::BranchTarget => {
                     // TODO this should inline the block number, not the opcode number
-                    stack.record_op(&(SuperPax::BranchTarget(i), op.1.clone()));
+                    stack.record_op(&(SuperPax::BranchTarget(loc_to_block[i]), op.1.clone()));
                     stack.branch_target_block();
                 }
                 Pax::AltPush => {
@@ -237,7 +254,7 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                     stack.call_block();
                 }
                 Pax::JumpIf0(ref target) => {
-                    stack.record_op(&(SuperPax::JumpIf0(target.clone()), op.1));
+                    stack.record_op(&(SuperPax::JumpIf0(loc_to_block[target]), op.1));
                     stack.jump_if_0_block();
                 }
             }
