@@ -639,7 +639,7 @@ fn inline(program: &mut SuperPaxProgram, method: &str) {
     'pass_loop: while continue_pass {
         continue_pass = false;
 
-        let mut main = program.get(method).unwrap().clone();
+        let main = program.get(method).unwrap().clone();
         dump_blocks(&main);
 
         let mut i = 0;
@@ -663,7 +663,7 @@ fn inline(program: &mut SuperPaxProgram, method: &str) {
                     dump_blocks(&inlined);
 
                     // Rewrite the sequence we're inlining.
-                    for (i, inline_block) in inlined.iter_mut().enumerate() {
+                    for (_i, inline_block) in inlined.iter_mut().enumerate() {
                         match inline_block.commands_mut().last_mut() {
                             Some((SuperPax::BranchTarget(ref mut target), ..))
                             | Some((SuperPax::JumpIf0(ref mut target), ..))
@@ -679,15 +679,15 @@ fn inline(program: &mut SuperPaxProgram, method: &str) {
                         0..1,
                         block.commands().clone().into_iter().rev().skip(1).rev(),
                     );
-                    let mut inline_seq = inlined[1..inlined.len() - 1].to_owned(); // Pop first, last opcodes
+                    let inline_seq = inlined[1..inlined.len() - 1].to_owned(); // Pop first, last opcodes
                     let mut exit_block_seq = inlined[inlined.len() - 1].clone();
                     exit_block_seq.commands_mut().pop();
 
                     // Refetch a mutable version of this method.
-                    let mut main_mut = program.get_mut(method).unwrap();
+                    let main_mut = program.get_mut(method).unwrap();
 
                     // Now rewrite all targets.
-                    for (i, main_block) in main_mut.iter_mut().enumerate() {
+                    for (_i, main_block) in main_mut.iter_mut().enumerate() {
                         match main_block.commands_mut().last_mut() {
                             Some((SuperPax::BranchTarget(ref mut target), ..))
                             | Some((SuperPax::JumpIf0(ref mut target), ..))
@@ -711,11 +711,11 @@ fn inline(program: &mut SuperPaxProgram, method: &str) {
                     // Splice in new chunk.
                     main_mut.splice(j..j, inline_seq);
 
-                    j = next_j;
                     // }
 
                     // Arbitrarily stop after this, though we could keep going,
                     // instead just perform another pass
+                    // j = next_j;
                     continue 'pass_loop;
                 }
                 _ => {}

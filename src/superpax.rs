@@ -1,7 +1,7 @@
 use crate::*;
 use indexmap::IndexMap;
 
-const TEMP_ADDRESS: isize = 49216;
+pub const TEMP_ADDRESS: isize = 49216;
 
 // Extends the regular Pax IR with some simple opcodes that
 // are more practical for refactoring—might be worth formalizing
