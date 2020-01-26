@@ -673,14 +673,21 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         }
                     }
 
-                    let mut metadata_block = inlined[0].clone();
-                    metadata_block.commands_mut().splice(
+                    // Generate enter block.
+                    let mut enter_block = inlined[0].clone();
+                    enter_block.commands_mut().splice(
                         0..1,
                         block.commands().clone().into_iter().rev().skip(1).rev(),
                     );
-                    let inline_seq = inlined[1..inlined.len() - 1].to_owned(); // Pop first, last opcodes
+                    // Pop first + last blocks.
+                    let inline_seq = inlined[1..inlined.len() - 1].to_owned();
+                    // Generate exit block.
                     let mut exit_block_seq = inlined[inlined.len() - 1].clone();
                     exit_block_seq.commands_mut().pop();
+                    let mut exit_block = main[j].clone();
+                    exit_block
+                        .commands_mut()
+                        .splice(0..0, exit_block_seq.commands().clone());
 
                     // Refetch a mutable version of this method.
                     let main_mut = program.get_mut(method).unwrap();
@@ -702,7 +709,7 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                     let next_j = j + inline_seq.len() + 1;
 
                     // Combine current block.
-                    main_mut[j - 1] = metadata_block;
+                    main_mut[j - 1] = enter_block;
                     // Combine next block.
                     main_mut[j]
                         .commands_mut()
