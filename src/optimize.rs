@@ -634,7 +634,7 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
 //     // }
 // }
 
-fn inline(program: &mut SuperPaxProgram, method: &str) {
+pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
     let mut continue_pass = true;
     'pass_loop: while continue_pass {
         continue_pass = false;
@@ -657,7 +657,6 @@ fn inline(program: &mut SuperPaxProgram, method: &str) {
                     // Flag that this pass succeeded.
                     continue_pass = true;
 
-                    // if target == "*" {
                     // We want to inline this function. First grab our offsets.
                     let mut inlined = program.get(target).unwrap().clone();
                     dump_blocks(&inlined);
@@ -727,7 +726,7 @@ fn inline(program: &mut SuperPaxProgram, method: &str) {
 fn dump_blocks(blocks: &[Block]) {
     eprintln!("program:");
     for (i, block) in blocks.iter().enumerate() {
-        println!("  block[{}] with {} entries:", i, block.commands().len());
+        eprintln!("  block[{}] with {} entries:", i, block.commands().len());
         for command in block.commands() {
             eprintln!("    {:?}", (command.0),);
         }
@@ -739,7 +738,7 @@ fn dump_blocks(blocks: &[Block]) {
 pub fn optimize_forth(program: Program) {
     let mut superprogram = convert_to_superpax(program);
 
-    inline(&mut superprogram, "main");
+    inline_into_function(&mut superprogram, "main");
 
     if let Some(blocks) = superprogram.get_mut("main") {
         dump_blocks(&blocks);

@@ -156,8 +156,9 @@ variable random-register \ 577
             }
         }
         Command::Run { interactive, .. } => {
-            let program = convert_to_superpax(script);
+            let mut program = convert_to_superpax(script);
 
+            inline_into_function(&mut program, "main");
             eval_forth(&program, interactive);
         }
     }
