@@ -219,19 +219,20 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
                 let a = analysis.pop_data();
                 let b = analysis.pop_data();
 
-                if let Some(RegMeta {
-                    literal: Some(a_value),
-                    ..
-                }) = analysis.registers.borrow().registers.get(&a)
-                {
-                    if let Some(RegMeta {
-                        literal: Some(b_value),
-                        ..
-                    }) = analysis.registers.borrow().registers.get(&b)
-                    {
-                        panic!("opt: A={}={:?} B={}={:?}", a, a_value, b, b_value);
-                    }
-                }
+                // TODO enable and/nand optimization
+                // if let Some(RegMeta {
+                //     literal: Some(a_value),
+                //     ..
+                // }) = analysis.registers.borrow().registers.get(&a)
+                // {
+                //     if let Some(RegMeta {
+                //         literal: Some(b_value),
+                //         ..
+                //     }) = analysis.registers.borrow().registers.get(&b)
+                //     {
+                //         panic!("opt: A={}={:?} B={}={:?}", a, a_value, b, b_value);
+                //     }
+                // }
 
                 let reg = analysis.new_var();
                 analysis.push_data(reg);
@@ -278,7 +279,7 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
 }
 
 /// Composes blocks together into a graph.
-fn dataflow_graph(stack_blocks: Vec<Block>) -> Graph<(), i32> {
+fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
     // List of blocks we've already seen.
     let mut visited = IndexSet::new();
 
@@ -473,7 +474,7 @@ fn propagate_literals_in_block(
 
 /// Analyse stack values and produce a register mapping for values as they
 /// move through the function.
-fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
+fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
     let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
@@ -610,6 +611,8 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
                 eprintln!("    {:?}", command.0);
             }
         }
+
+        blocks
     }
 }
 
@@ -633,6 +636,67 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) {
 //     // }
 //     // }
 // }
+
+/// Reduces branching in a function by removing unused BranchTargets.
+/// This function will also rewrite target offsets.
+pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
+    // FIXME need to do this
+    eprintln!(" hii   !!!!!");
+    if let Some(blocks) = program.get_mut(method) {
+        let readonly_blocks = blocks.clone();
+
+        let mut used_blocks = IndexSet::new();
+        for block in readonly_blocks {
+            match block.commands().last() {
+                Some((SuperPax::JumpAlways(target), ..))
+                | Some((SuperPax::JumpIf0(target), ..)) => {
+                    used_blocks.insert(*target);
+                }
+                _ => {}
+            }
+        }
+        eprintln!("used {:?}", used_blocks);
+
+        let mut continue_pass = true;
+        let mut i = 0;
+        while continue_pass && i < blocks.len() {
+            match blocks[i].commands().last() {
+                Some((SuperPax::BranchTarget(target), ..)) => {
+                    if !used_blocks.contains(target) {
+                        eprintln!("stripping {:?}", target);
+
+                        let block = blocks.remove(i);
+                        let commands = block.commands().clone().into_iter().rev().skip(1).rev();
+
+                        blocks
+                            .get_mut(i)
+                            .unwrap()
+                            .commands_mut()
+                            .splice(0..0, commands);
+                        i = 0;
+                        continue;
+                    }
+                }
+                _ => {}
+            }
+
+            i += 1;
+        }
+    }
+}
+
+/// Helper method to otpimize a single function by propagating literals.
+pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
+    if let Some(blocks) = program.get_mut(method) {
+        let graph = dataflow_graph(&blocks);
+        *blocks = analyze_graph(&blocks, &graph);
+    }
+    reduce_branches(program, method);
+
+    if let Some(blocks) = program.get_mut(method) {
+        dump_blocks(blocks);
+    }
+}
 
 pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
     let mut continue_pass = true;

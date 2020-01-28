@@ -159,6 +159,9 @@ variable random-register \ 577
             let mut program = convert_to_superpax(script);
 
             inline_into_function(&mut program, "main");
+
+            // optimize_function(&mut program, "main");
+
             eval_forth(&program, interactive);
         }
     }
