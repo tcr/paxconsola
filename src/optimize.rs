@@ -658,11 +658,13 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                     continue_pass = true;
 
                     // We want to inline this function. First grab our offsets.
-                    let mut inlined = program.get(target).unwrap().clone();
-                    dump_blocks(&inlined);
+                    let mut inlined_blocks = program.get(target).unwrap().clone();
+                    dump_blocks(&inlined_blocks);
+                    // Inline code length (trim off start and end block).
+                    let inlined_blocks_len = inlined_blocks.len() - 2;
 
                     // Rewrite the sequence we're inlining.
-                    for (_i, inline_block) in inlined.iter_mut().enumerate() {
+                    for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
                         match inline_block.commands_mut().last_mut() {
                             Some((SuperPax::BranchTarget(ref mut target), ..))
                             | Some((SuperPax::JumpIf0(ref mut target), ..))
@@ -673,25 +675,8 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         }
                     }
 
-                    // Generate enter block.
-                    let mut enter_block = inlined[0].clone();
-                    enter_block.commands_mut().splice(
-                        0..1,
-                        block.commands().clone().into_iter().rev().skip(1).rev(),
-                    );
-                    // Pop first + last blocks.
-                    let inline_seq = inlined[1..inlined.len() - 1].to_owned();
-                    // Generate exit block.
-                    let mut exit_block_seq = inlined[inlined.len() - 1].clone();
-                    exit_block_seq.commands_mut().pop();
-                    let mut exit_block = main[j].clone();
-                    exit_block
-                        .commands_mut()
-                        .splice(0..0, exit_block_seq.commands().clone());
-
                     // Refetch a mutable version of this method.
                     let main_mut = program.get_mut(method).unwrap();
-
                     // Now rewrite all targets.
                     for (_i, main_block) in main_mut.iter_mut().enumerate() {
                         match main_block.commands_mut().last_mut() {
@@ -699,29 +684,63 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                             | Some((SuperPax::JumpIf0(ref mut target), ..))
                             | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
                                 if *target >= j {
-                                    *target += inline_seq.len();
+                                    *target += inlined_blocks_len;
                                 }
                             }
                             _ => {}
                         }
                     }
 
-                    let next_j = j + inline_seq.len() + 1;
+                    // ANCHOR figure out why addition.fs doesn't work
+                    // ANCHOR when we inject the altpush and altpop logic
+
+                    // Generate enter block.
+                    let mut enter_block = inlined_blocks[0].clone();
+                    let enter_commands = block
+                        .commands()
+                        .to_owned()
+                        .into_iter()
+                        .rev()
+                        .skip(1)
+                        .rev()
+                        .chain(
+                            vec![
+                                (SuperPax::PushLiteral(0xFFFF), Default::default()),
+                                (SuperPax::AltPush, Default::default()),
+                            ]
+                            .into_iter(),
+                        );
+                    enter_block.commands_mut().splice(0..1, enter_commands);
+                    // Generate exit block.
+                    let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
+                        .commands()
+                        .to_owned()
+                        .into_iter()
+                        .rev()
+                        .skip(1)
+                        .rev()
+                        .chain(
+                            vec![
+                                (SuperPax::AltPop, Default::default()),
+                                (SuperPax::Drop, Default::default()),
+                            ]
+                            .into_iter(),
+                        );
+                    let mut exit_block = main_mut[j].clone();
+                    exit_block.commands_mut().splice(0..0, exit_commands);
+                    // Remove first + last blocks from our inline sequence.
+                    let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
 
                     // Combine current block.
                     main_mut[j - 1] = enter_block;
                     // Combine next block.
-                    main_mut[j]
-                        .commands_mut()
-                        .splice(0..0, exit_block_seq.commands().clone());
+                    main_mut[j] = exit_block;
                     // Splice in new chunk.
                     main_mut.splice(j..j, inline_seq);
 
-                    // }
-
                     // Arbitrarily stop after this, though we could keep going,
                     // instead just perform another pass
-                    // j = next_j;
+                    // let j = inlined_blocks_len + 1;
                     continue 'pass_loop;
                 }
                 _ => {}
@@ -735,7 +754,7 @@ fn dump_blocks(blocks: &[Block]) {
     for (i, block) in blocks.iter().enumerate() {
         eprintln!("  block[{}] with {} entries:", i, block.commands().len());
         for command in block.commands() {
-            eprintln!("    {:?}", (command.0),);
+            eprintln!("    {:30} {:?}", format!("{:?}", command.0), command.1);
         }
     }
     eprintln!();

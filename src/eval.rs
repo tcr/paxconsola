@@ -60,13 +60,10 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
         let op = program[&name][block].commands()[pos].clone();
         cindex += 1;
 
-        // eprintln!(
-        //     "[op#{:>4}]  {}",
-        //     format!("{}", cindex - 1),
-        //     format!("{:?}", op.0)
-        // );
+        // eprintln!("[ {} ] [{}]  {}", name, cindex - 1, format!("{:?}", op.0));
         // eprintln!("                                stack: {:?}", stack);
         // eprintln!("                                  alt: {:?}", alt_stack);
+        // std::thread::sleep_ms(20);
 
         match op.0 {
             SuperPax::BranchTarget(_) => {
