@@ -16,12 +16,12 @@ const WAT_TEMPLATE: &'static str = r#"
     (import "root" "print" (func $print (type $t2)))
     (func $__wasm_call_ctors (type $t0))
     (func $mem_store (export "mem_store") (type $t1) (param $p0 i32) (param $p1 i32)
-      get_local $p0
+      get_local $p1
       i32.const 1
       i32.shl
       i32.const 1040
       i32.add
-      get_local $p1
+      get_local $p0
       i32.store16)
     (func $mem_load (export "mem_load") (type $t2) (param $p0 i32) (result i32)
       get_local $p0
@@ -31,12 +31,12 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.add
       i32.load16_s)
     (func $mem_store_8 (export "mem_store_8") (type $t1) (param $p0 i32) (param $p1 i32)
-      get_local $p0
+      get_local $p1
       i32.const 1
       i32.shl
       i32.const 1040
       i32.add
-      get_local $p1
+      get_local $p0
       i32.store16)
     (func $mem_load_8 (export "mem_load_8") (type $t2) (param $p0 i32) (result i32)
       get_local $p0
@@ -204,6 +204,7 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                         wat_out.push(format!("call $temp_load"));
                     }
                     SuperPax::StoreTemp => {
+                        wat_out.push(format!("call $data_pop"));
                         wat_out.push(format!("call $temp_store"));
                     }
                     SuperPax::Exit => {}
@@ -216,15 +217,23 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                         // }
                     }
                     SuperPax::Load => {
+                        wat_out.push(format!("call $data_pop"));
                         wat_out.push(format!("call $mem_load"));
+                        wat_out.push(format!("call $data_push"));
                     }
                     SuperPax::Load8 => {
+                        wat_out.push(format!("call $data_pop"));
                         wat_out.push(format!("call $mem_load_8"));
+                        wat_out.push(format!("call $data_push"));
                     }
                     SuperPax::Store => {
+                        wat_out.push(format!("call $data_pop"));
+                        wat_out.push(format!("call $data_pop"));
                         wat_out.push(format!("call $mem_store"));
                     }
                     SuperPax::Store8 => {
+                        wat_out.push(format!("call $data_pop"));
+                        wat_out.push(format!("call $data_pop"));
                         wat_out.push(format!("call $mem_store_8"));
                     }
                     SuperPax::BranchTarget(target_index) => {
@@ -296,14 +305,14 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                         wat_out.push(format!("drop"));
                     }
                 }
-                println!("  {:?}", op.0);
+                // println!("  {:?}", op.0);
             }
         }
     }
 
     let wat_output = wat_out.join("\n");
 
-    println!("WAT:\n{}\n\n\n", wat_output);
+    eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
 
     let binary = wat::parse_str(WAT_TEMPLATE.replace("{{main}}", &wat_output)).unwrap();
 
@@ -312,7 +321,7 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
     let parsed_module = Module::parse(&env, &binary[..]).expect("module couldnt parse");
 
     let mut module = rt.load_module(parsed_module).map_err(|x| x.1).unwrap();
-    println!("execution:");
+    eprintln!("execution:");
     module
         .link_function::<(i32,), i32>("root", "print", wasm_print_wrap)
         .unwrap();
