@@ -11,6 +11,11 @@ pub enum ParseMode {
     Variable,
 }
 
+// Value for WebAssembly
+const BASE_VARIABLE_OFFSET: usize = 10000;
+// Value for Gameboy
+// const BASE_VARIABLE_OFFSET: usize = 10000;
+
 pub type Span = Vec<Located<Pax>>;
 
 #[derive(Debug)]
@@ -75,7 +80,7 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
     let mut functions: IndexMap<String, Span> = IndexMap::new();
     let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
-    let mut variable_offset: usize = 0xC040;
+    let mut variable_offset: usize = BASE_VARIABLE_OFFSET;
 
     let mut flow_markers: Vec<MarkerGroup> = vec![];
     let mut used_flow_markers: Vec<MarkerGroup> = vec![];
