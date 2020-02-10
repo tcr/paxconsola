@@ -455,34 +455,34 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                 let value = stack.pop().unwrap();
                 variables[name as usize] = value;
 
-                if interactive {
-                    if name < 24 * 24 {
-                        eprintln!("[store] setting graphics var: {}", name as usize);
-                        let x = name % 24;
-                        let y = (name - x) / 24;
+                // if interactive {
+                //     if name < 24 * 24 {
+                //         eprintln!("[store] setting graphics var: {}", name as usize);
+                //         let x = name % 24;
+                //         let y = (name - x) / 24;
 
-                        let stdout = std::io::stdout();
-                        let stdout = stdout.lock();
-                        let mut stdout = stdout.into_raw_mode().unwrap();
-                        if !use_graphics {
-                            write!(stdout, "{}", clear::All).unwrap();
-                            use_graphics = true;
-                        }
-                        // eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
-                        let color = if value == 0 { "@" } else { "_" };
-                        write!(
-                            stdout,
-                            "{}{}{}{}",
-                            style::Reset,
-                            cursor::Goto(x as u16 + 1, y as u16 + 1),
-                            color,
-                            cursor::Goto(1, 25)
-                        )
-                        .unwrap();
-                        eprintln!("[store] setting graphics var: {}", name as usize);
-                        let _ = stdout.flush();
-                    }
-                }
+                //         let stdout = std::io::stdout();
+                //         let stdout = stdout.lock();
+                //         let mut stdout = stdout.into_raw_mode().unwrap();
+                //         if !use_graphics {
+                //             write!(stdout, "{}", clear::All).unwrap();
+                //             use_graphics = true;
+                //         }
+                //         // eprintln!("drawing coords: {} x: {} y: {}", name, x, y);
+                //         let color = if value == 0 { "@" } else { "_" };
+                //         write!(
+                //             stdout,
+                //             "{}{}{}{}",
+                //             style::Reset,
+                //             cursor::Goto(x as u16 + 1, y as u16 + 1),
+                //             color,
+                //             cursor::Goto(1, 25)
+                //         )
+                //         .unwrap();
+                //         eprintln!("[store] setting graphics var: {}", name as usize);
+                //         let _ = stdout.flush();
+                //     }
+                // }
             }
             // @ (get)
             SuperPax::Load8 | SuperPax::Load => {

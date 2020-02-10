@@ -55,7 +55,9 @@ impl Iterator for Tokenizer {
         let matches = RE_INT.captures(&code_input);
         match matches {
             Some(cap) => {
-                self.move_forward(self.code.len() - cap[2].len());
+                self.move_forward(
+                    self.code.len() - cap.get(2).map(|x| x.as_str().len()).unwrap_or(0),
+                );
 
                 if let Some(index) = cap[1].find("$") {
                     return Some((
@@ -72,7 +74,9 @@ impl Iterator for Tokenizer {
         let matches = RE_WORD.captures(&code_input);
         match matches {
             Some(cap) => {
-                self.move_forward(self.code.len() - cap[2].len());
+                self.move_forward(
+                    self.code.len() - cap.get(2).map(|x| x.as_str().len()).unwrap_or(0),
+                );
                 return Some((Token::Word(cap[1].to_string()), pos_at));
             }
             _ => {}

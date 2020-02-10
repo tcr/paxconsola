@@ -420,7 +420,10 @@ fn propagate_literals_in_block(
                 SuperPax::Drop => {
                     let reg = stack.data.last().unwrap();
                     reg_blacklist.insert(reg.clone());
-                    return None;
+                    if !reg.starts_with("D") {
+                        // FIXME is this the wrong thing
+                        return None;
+                    }
                 }
                 _ => {}
             }

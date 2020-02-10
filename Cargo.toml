@@ -9,7 +9,6 @@ maplit = "*"
 num-traits = "0.2"
 num-derive = "0.3"
 glob = "*"
-termion = "*"
 rand = "*"
 structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
@@ -21,3 +20,9 @@ itertools = "0.8.2"
 petgraph = "0.5.0"
 wat = "1"
 wasm3 = { git = "https://github.com/Veykril/wasm3-rs.git" }
+termion = { version = "*", optional = true }
+
+[features]
+default = ["interactive"]
+
+interactive = ["termion"]
