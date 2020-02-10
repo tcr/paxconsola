@@ -192,63 +192,60 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
         let mut wat_block_stack = vec![];
         for (block_index, block) in blocks.iter().enumerate() {
             for op in block.commands() {
+                wat_out.push(format!(";; {:?}", &op.0));
                 match &op.0 {
                     SuperPax::PushLiteral(lit) => {
-                        wat_out.push(format!("i32.const {}", lit));
-                        wat_out.push(format!("call $data_push"));
+                        wat_out.push(format!("    i32.const {}", lit));
+                        wat_out.push(format!("    call $data_push"));
                     }
                     SuperPax::Add => {
-                        wat_out.push(format!("call $add"));
+                        wat_out.push(format!("    call $add"));
                     }
                     SuperPax::Nand => {
-                        wat_out.push(format!("call $nand"));
+                        wat_out.push(format!("    call $nand"));
                     }
                     SuperPax::Drop => {
-                        wat_out.push(format!("call $drop"));
+                        wat_out.push(format!("    call $drop"));
                     }
                     SuperPax::AltPop => {
-                        wat_out.push(format!("call $return_pop"));
+                        wat_out.push(format!("    call $return_pop"));
                     }
                     SuperPax::AltPush => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $return_push"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $return_push"));
                     }
                     SuperPax::LoadTemp => {
-                        wat_out.push(format!("call $temp_load"));
-                        wat_out.push(format!("call $data_push"));
+                        wat_out.push(format!("    call $temp_load"));
+                        wat_out.push(format!("    call $data_push"));
                     }
                     SuperPax::StoreTemp => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $temp_store"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $temp_store"));
                     }
                     SuperPax::Exit => {}
                     SuperPax::Metadata(_) => {}
                     SuperPax::Call(s) => {
-                        // if s != "drop" {
-                        unreachable!("{}", s);
-                        // } else {
-                        // wat_out.push(format!("call $drop"));
-                        // }
+                        unreachable!("expected all methods to be inlined: {}", s);
                     }
                     SuperPax::Load => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $mem_load"));
-                        wat_out.push(format!("call $data_push"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $mem_load"));
+                        wat_out.push(format!("    call $data_push"));
                     }
                     SuperPax::Load8 => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $mem_load_8"));
-                        wat_out.push(format!("call $data_push"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $mem_load_8"));
+                        wat_out.push(format!("    call $data_push"));
                     }
                     SuperPax::Store => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $mem_store"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $mem_store"));
                     }
                     SuperPax::Store8 => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $mem_store_8"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $mem_store_8"));
                     }
                     SuperPax::BranchTarget(target_index) => {
                         let mut incoming = graph
@@ -271,12 +268,12 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                             wat_block_index += 1;
 
                             wat_block_stack.push(id.clone());
-                            wat_out.push(format!("loop {}", id));
+                            wat_out.push(format!("    loop {}", id));
                         } else if incoming.len() > 1 {
                             // End of an if or if/else block.
-                            wat_out.push(format!("end"));
+                            wat_out.push(format!("    end"));
                             wat_block_stack.pop().unwrap();
-                            wat_out.push(format!("end"));
+                            wat_out.push(format!("    end"));
                             wat_block_stack.pop().unwrap();
                         }
                     }
@@ -290,18 +287,18 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                             wat_block_index += 1;
                             wat_block_stack.push(if_id.clone());
 
-                            wat_out.push(format!("block {}", parent_id));
-                            wat_out.push(format!("block {}", if_id));
-                            wat_out.push(format!("call $data_pop"));
-                            wat_out.push(format!("i32.eqz"));
-                            wat_out.push(format!("br_if {}", if_id));
+                            wat_out.push(format!("    block {}", parent_id));
+                            wat_out.push(format!("    block {}", if_id));
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    i32.eqz"));
+                            wat_out.push(format!("    br_if {}", if_id));
                         } else {
                             // End of a loop
                             let id = wat_block_stack.pop().unwrap();
-                            wat_out.push(format!("call $data_pop"));
-                            wat_out.push(format!("i32.eqz"));
-                            wat_out.push(format!("br_if {}", id));
-                            wat_out.push(format!("end"));
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    i32.eqz"));
+                            wat_out.push(format!("    br_if {}", id));
+                            wat_out.push(format!("    end"));
                         }
                     }
                     SuperPax::JumpAlways(_) => {
@@ -309,16 +306,17 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                         wat_block_index += 1;
                         let parent_block = wat_block_stack.iter().rev().nth(1).clone().unwrap();
 
-                        wat_out.push(format!("br {}", parent_block));
-                        wat_out.push(format!("end"));
-                        wat_out.push(format!("block {}", id));
+                        wat_out.push(format!("    br {}", parent_block));
+                        wat_out.push(format!("    end"));
+                        wat_out.push(format!("    block {}", id));
                     }
                     SuperPax::Print => {
-                        wat_out.push(format!("call $data_pop"));
-                        wat_out.push(format!("call $print"));
-                        wat_out.push(format!("drop"));
+                        wat_out.push(format!("    call $data_pop"));
+                        wat_out.push(format!("    call $print"));
+                        wat_out.push(format!("    drop"));
                     }
                 }
+                wat_out.push(format!(""));
                 // println!("  {:?}", op.0);
             }
         }
@@ -361,9 +359,9 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
             panic!("{:?}", err);
         });
     func.call().unwrap();
-    // return vec![];
+    return vec![];
 
-    println!();
+    // println!();
 
     let mut stack: Vec<u32> = vec![];
     let mut alt_stack: Vec<u32> = vec![];
