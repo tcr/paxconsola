@@ -279,7 +279,7 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
 }
 
 /// Composes blocks together into a graph.
-fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
+pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
     // List of blocks we've already seen.
     let mut visited = IndexSet::new();
 
