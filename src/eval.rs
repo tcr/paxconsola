@@ -15,8 +15,8 @@ const WAT_TEMPLATE: &'static str = r#"
     (type $t4 (func (result i32)))
     (import "root" "print" (func $print (type $t2)))
     (func $__wasm_call_ctors (type $t0))
+
     (func $mem_store (export "mem_store") (type $t1) (param $p1 i32) (param $p0 i32)
-    get_local $p1
       get_local $p1
       i32.const 1
       i32.shl
@@ -24,6 +24,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.add
       get_local $p0
       i32.store16)
+
     (func $mem_load (export "mem_load") (type $t2) (param $p0 i32) (result i32)
       get_local $p0
       i32.const 1
@@ -31,6 +32,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const {{mem}}
       i32.add
       i32.load16_s)
+
     (func $mem_store_8 (export "mem_store_8") (type $t1) (param $p1 i32) (param $p0 i32)
       get_local $p1
       i32.const 1
@@ -39,6 +41,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.add
       get_local $p0
       i32.store16)
+
     (func $mem_load_8 (export "mem_load_8") (type $t2) (param $p0 i32) (result i32)
       get_local $p0
       i32.const 1
@@ -46,6 +49,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const {{mem}}
       i32.add
       i32.load8_s)
+
     (func $data_push (export "data_push") (type $t3) (param $p0 i32)
       (local $l0 i32)
       i32.const 0
@@ -62,6 +66,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.add
       get_local $p0
       i32.store16)
+
     (func $data_pop (export "data_pop") (type $t4) (result i32)
       (local $l0 i32)
       i32.const 0
@@ -77,6 +82,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const {{data}}
       i32.add
       i32.load16_s)
+
     (func $return_push (export "return_push") (type $t3) (param $p0 i32)
       (local $l0 i32)
       i32.const 0
@@ -93,6 +99,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.add
       get_local $p0
       i32.store16)
+
     (func $return_pop (export "return_pop") (type $t4) (result i32)
       (local $l0 i32)
       i32.const 0
@@ -107,14 +114,18 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.shl
       i32.const {{return}}
       i32.add
-      i32.load16_s)
+      i32.load16_s
+      call $data_push)
+
     (func $temp_store (export "temp_store") (type $t3) (param $p0 i32)
       i32.const 0
       get_local $p0
       i32.store16 offset={{temp}})
+
     (func $temp_load (export "temp_load") (type $t4) (result i32)
       i32.const 0
       i32.load16_s offset={{temp}})
+
     (func $drop (export "drop") (type $t0)
       i32.const 0
       i32.const 0
@@ -122,6 +133,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const -1
       i32.add
       i32.store offset={{data_ptr}})
+
     (func $add (export "add") (type $t0)
       call $data_pop
       call $data_pop
@@ -131,6 +143,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const 16
       i32.shr_s
       call $data_push)
+
     (func $multiply (export "multiply") (type $t0)
       call $data_pop
       call $data_pop
@@ -140,6 +153,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const 16
       i32.shr_s
       call $data_push)
+
     (func $nand (export "nand") (type $t0)
       call $data_pop
       call $data_pop
@@ -147,9 +161,13 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const -1
       i32.xor
       call $data_push)
+
+
     (func $main (export "main") (type $t4) (result i32)
         {{main}}
         i32.const 255)
+
+
     (memory $memory (export "memory") 2))
   
 "#;
@@ -190,7 +208,6 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                     }
                     SuperPax::AltPop => {
                         wat_out.push(format!("call $return_pop"));
-                        wat_out.push(format!("call $data_push"));
                     }
                     SuperPax::AltPush => {
                         wat_out.push(format!("call $data_pop"));
@@ -198,6 +215,7 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                     }
                     SuperPax::LoadTemp => {
                         wat_out.push(format!("call $temp_load"));
+                        wat_out.push(format!("call $data_push"));
                     }
                     SuperPax::StoreTemp => {
                         wat_out.push(format!("call $data_pop"));
@@ -343,7 +361,9 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
             panic!("{:?}", err);
         });
     func.call().unwrap();
-    return vec![];
+    // return vec![];
+
+    println!();
 
     let mut stack: Vec<u32> = vec![];
     let mut alt_stack: Vec<u32> = vec![];
