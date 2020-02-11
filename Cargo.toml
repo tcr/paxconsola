@@ -10,19 +10,14 @@ num-traits = "0.2"
 num-derive = "0.3"
 glob = "*"
 rand = "*"
-structopt = { version = "0.3", features = [ "paw" ] }
+structopt = { version = "0.3", features = [ "paw" ], optional = true }
 paw = "1.0"
 lazy_static = "*"
 indexmap = "*"
-color-backtrace = { version = "0.3" }
+# color-backtrace = { version = "0.3" }
 percent-encoding = "*"
 itertools = "0.8.2"
 petgraph = "0.5.0"
 wat = "1"
-wasm3 = { git = "https://github.com/Veykril/wasm3-rs.git" }
-termion = { version = "*", optional = true }
-
-[features]
-default = ["interactive"]
-
-interactive = ["termion"]
+wasm3 = { path = "./wasm3-rs" }
+wasm3-sys = { path = "./wasm3-rs/wasm3-sys" }

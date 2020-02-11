@@ -18,6 +18,7 @@ enum Msg {
     Inline(String),
     InlineAndOptimize(String),
     ShowMethod(String),
+    RunInput(String),
 }
 
 impl Component for App {
@@ -53,6 +54,21 @@ impl Component for App {
             Msg::Reset(method) => {
                 let mut mock_program = self.program.clone();
                 self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
+
+                true
+            }
+            Msg::RunInput(method) => {
+                let mut program = self.program.clone();
+                eval_forth(&program, false);
+
+                // js! {
+                //     const canvas = document.querySelector("canvas");
+                //     canvas.width = 100;
+                //     canvas.height = 100;
+                //     const ctx = canvas.getContext("2d");
+                //     ctx.fillStyle = "green";
+                //     ctx.fillRect(10, 10, 50, 50);
+                // };
 
                 true
             }
@@ -166,6 +182,8 @@ impl Component for App {
                     <button onclick=onclick>{ "Compile" }</button>
                 </div>
                 <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px;">
+                    <h3>{ "Canvas" }</h3>
+                    <canvas width="200" height="100" style="border: 1px solid black" />
                     <h3>{ "Method List" }</h3>
                     { methods }
                 </div>
