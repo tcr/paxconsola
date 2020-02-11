@@ -300,13 +300,17 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
                         }
                     }
                     SuperPax::JumpAlways(_) => {
-                        let id = format!("$B{}", wat_block_index);
+                        wat_block_stack.pop().unwrap(); // last_block
+                        let parent_block = wat_block_stack.pop().unwrap();
+                        wat_block_stack.push(parent_block.clone());
+
+                        let next_block = format!("$B{}", wat_block_index);
                         wat_block_index += 1;
-                        let parent_block = wat_block_stack.iter().rev().nth(1).clone().unwrap();
 
                         wat_out.push(format!("    br {}", parent_block));
                         wat_out.push(format!("    end"));
-                        wat_out.push(format!("    block {}", id));
+                        wat_out.push(format!("    block {}", next_block));
+                        wat_block_stack.push(next_block);
                     }
                     SuperPax::Print => {
                         wat_out.push(format!("    call $data_pop"));

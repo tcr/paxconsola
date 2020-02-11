@@ -10,7 +10,7 @@ num-traits = "0.2"
 num-derive = "0.3"
 glob = "*"
 rand = "*"
-structopt = { version = "0.3", features = [ "paw" ], optional = true }
+structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
 lazy_static = "*"
 indexmap = "*"

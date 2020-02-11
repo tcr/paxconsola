@@ -480,11 +480,16 @@ fn propagate_literals_in_block(
 fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
-    let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
-    let mut seq = vec![];
-    while let Some(block_index) = bfs.next(&graph) {
-        seq.push(block_index.index() as usize);
-    }
+    let seq = if graph.node_count() > 1 {
+        let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
+        let mut seq = vec![];
+        while let Some(block_index) = bfs.next(&graph) {
+            seq.push(block_index.index() as usize);
+        }
+        seq
+    } else {
+        vec![0]
+    };
 
     // REVIEW The Analysis struct should hold the analyses of all blocks at once, injected
     // in topological order, so that propagation of arguments from later blocks can happen
