@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, PartialEq, Default, Copy)]
+use serde::*;
+
+#[derive(Debug, Clone, PartialEq, Default, Copy, Serialize, Deserialize)]
 pub struct Pos {
     pub line: usize,
     pub col: usize,

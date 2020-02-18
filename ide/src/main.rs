@@ -13,12 +13,12 @@ struct Worker {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
-    Question(String),
+    Question(Vec<u8>, bool),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Response {
-    Answer(String),
+    Answer(SuperPaxProgram, bool),
 }
 
 impl Agent for Worker {
@@ -44,11 +44,20 @@ impl Agent for Worker {
     // Handle incoming messages from components of other agents.
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
-            Request::Question(_) => {
-                self.link
-                    .respond(who, Response::Answer("That's cool!".into()));
+            Request::Question(input, execute) => {
+                let program = {
+                    let code = inject_prelude(&input);
+                    let compiled = parse_forth(code);
+                    let program = convert_to_superpax(compiled);
+                    program
+                };
+                self.link.respond(who, Response::Answer(program, execute));
             }
         }
+    }
+
+    fn name_of_resource() -> &'static str {
+        "bin/native_worker.js"
     }
 }
 
@@ -68,7 +77,7 @@ enum Msg {
     InlineAndOptimize(String),
     ShowMethod(String),
     RunInput,
-    CompileResult,
+    CompileResult(SuperPaxProgram, bool),
 }
 
 impl Component for App {
@@ -76,7 +85,13 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(|_| Msg::CompileResult);
+        let callback = link.callback(|res| {
+            if let Response::Answer(program, execute) = res {
+                Msg::CompileResult(program, execute)
+            } else {
+                unreachable!();
+            }
+        });
         // `Worker::bridge` spawns an instance if no one is available
         let context = Worker::bridge(callback); // Connected! :tada:
 
@@ -91,17 +106,30 @@ impl Component for App {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::CompileResult => true, // TODO process compile results
-            Msg::Click => {
-                self.program = {
-                    let code = inject_prelude(self.forth_input.as_bytes());
-                    let compiled = parse_forth(code);
-                    let program = convert_to_superpax(compiled);
-                    program
-                };
-
+            Msg::CompileResult(program, execute) => {
+                self.program = program;
+                if execute {
+                    let mut mock_program = self.program.clone();
+                    inline_into_function(&mut mock_program, "main");
+                    eval_forth(&mock_program, false);
+                }
                 true
             }
+            Msg::Click => {
+                self.context.send(Request::Question(
+                    self.forth_input.as_bytes().to_vec(),
+                    false,
+                ));
+                true
+            }
+            Msg::RunInput => {
+                self.context.send(Request::Question(
+                    self.forth_input.as_bytes().to_vec(),
+                    true,
+                ));
+                true
+            }
+
             Msg::ChangeInput(code) => {
                 self.forth_input = code.clone();
 
@@ -110,29 +138,6 @@ impl Component for App {
             Msg::Reset(method) => {
                 let mut mock_program = self.program.clone();
                 self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
-
-                true
-            }
-            Msg::RunInput => {
-                self.program = {
-                    let code = inject_prelude(self.forth_input.as_bytes());
-                    let compiled = parse_forth(code);
-                    let program = convert_to_superpax(compiled);
-                    program
-                };
-
-                let mut mock_program = self.program.clone();
-                inline_into_function(&mut mock_program, "main");
-                eval_forth(&mock_program, false);
-
-                // js! {
-                //     const canvas = document.querySelector("canvas");
-                //     canvas.width = 100;
-                //     canvas.height = 100;
-                //     const ctx = canvas.getContext("2d");
-                //     ctx.fillStyle = "green";
-                //     ctx.fillRect(10, 10, 50, 50);
-                // };
 
                 true
             }

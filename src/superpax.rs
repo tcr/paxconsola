@@ -1,12 +1,13 @@
 use crate::*;
 use indexmap::IndexMap;
+use serde::*;
 
 pub const TEMP_ADDRESS: isize = 49216;
 
 // Extends the regular Pax IR with some simple opcodes that
 // are more practical for refactoring—might be worth formalizing
 // since they're just supersets of lower protocol, or not
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum SuperPax {
     Drop,
 
@@ -45,7 +46,7 @@ pub type SuperSpan = Vec<Located<SuperPax>>;
 
 pub type SuperPaxProgram = IndexMap<String, Vec<Block>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Block {
     ExitBlock(SuperSpan),
     JumpAlways(SuperSpan),
