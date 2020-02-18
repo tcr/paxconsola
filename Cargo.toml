@@ -19,10 +19,11 @@ percent-encoding = "*"
 itertools = "0.8.2"
 petgraph = "0.5.0"
 wat = "1"
-#wasm3 = { path = "./wasm3-rs" }
-#wasm3-sys = { path = "./wasm3-rs/wasm3-sys" }
+
+# choose a wasm implementation
 wasm3 = { git = "https://github.com/Veykril/wasm3-rs", optional = true }
 stdweb = { version = "*", optional = true }
+wasmi = { version = "*", default-features = false, features = [ "core" ], optional = true }
 
 [features]
 default = ["wasm3"]

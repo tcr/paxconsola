@@ -111,7 +111,9 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const {{return}}
       i32.add
       i32.load16_s
-      call $data_push)
+      tee_local $l0
+      call $data_push
+      get_local $l0)
 
     (func $temp_store (export "temp_store") (type $t3) (param $p0 i32)
       i32.const 0
@@ -323,21 +325,18 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
         }
     }
 
-    let wat_output = wat_out.join("\n");
+    let wat_output = WAT_TEMPLATE
+        .replace("{{return_ptr}}", "1024")
+        .replace("{{data_ptr}}", "1028")
+        .replace("{{temp}}", "1032")
+        .replace("{{data}}", "2048")
+        .replace("{{return}}", "4096")
+        .replace("{{mem}}", "10000")
+        .replace("{{main}}", &wat_out.join("\n"));
 
     eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
 
-    let binary = wat::parse_str(
-        WAT_TEMPLATE
-            .replace("{{return_ptr}}", "1024")
-            .replace("{{data_ptr}}", "1028")
-            .replace("{{temp}}", "1032")
-            .replace("{{data}}", "2048")
-            .replace("{{return}}", "4096")
-            .replace("{{mem}}", "10000")
-            .replace("{{main}}", &wat_output),
-    )
-    .unwrap();
+    let binary = wat::parse_str(&wat_output).unwrap();
 
     run_wasm(&binary);
 
@@ -345,24 +344,60 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
     return vec![];
 }
 
-#[cfg(not(feature = "wasm3"))]
+#[cfg(feature = "stdweb")]
 fn run_wasm(binary: &[u8]) {
     use stdweb::*;
 
     // lol
     js! {
         let binary = @{binary};
-        console.log("binary:", binary);
+        console.log(1);
         WebAssembly.instantiate(new Uint8Array(binary), {
+            root: {
+                print: function(arg) {
+                    console.log("[print]", arg);
+                    }
+            },
             imports: {
               wasm_print_wrap: function(arg) {
-                console.log("[print]", arg);
+                console.log("[wasm_print_wrap]", arg);
               }
             }
-          });
+        }).then(res => {
+            console.log(2, res.instance.exports.main);
+            res.instance.exports.main();
+            console.log("that should have had output!");
+        });
     }
 }
 
+/// Evaluate WebAssembly binary using the wasmi library.
+#[cfg(feature = "wasmi")]
+fn run_wasm(binary: &[u8]) {
+    use wasmi::{ImportsBuilder, Module, ModuleInstance, NopExternals, RuntimeValue};
+
+    // Here we load module using dedicated for this purpose
+    // `load_from_file` function (which works only with modules)
+    let module = Module::from_buffer(binary).expect("WebAssembly binary had validation errors");
+
+    // Intialize deserialized module. It adds module into It expects 3 parameters:
+    // - a name for the module
+    // - a module declaration
+    // - "main" module doesn't import native module(s) this is why we don't need to provide external native modules here
+    // This test shows how to implement native module https://github.com/NikVolf/parity-wasm/blob/master/src/interpreter/tests/basics.rs#L197
+    let main = ModuleInstance::new(&module, &ImportsBuilder::default())
+        .expect("Failed to instantiate module")
+        .run_start(&mut NopExternals)
+        .expect("Failed to run start function in module");
+
+    // "_call" export of function to be executed with an i32 argument and prints the result of execution
+    println!(
+        "Result: {:?}",
+        main.invoke_export("main", &[], &mut NopExternals)
+    );
+}
+
+/// Evaluate WebAssembly binary using the wasm3 library.
 #[cfg(feature = "wasm3")]
 fn run_wasm(binary: &[u8]) {
     use wasm3::environment::Environment;
