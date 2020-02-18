@@ -390,6 +390,8 @@ fn run_wasm(binary: &[u8]) {
         .run_start(&mut NopExternals)
         .expect("Failed to run start function in module");
 
+    // TODO module root not found
+
     // "_call" export of function to be executed with an i32 argument and prints the result of execution
     println!(
         "Result: {:?}",
