@@ -108,7 +108,7 @@ variable random-register \ 577
 
             inline_into_function(&mut program, "main");
 
-            optimize_function(&mut program, "main");
+            // optimize_function(&mut program, "main");
 
             eval_forth(&program, interactive);
         }

@@ -340,11 +340,11 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
     )
     .unwrap();
 
-    let env = Environment::new();
-    let rt = env.create_runtime(1024 * 60);
+    let env = Environment::new().unwrap();
+    let rt = env.create_runtime(1024 * 60).unwrap();
     let parsed_module = Module::parse(&env, &binary[..]).expect("module couldnt parse");
 
-    let mut module = rt.load_module(parsed_module).map_err(|x| x.1).unwrap();
+    let mut module = rt.load_module(parsed_module).unwrap();
     eprintln!("execution:");
     module
         .link_function::<(i32,), i32>("root", "print", wasm_print_wrap)

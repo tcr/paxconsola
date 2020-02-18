@@ -352,7 +352,7 @@ fn propagate_literals_in_block(
         .enumerate()
         .rev()
         .map(|(i, input_command)| {
-            // eprintln!("{:?}\n----> {:?}", command.0, reg_blacklist);
+            // eprintln!("{:?}\n-- {:?}", command.0, reg_blacklist);
             let command = (input_command.0).clone();
             let stack: StackState = analysis.result()[i].clone();
             let next_stack: Option<StackState> = analysis.result().get(i + 1).map(|x| x.clone());
