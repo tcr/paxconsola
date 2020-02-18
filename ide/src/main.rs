@@ -4,11 +4,60 @@ use indexmap::IndexMap;
 use paxconsola::*;
 use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
 
+use serde::*;
+use yew::worker::*;
+
+struct Worker {
+    link: AgentLink<Worker>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Request {
+    Question(String),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Response {
+    Answer(String),
+}
+
+impl Agent for Worker {
+    // Available:
+    // - `Job` (one per bridge on the main thread)
+    // - `Context` (shared in the main thread)
+    // - `Private` (one per bridge in a separate thread)
+    // - `Public` (shared in a separate thread)
+    type Reach = Context; // Spawn only one instance on the main thread (all components can share this agent)
+    type Message = Msg;
+    type Input = Request;
+    type Output = Response;
+
+    // Create an instance with a link to the agent.
+    fn create(link: AgentLink<Self>) -> Self {
+        Worker { link }
+    }
+
+    // Handle inner messages (from callbacks)
+    fn update(&mut self, msg: Self::Message) { /* ... */
+    }
+
+    // Handle incoming messages from components of other agents.
+    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
+        match msg {
+            Request::Question(_) => {
+                self.link
+                    .respond(who, Response::Answer("That's cool!".into()));
+            }
+        }
+    }
+}
+
 struct App {
     forth_input: String,
     program: SuperPaxProgram,
     link: ComponentLink<Self>,
     method: Option<(String, Vec<Block>)>,
+    context: Box<Bridge<Worker>>,
 }
 
 enum Msg {
@@ -19,6 +68,7 @@ enum Msg {
     InlineAndOptimize(String),
     ShowMethod(String),
     RunInput,
+    CompileResult,
 }
 
 impl Component for App {
@@ -26,16 +76,22 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let callback = link.callback(|_| Msg::CompileResult);
+        // `Worker::bridge` spawns an instance if no one is available
+        let context = Worker::bridge(callback); // Connected! :tada:
+
         App {
             link,
-            forth_input: "1 if 12 print else 13 print then".to_string(),
+            forth_input: "5 5 1 + * print".to_string(),
             program: IndexMap::new(),
             method: None,
+            context,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
+            Msg::CompileResult => true, // TODO process compile results
             Msg::Click => {
                 self.program = {
                     let code = inject_prelude(self.forth_input.as_bytes());
@@ -58,9 +114,16 @@ impl Component for App {
                 true
             }
             Msg::RunInput => {
-                let mut program = self.program.clone();
-                inline_into_function(&mut program, "main");
-                eval_forth(&program, false);
+                self.program = {
+                    let code = inject_prelude(self.forth_input.as_bytes());
+                    let compiled = parse_forth(code);
+                    let program = convert_to_superpax(compiled);
+                    program
+                };
+
+                let mut mock_program = self.program.clone();
+                inline_into_function(&mut mock_program, "main");
+                eval_forth(&mock_program, false);
 
                 // js! {
                 //     const canvas = document.querySelector("canvas");
@@ -74,9 +137,9 @@ impl Component for App {
                 true
             }
             Msg::Inline(method) => {
-                let mut mock_program = self.program.clone();
-                inline_into_function(&mut mock_program, &method);
-                self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
+                let mut program = self.program.clone();
+                inline_into_function(&mut program, &method);
+                self.method = Some((method.clone(), program.get(&method).unwrap().clone()));
 
                 true
             }
@@ -166,7 +229,7 @@ impl Component for App {
               {self.program.iter().map(|(k, v)| {
                   let k2 = k.clone();
                   let onclick = self.link.callback(move |_| Msg::ShowMethod(k2.clone()));
-                  html! { <h2 style="" onclick=onclick>{k}</h2> }
+                  html! { <pre style="cursor: pointer" onclick=onclick>{k}</pre> }
               }).collect::<Html>()}
             </div>
         };
@@ -190,6 +253,8 @@ impl Component for App {
                         <button onclick=onrun>{ "Run" }</button>
                     </div>
                     <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px;">
+                        <h3>{ "Print Output" }</h3>
+                        <textarea id="PRINT_OUTPUT" rows="10" />
                         <h3>{ "Canvas" }</h3>
                         <canvas width="200" height="100" style="border: 1px solid black" />
                         <h3>{ "Method List" }</h3>

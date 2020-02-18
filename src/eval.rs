@@ -96,7 +96,7 @@ const WAT_TEMPLATE: &'static str = r#"
       get_local $p0
       i32.store16)
 
-    (func $return_pop (export "return_pop") (type $t4) (result i32)
+    (func $return_pop (export "return_pop") (type $t0)
       (local $l0 i32)
       i32.const 0
       i32.const 0
@@ -111,9 +111,7 @@ const WAT_TEMPLATE: &'static str = r#"
       i32.const {{return}}
       i32.add
       i32.load16_s
-      tee_local $l0
-      call $data_push
-      get_local $l0)
+      call $data_push)
 
     (func $temp_store (export "temp_store") (type $t3) (param $p0 i32)
       i32.const 0
@@ -351,22 +349,18 @@ fn run_wasm(binary: &[u8]) {
     // lol
     js! {
         let binary = @{binary};
-        console.log(1);
         WebAssembly.instantiate(new Uint8Array(binary), {
             root: {
                 print: function(arg) {
                     console.log("[print]", arg);
-                    }
+                    document.querySelector("#PRINT_OUTPUT").value += arg + "\n";
+                }
             },
-            imports: {
-              wasm_print_wrap: function(arg) {
-                console.log("[wasm_print_wrap]", arg);
-              }
-            }
         }).then(res => {
-            console.log(2, res.instance.exports.main);
+            console.info("[wasm] starting...");
+            document.querySelector("#PRINT_OUTPUT").value = "";
             res.instance.exports.main();
-            console.log("that should have had output!");
+            console.info("[wasm] complete.");
         });
     }
 }

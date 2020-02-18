@@ -9,6 +9,7 @@ yew = "0.11.0"
 paxconsola = { path = "../", default-features = false, features = ["stdweb"] }
 stdweb = "*"
 indexmap = "*"
+serde = "1.0.104"
 
 [profile.release]
 debug = true
