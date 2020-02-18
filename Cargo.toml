@@ -21,4 +21,8 @@ petgraph = "0.5.0"
 wat = "1"
 #wasm3 = { path = "./wasm3-rs" }
 #wasm3-sys = { path = "./wasm3-rs/wasm3-sys" }
-wasm3 = { git = "https://github.com/Veykril/wasm3-rs" }
+wasm3 = { git = "https://github.com/Veykril/wasm3-rs", optional = true }
+stdweb = { version = "*", optional = true }
+
+[features]
+default = ["wasm3"]

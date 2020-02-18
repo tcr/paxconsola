@@ -1,8 +1,6 @@
 use crate::*;
 use petgraph::{graph::NodeIndex, Direction};
 use std::io::prelude::*;
-use wasm3::environment::Environment;
-use wasm3::module::Module;
 
 const WAT_TEMPLATE: &'static str = r#"
 (module
@@ -170,6 +168,7 @@ const WAT_TEMPLATE: &'static str = r#"
   
 "#;
 
+#[cfg(feature = "wasm3")]
 wasm3::make_func_wrapper!(wasm_print_wrap: wasm_print(value: u64) -> u64);
 
 fn wasm_print(value: u64) -> u64 {
@@ -340,6 +339,35 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
     )
     .unwrap();
 
+    run_wasm(&binary);
+
+    // TODO return nothing
+    return vec![];
+}
+
+#[cfg(not(feature = "wasm3"))]
+fn run_wasm(binary: &[u8]) {
+    use stdweb::*;
+
+    // lol
+    js! {
+        let binary = @{binary};
+        console.log("binary:", binary);
+        WebAssembly.instantiate(new Uint8Array(binary), {
+            imports: {
+              wasm_print_wrap: function(arg) {
+                console.log("[print]", arg);
+              }
+            }
+          });
+    }
+}
+
+#[cfg(feature = "wasm3")]
+fn run_wasm(binary: &[u8]) {
+    use wasm3::environment::Environment;
+    use wasm3::module::Module;
+
     let env = Environment::new().unwrap();
     let rt = env.create_runtime(1024 * 60).unwrap();
     let parsed_module = Module::parse(&env, &binary[..]).expect("module couldnt parse");
@@ -361,7 +389,4 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
             panic!("{:?}", err);
         });
     func.call().unwrap();
-
-    // TODO return nothing
-    return vec![];
 }

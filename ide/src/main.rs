@@ -18,7 +18,7 @@ enum Msg {
     Inline(String),
     InlineAndOptimize(String),
     ShowMethod(String),
-    RunInput(String),
+    RunInput,
 }
 
 impl Component for App {
@@ -57,7 +57,7 @@ impl Component for App {
 
                 true
             }
-            Msg::RunInput(method) => {
+            Msg::RunInput => {
                 let mut program = self.program.clone();
                 eval_forth(&program, false);
 
@@ -174,12 +174,14 @@ impl Component for App {
             .link
             .callback(|e: InputData| Msg::ChangeInput(e.value.clone()));
         let onclick = self.link.callback(|_| Msg::Click);
+        let onrun = self.link.callback(|_| Msg::RunInput);
 
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0">
                 <div style="flex: 1; overflow: auto; padding: 10px;">
                     <textarea style="display: block;" rows="10" value=&self.forth_input oninput=oninput />
                     <button onclick=onclick>{ "Compile" }</button>
+                    <button onclick=onrun>{ "Run" }</button>
                 </div>
                 <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px;">
                     <h3>{ "Canvas" }</h3>
