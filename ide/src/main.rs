@@ -177,21 +177,27 @@ impl Component for App {
         let onrun = self.link.callback(|_| Msg::RunInput);
 
         html! {
-            <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0">
-                <div style="flex: 1; overflow: auto; padding: 10px;">
-                    <textarea style="display: block;" rows="10" value=&self.forth_input oninput=oninput />
-                    <button onclick=onclick>{ "Compile" }</button>
-                    <button onclick=onrun>{ "Run" }</button>
+            <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
+            <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
+                <div style="background: black; color: white; font-size: 24px; padding: 10px 0; text-align: center; font-family: Bungee Inline, Arial Black, sans-serif; text-transform: uppercase;">
+                    {"Pax Consola"}
                 </div>
-                <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px;">
-                    <h3>{ "Canvas" }</h3>
-                    <canvas width="200" height="100" style="border: 1px solid black" />
-                    <h3>{ "Method List" }</h3>
-                    { methods }
-                </div>
-                <div style="flex: 1; overflow: auto; background: #eef; padding: 10px;">
-                    <h3>{ "Method" }</h3>
-                    { dump }
+                <div style="display: flex; flex: 1">
+                    <div style="flex: 1; overflow: auto; padding: 10px;">
+                        <textarea style="display: block;" rows="10" value=&self.forth_input oninput=oninput />
+                        <button onclick=onclick>{ "Compile" }</button>
+                        <button onclick=onrun>{ "Run" }</button>
+                    </div>
+                    <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px;">
+                        <h3>{ "Canvas" }</h3>
+                        <canvas width="200" height="100" style="border: 1px solid black" />
+                        <h3>{ "Method List" }</h3>
+                        { methods }
+                    </div>
+                    <div style="flex: 1; overflow: auto; background: #eef; padding: 10px;">
+                        <h3>{ "Method" }</h3>
+                        { dump }
+                    </div>
                 </div>
             </div>
         }
