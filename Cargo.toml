@@ -26,4 +26,4 @@ stdweb = { version = "*", optional = true }
 wasmi = { version = "*", default-features = false, features = [ "core" ], optional = true }
 
 [features]
-default = ["wasm3"]
+default = ["wasmi"]

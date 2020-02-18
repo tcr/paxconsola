@@ -28,7 +28,7 @@ impl Component for App {
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         App {
             link,
-            forth_input: "5 5 1 + * print".to_string(),
+            forth_input: "1 if 12 print else 13 print then".to_string(),
             program: IndexMap::new(),
             method: None,
         }
@@ -59,6 +59,7 @@ impl Component for App {
             }
             Msg::RunInput => {
                 let mut program = self.program.clone();
+                inline_into_function(&mut program, "main");
                 eval_forth(&program, false);
 
                 // js! {
