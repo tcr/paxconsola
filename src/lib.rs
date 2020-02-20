@@ -1,3 +1,5 @@
+#![recursion_limit = "1024"]
+
 pub mod compile;
 pub mod eval;
 pub mod ir;

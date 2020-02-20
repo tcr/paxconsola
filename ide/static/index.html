@@ -9,6 +9,9 @@
 </head>
 
 <style>
+  html, body, * {
+    box-sizing: border-box;
+  }
   html,
   body,
   #CONTENT {
@@ -40,6 +43,9 @@
 </style>
 
 <body>
+  <script>
+    window.AND_ = function (a, b) { return a & b; };
+  </script>
   <script src="/ide.js"></script>
 
   <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/editor/editor.main.js"></script>
@@ -78,10 +84,14 @@
         const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
           value: document.getElementById("MONACO_TEXTAREA").value,
           language: "forth",
+          minimap: {
+            enabled: false
+          }
         });
 
         editor.getModel().onDidChangeContent(() => {
           document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
+          document.getElementById("MONACO_TEXTAREA").dispatchEvent(new InputEvent('input'));
         });
 
         clearInterval(handle);

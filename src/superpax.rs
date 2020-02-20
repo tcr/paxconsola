@@ -226,7 +226,7 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                 }
 
                 Pax::Debugger | Pax::Sleep => {
-                    unreachable!();
+                    unreachable!("unknown opcode");
                 }
 
                 Pax::Metadata(ref arg) => {
