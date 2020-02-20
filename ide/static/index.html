@@ -9,9 +9,18 @@
 </head>
 
 <style>
+  html,
+  body,
+  #CONTENT {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+  }
+
   #MONACO_INJECT {
     height: 300px;
-    border: 5px solid black;
+    border: 2px solid black;
   }
 
   #MONACO_TEXTAREA {
@@ -19,6 +28,14 @@
     left: -1000px;
     top: -10000px;
     visibility: hidden;
+  }
+
+  .button-action {
+    font-size: 18px;
+    margin: 10px 8px;
+    padding: 4px 16px;
+    border: 1px solid inset;
+    background: #eef;
   }
 </style>
 
@@ -53,20 +70,23 @@
     require([
       'vs/editor/editor.main'
     ], function () {
-      const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
-        value: document.getElementById("MONACO_TEXTAREA").value,
-        language: "forth"
-      });
+      let handle = setInterval(() => {
+        if (!document.getElementById("MONACO_TEXTAREA")) {
+          return;
+        }
 
-      editor.getModel().onDidChangeContent(() => {
-        document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
-      });
+        const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
+          value: document.getElementById("MONACO_TEXTAREA").value,
+          language: "forth",
+        });
+
+        editor.getModel().onDidChangeContent(() => {
+          document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
+        });
+
+        clearInterval(handle);
+      }, 100);
     });
-
-// 	editor.addListener('didType', () => {
-// 		console.log(editor.getValue());
-// 	});
-// });
   </script>
 </body>
 

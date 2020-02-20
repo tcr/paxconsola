@@ -247,18 +247,20 @@ impl Component for App {
 
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
-            <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
+                <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
                 <div style="background: black; color: white; font-size: 24px; padding: 10px 0; text-align: center; font-family: Bungee Inline, Arial Black, sans-serif; text-transform: uppercase;">
                     {"Pax Consola"}
                 </div>
-                <div style="display: flex; flex: 1">
-                    <div style="flex: 1; overflow: auto; padding: 10px;">
-                        <div id="MONACO_INJECT"></div>
+                <div style="display: flex; flex: 1; align-items: stretch; overflow: auto;">
+                    <div style="flex: 1; overflow: auto; padding: 10px; flex-direction: column; display: flex; flex-basis: 0;">
+                        <div id="MONACO_INJECT" style="flex: 1"></div>
                         <textarea style="display: block;" id="MONACO_TEXTAREA" rows="10" value=&self.forth_input oninput=oninput />
-                        <button onclick=onclick>{ "Compile" }</button>
-                        <button onclick=onrun>{ "Run" }</button>
+                        <div>
+                            <button class="button-action" onclick=onclick>{ "Compile" }</button>
+                            <button class="button-action" onclick=onrun>{ "Run" }</button>
+                        </div>
                     </div>
-                    <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px;">
+                    <div style="flex: 1; overflow: auto; background: #ddf; padding: 10px; flex-basis: 0; max-height: 100%">
                         <h3>{ "Print Output" }</h3>
                         <textarea id="PRINT_OUTPUT" rows="10" />
                         <h3>{ "Canvas" }</h3>
@@ -266,7 +268,7 @@ impl Component for App {
                         <h3>{ "Method List" }</h3>
                         { methods }
                     </div>
-                    <div style="flex: 1; overflow: auto; background: #eef; padding: 10px;">
+                    <div style="flex: 1; overflow: auto; background: #eef; padding: 10px; flex-basis: 0;">
                         <h3>{ "Method" }</h3>
                         { dump }
                     </div>
