@@ -24,7 +24,7 @@ wat = "1"
 wasm3 = { git = "https://github.com/Veykril/wasm3-rs", optional = true }
 stdweb = { version = "*", optional = true }
 wasmi = { version = "*", default-features = false, features = [ "core" ], optional = true }
-serde = "1.0.104"
+serde = { version = "1.0.104", features = [ "derive" ] }
 
 [features]
 default = ["wasmi"]

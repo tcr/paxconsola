@@ -253,7 +253,8 @@ impl Component for App {
                 </div>
                 <div style="display: flex; flex: 1">
                     <div style="flex: 1; overflow: auto; padding: 10px;">
-                        <textarea style="display: block;" rows="10" value=&self.forth_input oninput=oninput />
+                        <div id="MONACO_INJECT"></div>
+                        <textarea style="display: block;" id="MONACO_TEXTAREA" rows="10" value=&self.forth_input oninput=oninput />
                         <button onclick=onclick>{ "Compile" }</button>
                         <button onclick=onrun>{ "Run" }</button>
                     </div>

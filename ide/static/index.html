@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport" />
+  <title>Pax Consola</title>
+</head>
+
+<style>
+  #MONACO_INJECT {
+    height: 300px;
+    border: 5px solid black;
+  }
+
+  #MONACO_TEXTAREA {
+    position: fixed;
+    left: -1000px;
+    top: -10000px;
+    visibility: hidden;
+  }
+</style>
+
+<body>
+  <script src="/ide.js"></script>
+
+  <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/editor/editor.main.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/loader.js"></script>
+
+  <script>
+    require.config({
+      paths: { 'vs': 'https://unpkg.com/monaco-editor@0.20.0/min/vs' },
+      // This is something you need for monaco to work
+      ignoreDuplicateModules: ['vs/editor/editor.main'],
+    });
+
+    // Before loading vs/editor/editor.main, define a global MonacoEnvironment that overwrites
+    // the default worker url location (used when creating WebWorkers). The problem here is that
+    // HTML5 does not allow cross-domain web workers, so we need to proxy the instantiation of
+    // a web worker through a same-domain script
+    window.MonacoEnvironment = {
+      getWorkerUrl: function (workerId, label) {
+        return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+        self.MonacoEnvironment = {
+          baseUrl: 'https://unpkg.com/monaco-editor@0.20.0/min/'
+        };
+        importScripts('https://unpkg.com/monaco-editor@0.20.0/min/vs/base/worker/workerMain.js');`
+        )}`;
+      }
+    };
+
+    require([
+      'vs/editor/editor.main'
+    ], function () {
+      const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
+        value: document.getElementById("MONACO_TEXTAREA").value,
+        language: "forth"
+      });
+
+      editor.getModel().onDidChangeContent(() => {
+        document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
+      });
+    });
+
+// 	editor.addListener('didType', () => {
+// 		console.log(editor.getValue());
+// 	});
+// });
+  </script>
+</body>
+
+</html>
