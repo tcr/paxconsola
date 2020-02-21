@@ -233,7 +233,7 @@ last-key @
 )
 ";
 
-struct Worker {
+pub struct Worker {
     link: AgentLink<Worker>,
 }
 
@@ -282,12 +282,12 @@ impl Agent for Worker {
         }
     }
 
-    fn name_of_resource() -> &'static str {
-        "bin/native_worker.js"
-    }
+    // fn name_of_resource() -> &'static str {
+    //     "bin/compile_thread.js"
+    // }
 }
 
-struct App {
+pub struct App {
     forth_input: String,
     program: SuperPaxProgram,
     link: ComponentLink<Self>,
@@ -295,7 +295,7 @@ struct App {
     context: Box<Bridge<Worker>>,
 }
 
-enum Msg {
+pub enum Msg {
     Click,
     ChangeInput(String),
     Reset(String),
