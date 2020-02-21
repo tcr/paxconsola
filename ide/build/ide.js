@@ -555,6 +555,9 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
                 "__cargo_web_snippet_08a3b15e1358700ac92bc556f9e9b8af660fc2c7": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0).nodeValue=($1);
             },
+            "__cargo_web_snippet_09d1b9fe35dca9998e6606983ad0b64b09666ce7": function($0, $1) {
+                $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){let binary=($1);let canvas=document.querySelector("#WASM_CANVAS");let mem=new Uint16Array(0xFFFF);mem.fill(0);WebAssembly.instantiate(new Uint8Array(binary),{root:{print:(arg)=>{document.querySelector("#PRINT_OUTPUT").value+=arg+"\n";},extmem_load:(loc)=>{return mem[loc]&0xFFFF;},extmem_load_8:(loc)=>{return mem[loc]&0xFF;},extmem_store:(loc,value)=>{if(loc<0){loc=0xFFFF+loc;}if(loc==0x9800){const ctx=canvas.getContext("2d");ctx.fillStyle="#FFF0000";ctx.fillRect(0,0,500,500);}mem[loc]=value&0xFFFF;},extmem_store_8:(loc,value)=>{if(loc<0){loc=0xFFFF+loc;}console.info("extmem_store_8:",loc.toString(16),value);if(loc==0x9800){const ctx=canvas.getContext("2d");ctx.fillStyle="#FFF00ff";ctx.fillRect(0,0,500,500);console.log("FILLED!");ctx.fillStyle="red";ctx.fillRect(0,0,10,10);}mem[loc]=value&0xFF;},},}).then(res=>{console.info("[wasm] starting...");document.querySelector("#PRINT_OUTPUT").value="";res.instance.exports.main();console.info("[wasm] complete.");});})());
+            },
             "__cargo_web_snippet_0aced9e2351ced72f1ff99645a129132b16c0d3c": function($0) {
                 var value = Module.STDWEB_PRIVATE.get_raw_value( $0 );return Module.STDWEB_PRIVATE.register_raw_value( value );
             },
@@ -620,9 +623,6 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             },
             "__cargo_web_snippet_91749aeb589cd0f9b17cbc01b2872ba709817982": function($0, $1, $2) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);$2 = Module.STDWEB_PRIVATE.to_js($2);Module.STDWEB_PRIVATE.from_js($0, (function(){try{return{value:function(){return($1).createElement(($2));}(),success:true};}catch(error){return{error:error,success:false};}})());
-            },
-            "__cargo_web_snippet_93c9e6624369d18a38e1a2be849f98d1134d7baa": function($0) {
-                $0 = Module.STDWEB_PRIVATE.to_js($0);let binary=($0);WebAssembly.instantiate(new Uint8Array(binary),{root:{print:function(arg){console.log("[print]",arg);document.querySelector("#PRINT_OUTPUT").value+=arg+"\n";}},}).then(res=>{console.info("[wasm] starting...");document.querySelector("#PRINT_OUTPUT").value="";res.instance.exports.main();console.info("[wasm] complete.");});
             },
             "__cargo_web_snippet_97495987af1720d8a9a923fa4683a7b683e3acd6": function($0, $1) {
                 console.error( 'Panic error message:', Module.STDWEB_PRIVATE.to_js_string( $0, $1 ) );

@@ -371,13 +371,18 @@ fn run_wasm(binary: &[u8]) {
                         loc = 0xFFFF + loc;
                     }
                     console.info("extmem_store_8:", loc.toString(16), value);
-                    if (loc == 0x9800) {
+                    const wl = 20;
+                    const hl = 18;
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    if (loc >= 0x9800 && loc < 0x9800 + (wl*hl)) {
+                        const x = (loc - 0x9800) % 32;
+                        const y = Math.floor((loc - 0x9800) / 32);
+
                         const ctx = canvas.getContext("2d");
-                        ctx.fillStyle = "#FFF00ff";
-                        ctx.fillRect(0, 0, 500, 500);
-                        console.log("FILLED!");
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(0, 0, 10, 10);
+                        ctx.fillStyle = value == 0 ? "#000000" : "#FF0000";
+                        console.log(x, y);
+                        ctx.fillRect(w/wl*x, h/hl*y, w/wl, h/hl);
                     }
                     mem[loc] = value & 0xFF;
                 },
