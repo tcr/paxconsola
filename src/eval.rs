@@ -164,7 +164,7 @@ fn wasm_print(value: u64) -> u64 {
     value
 }
 
-pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
+pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u8> {
     let mut wat_out = vec![];
     for (name, blocks) in program {
         if name != "main" {
@@ -322,24 +322,34 @@ pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u32> {
 
     eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
 
-    let binary = wat::parse_str(&wat_output).unwrap();
-
-    run_wasm(&binary);
-
-    // TODO return nothing
-    return vec![];
+    wat::parse_str(&wat_output).unwrap()
 }
 
 #[cfg(feature = "stdweb")]
-fn run_wasm(binary: &[u8]) {
+pub fn run_wasm(binary: &[u8]) {
+    run_wasm_with_memory(binary, &wasm_memory_init());
+}
+
+#[cfg(feature = "stdweb")]
+pub fn wasm_memory_init() -> stdweb::Value {
     use stdweb::*;
 
-    // lol
+    return js! {
+        const mem = new Uint16Array(0xFFFF);
+        mem.fill(0);
+        return mem;
+    };
+}
+
+// Provide memory to operate with
+#[cfg(feature = "stdweb")]
+pub fn run_wasm_with_memory(binary: &[u8], memory: &stdweb::Value) {
+    use stdweb::*;
+
     js! {
         let binary = @{binary};
         let canvas = document.querySelector("#WASM_CANVAS");
-        let mem = new Uint16Array(0xFFFF);
-        mem.fill(0);
+        let mem = @{memory};
         WebAssembly.instantiate(new Uint8Array(binary), {
             root: {
                 print: (arg) => {
@@ -347,51 +357,60 @@ fn run_wasm(binary: &[u8]) {
                     document.querySelector("#PRINT_OUTPUT").value += arg + "\n";
                 },
                 extmem_load: (loc) => {
+                    if (loc < 0) { // TODO shouldn't wasm do this conversion?
+                        loc = 0xFFFF + loc + 1;
+                    }
                     // console.info("extmem_load:", loc);
                     return mem[loc] & 0xFFFF;
                 },
                 extmem_load_8: (loc) => {
+                    if (loc < 0) { // TODO shouldn't wasm do this conversion?
+                        loc = 0xFFFF + loc + 1;
+                    }
                     // console.info("extmem_load_8:", loc);
                     return mem[loc] & 0xFF;
                 },
                 extmem_store: (loc, value) => {
                     if (loc < 0) { // TODO shouldn't wasm do this conversion?
-                        loc = 0xFFFF + loc;
+                        loc = 0xFFFF + loc + 1;
                     }
                     // console.info("extmem_store:", loc.toString(16), value);
                     if (loc == 0x9800) {
-                        const ctx = canvas.getContext("2d");
-                        ctx.fillStyle = "#FFF0000";
-                        ctx.fillRect(0, 0, 500, 500);
+                        requestAnimationFrame(() => {
+                            const ctx = canvas.getContext("2d");
+                            ctx.fillStyle = "#FFF0000";
+                            ctx.fillRect(0, 0, 500, 500);
+                        });
                     }
                     mem[loc] = value & 0xFFFF;
                 },
                 extmem_store_8: (loc, value) => {
                     if (loc < 0) { // TODO shouldn't wasm do this conversion?
-                        loc = 0xFFFF + loc;
+                        loc = 0xFFFF + loc + 1;
                     }
-                    console.info("extmem_store_8:", loc.toString(16), value);
-                    const wl = 20;
-                    const hl = 18;
+                    // console.info("extmem_store_8:", loc.toString(16), value);
+                    const row_len = 32; // fixed on gameboy
+                    const wl = 30;
+                    const hl = 20;
                     const w = canvas.width;
                     const h = canvas.height;
                     if (loc >= 0x9800 && loc < 0x9800 + (wl*hl)) {
-                        const x = (loc - 0x9800) % 32;
-                        const y = Math.floor((loc - 0x9800) / 32);
+                        const x = (loc - 0x9800) % row_len;
+                        const y = Math.floor((loc - 0x9800) / row_len);
 
                         const ctx = canvas.getContext("2d");
                         ctx.fillStyle = value == 0 ? "#000000" : "#FF0000";
-                        console.log(x, y);
+                        // console.log(x, y);
                         ctx.fillRect(w/wl*x, h/hl*y, w/wl, h/hl);
                     }
                     mem[loc] = value & 0xFF;
                 },
             },
         }).then(res => {
-            console.info("[wasm] starting...");
+            // console.info("[wasm] starting...");
             document.querySelector("#PRINT_OUTPUT").value = "";
             res.instance.exports.main();
-            console.info("[wasm] complete.");
+            // console.info("[wasm] complete.");
         });
     }
 }

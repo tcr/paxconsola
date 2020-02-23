@@ -13,3 +13,11 @@ serde = "1.0.104"
 
 [profile.release]
 debug = true
+
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"
+
+[[bin]]
+name = "compilation_worker"
+path = "src/bin/compilation_worker.rs"

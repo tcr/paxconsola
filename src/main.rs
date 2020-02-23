@@ -110,7 +110,8 @@ variable random-register \ 577
 
             optimize_function(&mut program, "main");
 
-            eval_forth(&program, interactive);
+            let wasm = eval_forth(&program, interactive);
+            run_wasm(&wasm);
         }
     }
 
