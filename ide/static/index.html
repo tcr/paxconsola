@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport" />
   <title>Pax Consola</title>
 </head>
@@ -25,8 +26,7 @@
   }
 
   #MONACO_INJECT {
-    height: 300px;
-    border: 2px solid black;
+    /* height: 300px; */
   }
 
   #MONACO_TEXTAREA {
@@ -86,10 +86,18 @@
 
         const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
           value: document.getElementById("MONACO_TEXTAREA").value,
-          language: "forth",
-          minimap: {
-            enabled: false
-          }
+          language: "scheme",
+          fontSize: 14,
+        });
+
+        // Awkward resize handler to work around rendering in a flexbox.
+        window.addEventListener('resize', () => {
+          requestAnimationFrame(() => {
+            editor.layout({
+              width: 10, height: 10,
+            });
+            editor.layout();
+          })
         });
 
         editor.getModel().onDidChangeContent(() => {

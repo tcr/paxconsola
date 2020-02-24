@@ -247,6 +247,7 @@ pub enum Request {
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Response {
     Answer(SuperPaxProgram, bool),
+    CompilationError(String),
 }
 
 impl Agent for Worker {
@@ -273,16 +274,24 @@ impl Agent for Worker {
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(input, execute) => {
-                let mut program = {
+                let mut program = std::panic::catch_unwind(move || {
                     let code = inject_prelude(&input);
                     let compiled = parse_forth(code);
                     let program = convert_to_superpax(compiled);
                     program
-                };
-                if execute {
-                    inline_into_function(&mut program, "main");
+                });
+                match program {
+                    Ok(mut program) => {
+                        if execute {
+                            inline_into_function(&mut program, "main");
+                        }
+                        self.link.respond(who, Response::Answer(program, execute));
+                    }
+                    Err(err) => {
+                        self.link
+                            .respond(who, Response::CompilationError(format!("{:?}", err)));
+                    }
                 }
-                self.link.respond(who, Response::Answer(program, execute));
             }
         }
     }
@@ -301,7 +310,9 @@ pub enum Msg {
     ShowMethod(String),
     RunInput,
     CompileResult(SuperPaxProgram, bool),
+    CompilationError(String),
     NextTick(Vec<u8>),
+    GameStop,
 }
 
 pub struct App {
@@ -320,12 +331,9 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
-        let callback = link.callback(|res| {
-            if let Response::Answer(program, execute) = res {
-                Msg::CompileResult(program, execute)
-            } else {
-                unreachable!();
-            }
+        let callback = link.callback(|res| match res {
+            Response::Answer(program, execute) => Msg::CompileResult(program, execute),
+            Response::CompilationError(err) => Msg::CompilationError(err),
         });
         // `Worker::bridge` spawns an instance if no one is available
         let context = Worker::bridge(callback); // Connected! :tada:
@@ -369,9 +377,21 @@ impl Component for App {
                 }
                 true
             }
+            Msg::CompilationError(err) => {
+                js! {
+                    alert("compile failed! " + @{err});
+                }
+                true
+            }
             Msg::NextTick(wasm) => {
                 run_wasm_with_memory(&wasm, &self.mem);
                 true
+            }
+            Msg::GameStop => {
+                if let Some(handle) = self.game_handle.take() {
+                    drop(handle);
+                }
+                false
             }
             Msg::Click => {
                 // Dispatch compile operation to Worker
@@ -512,27 +532,34 @@ impl Component for App {
             .callback(|e: InputData| Msg::ChangeInput(e.value.clone()));
         let onclick = self.link.callback(|_| Msg::Click);
         let onrun = self.link.callback(|_| Msg::RunInput);
+        let onstop = self.link.callback(|_| Msg::GameStop);
+
+        let action_group = html! {
+            <div>
+                <button class="button-action" onclick=onclick>{ "Compile" }</button>
+                <button class="button-action" onclick=onrun>{ "Run" }</button>
+                <button class="button-action" onclick=onstop>{ "Stop" }</button>
+            </div>
+        };
 
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
-                <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
                 <div style="background: black; color: white; font-size: 24px; padding: 10px 0; text-align: center; font-family: Bungee Inline, Arial Black, sans-serif; text-transform: uppercase;">
                     {"Pax Consola"}
                 </div>
                 <div style="display: flex; flex: 1; align-items: stretch; overflow: auto;">
-                    <div style="flex: 1; overflow: auto; padding: 10px; flex-direction: column; display: flex; flex-basis: 0;">
-                        <div id="MONACO_INJECT" style="flex: 1"></div>
-                        <textarea id="MONACO_TEXTAREA" rows="10" value=&self.forth_input oninput=oninput />
-                        <div>
-                            <button class="button-action" onclick=onclick>{ "Compile" }</button>
-                            <button class="button-action" onclick=onrun>{ "Run" }</button>
+                    <div style="flex: 1; flex-direction: column; display: flex; padding: 16px; overflow: hidden">
+                        <div style="flex: 1; flex-direction: column; display: flex; border: 2px solid black">
+                            <div id="MONACO_INJECT" style="flex: 1"></div>
+                            <textarea id="MONACO_TEXTAREA" rows="10" value=&self.forth_input oninput=oninput />
                         </div>
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
-                        <h3>{ "Print Output" }</h3>
-                        <textarea id="PRINT_OUTPUT" style="display: block; width: 100%; padding: 10px; border: 1px solid black;" rows="10" />
+                        { action_group }
                         <h3>{ "Canvas" }</h3>
                         <canvas id="WASM_CANVAS" width="300" height="200" style="border: 1px solid black" />
+                        <h3>{ "Print Output" }</h3>
+                        <textarea id="PRINT_OUTPUT" style="display: block; width: 100%; padding: 10px; border: 1px solid black;" rows="10" />
                         <h3>{ "Method List" }</h3>
                         { methods }
                     </div>
