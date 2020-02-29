@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport" />
   <title>Pax Consola</title>
 </head>
@@ -25,8 +26,7 @@
   }
 
   #MONACO_INJECT {
-    height: 300px;
-    border: 2px solid black;
+    /* height: 300px; */
   }
 
   #MONACO_TEXTAREA {
@@ -43,6 +43,19 @@
     border: 1px solid inset;
     background: #eef;
   }
+
+  #WASM_CANVAS {
+    cursor: pointer;
+    position: relative;
+  }
+
+  #WASM_CANVAS::after {
+    content: "Click to start playing."
+  }
+
+  #WASM_CANVAS:focus {
+    outline: 5px solid #0f0 !important;
+  }
 </style>
 
 <body>
@@ -50,6 +63,9 @@
     window.AND_ = function (a, b) { return a & b; };
   </script>
   <script src="/main.js"></script>
+
+  <script type="text/javascript"
+    src="https://unpkg.com/responsive-gamepad@1.2.1/dist/responsive-gamepad.umd.js"></script>
 
   <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/editor/editor.main.js"></script>
   <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/loader.js"></script>
@@ -77,7 +93,7 @@
     };
 
     require([
-      'vs/editor/editor.main'
+      'vs/editor/editor.main',
     ], function () {
       let handle = setInterval(() => {
         if (!document.getElementById("MONACO_TEXTAREA")) {
@@ -86,16 +102,26 @@
 
         const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
           value: document.getElementById("MONACO_TEXTAREA").value,
-          language: "forth",
-          minimap: {
-            enabled: false
-          }
+          language: "scheme",
+          fontSize: 14,
+        });
+
+        // Awkward resize handler to work around rendering in a flexbox.
+        window.addEventListener('resize', () => {
+          requestAnimationFrame(() => {
+            editor.layout({
+              width: 10, height: 10,
+            });
+            editor.layout();
+          })
         });
 
         editor.getModel().onDidChangeContent(() => {
           document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
           document.getElementById("MONACO_TEXTAREA").dispatchEvent(new InputEvent('input'));
         });
+
+
 
         clearInterval(handle);
       }, 100);

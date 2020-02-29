@@ -274,3 +274,8 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
 
     program_stacks
 }
+
+pub fn parse_to_superpax(buffer: Vec<u8>) -> SuperPaxProgram {
+    let program = parse_forth(buffer);
+    convert_to_superpax(program)
+}

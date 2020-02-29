@@ -216,8 +216,8 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
             }
 
             Add | Nand => {
-                let a = analysis.pop_data();
-                let b = analysis.pop_data();
+                // let a = analysis.pop_data();
+                // let b = analysis.pop_data();
 
                 // TODO enable and/nand optimization
                 // if let Some(RegMeta {
@@ -665,9 +665,8 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
         }
         eprintln!("used {:?}", used_blocks);
 
-        let mut continue_pass = true;
         let mut i = 0;
-        while continue_pass && i < blocks.len() {
+        while i < blocks.len() {
             match blocks[i].commands().last() {
                 Some((SuperPax::BranchTarget(target), ..)) => {
                     if !used_blocks.contains(target) {

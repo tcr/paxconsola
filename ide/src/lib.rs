@@ -84,17 +84,8 @@ variable length
   initialize-snake
   initialize-apple ;
 
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
-
-
-
-
 
 \ game runtime
-
 
 : move-up  -1 snake-y-head +! ;
 : move-left  -1 snake-x-head +! ;
@@ -181,16 +172,11 @@ initialized @ 0= if initialize then
   apple-x @ apple-y @ draw-apple-tile ;
 
 
+\ Initialize only once
+initialized @ 0= if initialize then
+1 initialized !
 
-
-
-
-\ game loop
-
-\ frameskip
-\ frame @ 1+ dup frame !
-\ 2 = if 0 frame !
-
+\ Game loop
 draw-snake
 draw-apple
 check-input
@@ -200,39 +186,6 @@ check-apple
 check-collision
 if else 0 initialized ! then
 
-\ end frameskip
-\ then
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(
-
-: move-right 23 graphics 67 + c! ;
-: move-left 21 graphics 65 + c! ;
-: move-up 22 graphics 34 + c! ;
-: move-down 24 graphics 98 + c! ;
-
-last-key @
-  left over = if move-left else
-  up over    = if move-up else
-  right over  = if move-right else
-  down over = if move-down
-  then then then then
-
-)
 ";
 
 pub struct Worker {
@@ -267,17 +220,16 @@ impl Agent for Worker {
     }
 
     // Handle inner messages (from callbacks)
-    fn update(&mut self, msg: Self::Message) { /* ... */
+    fn update(&mut self, _msg: Self::Message) { /* ... */
     }
 
     // Handle incoming messages from components of other agents.
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
             Request::Question(input, execute) => {
-                let mut program = std::panic::catch_unwind(move || {
+                let program = std::panic::catch_unwind(move || {
                     let code = inject_prelude(&input);
-                    let compiled = parse_forth(code);
-                    let program = convert_to_superpax(compiled);
+                    let program = parse_to_superpax(code);
                     program
                 });
                 match program {
@@ -313,6 +265,9 @@ pub enum Msg {
     CompilationError(String),
     NextTick(Vec<u8>),
     GameStop,
+    OnFocus,
+    OnBlur,
+    InputChange(usize),
 }
 
 pub struct App {
@@ -320,10 +275,11 @@ pub struct App {
     program: SuperPaxProgram,
     link: ComponentLink<Self>,
     method: Option<(String, Vec<Block>)>,
-    context: Box<Bridge<Worker>>,
+    context: Box<dyn Bridge<Worker>>,
     mem: stdweb::Value,
     game_tick: IntervalService,
     game_handle: Option<IntervalTask>,
+    wasm: Option<Vec<u8>>,
 }
 
 impl Component for App {
@@ -348,11 +304,21 @@ impl Component for App {
             mem: wasm_memory_init(),
             game_tick: IntervalService::new(),
             game_handle: None,
+            wasm: None,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
+            Msg::InputChange(key) => {
+                let mem = &self.mem;
+                stdweb::console!(log, format!("input changing to {:?}", key));
+                js! {
+                    @{mem}[0xC020] = @{key as u32};
+                }
+                // TODO this didn't work!
+                true
+            }
             Msg::CompileResult(program, execute) => {
                 self.program = program;
                 js! {
@@ -370,10 +336,7 @@ impl Component for App {
                     run_wasm_with_memory(&wasm, &self.mem);
                     stdweb::console!(log, "coming up...");
 
-                    self.game_handle = Some(self.game_tick.spawn(
-                        std::time::Duration::from_millis(50),
-                        self.link.callback(move |_| Msg::NextTick(wasm.clone())),
-                    ));
+                    self.wasm = Some(wasm);
                 }
                 true
             }
@@ -416,8 +379,7 @@ impl Component for App {
                 true
             }
             Msg::Reset(method) => {
-                let mut mock_program = self.program.clone();
-                self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
+                self.method = Some((method.clone(), self.program.get(&method).unwrap().clone()));
 
                 true
             }
@@ -444,6 +406,53 @@ impl Component for App {
                     .get(&method)
                     .map(|x| (method.clone(), x.clone()));
 
+                true
+            }
+            Msg::OnFocus => {
+                if let Some(wasm) = self.wasm.clone() {
+                    // Register gamepad listener.
+                    let input_callback = self.link.callback(|e: usize| Msg::InputChange(e));
+                    let input_closure = move |key: usize| {
+                        input_callback.emit(key);
+                    };
+                    js! {
+                        ResponsiveGamepad.ResponsiveGamepad.onInputsChange([
+                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_UP,
+                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_DOWN,
+                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_LEFT,
+                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_RIGHT,
+                        ], state => {
+                            const callback = @{input_closure};
+                            console.log("gamepad state", state);
+                            if (state.DPAD_UP) {
+                                callback(38);
+                            } else if (state.DPAD_DOWN) {
+                                callback(40);
+                            } else if (state.DPAD_LEFT) {
+                                callback(37);
+                            } else if (state.DPAD_RIGHT) {
+                                callback(39);
+                            }
+                        });
+                    }
+
+                    js! {
+                        ResponsiveGamepad.ResponsiveGamepad.enable()
+                    }
+                    self.game_handle = Some(self.game_tick.spawn(
+                        std::time::Duration::from_millis(100),
+                        self.link.callback(move |_| Msg::NextTick(wasm.clone())),
+                    ));
+                }
+                true
+            }
+            Msg::OnBlur => {
+                js! {
+                    ResponsiveGamepad.ResponsiveGamepad.disable()
+                }
+                if let Some(handle) = self.game_handle.take() {
+                    drop(handle);
+                }
                 true
             }
         }
@@ -532,15 +541,16 @@ impl Component for App {
             .callback(|e: InputData| Msg::ChangeInput(e.value.clone()));
         let onclick = self.link.callback(|_| Msg::Click);
         let onrun = self.link.callback(|_| Msg::RunInput);
-        let onstop = self.link.callback(|_| Msg::GameStop);
 
         let action_group = html! {
-            <div>
-                <button class="button-action" onclick=onclick>{ "Compile" }</button>
-                <button class="button-action" onclick=onrun>{ "Run" }</button>
-                <button class="button-action" onclick=onstop>{ "Stop" }</button>
+            <div style="display: flex; flex-direction: row;">
+                <button style="flex: 1" class="button-action" onclick=onclick>{ "Compile" }</button>
+                <button style="flex: 1" class="button-action" onclick=onrun>{ "Run" }</button>
             </div>
         };
+
+        let onfocus = self.link.callback(|_| Msg::OnFocus);
+        let onblur = self.link.callback(|_| Msg::OnBlur);
 
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
@@ -556,8 +566,9 @@ impl Component for App {
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
                         { action_group }
-                        <h3>{ "Canvas" }</h3>
-                        <canvas id="WASM_CANVAS" width="300" height="200" style="border: 1px solid black" />
+                        <h3>{ "Console" }</h3>
+                        <canvas onfocus=onfocus onblur=onblur id="WASM_CANVAS" width="300" height="200" style="border: 1px solid black" tabIndex="0" />
+                        <div style=(if self.wasm.is_none() { "visibility: hidden" } else { "" })>{"Click to play."}</div>
                         <h3>{ "Print Output" }</h3>
                         <textarea id="PRINT_OUTPUT" style="display: block; width: 100%; padding: 10px; border: 1px solid black;" rows="10" />
                         <h3>{ "Method List" }</h3>
@@ -568,8 +579,4 @@ impl Component for App {
             </div>
         }
     }
-}
-
-fn main() {
-    yew::start_app::<App>();
 }

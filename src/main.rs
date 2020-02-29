@@ -84,6 +84,7 @@ variable random-register \ 577
     code = inject_prelude(&code);
 
     let script = parse_forth(code);
+    // TODO parse_to_superpax
 
     match args.cmd {
         Command::Compile { .. } => {
