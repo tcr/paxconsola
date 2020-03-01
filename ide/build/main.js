@@ -576,6 +576,9 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             "__cargo_web_snippet_1edaec034bdcb0a749c6d5de76c29f6371afb5a0": function($0) {
                 var o = Module.STDWEB_PRIVATE.acquire_js_reference( $0 );return (o instanceof Event && o.type === "input");
             },
+            "__cargo_web_snippet_21dc2952ed3225e87b089457ba96195a628f27e0": function($0, $1) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0)[0xC020]=($1);
+            },
             "__cargo_web_snippet_24cd40a3653c1e6e6ebe883e2a7f2d0a48ebaeda": function($0, $1) {
                 $1 = Module.STDWEB_PRIVATE.to_js($1);Module.STDWEB_PRIVATE.from_js($0, (function(){return($1).textContent;})());
             },
@@ -635,6 +638,9 @@ Module.STDWEB_PRIVATE.acquire_tmp = function( dummy ) {
             },
             "__cargo_web_snippet_85b9ecbdb8513465b790546acfd0cd530441b8a4": function($0) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);($0).stopPropagation();
+            },
+            "__cargo_web_snippet_8922974507da9de7780e95d67357d2637c396781": function($0) {
+                $0 = Module.STDWEB_PRIVATE.to_js($0);ResponsiveGamepad.ResponsiveGamepad.onInputsChange([ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_UP,ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_DOWN,ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_LEFT,ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_RIGHT,],state=>{const callback=($0);console.log("gamepad state",state);if(state.DPAD_UP){callback(38);}else if(state.DPAD_DOWN){callback(40);}else if(state.DPAD_LEFT){callback(37);}else if(state.DPAD_RIGHT){callback(39);}});
             },
             "__cargo_web_snippet_8a049af1e4867892fca647811a9472e4c5832053": function($0, $1) {
                 $0 = Module.STDWEB_PRIVATE.to_js($0);$1 = Module.STDWEB_PRIVATE.to_js($1);($0).add(($1));
