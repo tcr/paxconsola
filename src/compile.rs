@@ -43,6 +43,8 @@ pub enum GbIr {
     StoreDE,
     // ( -- )
     JumpIfDEIs0(String), // label destination
+    // ( -- )
+    JumpAlways(String), // label destination
     // ( a -- result )
     ReplaceAddWithDE,
     // ( a -- result )
@@ -84,6 +86,8 @@ fn translate_to_gb(i: usize, op: SuperPax) -> Vec<GbIr> {
             GbIr::Pop,
             GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
+        // ( cond -- )
+        SuperPax::JumpAlways(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
         // ( address -- )
         SuperPax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
         // ( -- )
@@ -100,10 +104,23 @@ fn translate_to_gb(i: usize, op: SuperPax) -> Vec<GbIr> {
             // nah
         ],
         // ( -- )
-        SuperPax::BranchTarget => vec![GbIr::Label(format!(".target_{}", i))],
-        op => {
-            panic!("not yet implemented: {:?}", op);
-        }
+        SuperPax::BranchTarget(n) => vec![GbIr::Label(format!(".target_{}", n))],
+        // ( a -- )
+        SuperPax::Drop => vec![GbIr::Pop],
+        // ( -- t )
+        SuperPax::LoadTemp => vec![
+            GbIr::Dup,
+            GbIr::ReplaceLiteral(TEMP_ADDRESS as _),
+            GbIr::ReplaceLoad,
+        ],
+        // ( t -- )
+        SuperPax::StoreTemp => vec![
+            GbIr::Dup,
+            GbIr::ReplaceLiteral(TEMP_ADDRESS as _),
+            GbIr::NipIntoDE,
+            GbIr::StoreDE,
+            GbIr::Pop,
+        ],
     }
 }
 
@@ -288,6 +305,14 @@ PAX_FN_{}:
             "
             );
         }
+        GbIr::JumpAlways(addr) => {
+            gb_output!(
+                "
+    jp {}
+            ",
+                addr
+            );
+        }
         GbIr::JumpIfDEIs0(addr) => {
             gb_output!(
                 "
@@ -377,11 +402,13 @@ PAX_FN_{}:
     }
 }
 
-pub fn cross_compile_forth_gb(program: Program) {
+pub fn cross_compile_forth_gb(program: SuperPaxProgram) {
     for (_name, code) in program {
         let mut result = vec![];
-        for (i, (op, _pos)) in code.iter().enumerate() {
-            result.extend(translate_to_gb(i, op.to_owned()));
+        for (i, block) in code.iter().enumerate() {
+            for (op, pos) in block.commands() {
+                result.extend(translate_to_gb(i, op.to_owned()));
+            }
         }
 
         // In-place optimizations.

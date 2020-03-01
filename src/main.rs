@@ -88,7 +88,8 @@ variable random-register \ 577
 
     match args.cmd {
         Command::Compile { .. } => {
-            cross_compile_forth_gb(script);
+            let mut program = convert_to_superpax(script);
+            cross_compile_forth_gb(program);
         }
         Command::Optimize { .. } => {
             optimize_forth(script);
@@ -112,7 +113,7 @@ variable random-register \ 577
             optimize_function(&mut program, "main");
 
             let wasm = eval_forth(&program, interactive);
-            run_wasm(&wasm);
+            paxconsola::eval::run_wasm(&wasm);
         }
     }
 

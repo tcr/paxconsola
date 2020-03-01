@@ -536,7 +536,7 @@ mod wasmi_support {
 
 /// Evaluate WebAssembly binary using the wasmi library.
 #[cfg(feature = "wasmi")]
-fn run_wasm(binary: &[u8]) {
+pub fn run_wasm(binary: &[u8]) {
     use self::wasmi_support::*;
     use wasmi::{ImportsBuilder, Module, ModuleInstance, NopExternals, RuntimeValue};
 
@@ -564,7 +564,7 @@ fn run_wasm(binary: &[u8]) {
 
 /// Evaluate WebAssembly binary using the wasm3 library.
 #[cfg(feature = "wasm3")]
-fn run_wasm(binary: &[u8]) {
+pub fn run_wasm(binary: &[u8]) {
     use wasm3::environment::Environment;
     use wasm3::module::Module;
 
