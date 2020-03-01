@@ -6,10 +6,10 @@
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(10002)
-    ld a, [10002]
+    ; [gb_ir] ReplaceLoadDirect(49218)
+    ld a, [49218]
     ld l, a
-    ld a, [10002+1]
+    ld a, [49218+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_03D")
@@ -53,8 +53,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10002)
-    ld hl,10002
+    ; [gb_ir] ReplaceLiteral(49218)
+    ld hl,49218
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -62,10 +62,10 @@
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(10004)
-    ld a, [10004]
+    ; [gb_ir] ReplaceLoadDirect(49220)
+    ld a, [49220]
     ld l, a
-    ld a, [10004+1]
+    ld a, [49220+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_12B")
@@ -78,8 +78,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10004)
-    ld hl,10004
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -125,8 +125,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10004)
-    ld hl,10004
+    ; [gb_ir] ReplaceLiteral(49220)
+    ld hl,49220
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -201,8 +201,8 @@
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10002)
-    ld hl,10002
+    ; [gb_ir] ReplaceLiteral(49218)
+    ld hl,49218
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -301,8 +301,8 @@ PAX_FN_swap:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLiteral(10000)
-    ld hl,10000
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -346,10 +346,10 @@ PAX_FN_swap:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -372,8 +372,8 @@ PAX_FN_over:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLiteral(10000)
-    ld hl,10000
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -390,10 +390,10 @@ PAX_FN_over:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -415,10 +415,10 @@ PAX_FN_over:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -487,8 +487,8 @@ PAX_FN_dup:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10000)
-    ld hl,10000
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -496,10 +496,10 @@ PAX_FN_dup:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -510,10 +510,10 @@ PAX_FN_dup:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -1247,8 +1247,8 @@ PAX_FN_i:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10000)
-    ld hl,10000
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -1256,10 +1256,10 @@ PAX_FN_i:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] AltDupFromTOS
@@ -1287,10 +1287,10 @@ PAX_FN_i:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -1369,8 +1369,8 @@ PAX_FN_j:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10000)
-    ld hl,10000
+    ; [gb_ir] ReplaceLiteral(49216)
+    ld hl,49216
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -1378,10 +1378,10 @@ PAX_FN_j:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] AltDupFromTOS
@@ -1431,10 +1431,10 @@ PAX_FN_j:
     ; [gb_ir] AltDupFromTOS
     push hl
 
-    ; [gb_ir] ReplaceLoadDirect(10000)
-    ld a, [10000]
+    ; [gb_ir] ReplaceLoadDirect(49216)
+    ld a, [49216]
     ld l, a
-    ld a, [10000+1]
+    ld a, [49216+1]
     ld h, a
 
     ; [gb_ir] Ret
@@ -1832,8 +1832,8 @@ PAX_FN_snake2Dx:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(10006)
-    ld hl,10006
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
@@ -1862,8 +1862,8 @@ PAX_FN_snake2Dy:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(11008)
-    ld hl,11008
+    ; [gb_ir] ReplaceLiteral(50224)
+    ld hl,50224
 
     ; [gb_ir] ReplaceAddWithDE
     add hl, de
@@ -2394,8 +2394,8 @@ PAX_FN_initialize2Dsnake:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12016)
-    ld hl,12016
+    ; [gb_ir] ReplaceLiteral(51232)
+    ld hl,51232
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -2403,10 +2403,10 @@ PAX_FN_initialize2Dsnake:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLoadDirect(12016)
-    ld a, [12016]
+    ; [gb_ir] ReplaceLoadDirect(51232)
+    ld a, [51232]
     ld l, a
-    ld a, [12016+1]
+    ld a, [51232+1]
     ld h, a
 
     ; [gb_ir] Inc
@@ -2553,8 +2553,8 @@ PAX_FN_initialize2Dsnake:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12014)
-    ld hl,12014
+    ; [gb_ir] ReplaceLiteral(51230)
+    ld hl,51230
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -2591,8 +2591,8 @@ PAX_FN_set2Dapple2Dposition:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12010)
-    ld hl,12010
+    ; [gb_ir] ReplaceLiteral(51226)
+    ld hl,51226
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -2600,8 +2600,8 @@ PAX_FN_set2Dapple2Dposition:
     ld a, d
     ldd [hl],a
 
-    ; [gb_ir] ReplaceLiteral(12012)
-    ld hl,12012
+    ; [gb_ir] ReplaceLiteral(51228)
+    ld hl,51228
 
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
@@ -2873,8 +2873,8 @@ PAX_FN_move2Dup:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(11008)
-    ld hl,11008
+    ; [gb_ir] ReplaceLiteral(50224)
+    ld hl,50224
 
     ; [gb_ir] Call("PAX_FN_2B21")
     call PAX_FN_2B21
@@ -2915,8 +2915,8 @@ PAX_FN_move2Dleft:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(10006)
-    ld hl,10006
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] Call("PAX_FN_2B21")
     call PAX_FN_2B21
@@ -2957,8 +2957,8 @@ PAX_FN_move2Ddown:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(11008)
-    ld hl,11008
+    ; [gb_ir] ReplaceLiteral(50224)
+    ld hl,50224
 
     ; [gb_ir] Call("PAX_FN_2B21")
     call PAX_FN_2B21
@@ -2999,8 +2999,8 @@ PAX_FN_move2Dright:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(10006)
-    ld hl,10006
+    ; [gb_ir] ReplaceLiteral(49222)
+    ld hl,49222
 
     ; [gb_ir] Call("PAX_FN_2B21")
     call PAX_FN_2B21
@@ -3030,10 +3030,10 @@ PAX_FN_move2Dsnake2Dhead:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12014)
-    ld a, [12014]
+    ; [gb_ir] ReplaceLoadDirect(51230)
+    ld a, [51230]
     ld l, a
-    ld a, [12014+1]
+    ld a, [51230+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -3253,10 +3253,10 @@ PAX_FN_move2Dsnake2Dtail:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12016)
-    ld a, [12016]
+    ; [gb_ir] ReplaceLoadDirect(51232)
+    ld a, [51232]
     ld l, a
-    ld a, [12016+1]
+    ld a, [51232+1]
     ld h, a
 
     ; [gb_ir] AltDupFromTOS
@@ -3420,10 +3420,10 @@ PAX_FN_is2Dhorizontal:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12014)
-    ld a, [12014]
+    ; [gb_ir] ReplaceLoadDirect(51230)
+    ld a, [51230]
     ld l, a
-    ld a, [12014+1]
+    ld a, [51230+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_dup")
@@ -3488,10 +3488,10 @@ PAX_FN_is2Dvertical:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12014)
-    ld a, [12014]
+    ; [gb_ir] ReplaceLoadDirect(51230)
+    ld a, [51230]
     ld l, a
-    ld a, [12014+1]
+    ld a, [51230+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_dup")
@@ -3583,8 +3583,8 @@ PAX_FN_turn2Dup:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12014)
-    ld hl,12014
+    ; [gb_ir] ReplaceLiteral(51230)
+    ld hl,51230
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -3655,8 +3655,8 @@ PAX_FN_turn2Dleft:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12014)
-    ld hl,12014
+    ; [gb_ir] ReplaceLiteral(51230)
+    ld hl,51230
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -3727,8 +3727,8 @@ PAX_FN_turn2Ddown:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12014)
-    ld hl,12014
+    ; [gb_ir] ReplaceLiteral(51230)
+    ld hl,51230
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -3799,8 +3799,8 @@ PAX_FN_turn2Dright:
     ld e,l
     ld d,h
 
-    ; [gb_ir] ReplaceLiteral(12014)
-    ld hl,12014
+    ; [gb_ir] ReplaceLiteral(51230)
+    ld hl,51230
 
     ; [gb_ir] StoreDE
     ld a, e
@@ -4218,10 +4218,10 @@ PAX_FN_move2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12010)
-    ld a, [12010]
+    ; [gb_ir] ReplaceLoadDirect(51226)
+    ld a, [51226]
     ld l, a
-    ld a, [12010+1]
+    ld a, [51226+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -4232,10 +4232,10 @@ PAX_FN_move2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12012)
-    ld a, [12012]
+    ; [gb_ir] ReplaceLoadDirect(51228)
+    ld a, [51228]
     ld l, a
-    ld a, [12012+1]
+    ld a, [51228+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_draw2Dwhite")
@@ -4286,8 +4286,8 @@ PAX_FN_grow2Dsnake:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(12016)
-    ld hl,12016
+    ; [gb_ir] ReplaceLiteral(51232)
+    ld hl,51232
 
     ; [gb_ir] Call("PAX_FN_2B21")
     call PAX_FN_2B21
@@ -4317,10 +4317,10 @@ PAX_FN_check2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(10006)
-    ld a, [10006]
+    ; [gb_ir] ReplaceLoadDirect(49222)
+    ld a, [49222]
     ld l, a
-    ld a, [10006+1]
+    ld a, [49222+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -4331,10 +4331,10 @@ PAX_FN_check2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12010)
-    ld a, [12010]
+    ; [gb_ir] ReplaceLoadDirect(51226)
+    ld a, [51226]
     ld l, a
-    ld a, [12010+1]
+    ld a, [51226+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_3D")
@@ -4348,10 +4348,10 @@ PAX_FN_check2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(11008)
-    ld a, [11008]
+    ; [gb_ir] ReplaceLoadDirect(50224)
+    ld a, [50224]
     ld l, a
-    ld a, [11008+1]
+    ld a, [50224+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -4362,10 +4362,10 @@ PAX_FN_check2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12012)
-    ld a, [12012]
+    ; [gb_ir] ReplaceLoadDirect(51228)
+    ld a, [51228]
     ld l, a
-    ld a, [12012+1]
+    ld a, [51228+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_3D")
@@ -4425,10 +4425,10 @@ PAX_FN_check2Dcollision:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(10006)
-    ld a, [10006]
+    ; [gb_ir] ReplaceLoadDirect(49222)
+    ld a, [49222]
     ld l, a
-    ld a, [10006+1]
+    ld a, [49222+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -4439,10 +4439,10 @@ PAX_FN_check2Dcollision:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(11008)
-    ld a, [11008]
+    ; [gb_ir] ReplaceLoadDirect(50224)
+    ld a, [50224]
     ld l, a
-    ld a, [11008+1]
+    ld a, [50224+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_convert2Dx2Dy")
@@ -4508,10 +4508,10 @@ PAX_FN_draw2Dsnake:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12016)
-    ld a, [12016]
+    ; [gb_ir] ReplaceLoadDirect(51232)
+    ld a, [51232]
     ld l, a
-    ld a, [12016+1]
+    ld a, [51232+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -4607,10 +4607,10 @@ PAX_FN_draw2Dsnake:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12016)
-    ld a, [12016]
+    ; [gb_ir] ReplaceLoadDirect(51232)
+    ld a, [51232]
     ld l, a
-    ld a, [12016+1]
+    ld a, [51232+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_snake2Dx")
@@ -4631,10 +4631,10 @@ PAX_FN_draw2Dsnake:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12016)
-    ld a, [12016]
+    ; [gb_ir] ReplaceLoadDirect(51232)
+    ld a, [51232]
     ld l, a
-    ld a, [12016+1]
+    ld a, [51232+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_snake2Dy")
@@ -4675,10 +4675,10 @@ PAX_FN_draw2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12010)
-    ld a, [12010]
+    ; [gb_ir] ReplaceLoadDirect(51226)
+    ld a, [51226]
     ld l, a
-    ld a, [12010+1]
+    ld a, [51226+1]
     ld h, a
 
     ; [gb_ir] Dup
@@ -4689,10 +4689,10 @@ PAX_FN_draw2Dapple:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLoadDirect(12012)
-    ld a, [12012]
+    ; [gb_ir] ReplaceLoadDirect(51228)
+    ld a, [51228]
     ld l, a
-    ld a, [12012+1]
+    ld a, [51228+1]
     ld h, a
 
     ; [gb_ir] Call("PAX_FN_draw2Dapple2Dtile")

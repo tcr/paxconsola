@@ -12,9 +12,9 @@ pub enum ParseMode {
 }
 
 // Value for WebAssembly
-const BASE_VARIABLE_OFFSET: usize = 10000;
-// Value for Gameboy
 // const BASE_VARIABLE_OFFSET: usize = 10000;
+// Value for Gameboy
+const BASE_VARIABLE_OFFSET: usize = 0xc040;
 
 pub type Span = Vec<Located<Pax>>;
 
