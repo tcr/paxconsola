@@ -65,42 +65,42 @@ pub enum GbIr {
     Inc,
 }
 
-fn translate_to_gb(i: usize, op: Pax) -> Vec<GbIr> {
+fn translate_to_gb(i: usize, op: SuperPax) -> Vec<GbIr> {
     match op {
-        Pax::Metadata(s) => vec![GbIr::Metadata(s)],
+        SuperPax::Metadata(s) => vec![GbIr::Metadata(s)],
         // ( -- value )
-        Pax::PushLiteral(value) => vec![GbIr::Dup, GbIr::ReplaceLiteral(value as _)],
+        SuperPax::PushLiteral(value) => vec![GbIr::Dup, GbIr::ReplaceLiteral(value as _)],
         // ( address -- value )
-        Pax::Load => vec![GbIr::ReplaceLoad],
+        SuperPax::Load => vec![GbIr::ReplaceLoad],
         // ( address -- value )
-        Pax::Load8 => vec![GbIr::ReplaceLoad8],
+        SuperPax::Load8 => vec![GbIr::ReplaceLoad8],
         // ( value address -- )
-        Pax::Store => vec![GbIr::NipIntoDE, GbIr::StoreDE, GbIr::Pop],
+        SuperPax::Store => vec![GbIr::NipIntoDE, GbIr::StoreDE, GbIr::Pop],
         // ( value address -- )
-        Pax::Store8 => vec![GbIr::NipIntoDE, GbIr::StoreDE8, GbIr::Pop],
+        SuperPax::Store8 => vec![GbIr::NipIntoDE, GbIr::StoreDE8, GbIr::Pop],
         // ( cond -- )
-        Pax::JumpIf0(offset) => vec![
+        SuperPax::JumpIf0(offset) => vec![
             GbIr::CopyToDE,
             GbIr::Pop,
             GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
         // ( address -- )
-        Pax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
+        SuperPax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
         // ( -- )
-        Pax::Exit => vec![GbIr::Ret],
+        SuperPax::Exit => vec![GbIr::Ret],
         // ( a b -- c )
-        Pax::Add => vec![GbIr::NipIntoDE, GbIr::ReplaceAddWithDE],
+        SuperPax::Add => vec![GbIr::NipIntoDE, GbIr::ReplaceAddWithDE],
         // ( a b -- c )
-        Pax::Nand => vec![GbIr::NipIntoDE, GbIr::ReplaceNandWithDE],
+        SuperPax::Nand => vec![GbIr::NipIntoDE, GbIr::ReplaceNandWithDE],
         // ( a -- )
-        Pax::AltPush => vec![GbIr::AltDupFromTOS, GbIr::Pop],
+        SuperPax::AltPush => vec![GbIr::AltDupFromTOS, GbIr::Pop],
         // ( a -- )
-        Pax::AltPop => vec![GbIr::Dup, GbIr::AltPop],
-        Pax::Print => vec![
+        SuperPax::AltPop => vec![GbIr::Dup, GbIr::AltPop],
+        SuperPax::Print => vec![
             // nah
         ],
         // ( -- )
-        Pax::BranchTarget => vec![GbIr::Label(format!(".target_{}", i))],
+        SuperPax::BranchTarget => vec![GbIr::Label(format!(".target_{}", i))],
         op => {
             panic!("not yet implemented: {:?}", op);
         }
