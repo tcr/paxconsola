@@ -378,7 +378,7 @@ pub fn run_wasm_with_memory(binary: &[u8], memory: &stdweb::Value) {
                     if (loc == 0x9800) {
                         requestAnimationFrame(() => {
                             const ctx = canvas.getContext("2d");
-                            ctx.fillStyle = "#FFF0000";
+                            ctx.fillStyle = "#222222";
                             ctx.fillRect(0, 0, 500, 500);
                         });
                     }
@@ -389,17 +389,19 @@ pub fn run_wasm_with_memory(binary: &[u8], memory: &stdweb::Value) {
                         loc = 0xFFFF + loc + 1;
                     }
                     // console.info("extmem_store_8:", loc.toString(16), value);
+
+                    // FIXME make these constants configurable or prominent
                     const row_len = 32; // fixed on gameboy
-                    const wl = 30;
-                    const hl = 20;
+                    const wl = 20;
+                    const hl = 18;
                     const w = canvas.width;
                     const h = canvas.height;
-                    if (loc >= 0x9800 && loc < 0x9800 + (wl*hl)) {
+                    if (loc >= 0x9800 && loc < 0x9800 + (row_len*hl)) {
                         const x = (loc - 0x9800) % row_len;
                         const y = Math.floor((loc - 0x9800) / row_len);
 
                         const ctx = canvas.getContext("2d");
-                        ctx.fillStyle = value == 0 ? "#000000" : "#FF0000";
+                        ctx.fillStyle = value == 0 ? "#dddddd" : "#222222";
                         // console.log(x, y);
                         ctx.fillRect(w/wl*x, h/hl*y, w/wl, h/hl);
                     }

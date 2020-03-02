@@ -285,6 +285,8 @@ pub enum Msg {
     OnBlur,
     InputChange(usize),
     CompileGameboy,
+    OnGameboyFocus,
+    OnGameboyBlur,
 }
 
 pub struct App {
@@ -327,6 +329,18 @@ impl Component for App {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
+            Msg::OnGameboyFocus => {
+                js! {
+                    WasmBoy.WasmBoy.play();
+                }
+                true
+            }
+            Msg::OnGameboyBlur => {
+                js! {
+                    WasmBoy.WasmBoy.pause();
+                }
+                true
+            }
             Msg::InputChange(key) => {
                 let mem = &self.mem;
                 stdweb::console!(log, format!("input changing to {:?}", key));
@@ -358,6 +372,10 @@ impl Component for App {
                         stdweb::console!(log, "first frame done.");
 
                         self.wasm = Some(wasm);
+
+                        js! {
+                            setTimeout(() => document.querySelector("#WASM_CANVAS").focus(), 1000);
+                        }
                     }
                     ExecutionTarget::Gameboy => {
                         // TODO need a better data type
@@ -392,6 +410,10 @@ impl Component for App {
                             }).catch(err => {
                               console.error("Error Configuring WasmBoy:", err);
                             });
+                        }
+
+                        js! {
+                            setTimeout(() => document.querySelector("#GAMEBOY_CANVAS").focus(), 1000);
                         }
                     }
                 }
@@ -605,13 +627,11 @@ impl Component for App {
         let oninput = self
             .link
             .callback(|e: InputData| Msg::ChangeInput(e.value.clone()));
-        let onclick = self.link.callback(|_| Msg::Click);
         let onrun = self.link.callback(|_| Msg::RunInput);
 
         let action_group = html! {
             <div style="display: flex; flex-direction: row;">
-                <button style="flex: 1" class="button-action" onclick=onclick>{ "Compile" }</button>
-                <button style="flex: 1" class="button-action" onclick=onrun>{ "Run" }</button>
+                <button style="flex: 1" class="button-action" onclick=onrun>{ "Run in Browser" }</button>
             </div>
         };
 
@@ -619,6 +639,8 @@ impl Component for App {
         let onblur = self.link.callback(|_| Msg::OnBlur);
 
         let onclick = self.link.callback(|_| Msg::CompileGameboy);
+        let ongameboyfocus = self.link.callback(|_| Msg::OnGameboyFocus);
+        let ongameboyblur = self.link.callback(|_| Msg::OnGameboyBlur);
         let gameboy_action_group = html! {
             <div style="display: flex; flex-direction: row;">
                 <button style="flex: 1" class="button-action" onclick=onclick>{ "Run on Gameboy" }</button>
@@ -638,15 +660,16 @@ impl Component for App {
                         </div>
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
+                        <h3>{ "Browser" }</h3>
                         { action_group }
-                        <h3>{ "Console" }</h3>
                         <canvas onfocus=onfocus onblur=onblur id="WASM_CANVAS" width="300" height="200" style="border: 1px solid black" tabIndex="0" />
                         <div style=(if self.wasm.is_none() { "visibility: hidden" } else { "" })>{"Click to play."}</div>
                         <h3>{ "Gameboy" }</h3>
                         { gameboy_action_group }
                         <div style="border: 1px solid black; display: inline-block">
-                            <canvas id="GAMEBOY_CANVAS" width="300" height="200" tabIndex="0" style="display: block;" />
+                            <canvas id="GAMEBOY_CANVAS" onfocus=ongameboyfocus onblur=ongameboyblur width="300" height="200" tabIndex="0" style="display: block;" />
                         </div>
+                        <div>{"Click to play."}</div>
                         <h3>{ "Print Output" }</h3>
                         <textarea id="PRINT_OUTPUT" style="display: block; width: 100%; padding: 10px; border: 1px solid black;" rows="10" />
                         <h3>{ "Method List" }</h3>
