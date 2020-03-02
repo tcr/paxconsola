@@ -1,20 +1,23 @@
 #![recursion_limit = "4096"]
 
+use include_dir::*;
 use indexmap::IndexMap;
 use paxconsola::*;
-use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
-
 use serde::*;
+use std::path::Path;
 use stdweb::js;
 use yew::services::interval::*;
 use yew::worker::*;
+use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
+
+static GB_DIR: Dir = include_dir!("../template/gb");
 
 const START_CODE: &str = r"$C020 constant last-key
 $C022 constant random-register
 $9800 constant graphics
 
 variable initialized
-\ variable frame
+variable frame \ unused
 
 : random random-register @ 255 and swap % ;
 
@@ -32,8 +35,11 @@ variable apple-y
 39 constant right
 40 constant down
 
-30 constant width
-20 constant height
+\ 30 constant width
+\ 20 constant height
+
+20 constant width
+18 constant height
 
 variable direction
 variable length
@@ -194,12 +200,12 @@ pub struct Worker {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
-    Question(Vec<u8>, bool),
+    Question(Vec<u8>, ExecutionTarget),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Response {
-    Answer(SuperPaxProgram, bool),
+    Answer(SuperPaxProgram, ExecutionTarget),
     CompilationError(String),
 }
 
@@ -234,8 +240,11 @@ impl Agent for Worker {
                 });
                 match program {
                     Ok(mut program) => {
-                        if execute {
-                            inline_into_function(&mut program, "main");
+                        match execute {
+                            ExecutionTarget::Wasm => {
+                                inline_into_function(&mut program, "main");
+                            }
+                            _ => {}
                         }
                         self.link.respond(who, Response::Answer(program, execute));
                     }
@@ -253,6 +262,13 @@ impl Agent for Worker {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ExecutionTarget {
+    Debug,
+    Gameboy,
+    Wasm,
+}
+
 pub enum Msg {
     Click,
     ChangeInput(String),
@@ -261,13 +277,14 @@ pub enum Msg {
     InlineAndOptimize(String),
     ShowMethod(String),
     RunInput,
-    CompileResult(SuperPaxProgram, bool),
+    CompileResult(SuperPaxProgram, ExecutionTarget),
     CompilationError(String),
     NextTick(Vec<u8>),
     GameStop,
     OnFocus,
     OnBlur,
     InputChange(usize),
+    CompileGameboy,
 }
 
 pub struct App {
@@ -327,16 +344,56 @@ impl Component for App {
                     canvas.clearRect(0, 0, canvas.width, canvas.height);
                 }
 
+                stdweb::console!(log, "compilation done.");
+
                 // Possibly run execution now that we've returned
-                if execute {
-                    self.mem = wasm_memory_init();
-                    let wasm = eval_forth(&self.program, false);
+                match execute {
+                    ExecutionTarget::Debug => {}
+                    ExecutionTarget::Wasm => {
+                        self.mem = wasm_memory_init();
+                        let wasm = eval_forth(&self.program, false);
 
-                    // Run first frame.
-                    run_wasm_with_memory(&wasm, &self.mem);
-                    stdweb::console!(log, "coming up...");
+                        // Run first frame.
+                        run_wasm_with_memory(&wasm, &self.mem);
+                        stdweb::console!(log, "first frame done.");
 
-                    self.wasm = Some(wasm);
+                        self.wasm = Some(wasm);
+                    }
+                    ExecutionTarget::Gameboy => {
+                        // TODO need a better data type
+                        let mut filetree: Vec<Vec<u8>> = GB_DIR
+                            .find("*")
+                            .expect("invalid glob")
+                            .filter_map(|file| match file {
+                                include_dir::DirEntry::File(f) => Some(f),
+                                _ => None,
+                            })
+                            .map(|file| {
+                                vec![
+                                    file.path().to_string_lossy().as_bytes().to_owned(),
+                                    file.contents().to_owned(),
+                                ]
+                            })
+                            .flatten()
+                            .collect();
+
+                        // Inject a compiled version of the game
+                        let pax_generated = cross_compile_forth_gb(self.program.clone());
+                        filetree.push("generated/pax_generated.asm".as_bytes().to_owned());
+                        filetree.push(pax_generated.as_bytes().to_owned());
+
+                        stdweb::console!(log, format!("gameboy code: {}", pax_generated));
+
+                        js! {
+                            CompileGameboy(@{filetree})
+                            .then(({ game }) => {
+                              console.log("success", game);
+                              return PlayGameboy(game);
+                            }).catch(err => {
+                              console.error("Error Configuring WasmBoy:", err);
+                            });
+                        }
+                    }
                 }
                 true
             }
@@ -356,11 +413,20 @@ impl Component for App {
                 }
                 false
             }
+
+            Msg::CompileGameboy => {
+                // Dispatch compile operation to Worker
+                self.context.send(Request::Question(
+                    self.forth_input.as_bytes().to_vec(),
+                    ExecutionTarget::Gameboy,
+                ));
+                true
+            }
             Msg::Click => {
                 // Dispatch compile operation to Worker
                 self.context.send(Request::Question(
                     self.forth_input.as_bytes().to_vec(),
-                    false,
+                    ExecutionTarget::Debug,
                 ));
                 true
             }
@@ -368,7 +434,7 @@ impl Component for App {
                 // Dispatch compile operation to Worker
                 self.context.send(Request::Question(
                     self.forth_input.as_bytes().to_vec(),
-                    true,
+                    ExecutionTarget::Wasm,
                 ));
                 true
             }
@@ -552,6 +618,13 @@ impl Component for App {
         let onfocus = self.link.callback(|_| Msg::OnFocus);
         let onblur = self.link.callback(|_| Msg::OnBlur);
 
+        let onclick = self.link.callback(|_| Msg::CompileGameboy);
+        let gameboy_action_group = html! {
+            <div style="display: flex; flex-direction: row;">
+                <button style="flex: 1" class="button-action" onclick=onclick>{ "Run on Gameboy" }</button>
+            </div>
+        };
+
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
                 <div style="background: black; color: white; font-size: 24px; padding: 10px 0; text-align: center; font-family: Bungee Inline, Arial Black, sans-serif; text-transform: uppercase;">
@@ -569,6 +642,11 @@ impl Component for App {
                         <h3>{ "Console" }</h3>
                         <canvas onfocus=onfocus onblur=onblur id="WASM_CANVAS" width="300" height="200" style="border: 1px solid black" tabIndex="0" />
                         <div style=(if self.wasm.is_none() { "visibility: hidden" } else { "" })>{"Click to play."}</div>
+                        <h3>{ "Gameboy" }</h3>
+                        { gameboy_action_group }
+                        <div style="border: 1px solid black; display: inline-block">
+                            <canvas id="GAMEBOY_CANVAS" width="300" height="200" tabIndex="0" style="display: block;" />
+                        </div>
                         <h3>{ "Print Output" }</h3>
                         <textarea id="PRINT_OUTPUT" style="display: block; width: 100%; padding: 10px; border: 1px solid black;" rows="10" />
                         <h3>{ "Method List" }</h3>

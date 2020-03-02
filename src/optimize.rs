@@ -711,7 +711,7 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
         continue_pass = false;
 
         let main = program.get(method).unwrap().clone();
-        dump_blocks(&main);
+        // dump_blocks(&main);
 
         let mut i = 0;
         let mut j = 0;
@@ -722,15 +722,15 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
             // Determine what the next block target is going to be.
             match block.commands().last() {
                 Some((SuperPax::Call(target), ..)) => {
-                    eprintln!("call to {:?}", target);
-                    eprintln!();
+                    // eprintln!("call to {:?}", target);
+                    // eprintln!();
 
                     // Flag that this pass succeeded.
                     continue_pass = true;
 
                     // We want to inline this function. First grab our offsets.
                     let mut inlined_blocks = program.get(target).unwrap().clone();
-                    dump_blocks(&inlined_blocks);
+                    // dump_blocks(&inlined_blocks);
                     // Inline code length (trim off start and end block).
                     let inlined_blocks_len = inlined_blocks.len() - 2;
 

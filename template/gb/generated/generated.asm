@@ -2207,8 +2207,8 @@ PAX_FN_draw2Dwalls:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(16)
-    ld hl,16
+    ; [gb_ir] ReplaceLiteral(18)
+    ld hl,18
 
     ; [gb_ir] Dup
     dec c
@@ -2255,8 +2255,8 @@ PAX_FN_draw2Dwalls:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(16)
-    ld hl,16
+    ; [gb_ir] ReplaceLiteral(18)
+    ld hl,18
 
     ; [gb_ir] Dup
     dec c
@@ -2740,8 +2740,8 @@ PAX_FN_initialize:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(16)
-    ld hl,16
+    ; [gb_ir] ReplaceLiteral(18)
+    ld hl,18
 
     ; [gb_ir] Dup
     dec c
@@ -4163,8 +4163,8 @@ PAX_FN_random2Dy2Dposition:
     ld a, l
     ld [c], a
 
-    ; [gb_ir] ReplaceLiteral(16)
-    ld hl,16
+    ; [gb_ir] ReplaceLiteral(18)
+    ld hl,18
 
     ; [gb_ir] Dup
     dec c
@@ -4707,5 +4707,4 @@ PAX_FN_draw2Dapple:
 
 
 ; function start
-
 

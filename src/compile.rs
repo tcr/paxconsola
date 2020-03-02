@@ -129,16 +129,18 @@ lazy_static! {
 }
 
 macro_rules! gb_output {
-    ($fmt:expr) => (
-        println!("{}", RE_TRIM_GB.replace_all(&format!(concat!($fmt, "\n")), ""))
+    ($out:expr, $fmt:expr) => (
+        $out.push_str(&format!("{}\n", RE_TRIM_GB.replace_all(&format!(concat!($fmt, "\n")), "")))
     );
-    ($fmt:expr, $($arg:tt)*) => (
-        println!("{}", RE_TRIM_GB.replace_all(&format!(concat!($fmt, "\n"), $($arg)*), ""))
+    ($out:expr, $fmt:expr, $($arg:tt)*) => (
+        $out.push_str(&format!("{}\n", RE_TRIM_GB.replace_all(&format!(concat!($fmt, "\n"), $($arg)*), "")))
     );
 }
 
-pub fn cross_compile_ir_gb(op: GbIr) {
+pub fn cross_compile_ir_gb(op: GbIr) -> String {
+    let mut out = String::new();
     gb_output!(
+        out,
         "
     ; [gb_ir] {:?}
         ",
@@ -146,6 +148,7 @@ pub fn cross_compile_ir_gb(op: GbIr) {
     );
     match op {
         GbIr::Label(label) => gb_output!(
+            out,
             "
 {}:
         ",
@@ -153,6 +156,7 @@ pub fn cross_compile_ir_gb(op: GbIr) {
         ),
 
         GbIr::Metadata(s) => gb_output!(
+            out,
             "
     ; [metadata] {:?}
 PAX_FN_{}:
@@ -162,6 +166,7 @@ PAX_FN_{}:
         ),
         GbIr::Dup => {
             gb_output!(
+                out,
                 "
     dec c
     ld a, h
@@ -174,6 +179,7 @@ PAX_FN_{}:
         }
         GbIr::Pop => {
             gb_output!(
+                out,
                 "
     ld a, [c]
     ld l, a
@@ -186,6 +192,7 @@ PAX_FN_{}:
         }
         GbIr::ReplaceLiteral(lit) => {
             gb_output!(
+                out,
                 "
     ld hl,{lit}
             ",
@@ -194,6 +201,7 @@ PAX_FN_{}:
         }
         GbIr::NipIntoDE => {
             gb_output!(
+                out,
                 "
     ; Move second item to TOS
     ld a, [c]
@@ -207,6 +215,7 @@ PAX_FN_{}:
         }
         GbIr::CopyToE => {
             gb_output!(
+                out,
                 "
     ld e,l
             "
@@ -214,6 +223,7 @@ PAX_FN_{}:
         }
         GbIr::SetE(value) => {
             gb_output!(
+                out,
                 "
     ld e,{}
             ",
@@ -222,6 +232,7 @@ PAX_FN_{}:
         }
         GbIr::CopyToDE => {
             gb_output!(
+                out,
                 "
     ld e,l
     ld d,h
@@ -230,6 +241,7 @@ PAX_FN_{}:
         }
         GbIr::CopyToA => {
             gb_output!(
+                out,
                 "
     ; Move to accumulator for comparison
     ld a,l
@@ -238,6 +250,7 @@ PAX_FN_{}:
         }
         GbIr::ReplaceLoad => {
             gb_output!(
+                out,
                 "
     ldi a, [hl]
     ld b, a
@@ -249,6 +262,7 @@ PAX_FN_{}:
         }
         GbIr::ReplaceLoadDirect(addr) => {
             gb_output!(
+                out,
                 "
     ld a, [{}]
     ld l, a
@@ -261,6 +275,7 @@ PAX_FN_{}:
         }
         GbIr::ReplaceLoad8 => {
             gb_output!(
+                out,
                 "
 .wait:
     ld   a,[$0FF41]
@@ -277,6 +292,7 @@ PAX_FN_{}:
         GbIr::StoreDE8 => {
             // HACK wait for VRAM to be available
             gb_output!(
+                out,
                 "
 .wait:
     ld   a,[$0FF41]
@@ -290,6 +306,7 @@ PAX_FN_{}:
         }
         GbIr::StoreDE => {
             gb_output!(
+                out,
                 "
     ld a, e
     ldi [hl],a
@@ -300,6 +317,7 @@ PAX_FN_{}:
         }
         GbIr::PushRetAddr => {
             gb_output!(
+                out,
                 "
     push hl
             "
@@ -307,6 +325,7 @@ PAX_FN_{}:
         }
         GbIr::JumpAlways(addr) => {
             gb_output!(
+                out,
                 "
     jp {}
             ",
@@ -315,6 +334,7 @@ PAX_FN_{}:
         }
         GbIr::JumpIfDEIs0(addr) => {
             gb_output!(
+                out,
                 "
     ld a,d
     or e
@@ -325,6 +345,7 @@ PAX_FN_{}:
         }
         GbIr::ReplaceAddWithDE => {
             gb_output!(
+                out,
                 "
     add hl, de
             "
@@ -332,6 +353,7 @@ PAX_FN_{}:
         }
         GbIr::ReplaceNandWithDE => {
             gb_output!(
+                out,
                 "
     ld a,l
     and a,e
@@ -346,6 +368,7 @@ PAX_FN_{}:
         }
         GbIr::Invert => {
             gb_output!(
+                out,
                 "
     ld a,l
     cpl
@@ -358,6 +381,7 @@ PAX_FN_{}:
         }
         GbIr::AltDupFromTOS => {
             gb_output!(
+                out,
                 "
     push hl
             "
@@ -365,6 +389,7 @@ PAX_FN_{}:
         }
         GbIr::AltPop => {
             gb_output!(
+                out,
                 "
     pop hl
             "
@@ -372,6 +397,7 @@ PAX_FN_{}:
         }
         GbIr::Inc => {
             gb_output!(
+                out,
                 "
     inc hl
             "
@@ -379,6 +405,7 @@ PAX_FN_{}:
         }
         GbIr::Ret => {
             gb_output!(
+                out,
                 "
     ret
 
@@ -393,6 +420,7 @@ PAX_FN_{}:
         }
         GbIr::Call(label) => {
             gb_output!(
+                out,
                 "
     call {}
             ",
@@ -400,10 +428,12 @@ PAX_FN_{}:
             );
         }
     }
+    out
 }
 
-pub fn cross_compile_forth_gb(program: SuperPaxProgram) {
-    for (_name, code) in program {
+pub fn cross_compile_forth_gb(program: SuperPaxProgram) -> String {
+    let mut out = String::new();
+    for (name, code) in program {
         let mut result = vec![];
         for (i, block) in code.iter().enumerate() {
             for (op, pos) in block.commands() {
@@ -509,10 +539,14 @@ pub fn cross_compile_forth_gb(program: SuperPaxProgram) {
             }
         }
 
-        for gbir in result {
-            cross_compile_ir_gb(gbir);
-            println!();
-        }
+        out.push_str(
+            &result
+                .iter()
+                .map(|gbir| cross_compile_ir_gb(gbir.clone()))
+                .collect::<Vec<String>>()
+                .join("\n"),
+        );
+        out.push_str("\n");
 
         /*
             for (i, (op, pos)) in code.iter().enumerate() {
@@ -524,4 +558,6 @@ pub fn cross_compile_forth_gb(program: SuperPaxProgram) {
             }
             */
     }
+
+    out
 }

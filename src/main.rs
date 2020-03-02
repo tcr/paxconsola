@@ -88,8 +88,9 @@ variable random-register \ 577
 
     match args.cmd {
         Command::Compile { .. } => {
-            let mut program = convert_to_superpax(script);
-            cross_compile_forth_gb(program);
+            let program = convert_to_superpax(script);
+            let result = cross_compile_forth_gb(program);
+            println!("{}", result);
         }
         Command::Optimize { .. } => {
             optimize_forth(script);

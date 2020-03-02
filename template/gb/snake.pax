@@ -22,7 +22,7 @@ variable apple-y
 40 constant down
 
 20 constant width
-16 constant height
+18 constant height
 
 variable direction
 variable length
