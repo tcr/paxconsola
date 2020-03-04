@@ -401,7 +401,7 @@ pub fn run_wasm_with_memory(binary: &[u8], memory: &stdweb::Value) {
                         const y = Math.floor((loc - 0x9800) / row_len);
 
                         const ctx = canvas.getContext("2d");
-                        ctx.fillStyle = value == 0 ? "#dddddd" : "#222222";
+                        ctx.fillStyle = value == 0 ? "#dddddd" : value == 1 ? "#ee4400" : value == 2 ? "#2299cc" : "#222222";
                         // console.log(x, y);
                         ctx.fillRect(w/wl*x, h/hl*y, w/wl, h/hl);
                     }
