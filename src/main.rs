@@ -11,14 +11,16 @@ use structopt::StructOpt;
 struct Args {
     #[structopt(subcommand)] // Note that we mark a field as a subcommand
     cmd: Command,
-
-    #[structopt(long = "--no-prelude")]
-    no_prelude: bool,
 }
 
 #[derive(StructOpt, Debug)]
 enum Command {
     Compile {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+
+    CompileC64 {
         #[structopt(flatten)]
         file: FileOpts,
     },
@@ -52,6 +54,7 @@ struct FileOpts {
 fn main(args: Args) -> Result<(), std::io::Error> {
     // Extract file
     let arg_file = match &args.cmd {
+        Command::CompileC64 { file, .. } => file.file.to_owned(),
         Command::Compile { file, .. } => file.file.to_owned(),
         Command::Optimize { file, .. } => file.file.to_owned(),
         Command::Dump { file, .. } => file.file.to_owned(),
@@ -64,23 +67,6 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         .unwrap_or_else(|err| panic!("{}", err));
 
     let mut code = buffer.clone();
-    if !args.no_prelude {
-        if let Command::Run { .. } = args.cmd {
-            code.extend(
-                r"
-
-\ Positions synced with VM (for now)
-variable graphics 575 cells allot \ 0-575
-variable last-key \ 576
-variable random-register \ 577
-
-: random random-register @ swap % ;
-
-"
-                .as_bytes(),
-            );
-        }
-    }
     code = inject_prelude(&code);
 
     let script = parse_forth(code);
@@ -90,6 +76,11 @@ variable random-register \ 577
         Command::Compile { .. } => {
             let program = convert_to_superpax(script);
             let result = cross_compile_forth_gb(program);
+            println!("{}", result);
+        }
+        Command::CompileC64 { .. } => {
+            let program = convert_to_superpax(script);
+            let result = cross_compile_forth_c64(program);
             println!("{}", result);
         }
         Command::Optimize { .. } => {

@@ -1,3 +1,18 @@
+GFX = $0400
+
+; Override Datasette ram
+TEMP = $92
+TEMP2 = $93
+TEMP3 = $94
+
+TEMP_PAX1 = $95
+TEMP_PAX2 = $96
+
+; Can override all BASIC values
+; https://csdb.dk/forums/index.php?roomid=11&topicid=3541&showallposts=1
+X_START = $02
+X_END = $7f
+
 .code
     ; Make screen black and text white
     lda #$00
@@ -10,16 +25,28 @@
     lda #23
     sta $d018
 
-    ; Clear the screen and jump to draw routine
+    ; Clear the screen
     jsr $e544
-    jsr draw_text
-		
-pax_start:
-	ldx #95
-    stx $0400
 
-loop:		
-    jmp *
+mainloop:
+    lda $d011
+    bpl mainloop ; no: go to mainloop
+
+    ; draw routine
+    jsr draw_text
+    jsr pax_start
+    
+    jmp mainloop
+
+
+pax_start:
+    ; Set up PAX ram
+    ldx #X_START
+    lda #0
+    ldy #0
+
+    .include "generated.asm"
+    rts
 
 
 msg:
