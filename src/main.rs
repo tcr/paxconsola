@@ -79,7 +79,9 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             println!("{}", result);
         }
         Command::CompileC64 { .. } => {
-            let program = convert_to_superpax(script);
+            let mut program = convert_to_superpax(script);
+
+            inline_into_function(&mut program, "main");
             let result = cross_compile_forth_c64(program);
             println!("{}", result);
         }

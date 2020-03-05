@@ -13,5 +13,5 @@ clean:
 paxconsola.com: paxconsola.o
 	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg paxconsola.o -o $@
 
-paxconsola.o: paxconsola.s
+paxconsola.o: paxconsola.s generated.asm
 	$(CC) $(CFLAGS) -t c64 -c paxconsola.s -o $@

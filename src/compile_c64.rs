@@ -150,7 +150,8 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
     tay
     pla
     cmp TEMP
-    beq @target_{}
+    bne *+5
+    jmp @target_{}
         ",
             target
         ),
@@ -162,7 +163,7 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
     sta TEMP
     sty TEMP2
     ldy #0
-    lda $(TEMP),y
+    lda (TEMP),y
         "
         ),
         // FIXME should implement real store16

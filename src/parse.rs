@@ -14,7 +14,9 @@ pub enum ParseMode {
 // Value for WebAssembly
 // const BASE_VARIABLE_OFFSET: usize = 10000;
 // Value for Gameboy
-const BASE_VARIABLE_OFFSET: usize = 49216;
+// const BASE_VARIABLE_OFFSET: usize = 49216;
+// Value for C64
+const BASE_VARIABLE_OFFSET: usize = 0x9000;
 
 pub type Span = Vec<Located<Pax>>;
 
@@ -328,7 +330,6 @@ pub fn parse_forth(buffer: Vec<u8>) -> Program {
 
                             "c!" => current(&mut stack).push((Pax::Store8, pos)),
                             "c@" => current(&mut stack).push((Pax::Load8, pos)),
-
                             "sleep" => current(&mut stack).push((Pax::Sleep, pos)),
 
                             _ => {

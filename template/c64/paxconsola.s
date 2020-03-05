@@ -8,6 +8,8 @@ TEMP3 = $94
 TEMP_PAX1 = $95
 TEMP_PAX2 = $96
 
+STACK_RESERVE = $97
+
 ; Can override all BASIC values
 ; https://csdb.dk/forums/index.php?roomid=11&topicid=3541&showallposts=1
 X_START = $02
@@ -34,7 +36,12 @@ mainloop:
 
     ; draw routine
     jsr draw_text
+
+    tsx 
+    stx STACK_RESERVE
     jsr pax_start
+    ldx STACK_RESERVE
+    txs
     
     jmp mainloop
 

@@ -1,1 +1,11 @@
-94 $0400 c! 95 $0400 1 + c!
+$007e constant last-key
+$007f constant random-register
+$0400 constant graphics
+
+94 graphics c! 95 graphics 1 + c!
+
+94 >r 0 >r r> r> graphics 2 + c! drop
+
+10 5 do
+95 i graphics + c!
+loop
