@@ -110,13 +110,15 @@ fn translate_to_gb(i: usize, op: SuperPax) -> Vec<GbIr> {
         // ( -- t )
         SuperPax::LoadTemp => vec![
             GbIr::Dup,
-            GbIr::ReplaceLiteral(TEMP_ADDRESS as _),
+            // FIXME assumes temp is first variable
+            GbIr::ReplaceLiteral(BASE_VARIABLE_OFFSET as _),
             GbIr::ReplaceLoad,
         ],
         // ( t -- )
         SuperPax::StoreTemp => vec![
             GbIr::Dup,
-            GbIr::ReplaceLiteral(TEMP_ADDRESS as _),
+            // FIXME assumes temp is first variable
+            GbIr::ReplaceLiteral(BASE_VARIABLE_OFFSET as _),
             GbIr::NipIntoDE,
             GbIr::StoreDE,
             GbIr::Pop,

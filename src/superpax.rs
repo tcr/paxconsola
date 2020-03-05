@@ -2,7 +2,7 @@ use crate::*;
 use indexmap::IndexMap;
 use serde::*;
 
-pub const TEMP_ADDRESS: isize = 49216;
+// Only for Gameboy
 
 // Extends the regular Pax IR with some simple opcodes that
 // are more practical for refactoring—might be worth formalizing
@@ -166,8 +166,12 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
             // Peek matching.
             match op.0 {
                 Pax::PushLiteral(value) => {
+                    // Temp is always first assigned variable(??)
+                    // FIXME this is super fragile
+                    let temp_address = BASE_VARIABLE_OFFSET;
+
                     // Temp values
-                    if value == TEMP_ADDRESS {
+                    if value == temp_address as isize {
                         // SuperPax::LoadTemp
                         if let Some((_, &(Pax::Load, _))) = code_iter.peek() {
                             stack.record_op(&(SuperPax::LoadTemp, op.1.clone()));

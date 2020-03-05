@@ -16,7 +16,7 @@ pub enum ParseMode {
 // Value for Gameboy
 // const BASE_VARIABLE_OFFSET: usize = 49216;
 // Value for C64
-const BASE_VARIABLE_OFFSET: usize = 0x9000;
+pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
 
 pub type Span = Vec<Located<Pax>>;
 
