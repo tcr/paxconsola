@@ -11,7 +11,7 @@ clean:
 # Review: https://cc65.github.io/doc/c64.html#s10
 
 paxconsola.com: paxconsola.o
-	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg paxconsola.o -o $@
+	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg -g paxconsola.o -o $@ -Ln paxconsola.lbl -m paxconsola.map
 
 paxconsola.o: paxconsola.s generated.asm
-	$(CC) $(CFLAGS) -t c64 -c paxconsola.s -o $@
+	$(CC) $(CFLAGS) -t c64 -g -c paxconsola.s -o $@

@@ -1,0 +1,27 @@
+$007e constant last-key
+$007f constant random-register
+$0400 constant graphics
+
+94 graphics c! 95 graphics 1 + c!
+
+94 >r 0 >r r> r> graphics 2 + c! drop
+
+95 graphics $ffff $fffb nand + c!
+
+\ fill in both blocks on start of second line
+1 if 95 graphics 40 + c! else 95 graphics 41 + c! then
+5 5 - if 95 graphics 40 + c! else 95 graphics 41 + c! then
+
+
+\ 0 begin 44 drop 1 + dup 4 -1 nand 1 + + if 0 else -1 then until
+
+0 begin 1 + dup 4 swap - if 0 else -1 then until
+
+\ WHY does this change everything when running
+0 begin 1 + dup 4 swap negate + if 0 else -1 then until
+
+\ 0 begin 1 + dup 4 - if 0 else -1 then until \ TODO
+
+\ 20 10 do
+\ 95 i graphics + c!
+\ loop

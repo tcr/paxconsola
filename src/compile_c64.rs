@@ -76,16 +76,15 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
         SuperPax::Nand => gb_output!(
             out,
             "
-    clc
     sty TEMP
     sta TEMP2
     pla
     and TEMP
-    eor $ff
-    tya
+    eor #$ff
+    tay
     pla
-    adc TEMP2
-    eor $ff
+    and TEMP2
+    eor #$ff
         "
         ),
         SuperPax::AltPop => gb_output!(
@@ -95,19 +94,19 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
     tay
     pha ; bump down TOS
     dex
-    lda $0100,x
+    lda $00,x
     tay
     dex
-    lda $0100,x
+    lda $00,x
         "
         ),
         SuperPax::AltPush => gb_output!(
             out,
             "
-    sta $0100,x
+    sta $00,x
     tya
     inx
-    sta $0100,x
+    sta $00,x
     inx
     pla
     tay
@@ -119,6 +118,9 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
         SuperPax::LoadTemp => gb_output!(
             out,
             "
+    pha
+    tya
+    pha
     lda TEMP_PAX1
     ldy TEMP_PAX2
         "
@@ -128,7 +130,10 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
             out,
             "
     sta TEMP_PAX1
-    ldy TEMP_PAX2
+    sty TEMP_PAX2
+    pla
+    tay
+    pla
         "
         ),
 
@@ -143,15 +148,19 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
             out,
             "
     sta TEMP
-    tya
-    ora TEMP
-    sta TEMP
+
     pla
     tay
     pla
-    cmp TEMP
-    bne *+5
+
+    sta TEMP2
+    lda #0
+    bit TEMP
+    bne *+7
+    lda TEMP2
     jmp @target_{}
+
+    lda TEMP2
         ",
             target
         ),
@@ -174,7 +183,8 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
     sty TEMP2
     pla
     pla
-    ldy #1
+    ldy #0
+@OKOHOK:
     sta (TEMP),y
     pla
     tay

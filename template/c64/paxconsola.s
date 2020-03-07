@@ -30,18 +30,20 @@ X_END = $7f
     ; Clear the screen
     jsr $e544
 
+    ; draw routine
+    jsr draw_text
+
 mainloop:
     lda $d011
     bpl mainloop ; no: go to mainloop
 
-    ; draw routine
-    jsr draw_text
-
+    sei
     tsx 
     stx STACK_RESERVE
     jsr pax_start
     ldx STACK_RESERVE
     txs
+    cli
     
     jmp mainloop
 

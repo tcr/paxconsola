@@ -622,7 +622,7 @@ impl Component for App {
                 { dump }
             </div>
         };
-        method_inspect = html! { <></> }; // FIXME this is a hack
+        method_inspect = html! { <></> }; // TODO this is a hack
 
         let oninput = self
             .link
