@@ -39,6 +39,13 @@ ClearReturnStackLoop:
     sta X_START,x
     dex
     bpl ClearReturnStackLoop
+
+    lda #$00
+    ldx #$ff
+ClearMemoryLoop:
+    sta $9000,x
+    dex
+    bne ClearMemoryLoop
     
 
 before_mainloop:

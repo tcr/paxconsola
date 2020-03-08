@@ -16,19 +16,7 @@ const START_CODE: &str = r"$C020 constant last-key
 $C022 constant random-register
 $9800 constant graphics
 
-variable initialized
-variable frame \ unused
-
 : random random-register @ 255 and swap % ;
-
-variable snake-x-head
-500 cells allot
-
-variable snake-y-head
-500 cells allot
-
-variable apple-x
-variable apple-y
 
 37 constant left
 38 constant up
@@ -40,6 +28,18 @@ variable apple-y
 
 20 constant width
 18 constant height
+
+variable initialized
+variable frame \ unused
+
+variable snake-x-head
+500 cells allot
+
+variable snake-y-head
+500 cells allot
+
+variable apple-x
+variable apple-y
 
 variable direction
 variable length
