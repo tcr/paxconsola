@@ -2,6 +2,25 @@ $007e constant last-key
 $007f constant random-register
 $0400 constant graphics
 
-20 10 do
-95 i graphics + c!
-loop
+20 constant width
+18 constant height
+
+\ TODO should be multiplying 32 by `cells`
+: convert-x-y ( x y -- offset )  32 * + ;
+: draw ( color x y -- )  convert-x-y graphics + c! ;
+: draw-white ( x y -- )  0 rot rot draw ;
+: draw-black ( x y -- )  2 rot rot draw ;
+: draw-snake-tile ( x y -- )  3 rot rot draw ;
+: draw-apple-tile ( x y -- )  4 rot rot draw ;
+
+: draw-walls
+  width 0 do
+    i 0 draw-black
+    i height 1 - draw-black
+  loop
+  height 0 do
+    0 i draw-black
+    width 1 - i draw-black
+  loop ;
+
+draw-walls
