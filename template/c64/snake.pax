@@ -2,26 +2,41 @@ $007e constant last-key
 $007f constant random-register
 $0400 constant graphics
 
-\ 94 graphics c!
-\ 95 graphics 1 + c!
+\ acid test
 
-\ 94 >r 0 >r r> r> graphics 2 + c! drop
+\ KP: bug in dup
+\ pos 10-12
+95 graphics 5 5 + + c!
+95 graphics 6 dup + + c!
 
-\ 95 graphics $ffff $fffb nand + c!
+\ #1 tile at pos 0
+94 graphics c!
 
-\ fill in both blocks on start of second line
-\ 1 if 95 graphics 40 + c! else 95 graphics 41 + c! then
-\ 5 5 - if 95 graphics 40 + c! else 95 graphics 41 + c! then
+\ pos 1
+95 graphics 1 + c!
+
+\ pos 2
+94 >r 0 >r r> r> graphics 2 + c! drop
+
+\ pos 3
+95 graphics $ffff $fffc nand + c!
+
+\ fill in pos 4-6, unless they're wrong. wrong is shown on second line
+1 if 94 graphics 4 + c! else 94 graphics 44 + c! then
+$ffff 1 + if 95 graphics 45 + c! else 95 graphics 5 + c! then
+5 5 - if 94 graphics 46 + c! else 94 graphics 6 + c! then
 
 
 \ 0 begin 44 drop 1 + dup 4 -1 nand 1 + + if 0 else -1 then until
 
-\ 0 begin 1 + dup 4 swap - if 0 else -1 then until
+\ this is just a test of looping 0-4 manually
+\ 0 begin 1 + dup 4 swap - if 0 else -1 then until drop
 
 \ FIXME uncomment second line for failing to fix stack whole way we guess
 \ 0 begin 1 + dup 4 swap - if 0 else -1 then until
 \ 0 begin 1 + dup 4 - if 0 else -1 then until
 
-11 10 do
-95 i graphics + c!
-loop
+\ pos 40-45, but it doesn't work
+45 40 do 95 i graphics + c! loop
+
+\ 10 5 >r >r begin 95 i graphics + c! loopimpl until

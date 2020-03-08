@@ -30,32 +30,46 @@ X_END = $7f
     ; Clear the screen
     jsr $e544
 
-    ; draw routine
+    ; draw some helpful text
     jsr draw_text
 
+    lda #00
+    ldx #(X_END-X_START)
+ClearReturnStackLoop:
+    sta X_START,x
+    dex
+    bpl ClearReturnStackLoop
+    
+
+before_mainloop:
+    nop
 mainloop:
     lda $d011
     bpl mainloop ; no: go to mainloop
 
+pax_start:
+    ; disable inerrupts
     sei
+    ; store stack pointer, since execution might not be clean
     tsx 
     stx STACK_RESERVE
-    jsr pax_start
-    ldx STACK_RESERVE
-    txs
-    cli
-    
-    jmp mainloop
 
-
-pax_start:
-    ; Set up PAX ram
+    ; Set up PAX registers for execution
+    ; X=return stack pointer, Y = high byte of TOS, A = low byte of TOS
     ldx #X_START
     lda #0
     ldy #0
 
     .include "generated.asm"
-    rts
+
+    ; restore stack
+    ldx STACK_RESERVE
+    txs
+    ; re-enable interrupts
+    cli
+
+pax_finished:
+    jmp mainloop
 
 
 msg:

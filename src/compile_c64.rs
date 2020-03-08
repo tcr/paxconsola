@@ -26,13 +26,14 @@ macro_rules! gb_output {
     );
 }
 
-pub fn cross_compile_ir_c64(op: SuperPax) -> String {
+pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
     let mut out = String::new();
     gb_output!(
         out,
         "
-    ; [c64_ir] {:?}
+@OPCODE_{}:   ; [c64_ir] {:?}
         ",
+        i,
         op
     );
     match op {
@@ -91,7 +92,7 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
             out,
             "
     pha
-    tay
+    tya
     pha ; bump down TOS
     dex
     lda $00,x
@@ -155,7 +156,7 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
 
     sta TEMP2
     lda #0
-    bit TEMP
+    cmp TEMP
     bne *+7
     lda TEMP2
     jmp @target_{}
@@ -184,7 +185,6 @@ pub fn cross_compile_ir_c64(op: SuperPax) -> String {
     pla
     pla
     ldy #0
-@OKOHOK:
     sta (TEMP),y
     pla
     tay
@@ -213,7 +213,7 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-    rts
+    ;rts
 
 
 
@@ -244,6 +244,10 @@ PAX_FN_{}:
 pub fn cross_compile_forth_c64(program: SuperPaxProgram) -> String {
     let mut out = String::new();
     for (name, code) in program {
+        if name != "main" {
+            continue;
+        }
+
         let mut result = vec![];
         for (i, block) in code.iter().enumerate() {
             for (op, pos) in block.commands() {
@@ -254,7 +258,8 @@ pub fn cross_compile_forth_c64(program: SuperPaxProgram) -> String {
         out.push_str(
             &result
                 .iter()
-                .map(|ir| cross_compile_ir_c64(ir.clone()))
+                .enumerate()
+                .map(|(i, ir)| cross_compile_ir_c64(i, ir.clone()))
                 .collect::<Vec<String>>()
                 .join("\n"),
         );
