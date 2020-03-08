@@ -85,12 +85,12 @@ Current file: paxconsola.s
 000042r 2               @OPCODE_2:   ; [c64_ir] BranchTarget(0)
 000042r 2               @target_0:
 000042r 2               
-000042r 2               @OPCODE_3:   ; [c64_ir] PushLiteral(20)
+000042r 2               @OPCODE_3:   ; [c64_ir] PushLiteral(40)
 000042r 2  48               pha
 000043r 2  98               tya
 000044r 2  48               pha
 000045r 2  A0 00            ldy #0
-000047r 2  A9 14            lda #20
+000047r 2  A9 28            lda #40
 000049r 2               
 000049r 2               @OPCODE_4:   ; [c64_ir] PushLiteral(0)
 000049r 2  48               pha
@@ -698,12 +698,12 @@ Current file: paxconsola.s
 000278r 2               @OPCODE_82:   ; [c64_ir] BranchTarget(11)
 000278r 2               @target_11:
 000278r 2               
-000278r 2               @OPCODE_83:   ; [c64_ir] PushLiteral(32)
+000278r 2               @OPCODE_83:   ; [c64_ir] PushLiteral(40)
 000278r 2  48               pha
 000279r 2  98               tya
 00027Ar 2  48               pha
 00027Br 2  A0 00            ldy #0
-00027Dr 2  A9 20            lda #32
+00027Dr 2  A9 28            lda #40
 00027Fr 2               
 00027Fr 2               @OPCODE_84:   ; [c64_ir] PushLiteral(65535)
 00027Fr 2  48               pha
@@ -2021,12 +2021,12 @@ Current file: paxconsola.s
 00076Ar 2  A8               tay
 00076Br 2  68               pla
 00076Cr 2               
-00076Cr 2               @OPCODE_253:   ; [c64_ir] PushLiteral(18)
+00076Cr 2               @OPCODE_253:   ; [c64_ir] PushLiteral(25)
 00076Cr 2  48               pha
 00076Dr 2  98               tya
 00076Er 2  48               pha
 00076Fr 2  A0 00            ldy #0
-000771r 2  A9 12            lda #18
+000771r 2  A9 19            lda #25
 000773r 2               
 000773r 2               @OPCODE_254:   ; [c64_ir] PushLiteral(1)
 000773r 2  48               pha
@@ -2646,12 +2646,12 @@ Current file: paxconsola.s
 0009B7r 2               @OPCODE_334:   ; [c64_ir] BranchTarget(51)
 0009B7r 2               @target_51:
 0009B7r 2               
-0009B7r 2               @OPCODE_335:   ; [c64_ir] PushLiteral(32)
+0009B7r 2               @OPCODE_335:   ; [c64_ir] PushLiteral(40)
 0009B7r 2  48               pha
 0009B8r 2  98               tya
 0009B9r 2  48               pha
 0009BAr 2  A0 00            ldy #0
-0009BCr 2  A9 20            lda #32
+0009BCr 2  A9 28            lda #40
 0009BEr 2               
 0009BEr 2               @OPCODE_336:   ; [c64_ir] PushLiteral(65535)
 0009BEr 2  48               pha
@@ -4671,12 +4671,12 @@ Current file: paxconsola.s
 001145r 2               
 001145r 2  A5 93            lda TEMP2
 001147r 2               
-001147r 2               @OPCODE_598:   ; [c64_ir] PushLiteral(18)
+001147r 2               @OPCODE_598:   ; [c64_ir] PushLiteral(25)
 001147r 2  48               pha
 001148r 2  98               tya
 001149r 2  48               pha
 00114Ar 2  A0 00            ldy #0
-00114Cr 2  A9 12            lda #18
+00114Cr 2  A9 19            lda #25
 00114Er 2               
 00114Er 2               @OPCODE_599:   ; [c64_ir] PushLiteral(0)
 00114Er 2  48               pha
@@ -5284,12 +5284,12 @@ Current file: paxconsola.s
 00137Dr 2               @OPCODE_677:   ; [c64_ir] BranchTarget(111)
 00137Dr 2               @target_111:
 00137Dr 2               
-00137Dr 2               @OPCODE_678:   ; [c64_ir] PushLiteral(32)
+00137Dr 2               @OPCODE_678:   ; [c64_ir] PushLiteral(40)
 00137Dr 2  48               pha
 00137Er 2  98               tya
 00137Fr 2  48               pha
 001380r 2  A0 00            ldy #0
-001382r 2  A9 20            lda #32
+001382r 2  A9 28            lda #40
 001384r 2               
 001384r 2               @OPCODE_679:   ; [c64_ir] PushLiteral(65535)
 001384r 2  48               pha
@@ -6491,12 +6491,12 @@ Current file: paxconsola.s
 001800r 2  A8               tay
 001801r 2  68               pla
 001802r 2               
-001802r 2               @OPCODE_834:   ; [c64_ir] PushLiteral(20)
+001802r 2               @OPCODE_834:   ; [c64_ir] PushLiteral(40)
 001802r 2  48               pha
 001803r 2  98               tya
 001804r 2  48               pha
 001805r 2  A0 00            ldy #0
-001807r 2  A9 14            lda #20
+001807r 2  A9 28            lda #40
 001809r 2               
 001809r 2               @OPCODE_835:   ; [c64_ir] PushLiteral(1)
 001809r 2  48               pha
@@ -7232,12 +7232,12 @@ Current file: paxconsola.s
 001ABCr 2               @OPCODE_929:   ; [c64_ir] BranchTarget(151)
 001ABCr 2               @target_151:
 001ABCr 2               
-001ABCr 2               @OPCODE_930:   ; [c64_ir] PushLiteral(32)
+001ABCr 2               @OPCODE_930:   ; [c64_ir] PushLiteral(40)
 001ABCr 2  48               pha
 001ABDr 2  98               tya
 001ABEr 2  48               pha
 001ABFr 2  A0 00            ldy #0
-001AC1r 2  A9 20            lda #32
+001AC1r 2  A9 28            lda #40
 001AC3r 2               
 001AC3r 2               @OPCODE_931:   ; [c64_ir] PushLiteral(65535)
 001AC3r 2  48               pha
@@ -9296,7 +9296,7 @@ Current file: paxconsola.s
 002260r 1               
 002260r 1               
 002260r 1               msg:
-002260r 1  20 20 20 20      .asciiz "              hello world!              "
+002260r 1  20 20 20 20      .asciiz "              snake world!              "
 002264r 1  20 20 20 20  
 002268r 1  20 20 20 20  
 002289r 1               
@@ -9304,7 +9304,7 @@ Current file: paxconsola.s
 002289r 1  A2 00            ldx #$00
 00228Br 1               draw_loop:
 00228Br 1  BD rr rr         lda msg,x
-00228Er 1  9D E0 05         sta $05e0,x
+00228Er 1  9D 18 05         sta $0518,x
 002291r 1  E8               inx
 002292r 1  E0 28            cpx #$28
 002294r 1  D0 F5            bne draw_loop

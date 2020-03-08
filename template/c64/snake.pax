@@ -2,11 +2,11 @@ $007e constant last-key
 $007f constant random-register
 $0400 constant graphics
 
-20 constant width
-18 constant height
+40 constant width
+25 constant height
 
 \ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  32 * + ;
+: convert-x-y ( x y -- offset )  40 * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
 : draw-white ( x y -- )  0 rot rot draw ;
 : draw-black ( x y -- )  2 rot rot draw ;

@@ -73,13 +73,13 @@ pax_finished:
 
 
 msg:
-    .asciiz "              hello world!              "
+    .asciiz "              snake world!              "
 
 draw_text:
     ldx #$00
 draw_loop:
     lda msg,x
-    sta $05e0,x
+    sta $0518,x
     inx
     cpx #$28
     bne draw_loop
