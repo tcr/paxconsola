@@ -12,7 +12,7 @@ glob = "*"
 rand = "*"
 structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
-lazy_static = "*"
+lazy_static = "1.4.0"
 indexmap = { version = "*", features = [ "serde-1" ] }
 # color-backtrace = { version = "0.3" }
 percent-encoding = "*"
@@ -21,10 +21,10 @@ petgraph = "0.5.0"
 wat = "1"
 
 # choose a wasm implementation
-wasm3 = { git = "https://github.com/Veykril/wasm3-rs", optional = true }
+wasm3 = { git = "https://github.com/Veykril/wasm3-rs", rev = "7257d2b24b0d5398c238908cc055f37d675bcad9", optional = true }
 stdweb = { version = "*", optional = true }
 wasmi = { version = "*", default-features = false, features = [ "core" ], optional = true }
 serde = { version = "1.0.104", features = [ "derive" ] }
 
 [features]
-default = ["wasmi"]
+default = ["wasm3"]

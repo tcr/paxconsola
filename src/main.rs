@@ -15,6 +15,11 @@ struct Args {
 
 #[derive(StructOpt, Debug)]
 enum Command {
+    Inlineup {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+
     Compile {
         #[structopt(flatten)]
         file: FileOpts,
@@ -59,6 +64,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Optimize { file, .. } => file.file.to_owned(),
         Command::Dump { file, .. } => file.file.to_owned(),
         Command::Run { file, .. } => file.file.to_owned(),
+        Command::Inlineup { file, .. } => file.file.to_owned(),
     };
 
     let mut file = File::open(&arg_file).unwrap_or_else(|err| panic!("{}", err));
@@ -73,6 +79,18 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     // TODO parse_to_superpax
 
     match args.cmd {
+        Command::Inlineup { .. } => {
+            let source_program = convert_to_superpax(script);
+
+            let mut program = source_program.clone();
+            inline_into_function(&mut program, "main");
+            optimize_function(&mut program, "main");
+            let wasm = eval_forth(&program, false);
+            paxconsola::eval::run_wasm(&wasm);
+
+            println!("done");
+        }
+
         Command::Compile { .. } => {
             let program = convert_to_superpax(script);
             let result = cross_compile_forth_gb(program);
@@ -104,7 +122,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
             inline_into_function(&mut program, "main");
 
-            optimize_function(&mut program, "main");
+            // optimize_function(&mut program, "main");
 
             let wasm = eval_forth(&program, interactive);
             paxconsola::eval::run_wasm(&wasm);

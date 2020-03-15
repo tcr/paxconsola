@@ -1,6 +1,9 @@
 use crate::*;
+use lazy_static::lazy_static;
 use petgraph::{graph::NodeIndex, Direction};
+use std::collections::HashMap;
 use std::io::prelude::*;
+use std::sync::Mutex;
 
 const WAT_TEMPLATE: &'static str = r#"
 (module
@@ -156,12 +159,48 @@ const WAT_TEMPLATE: &'static str = r#"
   
 "#;
 
-#[cfg(feature = "wasm3")]
-wasm3::make_func_wrapper!(wasm_print_wrap: wasm_print(value: u64) -> u64);
+lazy_static! {
+    static ref WASM3_MEM: Mutex<HashMap<u32, u16>> = Mutex::new(HashMap::new());
+}
 
-fn wasm_print(value: u64) -> u64 {
+#[cfg(feature = "wasm3")]
+wasm3::make_func_wrapper!(wasm_print_wrap: wasm_print(value: u32) -> u64);
+fn wasm_print(value: u32) -> u64 {
     println!("{}", value);
-    value
+    value as _
+}
+
+#[cfg(feature = "wasm3")]
+wasm3::make_func_wrapper!(wasm_extmem_load_wrap: wasm_extmem_load(address: u32) -> u64);
+fn wasm_extmem_load(mut address: u32) -> u64 {
+    address = address & 0xFFFF;
+    (*WASM3_MEM.lock().unwrap().get(&address).unwrap_or(&0)) as _
+}
+
+#[cfg(feature = "wasm3")]
+wasm3::make_func_wrapper!(wasm_extmem_load_8_wrap: wasm_extmem_load_8(address: u32) -> u64);
+fn wasm_extmem_load_8(mut address: u32) -> u64 {
+    address = address & 0xFFFF;
+    ((*WASM3_MEM.lock().unwrap().get(&address).unwrap_or(&0)) as u8) as _
+}
+
+#[cfg(feature = "wasm3")]
+wasm3::make_func_wrapper!(wasm_extmem_store_wrap: wasm_extmem_store(address: u32, value: u32));
+fn wasm_extmem_store(mut address: u32, mut value: u32) {
+    address = address & 0xFFFF;
+    value = value & 0xFFFF;
+    WASM3_MEM.lock().unwrap().insert(address, value as u16);
+}
+
+#[cfg(feature = "wasm3")]
+wasm3::make_func_wrapper!(wasm_extmem_store_8_wrap: wasm_extmem_store_8(address: u32, value: u32));
+fn wasm_extmem_store_8(mut address: u32, mut value: u32) {
+    address = address & 0xFFFF;
+    value = value & 0xFFFF;
+    WASM3_MEM
+        .lock()
+        .unwrap()
+        .insert(address, value as u8 as u16);
 }
 
 pub fn eval_forth(program: &SuperPaxProgram, interactive: bool) -> Vec<u8> {
@@ -578,6 +617,18 @@ pub fn run_wasm(binary: &[u8]) {
     eprintln!("execution:");
     module
         .link_function::<(i32,), i32>("root", "print", wasm_print_wrap)
+        .unwrap();
+    module
+        .link_function::<(i32,), i32>("root", "extmem_load", wasm_extmem_load_wrap)
+        .unwrap();
+    module
+        .link_function::<(i32,), i32>("root", "extmem_load_8", wasm_extmem_load_8_wrap)
+        .unwrap();
+    module
+        .link_function::<(i32, i32), ()>("root", "extmem_store", wasm_extmem_store_wrap)
+        .unwrap();
+    module
+        .link_function::<(i32, i32), ()>("root", "extmem_store_8", wasm_extmem_store_8_wrap)
         .unwrap();
     let func = module
         .find_function::<(), i32>("main")

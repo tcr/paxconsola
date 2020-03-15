@@ -762,9 +762,6 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         }
                     }
 
-                    // ANCHOR figure out why addition.fs doesn't work
-                    // ANCHOR when we inject the altpush and altpop logic
-
                     // Generate enter block.
                     let mut enter_block = inlined_blocks[0].clone();
                     let enter_commands = block
@@ -835,9 +832,9 @@ fn dump_blocks(blocks: &[Block]) {
 pub fn optimize_forth(program: Program) {
     let mut superprogram = convert_to_superpax(program);
 
-    inline_into_function(&mut superprogram, "main");
+    inline_into_function(&mut superprogram, "2dup");
 
-    if let Some(blocks) = superprogram.get_mut("main") {
+    if let Some(blocks) = superprogram.get_mut("2dup") {
         dump_blocks(&blocks);
 
         // println!("{:?}", graph);
@@ -849,8 +846,8 @@ pub fn optimize_forth(program: Program) {
         // println!();
         // println!();
 
-        // let graph = dataflow_graph(blocks.clone());
-        // analyze_graph(&blocks, &graph);
+        let graph = dataflow_graph(&blocks);
+        analyze_graph(&blocks, &graph);
     }
 
     // Inlining.
