@@ -1,9 +1,4 @@
-use crate::*;
-use lazy_static::lazy_static;
-use petgraph::{graph::NodeIndex, Direction};
-use std::collections::HashMap;
-use std::io::prelude::*;
-use std::sync::Mutex;
+use ::stdweb;
 
 pub fn run_wasm(binary: &[u8]) {
   run_wasm_with_memory(binary, &wasm_memory_init());

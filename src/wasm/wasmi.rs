@@ -1,14 +1,7 @@
-use crate::*;
-use lazy_static::lazy_static;
-use petgraph::{graph::NodeIndex, Direction};
-use std::collections::HashMap;
-use std::io::prelude::*;
-use std::sync::Mutex;
-use wasmi::{
-  Error as InterpreterError, Externals, FuncInstance, FuncRef, GlobalDescriptor, GlobalInstance,
-  GlobalRef, ImportResolver, ImportsBuilder, MemoryDescriptor, MemoryInstance, MemoryRef, Module,
-  ModuleImportResolver, ModuleInstance, ModuleRef, RuntimeArgs, RuntimeValue, Signature,
-  TableDescriptor, TableInstance, TableRef, Trap,
+use ::wasmi::{
+  Error as InterpreterError, Externals, FuncInstance, FuncRef, GlobalDescriptor, GlobalRef,
+  ImportResolver, MemoryDescriptor, MemoryRef, Module, ModuleImportResolver, ModuleInstance,
+  RuntimeArgs, RuntimeValue, Signature, TableDescriptor, TableRef, Trap,
 };
 
 pub struct SpecModule {}
@@ -122,9 +115,6 @@ impl ImportResolver for SpecDriver {
 
 /// Evaluate WebAssembly binary using the wasmi library.
 pub fn run_wasm(binary: &[u8]) {
-  use self::wasmi_support::*;
-  use wasmi::{ImportsBuilder, Module, ModuleInstance, NopExternals, RuntimeValue};
-
   // Here we load module using dedicated for this purpose
   // `load_from_file` function (which works only with modules)
   let module = Module::from_buffer(binary).expect("WebAssembly binary had validation errors");

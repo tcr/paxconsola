@@ -1,11 +1,11 @@
 #![recursion_limit = "4096"]
 
+use ::stdweb;
+use ::stdweb::js;
 use include_dir::*;
 use indexmap::IndexMap;
 use paxconsola::*;
 use serde::*;
-use std::path::Path;
-use stdweb::js;
 use yew::services::interval::*;
 use yew::worker::*;
 use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
@@ -365,7 +365,7 @@ impl Component for App {
                     ExecutionTarget::Debug => {}
                     ExecutionTarget::Wasm => {
                         self.mem = wasm_memory_init();
-                        let wasm = eval_forth(&self.program, false);
+                        let wasm = eval_forth(&self.program);
 
                         // Run first frame.
                         run_wasm_with_memory(&wasm, &self.mem);
