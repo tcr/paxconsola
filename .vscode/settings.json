@@ -1,6 +1,3 @@
 {
-  "editor.formatOnSave": true,
-  "files.associations": {
-    "m3_core.h": "c"
-  }
+  "editor.formatOnSave": true
 }

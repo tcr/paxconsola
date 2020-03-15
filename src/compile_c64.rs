@@ -249,8 +249,8 @@ pub fn cross_compile_forth_c64(program: SuperPaxProgram) -> String {
         }
 
         let mut result = vec![];
-        for (i, block) in code.iter().enumerate() {
-            for (op, pos) in block.commands() {
+        for (_i, block) in code.iter().enumerate() {
+            for (op, _pos) in block.commands() {
                 result.push(op.to_owned());
             }
         }

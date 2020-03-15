@@ -10,6 +10,7 @@ pub mod parse;
 pub mod prelude;
 pub mod superpax;
 pub mod tokenizer;
+pub mod wasm;
 
 pub use compile_c64::*;
 pub use compile_gb::*;

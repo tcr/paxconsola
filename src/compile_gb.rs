@@ -67,7 +67,7 @@ pub enum GbIr {
     Inc,
 }
 
-fn translate_to_gb(i: usize, op: SuperPax) -> Vec<GbIr> {
+fn translate_to_gb(_i: usize, op: SuperPax) -> Vec<GbIr> {
     match op {
         SuperPax::Metadata(s) => vec![GbIr::Metadata(s)],
         // ( -- value )
@@ -435,10 +435,10 @@ PAX_FN_{}:
 
 pub fn cross_compile_forth_gb(program: SuperPaxProgram) -> String {
     let mut out = String::new();
-    for (name, code) in program {
+    for (_name, code) in program {
         let mut result = vec![];
         for (i, block) in code.iter().enumerate() {
-            for (op, pos) in block.commands() {
+            for (op, _pos) in block.commands() {
                 result.extend(translate_to_gb(i, op.to_owned()));
             }
         }

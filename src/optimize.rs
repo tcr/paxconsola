@@ -293,7 +293,7 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
     while let Some(start) = conditions.pop_back() {
         // We iterate through blocks using an index.
         let mut i = start;
-        'block: while i < stack_blocks.len() {
+        while i < stack_blocks.len() {
             let block: &Block = &stack_blocks[i];
 
             // If we've visited this block already, we can stop here.

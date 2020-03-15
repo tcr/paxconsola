@@ -36,9 +36,6 @@ enum Command {
     },
 
     Run {
-        #[structopt(short, long)]
-        interactive: bool,
-
         #[structopt(flatten)]
         file: FileOpts,
     },
@@ -85,7 +82,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             let mut program = source_program.clone();
             inline_into_function(&mut program, "main");
             optimize_function(&mut program, "main");
-            let wasm = eval_forth(&program, false);
+            let wasm = eval_forth(&program);
             paxconsola::eval::run_wasm(&wasm);
 
             println!("done");
@@ -117,14 +114,14 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 println!();
             }
         }
-        Command::Run { interactive, .. } => {
+        Command::Run { .. } => {
             let mut program = convert_to_superpax(script);
 
             inline_into_function(&mut program, "main");
 
             // optimize_function(&mut program, "main");
 
-            let wasm = eval_forth(&program, interactive);
+            let wasm = eval_forth(&program);
             paxconsola::eval::run_wasm(&wasm);
         }
     }
