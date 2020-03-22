@@ -9,8 +9,8 @@ use petgraph::graph::Graph;
 /// if detected and then blacklist their containing registers. Iterates backward.
 fn propagate_literals_in_block(
     block: &Block,
-    analysis: &Analysis,
-    registers: SharedRegFile,
+    analysis: &BlockAnalysis,
+    registers: RegFile,
     reg_blacklist: &mut IndexSet<Reg>,
 ) -> SuperSpan {
     let mut new_commands = block
@@ -114,7 +114,7 @@ fn propagate_literals_in_block(
             if let Some(target_reg) = target_reg {
                 if let Some(RegMeta {
                     literal: Some(lit), ..
-                }) = registers.borrow().registers.get(target_reg)
+                }) = registers.registers.get(target_reg)
                 {
                     // eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
                     reg_blacklist.insert(target_reg.clone());
@@ -153,7 +153,7 @@ fn propagate_literals_in_block(
 /// Analyse stack values and produce a register mapping for values as they
 /// move through the function. Then propagate registers.
 fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
-    let (analysis, registers) = analyze_blocks(blocks, graph);
+    let analysis = analyze_blocks(blocks, graph);
 
     eprintln!(
         "[analyze_graph] program: {} commands (original)",
@@ -172,13 +172,13 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     let mut blocks = blocks.to_owned();
     let mut reg_blacklist = IndexSet::new();
     eprintln!("[analyze_graph] propagate dependencies backward.");
-    for i in analysis.keys().into_iter().rev() {
+    for i in analysis.blocks.keys().into_iter().rev() {
         let block = &mut blocks[*i];
-        if let Some(analysis) = analysis.get(i) {
+        if let Some(block_analysis) = analysis.blocks.get(i) {
             let new_commands = propagate_literals_in_block(
                 &block,
-                analysis,
-                registers.clone(),
+                block_analysis,
+                analysis.registers.clone(),
                 &mut reg_blacklist,
             );
             eprintln!("  block[{}]:", i);

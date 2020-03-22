@@ -68,52 +68,122 @@ impl StackState {
 }
 
 #[derive(Clone, Debug)]
-pub struct Analysis {
-  registers: SharedRegFile,
+pub struct FunctionAnalysis {
+  pub blocks: IndexMap<usize, BlockAnalysis>,
+  pub registers: RegFile,
+}
+
+impl FunctionAnalysis {
+  fn push_data(&mut self, block: &mut BlockAnalysis, reg: Reg) {
+    block.state.data.push(reg);
+  }
+
+  fn push_return(&mut self, block: &mut BlockAnalysis, reg: Reg) {
+    block.state.ret.push(reg);
+  }
+
+  fn pop_data(&mut self, block: &mut BlockAnalysis) -> Reg {
+    block
+      .state
+      .data
+      .pop()
+      .unwrap_or_else(|| self.require_data(block))
+  }
+
+  fn pop_return(&mut self, block: &mut BlockAnalysis) -> Reg {
+    block
+      .state
+      .ret
+      .pop()
+      .unwrap_or_else(|| self.require_ret(block))
+  }
+
+  fn temp_store(&mut self, block: &mut BlockAnalysis, reg: Reg) {
+    block.state.temp = Some(reg);
+  }
+
+  fn temp_load(&mut self, block: &mut BlockAnalysis) -> Reg {
+    let reg = block.state.temp.clone().expect("no temp var to load!");
+    let literal = self
+      .registers
+      .registers
+      .get(&reg)
+      .and_then(|x| x.literal.clone());
+    block.state.temp = Some(self.new_temp(block, literal));
+    reg
+  }
+
+  // Register constructors.
+
+  fn require_data(&mut self, block: &mut BlockAnalysis) -> Reg {
+    let reg = self.registers.allocate("D", None);
+    // propagate backward
+    for prev_state in &mut block.record {
+      prev_state.data.insert(0, reg.clone());
+    }
+    reg
+  }
+
+  fn require_ret(&mut self, block: &mut BlockAnalysis) -> Reg {
+    let reg = self.registers.allocate("R", None);
+    // propagate backward
+    for prev_state in &mut block.record {
+      prev_state.ret.insert(0, reg.clone());
+    }
+    reg
+  }
+
+  fn new_literal(&mut self, block: &mut BlockAnalysis, value: isize) -> Reg {
+    self.registers.allocate("L", Some(value))
+  }
+
+  fn new_temp(&mut self, block: &mut BlockAnalysis, value: Option<isize>) -> Reg {
+    self.registers.allocate("T", value)
+  }
+
+  fn new_var(&mut self, block: &mut BlockAnalysis) -> Reg {
+    self.registers.allocate("V", None)
+  }
+}
+
+#[derive(Clone, Debug)]
+pub struct BlockAnalysis {
   state: StackState,
   record: Vec<StackState>,
 }
 
-impl Analysis {
-  fn from_previous_masked(previous: &Analysis) -> Self {
+impl BlockAnalysis {
+  // Accept registers from a previous block, but mask them
+  // because we might have two block parents.
+  fn from_previous_masked(registers: &mut RegFile, previous: &BlockAnalysis) -> Self {
     let prev_state = previous.exit_state();
 
     let mut enter_state = prev_state.clone();
-    // FIXME this is a hack for testing, and shouldn't be committed:
-    // let exempt = vec!["L0", "L1", "V8", "V10"];
-    let exempt = vec![];
     enter_state.data.iter_mut().for_each(|d| {
-      if !exempt.contains(&d.as_str()) {
-        *d = previous.registers.borrow_mut().allocate("D", None);
-      }
+      *d = registers.allocate("D", None);
     });
     enter_state.ret.iter_mut().for_each(|d| {
-      if !exempt.contains(&d.as_str()) {
-        *d = previous.registers.borrow_mut().allocate("R", None);
-      }
+      *d = registers.allocate("R", None);
     });
     enter_state.temp = None;
 
     Self {
       state: enter_state.clone(),
       record: vec![enter_state],
-      registers: previous.registers.clone(),
     }
   }
 
-  fn from_previous(previous: &Analysis) -> Self {
+  fn from_previous(previous: &BlockAnalysis) -> Self {
     Self {
       state: previous.exit_state(),
       record: vec![previous.exit_state()],
-      registers: previous.registers.clone(),
     }
   }
 
-  fn new(registers: SharedRegFile) -> Self {
+  fn new() -> Self {
     Self {
       state: StackState::new(),
       record: vec![StackState::new()],
-      registers,
     }
   }
 
@@ -128,140 +198,61 @@ impl Analysis {
   fn exit_state(&self) -> StackState {
     self.record.last().unwrap().clone()
   }
-
-  // Push or inject new var reg.
-
-  // TODO move to RegFile impl operating ON a mutable state ref
-
-  fn push_data(&mut self, reg: Reg) {
-    self.state.data.push(reg);
-  }
-
-  fn push_return(&mut self, reg: Reg) {
-    self.state.ret.push(reg);
-  }
-
-  fn pop_data(&mut self) -> Reg {
-    self.state.data.pop().unwrap_or_else(|| self.require_data())
-  }
-
-  fn pop_return(&mut self) -> Reg {
-    self.state.ret.pop().unwrap_or_else(|| self.require_ret())
-  }
-
-  fn temp_store(&mut self, reg: Reg) {
-    self.state.temp = Some(reg);
-  }
-
-  fn temp_load(&mut self) -> Reg {
-    let reg = self.state.temp.clone().expect("no temp var to load!");
-    let literal = self
-      .registers
-      .borrow()
-      .registers
-      .get(&reg)
-      .and_then(|x| x.literal.clone());
-    self.state.temp = Some(self.new_temp(literal));
-    reg
-  }
-
-  // Register constructors.
-
-  fn require_data(&mut self) -> Reg {
-    let reg = self.registers.borrow_mut().allocate("D", None);
-    // propagate backward
-    for prev_state in &mut self.record {
-      prev_state.data.insert(0, reg.clone());
-    }
-    reg
-  }
-
-  fn require_ret(&mut self) -> Reg {
-    let reg = self.registers.borrow_mut().allocate("R", None);
-    // propagate backward
-    for prev_state in &mut self.record {
-      prev_state.ret.insert(0, reg.clone());
-    }
-    reg
-  }
-
-  fn new_literal(&mut self, value: isize) -> Reg {
-    self.registers.borrow_mut().allocate("L", Some(value))
-  }
-
-  fn new_temp(&mut self, value: Option<isize>) -> Reg {
-    self.registers.borrow_mut().allocate("T", value)
-  }
-
-  fn new_var(&mut self) -> Reg {
-    self.registers.borrow_mut().allocate("V", None)
-  }
 }
 
-fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
+fn analyze_block(
+  block: &Block,
+  analysis: &mut FunctionAnalysis,
+  block_analysis: &mut BlockAnalysis,
+) {
   for command in block.commands() {
     use SuperPax::*;
     match (command.0).clone() {
       JumpAlways(_) => {}
       Drop | JumpIf0(_) | Print => {
-        analysis.pop_data();
+        analysis.pop_data(block_analysis);
       }
       Load | Load8 => {
-        analysis.pop_data();
-        let reg = analysis.new_var();
-        analysis.push_data(reg);
+        analysis.pop_data(block_analysis);
+        let reg = analysis.new_var(block_analysis);
+        analysis.push_data(block_analysis, reg);
       }
       AltPush => {
-        let reg = analysis.pop_data();
-        analysis.push_return(reg);
+        let reg = analysis.pop_data(block_analysis);
+        analysis.push_return(block_analysis, reg);
       }
 
       Add | Nand => {
-        analysis.pop_data();
-        analysis.pop_data();
+        analysis.pop_data(block_analysis);
+        analysis.pop_data(block_analysis);
 
-        // TODO enable and/nand optimization
-        // if let Some(RegMeta {
-        //     literal: Some(a_value),
-        //     ..
-        // }) = analysis.registers.borrow().registers.get(&a)
-        // {
-        //     if let Some(RegMeta {
-        //         literal: Some(b_value),
-        //         ..
-        //     }) = analysis.registers.borrow().registers.get(&b)
-        //     {
-        //         panic!("opt: A={}={:?} B={}={:?}", a, a_value, b, b_value);
-        //     }
-        // }
-
-        let reg = analysis.new_var();
-        analysis.push_data(reg);
+        let reg = analysis.new_var(block_analysis);
+        analysis.push_data(block_analysis, reg);
       }
 
       Store | Store8 => {
-        analysis.pop_data();
-        analysis.pop_data();
+        analysis.pop_data(block_analysis);
+        analysis.pop_data(block_analysis);
       }
 
       PushLiteral(value) => {
-        let reg = analysis.new_literal(value);
-        analysis.push_data(reg);
+        let reg = analysis.new_literal(block_analysis, value);
+        analysis.push_data(block_analysis, reg);
       }
 
       AltPop => {
-        let reg = analysis.pop_return();
-        analysis.push_data(reg);
+        let reg = analysis.pop_return(block_analysis);
+        analysis.push_data(block_analysis, reg);
       }
 
       LoadTemp => {
-        let reg = analysis.temp_load();
-        analysis.push_data(reg);
+        let reg = analysis.temp_load(block_analysis);
+        analysis.push_data(block_analysis, reg);
       }
 
       StoreTemp => {
-        let reg = analysis.pop_data();
-        analysis.temp_store(reg);
+        let reg = analysis.pop_data(block_analysis);
+        analysis.temp_store(block_analysis, reg);
       }
 
       // Pax ports
@@ -273,10 +264,8 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
         unreachable!("Cannot optimize non-inlined method");
       }
     }
-    analysis.record_state();
+    block_analysis.record_state();
   }
-
-  analysis
 }
 
 /// Composes blocks together into a graph.
@@ -339,10 +328,7 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
   Graph::<(), i32>::from_edges(&edges)
 }
 
-pub fn analyze_blocks(
-  blocks: &[Block],
-  graph: &Graph<(), i32>,
-) -> (IndexMap<usize, Analysis>, Arc<RefCell<RegFile>>) {
+pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnalysis {
   // First we want to analyze the whole program and identify basic blocks.
   // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
   let seq = if graph.node_count() > 1 {
@@ -366,8 +352,12 @@ pub fn analyze_blocks(
 
   eprintln!("[analyze_graph] start");
   eprintln!();
-  let mut analyses = IndexMap::<usize, Analysis>::new();
-  let registers = Arc::new(RefCell::new(RegFile::new()));
+
+  let mut analysis = FunctionAnalysis {
+    blocks: IndexMap::<usize, BlockAnalysis>::new(),
+    registers: RegFile::new(),
+  };
+
   for block_index in seq.clone() {
     let mut incoming = graph
       .neighbors_directed(NodeIndex::new(block_index), Direction::Incoming)
@@ -375,42 +365,42 @@ pub fn analyze_blocks(
       .collect::<Vec<_>>();
     incoming.sort();
 
-    let next_analysis = if incoming.len() == 0 {
-      Analysis::new(registers.clone())
+    let mut next_analysis = if incoming.len() == 0 {
+      BlockAnalysis::new()
     } else if incoming
       .iter()
-      .find(|x| analyses.get(*x).is_none())
+      .find(|x| analysis.blocks.get(*x).is_none())
       .is_some()
     {
       let prev_analysis = incoming
         .iter()
-        .map(|x| analyses.get(x))
+        .map(|x| analysis.blocks.get(x))
         .find(|x| x.is_some())
         .unwrap()
-        .unwrap();
+        .unwrap()
+        .to_owned();
 
       // Missing a previous analysis means we might be in a loop.
       eprintln!();
       eprintln!("block[{}] loop start.", block_index);
-      Analysis::from_previous_masked(prev_analysis)
+      BlockAnalysis::from_previous_masked(&mut analysis.registers, &prev_analysis)
     } else if let Some(prev) = incoming.get(1) {
-      let prev_analysis = analyses.get(prev).unwrap();
+      let prev_analysis = analysis.blocks.get(prev).unwrap();
 
       // Having two previous analysis means we joined from a branch.
       eprintln!();
       eprintln!("block[{}] joining from branch.", block_index);
-      Analysis::from_previous_masked(prev_analysis)
+      BlockAnalysis::from_previous_masked(&mut analysis.registers, prev_analysis)
     } else {
       // Pick the first analysis.
-      Analysis::from_previous(analyses.get(&incoming[0]).unwrap())
+      BlockAnalysis::from_previous(analysis.blocks.get(&incoming[0]).unwrap())
     };
 
     // Run analyze_block() on each block.
-    let analysis = analyze_block(&blocks[block_index], next_analysis);
-    analyses.insert(block_index, analysis.clone());
+    analyze_block(&blocks[block_index], &mut analysis, &mut next_analysis);
+    let result = next_analysis.result();
     eprintln!("block[{}]", block_index);
 
-    let result = analysis.result();
     let commands = blocks[block_index].commands();
     for (i, state) in result.iter().enumerate() {
       eprintln!("        data: {:?}", state.data);
@@ -425,19 +415,19 @@ pub fn analyze_blocks(
     }
 
     // Store the analysis.
-    analyses.insert(block_index, analysis);
+    analysis.blocks.insert(block_index, next_analysis);
   }
   eprintln!();
   eprintln!();
 
   eprintln!("[analyze_graph] registers:");
-  for (k, v) in &registers.borrow().registers {
+  for (k, v) in &analysis.registers.registers {
     eprintln!("  {}: {:?}", k, v);
   }
   eprintln!();
   eprintln!();
 
-  (analyses, registers)
+  analysis
 }
 
 // Returns the arity of the function. You require the whole program
@@ -447,11 +437,11 @@ pub fn function_arity(program: &SuperPaxProgram, method: &str) {
   inline_into_function(&mut program, method);
   let blocks = program.get(method).unwrap();
   let graph = dataflow_graph(blocks);
-  let (analysis, registers) = analyze_blocks(blocks, &graph);
+  let analysis = analyze_blocks(blocks, &graph);
   println!(
     "analysis\n  {:?}\n  {:?}",
-    analysis[&0].record.iter().next(),
-    analysis[&(blocks.len() - 1)].record.iter().last(),
+    analysis.blocks[&0].record.iter().next(),
+    analysis.blocks[&(blocks.len() - 1)].record.iter().last(),
   );
   // (0, 0)
 }
