@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 
+pub mod analyze;
 pub mod compile_c64;
 pub mod compile_gb;
 pub mod eval;
@@ -12,6 +13,7 @@ pub mod superpax;
 pub mod tokenizer;
 pub mod wasm;
 
+pub use analyze::*;
 pub use compile_c64::*;
 pub use compile_gb::*;
 pub use eval::*;
