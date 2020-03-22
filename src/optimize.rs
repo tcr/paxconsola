@@ -338,6 +338,104 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
     Graph::<(), i32>::from_edges(&edges)
 }
 
+fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> IndexMap<usize, Analysis> {
+    // First we want to analyze the whole program and identify basic blocks.
+    // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
+    let seq = if graph.node_count() > 1 {
+        let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
+        let mut seq = vec![];
+        while let Some(block_index) = bfs.next(&graph) {
+            seq.push(block_index.index() as usize);
+        }
+        seq
+    } else {
+        vec![0]
+    };
+
+    // REVIEW The Analysis struct should hold the analyses of all blocks at once, injected
+    // in topological order, so that propagation of arguments from later blocks can happen
+    // on all blocks upstream (or parallel) to it. This would also allow splitting out
+    // the SharedRegFile and using it as a separate struct.
+    // This change isn't needed yet, because the main() function will never have an unknown
+    // number of values on the data or return stacks, they will always be empty. Blocks
+    // downstream from #0 don't have unknown stack requirements until a call site.
+
+    eprintln!("[analyze_graph] start");
+    eprintln!();
+    let mut analyses = IndexMap::<usize, Analysis>::new();
+    let registers = Arc::new(RefCell::new(RegFile::new()));
+    for block_index in seq.clone() {
+        let mut incoming = graph
+            .neighbors_directed(NodeIndex::new(block_index), Direction::Incoming)
+            .map(|idx| idx.index() as usize)
+            .collect::<Vec<_>>();
+        incoming.sort();
+
+        let next_analysis = if incoming.len() == 0 {
+            Analysis::new(registers.clone())
+        } else if incoming
+            .iter()
+            .find(|x| analyses.get(*x).is_none())
+            .is_some()
+        {
+            let prev_analysis = incoming
+                .iter()
+                .map(|x| analyses.get(x))
+                .find(|x| x.is_some())
+                .unwrap()
+                .unwrap();
+
+            // Missing a previous analysis means we might be in a loop.
+            eprintln!();
+            eprintln!("block[{}] loop start.", block_index);
+            Analysis::from_previous_masked(prev_analysis)
+        } else if let Some(prev) = incoming.get(1) {
+            let prev_analysis = analyses.get(prev).unwrap();
+
+            // Having two previous analysis means we joined from a branch.
+            eprintln!();
+            eprintln!("block[{}] joining from branch.", block_index);
+            Analysis::from_previous_masked(prev_analysis)
+        } else {
+            // Pick the first analysis.
+            Analysis::from_previous(analyses.get(&incoming[0]).unwrap())
+        };
+
+        // Run analyze_block() on each block.
+        let analysis = analyze_block(&blocks[block_index], next_analysis);
+        analyses.insert(block_index, analysis.clone());
+        eprintln!("block[{}]", block_index);
+
+        let result = analysis.result();
+        let commands = blocks[block_index].commands();
+        for (i, state) in result.iter().enumerate() {
+            eprintln!("        data: {:?}", state.data);
+            eprintln!("        retn: {:?}", state.ret);
+            eprintln!(
+                "        temp: {:?}",
+                state.temp.clone().unwrap_or("".to_string())
+            );
+            if let Some(command) = commands.get(i) {
+                eprintln!("  {:?}", command.0);
+            }
+        }
+
+        // Store the analysis.
+        analyses.insert(block_index, analysis);
+    }
+    eprintln!();
+    eprintln!();
+
+    eprintln!("[analyze_graph] registers:");
+    for (k, v) in &registers.borrow().registers {
+        eprintln!("  {}: {:?}", k, v);
+    }
+    eprintln!();
+    eprintln!();
+
+    analyses
+}
+
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
 fn propagate_literals_in_block(
@@ -486,150 +584,55 @@ fn propagate_literals_in_block(
 /// Analyse stack values and produce a register mapping for values as they
 /// move through the function. Then propagate registers.
 fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
-    // First we want to analyze the whole program and identify basic blocks.
-    // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
-    let seq = if graph.node_count() > 1 {
-        let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
-        let mut seq = vec![];
-        while let Some(block_index) = bfs.next(&graph) {
-            seq.push(block_index.index() as usize);
+    let analysis = analyze_blocks(blocks, graph);
+
+    eprintln!(
+        "[analyze_graph] program: {} commands (original)",
+        blocks.iter().map(|x| x.commands().len()).sum::<usize>()
+    );
+    for (block_index, _block) in blocks.iter().enumerate() {
+        eprintln!("  block[{}]", block_index);
+
+        for command in blocks[block_index].commands() {
+            eprintln!("    {:?}", command.0);
         }
-        seq
-    } else {
-        vec![0]
-    };
-
-    // REVIEW The Analysis struct should hold the analyses of all blocks at once, injected
-    // in topological order, so that propagation of arguments from later blocks can happen
-    // on all blocks upstream (or parallel) to it. This would also allow splitting out
-    // the SharedRegFile and using it as a separate struct.
-    // This change isn't needed yet, because the main() function will never have an unknown
-    // number of values on the data or return stacks, they will always be empty. Blocks
-    // downstream from #0 don't have unknown stack requirements until a call site.
-
-    eprintln!("[analyze_graph] start");
+    }
     eprintln!();
-    let mut analyses = IndexMap::<usize, Analysis>::new();
-    let registers = Arc::new(RefCell::new(RegFile::new()));
-    for block_index in seq.clone() {
-        let mut incoming = graph
-            .neighbors_directed(NodeIndex::new(block_index), Direction::Incoming)
-            .map(|idx| idx.index() as usize)
-            .collect::<Vec<_>>();
-        incoming.sort();
 
-        let next_analysis = if incoming.len() == 0 {
-            Analysis::new(registers.clone())
-        } else if incoming
-            .iter()
-            .find(|x| analyses.get(*x).is_none())
-            .is_some()
-        {
-            let prev_analysis = incoming
-                .iter()
-                .map(|x| analyses.get(x))
-                .find(|x| x.is_some())
-                .unwrap()
-                .unwrap();
-
-            // Missing a previous analysis means we might be in a loop.
-            eprintln!();
-            eprintln!("block[{}] loop start.", block_index);
-            Analysis::from_previous_masked(prev_analysis)
-        } else if let Some(prev) = incoming.get(1) {
-            let prev_analysis = analyses.get(prev).unwrap();
-
-            // Having two previous analysis means we joined from a branch.
-            eprintln!();
-            eprintln!("block[{}] joining from branch.", block_index);
-            Analysis::from_previous_masked(prev_analysis)
-        } else {
-            // Pick the first analysis.
-            Analysis::from_previous(analyses.get(&incoming[0]).unwrap())
-        };
-
-        // Run analyze_block() on each block.
-        let analysis = analyze_block(&blocks[block_index], next_analysis);
-        analyses.insert(block_index, analysis.clone());
-        eprintln!("block[{}]", block_index);
-
-        let result = analysis.result();
-        let commands = blocks[block_index].commands();
-        for (i, state) in result.iter().enumerate() {
-            eprintln!("        data: {:?}", state.data);
-            eprintln!("        retn: {:?}", state.ret);
-            eprintln!(
-                "        temp: {:?}",
-                state.temp.clone().unwrap_or("".to_string())
+    // Propagate dependencies backward.
+    let mut blocks = blocks.to_owned();
+    let mut reg_blacklist = IndexSet::new();
+    eprintln!("[analyze_graph] propagate dependencies backward.");
+    for i in analyses.keys().into_iter().rev() {
+        let block = &mut blocks[i];
+        if let Some(analysis) = analyses.get(&i) {
+            let new_commands = propagate_literals_in_block(
+                &block,
+                analysis,
+                registers.clone(),
+                &mut reg_blacklist,
             );
-            if let Some(command) = commands.get(i) {
-                eprintln!("  {:?}", command.0);
-            }
+            eprintln!("  block[{}]:", i);
+            eprintln!("    literals: {:?}", reg_blacklist);
+            *block.commands_mut() = new_commands;
         }
-
-        // Store the analysis.
-        analyses.insert(block_index, analysis);
     }
     eprintln!();
-    eprintln!();
 
-    eprintln!("[analyze_graph] registers:");
-    for (k, v) in &registers.borrow().registers {
-        eprintln!("  {}: {:?}", k, v);
+    eprintln!(
+        "[analyze_graph] {} commands (after optimization)",
+        blocks.iter().map(|x| x.commands().len()).sum::<usize>()
+    );
+    for (block_index, _block) in blocks.iter().enumerate() {
+        eprintln!("  block[{}]", block_index);
+
+        for command in blocks[block_index].commands() {
+            eprintln!("    {:?}", command.0);
+        }
     }
     eprintln!();
-    eprintln!();
 
-    // TODO break this out into a const prop method
-
-    {
-        eprintln!(
-            "[analyze_graph] program: {} commands (original)",
-            blocks.iter().map(|x| x.commands().len()).sum::<usize>()
-        );
-        for (block_index, _block) in blocks.iter().enumerate() {
-            eprintln!("  block[{}]", block_index);
-
-            for command in blocks[block_index].commands() {
-                eprintln!("    {:?}", command.0);
-            }
-        }
-        eprintln!();
-
-        let mut blocks = blocks.to_owned();
-        let mut reg_blacklist = IndexSet::new();
-        eprintln!("[analyze_graph] propagate dependencies backward.");
-        for i in seq.clone().into_iter().rev() {
-            let block = &mut blocks[i];
-            if let Some(analysis) = analyses.get(&i) {
-                let new_commands = propagate_literals_in_block(
-                    &block,
-                    analysis,
-                    registers.clone(),
-                    &mut reg_blacklist,
-                );
-                eprintln!("  block[{}]:", i);
-                eprintln!("    literals: {:?}", reg_blacklist);
-                *block.commands_mut() = new_commands;
-            }
-        }
-        eprintln!();
-
-        eprintln!(
-            "[analyze_graph] {} commands (after optimization)",
-            blocks.iter().map(|x| x.commands().len()).sum::<usize>()
-        );
-        for (block_index, _block) in blocks.iter().enumerate() {
-            eprintln!("  block[{}]", block_index);
-
-            for command in blocks[block_index].commands() {
-                eprintln!("    {:?}", command.0);
-            }
-        }
-        eprintln!();
-
-        blocks
-    }
+    blocks
 }
 
 /// Reduces branching in a function by removing unused BranchTargets.
