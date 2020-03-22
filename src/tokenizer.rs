@@ -15,10 +15,15 @@ pub struct Tokenizer {
 }
 
 impl Tokenizer {
-    pub fn new(code: &str) -> Tokenizer {
+    pub fn new(filename: &str, code: &str) -> Tokenizer {
         Tokenizer {
             code: code.to_string(),
-            pos: Pos { line: 1, col: 1 },
+            pos: Pos {
+                filename: filename.to_string(),
+                function: "main".to_string(),
+                line: 1,
+                col: 1,
+            },
         }
     }
 

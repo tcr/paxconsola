@@ -234,7 +234,6 @@ impl Agent for Worker {
         match msg {
             Request::Question(input, execute) => {
                 let program = std::panic::catch_unwind(move || {
-                    let code = inject_prelude(&input);
                     let program = parse_to_superpax(code);
                     program
                 });

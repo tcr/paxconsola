@@ -164,6 +164,7 @@ pub fn eval_forth(program: &SuperPaxProgram) -> Vec<u8> {
         }
 
         let graph = crate::dataflow_graph(&blocks);
+        eprintln!("graph {:?}", graph);
 
         let mut wat_block_index = 0;
         let mut wat_block_stack = vec![];
@@ -249,9 +250,9 @@ pub fn eval_forth(program: &SuperPaxProgram) -> Vec<u8> {
                         } else if incoming.len() > 1 {
                             // End of an if or if/else block.
                             wat_out.push(format!("    end"));
-                            wat_block_stack.pop().unwrap();
+                            wat_block_stack.pop().expect("end if block");
                             wat_out.push(format!("    end"));
-                            wat_block_stack.pop().unwrap();
+                            wat_block_stack.pop().expect("end else block");
                         }
                     }
                     SuperPax::JumpIf0(target_index) => {
@@ -312,7 +313,7 @@ pub fn eval_forth(program: &SuperPaxProgram) -> Vec<u8> {
         .replace("{{mem}}", "10000")
         .replace("{{main}}", &wat_out.join("\n"));
 
-    eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
+    // eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
 
     wat::parse_str(&wat_output).unwrap()
 }

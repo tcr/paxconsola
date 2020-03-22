@@ -65,27 +65,43 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     };
 
     let mut file = File::open(&arg_file).unwrap_or_else(|err| panic!("{}", err));
-    let mut buffer = Vec::with_capacity(file.metadata().map(|m| m.len()).unwrap_or(0) as usize);
-    file.read_to_end(&mut buffer)
+    let mut code = Vec::with_capacity(file.metadata().map(|m| m.len()).unwrap_or(0) as usize);
+    file.read_to_end(&mut code)
         .unwrap_or_else(|err| panic!("{}", err));
 
-    let mut code = buffer.clone();
-    code = inject_prelude(&code);
-
-    let script = parse_forth(code);
+    let script = parse_forth(code, Some(arg_file.to_string_lossy().to_string().as_str()));
     // TODO parse_to_superpax
 
     match args.cmd {
         Command::Inlineup { .. } => {
             let source_program = convert_to_superpax(script);
 
-            let mut program = source_program.clone();
-            inline_into_function(&mut program, "main");
-            optimize_function(&mut program, "main");
-            let wasm = eval_forth(&program);
-            paxconsola::eval::run_wasm(&wasm);
+            for name in source_program.keys() {
+                // for name in vec!["myloopimpl"] {
+                if name == "main" {
+                    continue;
+                }
 
-            println!("done");
+                let mut program = source_program.clone();
+
+                // let name = "drop";
+                println!("[inlining] fn {:?}", name);
+
+                inline_into_function(&mut program, name);
+                optimize_function(&mut program, name);
+
+                eprintln!("----------> WHAT");
+                dump_blocks(program.get("main").unwrap());
+
+                inline_into_function(&mut program, "main");
+                // optimize_function(&mut program, "main");
+                let wasm = eval_forth(&program);
+                paxconsola::eval::run_wasm(&wasm);
+                // break;
+                println!();
+            }
+
+            println!("\ndone.");
         }
 
         Command::Compile { .. } => {

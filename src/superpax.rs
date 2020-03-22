@@ -191,7 +191,10 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                     // Jump Always
                     if value == 0 {
                         if let Some((_, &(Pax::JumpIf0(ref target), _))) = code_iter.peek() {
-                            stack.record_op(&(SuperPax::JumpAlways(loc_to_block[target]), op.1));
+                            stack.record_op(&(
+                                SuperPax::JumpAlways(loc_to_block[target]),
+                                op.1.clone(),
+                            ));
                             stack.jump_always_block();
                             code_iter.next();
                             continue;
@@ -235,39 +238,39 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
 
                 Pax::Metadata(ref arg) => {
                     // noop
-                    stack.record_op(&(SuperPax::Metadata(arg.clone()), op.1));
+                    stack.record_op(&(SuperPax::Metadata(arg.clone()), op.1.clone()));
                 }
                 Pax::Print => {
-                    stack.record_op(&(SuperPax::Print, op.1));
+                    stack.record_op(&(SuperPax::Print, op.1.clone()));
                 }
                 Pax::Load => {
-                    stack.record_op(&(SuperPax::Load, op.1));
+                    stack.record_op(&(SuperPax::Load, op.1.clone()));
                 }
                 Pax::Load8 => {
-                    stack.record_op(&(SuperPax::Load8, op.1));
+                    stack.record_op(&(SuperPax::Load8, op.1.clone()));
                 }
                 Pax::Store => {
-                    stack.record_op(&(SuperPax::Store, op.1));
+                    stack.record_op(&(SuperPax::Store, op.1.clone()));
                 }
                 Pax::Store8 => {
-                    stack.record_op(&(SuperPax::Store8, op.1));
+                    stack.record_op(&(SuperPax::Store8, op.1.clone()));
                 }
                 Pax::Add => {
-                    stack.record_op(&(SuperPax::Add, op.1));
+                    stack.record_op(&(SuperPax::Add, op.1.clone()));
                 }
                 Pax::Nand => {
-                    stack.record_op(&(SuperPax::Nand, op.1));
+                    stack.record_op(&(SuperPax::Nand, op.1.clone()));
                 }
                 Pax::Exit => {
-                    stack.record_op(&(SuperPax::Exit, op.1));
+                    stack.record_op(&(SuperPax::Exit, op.1.clone()));
                     stack.exit_block();
                 }
                 Pax::Call(ref arg) => {
-                    stack.record_op(&(SuperPax::Call(arg.clone()), op.1));
+                    stack.record_op(&(SuperPax::Call(arg.clone()), op.1.clone()));
                     stack.call_block();
                 }
                 Pax::JumpIf0(ref target) => {
-                    stack.record_op(&(SuperPax::JumpIf0(loc_to_block[target]), op.1));
+                    stack.record_op(&(SuperPax::JumpIf0(loc_to_block[target]), op.1.clone()));
                     stack.jump_if_0_block();
                 }
             }
@@ -279,7 +282,7 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
     program_stacks
 }
 
-pub fn parse_to_superpax(buffer: Vec<u8>) -> SuperPaxProgram {
-    let program = parse_forth(buffer);
+pub fn parse_to_superpax(buffer: Vec<u8>, filename: Option<&str>) -> SuperPaxProgram {
+    let program = parse_forth(buffer, filename);
     convert_to_superpax(program)
 }

@@ -216,8 +216,8 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
             }
 
             Add | Nand => {
-                // let a = analysis.pop_data();
-                // let b = analysis.pop_data();
+                analysis.pop_data();
+                analysis.pop_data();
 
                 // TODO enable and/nand optimization
                 // if let Some(RegMeta {
@@ -269,7 +269,7 @@ fn analyze_block(block: &Block, mut analysis: Analysis) -> Analysis {
             Exit => {}
 
             Call(_) => {
-                unreachable!();
+                unreachable!("Cannot optimize non-inlined method");
             }
         }
         analysis.record_state();
@@ -338,8 +338,8 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
     Graph::<(), i32>::from_edges(&edges)
 }
 
-/// Given a block and analaysis, propagate the literal values loaded in this function
-/// if detected and then blacklist their containing registers.
+/// Given a block and analysis, propagate the literal values loaded in this function
+/// if detected and then blacklist their containing registers. Iterates backward.
 fn propagate_literals_in_block(
     block: &Block,
     analysis: &Analysis,
@@ -351,10 +351,12 @@ fn propagate_literals_in_block(
         .iter()
         .enumerate()
         .rev()
-        .map(|(i, input_command)| {
+        .map(|(i, input_command)| -> SuperSpan {
             // eprintln!("{:?}\n-- {:?}", command.0, reg_blacklist);
             let command = (input_command.0).clone();
             let stack: StackState = analysis.result()[i].clone();
+
+            // The stack ahead of us, e.g. what the current command computed.
             let next_stack: Option<StackState> = analysis.result().get(i + 1).map(|x| x.clone());
 
             match &command {
@@ -362,13 +364,13 @@ fn propagate_literals_in_block(
                 SuperPax::AltPop | SuperPax::PushLiteral(_) => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
-                        return None;
+                        return vec![];
                     }
                 }
                 SuperPax::AltPush => {
                     let reg = next_stack.as_ref().unwrap().ret.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
-                        return None;
+                        return vec![];
                     }
                 }
                 SuperPax::Exit => {
@@ -385,7 +387,7 @@ fn propagate_literals_in_block(
 
                     let reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
                     if reg_blacklist.contains(&*reg) {
-                        return None;
+                        return vec![];
                     }
                 }
 
@@ -399,20 +401,27 @@ fn propagate_literals_in_block(
                     }
                     // Else if this register is in a blacklist, drop this command.
                     if reg_blacklist.contains(&*reg) {
-                        return None;
+                        return vec![];
                     }
                 }
 
                 // Blacklist is viral.
                 SuperPax::Add | SuperPax::Nand => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
+
+                    // If the computed register is discarded, discard both inputs.
                     if reg_blacklist.contains(&*reg) {
                         // TODO want an easy way to specify last_two
                         let input_regs = stack.data.iter().rev().take(2).rev().collect::<Vec<_>>();
+                        let mut ret = vec![];
                         for reg in input_regs {
                             reg_blacklist.insert(reg.to_owned());
+                            // REVIEW need a better detection mechanism
+                            if reg.starts_with("D") {
+                                ret.push((SuperPax::Drop, input_command.1.clone()));
+                            }
                         }
-                        return None;
+                        return ret;
                     }
                 }
 
@@ -422,7 +431,7 @@ fn propagate_literals_in_block(
                     reg_blacklist.insert(reg.clone());
                     if !reg.starts_with("D") {
                         // FIXME is this the wrong thing
-                        return None;
+                        return vec![];
                     }
                 }
                 _ => {}
@@ -442,17 +451,16 @@ fn propagate_literals_in_block(
                 {
                     // eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
                     reg_blacklist.insert(target_reg.clone());
-                    return Some((SuperPax::PushLiteral(*lit), input_command.1));
+                    return vec![(SuperPax::PushLiteral(*lit), input_command.1.clone())];
                 }
             }
 
-            Some((command, input_command.1))
+            vec![(command, input_command.1.clone())]
         })
-        .collect::<Vec<_>>()
-        .into_iter()
-        .filter_map(|x| x)
-        .rev()
+        .flatten()
         .collect::<Vec<_>>();
+
+    new_commands.reverse();
 
     // Peephole optimizations.
     let mut splices = vec![];
@@ -476,8 +484,8 @@ fn propagate_literals_in_block(
 }
 
 /// Analyse stack values and produce a register mapping for values as they
-/// move through the function.
-fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
+/// move through the function. Then propagate registers.
+fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
     let seq = if graph.node_count() > 1 {
@@ -499,8 +507,8 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     // number of values on the data or return stacks, they will always be empty. Blocks
     // downstream from #0 don't have unknown stack requirements until a call site.
 
+    eprintln!("[analyze_graph] start");
     eprintln!();
-    eprintln!("[[[[[ANALYZE]]]]]]");
     let mut analyses = IndexMap::<usize, Analysis>::new();
     let registers = Arc::new(RefCell::new(RegFile::new()));
     for block_index in seq.clone() {
@@ -540,6 +548,7 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
             Analysis::from_previous(analyses.get(&incoming[0]).unwrap())
         };
 
+        // Run analyze_block() on each block.
         let analysis = analyze_block(&blocks[block_index], next_analysis);
         analyses.insert(block_index, analysis.clone());
         eprintln!("block[{}]", block_index);
@@ -564,7 +573,7 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     eprintln!();
     eprintln!();
 
-    eprintln!("registers:");
+    eprintln!("[analyze_graph] registers:");
     for (k, v) in &registers.borrow().registers {
         eprintln!("  {}: {:?}", k, v);
     }
@@ -575,7 +584,7 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
 
     {
         eprintln!(
-            "program: {} commands (unmodified)",
+            "[analyze_graph] program: {} commands (original)",
             blocks.iter().map(|x| x.commands().len()).sum::<usize>()
         );
         for (block_index, _block) in blocks.iter().enumerate() {
@@ -586,11 +595,10 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
             }
         }
         eprintln!();
-        eprintln!();
 
         let mut blocks = blocks.to_owned();
         let mut reg_blacklist = IndexSet::new();
-        eprintln!("propagate:");
+        eprintln!("[analyze_graph] propagate dependencies backward.");
         for i in seq.clone().into_iter().rev() {
             let block = &mut blocks[i];
             if let Some(analysis) = analyses.get(&i) {
@@ -600,16 +608,15 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
                     registers.clone(),
                     &mut reg_blacklist,
                 );
-                eprintln!("block[{}]:", i);
+                eprintln!("  block[{}]:", i);
                 eprintln!("    literals: {:?}", reg_blacklist);
                 *block.commands_mut() = new_commands;
             }
         }
         eprintln!();
-        eprintln!();
 
         eprintln!(
-            "program: {} commands (optimized)",
+            "[analyze_graph] {} commands (after optimization)",
             blocks.iter().map(|x| x.commands().len()).sum::<usize>()
         );
         for (block_index, _block) in blocks.iter().enumerate() {
@@ -619,37 +626,16 @@ fn analyze_graph(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
                 eprintln!("    {:?}", command.0);
             }
         }
+        eprintln!();
 
         blocks
     }
 }
 
-// Iterate block sequence in perform constant propagation.
-// seq.reverse();
-
-// let mut block_blacklist = IndexMap::new();
-// for block in seq {
-//     eprintln!("block[{:?}]", block);
-//     // let (_commands, blacklist) = propagate_literals_in_block(&blocks[block], registers);
-//     // eprintln!("    blacklist {:?}", blacklist);
-//     // block_blacklist.insert(block, blacklist.clone());
-
-//     // if !blacklist.is_empty() {
-//     for (command, ..) in blocks[block].commands() {
-//         eprintln!("        command: {:?}", command);
-//     }
-//     // eprintln!("    vs:");
-//     // for command in _commands {
-//     //     eprintln!("        command: {:?}", command);
-//     // }
-//     // }
-// }
-
 /// Reduces branching in a function by removing unused BranchTargets.
 /// This function will also rewrite target offsets.
 pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
-    // FIXME need to do this
-    eprintln!(" hii   !!!!!");
+    eprintln!("[reducing_branches] removing unused BranchTargets...");
     if let Some(blocks) = program.get_mut(method) {
         let readonly_blocks = blocks.clone();
 
@@ -663,15 +649,12 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
                 _ => {}
             }
         }
-        eprintln!("used {:?}", used_blocks);
 
         let mut i = 0;
         while i < blocks.len() {
             match blocks[i].commands().last() {
                 Some((SuperPax::BranchTarget(target), ..)) => {
                     if !used_blocks.contains(target) {
-                        eprintln!("stripping {:?}", target);
-
                         let block = blocks.remove(i);
                         let commands = block.commands().clone().into_iter().rev().skip(1).rev();
 
@@ -696,7 +679,9 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
 pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
     if let Some(blocks) = program.get_mut(method) {
         let graph = dataflow_graph(&blocks);
-        *blocks = analyze_graph(&blocks, &graph);
+
+        // NOTE this also performs rewriting for some reason
+        *blocks = propagate_registers(&blocks, &graph);
     }
     reduce_branches(program, method);
 
@@ -730,9 +715,15 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
 
                     // We want to inline this function. First grab our offsets.
                     let mut inlined_blocks = program.get(target).unwrap().clone();
+                    assert!(!inlined_blocks.is_empty());
                     // dump_blocks(&inlined_blocks);
+
                     // Inline code length (trim off start and end block).
-                    let inlined_blocks_len = inlined_blocks.len() - 2;
+                    let inlined_blocks_len = if inlined_blocks.len() > 1 {
+                        inlined_blocks.len() - 2
+                    } else {
+                        0
+                    };
 
                     // Rewrite the sequence we're inlining.
                     for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
@@ -748,7 +739,7 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
 
                     // Refetch a mutable version of this method.
                     let main_mut = program.get_mut(method).unwrap();
-                    // Now rewrite all targets.
+                    // Now rewrite all targets inside this block.
                     for (_i, main_block) in main_mut.iter_mut().enumerate() {
                         match main_block.commands_mut().last_mut() {
                             Some((SuperPax::BranchTarget(ref mut target), ..))
@@ -762,49 +753,132 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         }
                     }
 
-                    // Generate enter block.
-                    let mut enter_block = inlined_blocks[0].clone();
-                    let enter_commands = block
+                    let first_pos = inlined_blocks[0].commands()[0].1.clone();
+                    let last_pos = inlined_blocks
+                        .iter()
+                        .last()
+                        .unwrap()
                         .commands()
-                        .to_owned()
-                        .into_iter()
-                        .rev()
-                        .skip(1)
-                        .rev()
-                        .chain(
-                            vec![
-                                (SuperPax::PushLiteral(0xFFFF), Default::default()),
-                                (SuperPax::AltPush, Default::default()),
-                            ]
-                            .into_iter(),
-                        );
-                    enter_block.commands_mut().splice(0..1, enter_commands);
-                    // Generate exit block.
-                    let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
-                        .commands()
-                        .to_owned()
-                        .into_iter()
-                        .rev()
-                        .skip(1)
-                        .rev()
-                        .chain(
-                            vec![
-                                (SuperPax::AltPop, Default::default()),
-                                (SuperPax::Drop, Default::default()),
-                            ]
-                            .into_iter(),
-                        );
-                    let mut exit_block = main_mut[j].clone();
-                    exit_block.commands_mut().splice(0..0, exit_commands);
-                    // Remove first + last blocks from our inline sequence.
-                    let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
+                        .iter()
+                        .last()
+                        .unwrap()
+                        .1
+                        .clone();
 
-                    // Combine current block.
-                    main_mut[j - 1] = enter_block;
-                    // Combine next block.
-                    main_mut[j] = exit_block;
-                    // Splice in new chunk.
-                    main_mut.splice(j..j, inline_seq);
+                    let return_stack_enter = vec![
+                        (SuperPax::PushLiteral(0xFFFF), first_pos.clone()),
+                        (SuperPax::AltPush, first_pos.clone()),
+                    ];
+                    let return_stack_exit = vec![
+                        (SuperPax::AltPop, last_pos.clone()),
+                        (SuperPax::Drop, last_pos.clone()),
+                    ];
+
+                    if inlined_blocks.len() == 1 {
+                        // Rest of next block
+                        let function_commands = inlined_blocks[0]
+                            .commands()
+                            .to_owned()
+                            .into_iter()
+                            .skip(1)
+                            .rev()
+                            .skip(1)
+                            .rev()
+                            .chain(return_stack_exit.into_iter());
+                        // Generate enter block.
+                        let enter_commands = block
+                            .commands()
+                            .to_owned()
+                            .into_iter()
+                            .rev()
+                            .skip(1)
+                            .rev()
+                            .chain(return_stack_enter.into_iter())
+                            .chain(function_commands);
+
+                        eprintln!("-----> {:?}", enter_commands.clone().collect::<Vec<_>>());
+
+                        // Combine current block, fn block, and next block.
+                        let mut next_block = main_mut.remove(j);
+                        next_block.commands_mut().splice(0..0, enter_commands);
+
+                        // Combine current block.
+                        main_mut[j - 1] = next_block;
+
+                        // Rewrite all targets after this.
+                        for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
+                            match main_block.commands_mut().last_mut() {
+                                Some((SuperPax::BranchTarget(ref mut target), ..))
+                                | Some((SuperPax::JumpIf0(ref mut target), ..))
+                                | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                                    if *target >= j {
+                                        *target -= 1;
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+
+                        // Now rewrite all targets before this.
+                        for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
+                            match main_block.commands_mut().last_mut() {
+                                Some((SuperPax::BranchTarget(ref mut target), ..))
+                                | Some((SuperPax::JumpIf0(ref mut target), ..))
+                                | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                                    if *target >= j {
+                                        *target -= 1;
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    } else {
+                        // Generate enter block.
+                        let mut enter_block = inlined_blocks[0].clone();
+                        let enter_commands = block
+                            .commands()
+                            .to_owned()
+                            .into_iter()
+                            .rev()
+                            .skip(1)
+                            .rev()
+                            .chain(return_stack_enter.into_iter());
+                        enter_block.commands_mut().splice(0..1, enter_commands);
+                        // Generate exit block.
+                        let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
+                            .commands()
+                            .to_owned()
+                            .into_iter()
+                            .rev()
+                            .skip(1)
+                            .rev()
+                            .chain(return_stack_exit.into_iter());
+                        let mut exit_block = main_mut[j].clone();
+                        exit_block.commands_mut().splice(0..0, exit_commands);
+                        // Remove first + last blocks from our inline sequence.
+                        let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
+
+                        // Combine current block.
+                        main_mut[j - 1] = enter_block;
+                        // Combine next block.
+                        main_mut[j] = exit_block;
+                        // Splice in new chunk.
+                        main_mut.splice(j..j, inline_seq.clone());
+
+                        // Now rewrite all targets before this.
+                        // for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
+                        //     match main_block.commands_mut().last_mut() {
+                        //         Some((SuperPax::BranchTarget(ref mut target), ..))
+                        //         | Some((SuperPax::JumpIf0(ref mut target), ..))
+                        //         | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                        //             if *target >= j {
+                        //                 *target += inline_seq.len();
+                        //             }
+                        //         }
+                        //         _ => {}
+                        //     }
+                        // }
+                    }
 
                     // Arbitrarily stop after this, though we could keep going,
                     // instead just perform another pass
@@ -815,14 +889,16 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
             }
         }
     }
+
+    dump_blocks(program.get(method).unwrap());
 }
 
-fn dump_blocks(blocks: &[Block]) {
+pub fn dump_blocks(blocks: &[Block]) {
     eprintln!("program:");
     for (i, block) in blocks.iter().enumerate() {
         eprintln!("  block[{}] with {} entries:", i, block.commands().len());
         for command in block.commands() {
-            eprintln!("    {:30} {:?}", format!("{:?}", command.0), command.1);
+            eprintln!("    {:30} {}", format!("{:?}", command.0), command.1);
         }
     }
     eprintln!();
@@ -847,7 +923,7 @@ pub fn optimize_forth(program: Program) {
         // println!();
 
         let graph = dataflow_graph(&blocks);
-        analyze_graph(&blocks, &graph);
+        propagate_registers(&blocks, &graph);
     }
 
     // Inlining.

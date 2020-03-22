@@ -49,10 +49,3 @@ variable  temp \ 578
 : % ( value divisor -- modulus ) begin 2dup - dup 0< if rot drop + -1 else rot drop swap 0 then until ;
 
 ";
-
-pub fn inject_prelude(input: &[u8]) -> Vec<u8> {
-  let mut code = vec![];
-  code.extend(PRELUDE.as_bytes());
-  code.extend(input.to_owned());
-  code
-}
