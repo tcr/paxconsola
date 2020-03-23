@@ -130,7 +130,6 @@ impl FunctionAnalysis {
 
   fn require_ret(&mut self, block: &mut BlockAnalysis) -> Reg {
     let reg = self.registers.allocate("R", None);
-    println!("----> injecting {:?}", reg);
     // propagate backward
     for prev_state in &mut block.record {
       prev_state.ret.insert(0, reg.clone());
