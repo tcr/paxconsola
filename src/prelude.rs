@@ -33,11 +33,12 @@ variable  temp \ 578
 : xor   2dup nand 1+ dup + + + ;
 : and   nand invert ;
 
-\ return stack pops off index, then limit, reverse of initial stack order
-\ compare, if equal then cleanup and return 1, else increase index, push, return 0
-\ note: must preserve return address!
-: loopimpl r> r> r> 1+ 2dup = if 2drop 1 else >r >r 0 then swap >r ;
-: -loopimpl r> r> rot r> swap - 2dup = if 2drop 1 else >r >r 0 then swap >r ;
+\ pop off the return address, then limit, then index.
+\ add one to index and push limit and index back to stack; then compare
+\ increased index with limit. return true if equal
+: loopimpl r> r> r> 1+ 2dup >r >r = swap >r ;
+\ same thing but accepts input argument saying countdown value
+: -loopimpl r> swap r> swap r> swap - 2dup >r >r = swap >r ;
 
 \ note: must preserve return address!
 : i r> r> r> temp ! temp @ >r >r >r temp @ ;

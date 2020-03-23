@@ -48,8 +48,6 @@ impl RegFile {
   }
 }
 
-pub type SharedRegFile = Arc<RefCell<RegFile>>;
-
 #[derive(Clone, Debug)]
 pub struct StackState {
   pub data: RegList,
@@ -121,14 +119,27 @@ impl FunctionAnalysis {
     for prev_state in &mut block.record {
       prev_state.data.insert(0, reg.clone());
     }
+    // all the way backward
+    for block in self.blocks.values_mut() {
+      for prev_state in &mut block.record {
+        prev_state.data.insert(0, reg.clone());
+      }
+    }
     reg
   }
 
   fn require_ret(&mut self, block: &mut BlockAnalysis) -> Reg {
     let reg = self.registers.allocate("R", None);
+    println!("----> injecting {:?}", reg);
     // propagate backward
     for prev_state in &mut block.record {
       prev_state.ret.insert(0, reg.clone());
+    }
+    // all the way backward
+    for block in self.blocks.values_mut() {
+      for prev_state in &mut block.record {
+        prev_state.ret.insert(0, reg.clone());
+      }
     }
     reg
   }
@@ -351,7 +362,6 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
   // downstream from #0 don't have unknown stack requirements until a call site.
 
   eprintln!("[analyze_graph] start");
-  eprintln!();
 
   let mut analysis = FunctionAnalysis {
     blocks: IndexMap::<usize, BlockAnalysis>::new(),
@@ -381,15 +391,16 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         .to_owned();
 
       // Missing a previous analysis means we might be in a loop.
-      eprintln!();
-      eprintln!("block[{}] loop start.", block_index);
+      eprintln!("[analyze_graph] block[{}] is starting a loop.", block_index);
       BlockAnalysis::from_previous_masked(&mut analysis.registers, &prev_analysis)
     } else if let Some(prev) = incoming.get(1) {
       let prev_analysis = analysis.blocks.get(prev).unwrap();
 
       // Having two previous analysis means we joined from a branch.
-      eprintln!();
-      eprintln!("block[{}] joining from branch.", block_index);
+      eprintln!(
+        "[analyze_graph] block[{}] joining from branch.",
+        block_index
+      );
       BlockAnalysis::from_previous_masked(&mut analysis.registers, prev_analysis)
     } else {
       // Pick the first analysis.
@@ -398,11 +409,16 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
 
     // Run analyze_block() on each block.
     analyze_block(&blocks[block_index], &mut analysis, &mut next_analysis);
-    let result = next_analysis.result();
-    eprintln!("block[{}]", block_index);
 
-    let commands = blocks[block_index].commands();
-    for (i, state) in result.iter().enumerate() {
+    // Store the analysis.
+    analysis.blocks.insert(block_index, next_analysis);
+  }
+  eprintln!();
+
+  for (block_index, block) in &analysis.blocks {
+    eprintln!("block[{}]", block_index);
+    let commands = blocks[*block_index].commands();
+    for (i, state) in block.record.iter().enumerate() {
       eprintln!("        data: {:?}", state.data);
       eprintln!("        retn: {:?}", state.ret);
       eprintln!(
@@ -410,14 +426,10 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         state.temp.clone().unwrap_or("".to_string())
       );
       if let Some(command) = commands.get(i) {
-        eprintln!("  {:?}", command.0);
+        eprintln!("  {:?}       {}", command.0, command.1);
       }
     }
-
-    // Store the analysis.
-    analysis.blocks.insert(block_index, next_analysis);
   }
-  eprintln!();
   eprintln!();
 
   eprintln!("[analyze_graph] registers:");
@@ -432,7 +444,7 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
 
 // Returns the arity of the function. You require the whole program
 // for this, because you need the arity of nested functions.
-pub fn function_arity(program: &SuperPaxProgram, method: &str) {
+pub fn function_arity(program: &SuperPaxProgram, method: &str) -> (usize, usize, usize, usize) {
   let mut program = program.to_owned();
   inline_into_function(&mut program, method);
   let blocks = program.get(method).unwrap();
@@ -443,7 +455,30 @@ pub fn function_arity(program: &SuperPaxProgram, method: &str) {
     analysis.blocks[&0].record.iter().next(),
     analysis.blocks[&(blocks.len() - 1)].record.iter().last(),
   );
-  // (0, 0)
+
+  let data_in = analysis.blocks[&0].record.iter().next().unwrap().data.len();
+  let ret_in = analysis.blocks[&0].record.iter().next().unwrap().ret.len();
+  let data_out = analysis.blocks[&(blocks.len() - 1)]
+    .record
+    .iter()
+    .last()
+    .unwrap()
+    .data
+    .len();
+  let ret_out = analysis.blocks[&(blocks.len() - 1)]
+    .record
+    .iter()
+    .last()
+    .unwrap()
+    .ret
+    .len();
+
+  println!("data_in:  {:?}", data_in);
+  println!("data_out: {:?}", data_out);
+  println!(" ret_in:  {:?}", ret_in);
+  println!(" ret_out: {:?}", ret_out);
+
+  (data_in, data_out, ret_in, ret_out)
 }
 
 #[cfg(test)]
@@ -453,7 +488,18 @@ mod tests {
 
   #[test]
   fn test_function_arity() {
-    let program = parse_to_superpax("drop".as_bytes().to_owned(), None);
-    function_arity(&program, "2dup");
+    let program = parse_to_superpax("1 print".as_bytes().to_owned(), None);
+
+    assert_eq!(function_arity(&program, "drop"), (1, 0, 0, 0));
+    assert_eq!(function_arity(&program, "2drop"), (2, 0, 0, 0));
+    assert_eq!(function_arity(&program, "swap"), (2, 2, 0, 0));
+    assert_eq!(function_arity(&program, "rot"), (3, 3, 0, 0));
+    assert_eq!(function_arity(&program, "-"), (2, 1, 0, 0));
+    assert_eq!(function_arity(&program, "xor"), (2, 1, 0, 0));
+    assert_eq!(function_arity(&program, "r@"), (0, 1, 2, 2));
+    assert_eq!(function_arity(&program, "loopimpl"), (0, 1, 3, 3));
+    assert_eq!(function_arity(&program, "i"), (0, 1, 3, 3));
+    assert_eq!(function_arity(&program, "j"), (0, 1, 5, 5));
+    assert_eq!(function_arity(&program, "*"), (2, 1, 0, 0));
   }
 }

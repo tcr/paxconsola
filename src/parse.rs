@@ -273,6 +273,7 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 ));
                             }
                             "loop" => {
+                                // TODO just inline loopimpl here?
                                 let name = "loopimpl";
                                 if !functions.contains_key(name) {
                                     panic!("no loopimpl defn found");
@@ -285,6 +286,14 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 assert_eq!(group.name, "<do>", "expected do loop");
                                 group.push_marker(current(&mut stack), pos.clone());
                                 used_flow_markers.push(group);
+
+                                // TODO need a concat method
+                                current(&mut stack).push((Pax::AltPop, pos.clone()));
+                                current(&mut stack)
+                                    .push((Pax::Call("drop".to_string()), pos.clone())); // TODO use Pax::Drop
+                                current(&mut stack).push((Pax::AltPop, pos.clone()));
+                                current(&mut stack)
+                                    .push((Pax::Call("drop".to_string()), pos.clone()));
                             }
                             "-loop" => {
                                 let name = "-loopimpl";
@@ -299,6 +308,14 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 assert_eq!(group.name, "<do>", "expected do loop");
                                 group.push_marker(current(&mut stack), pos.clone());
                                 used_flow_markers.push(group);
+
+                                // TODO need a concat method
+                                current(&mut stack).push((Pax::AltPop, pos.clone()));
+                                current(&mut stack)
+                                    .push((Pax::Call("drop".to_string()), pos.clone())); // TODO use Pax::Drop
+                                current(&mut stack).push((Pax::AltPop, pos.clone()));
+                                current(&mut stack)
+                                    .push((Pax::Call("drop".to_string()), pos.clone()));
                             }
                             "if" => {
                                 let mut group = MarkerGroup::new("<if>", None);
