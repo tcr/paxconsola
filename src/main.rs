@@ -69,13 +69,12 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     file.read_to_end(&mut code)
         .unwrap_or_else(|err| panic!("{}", err));
 
-    let script = parse_forth(code, Some(arg_file.to_string_lossy().to_string().as_str()));
+    let source_program =
+        parse_to_superpax(code, Some(arg_file.to_string_lossy().to_string().as_str()));
     // TODO parse_to_superpax
 
     match args.cmd {
         Command::Inlineup { .. } => {
-            let source_program = convert_to_superpax(script);
-
             for name in source_program.keys() {
                 // for name in vec!["myloopimpl"] {
                 if name == "main" {
@@ -105,34 +104,31 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         }
 
         Command::Compile { .. } => {
-            let program = convert_to_superpax(script);
-            let result = cross_compile_forth_gb(program);
+            let result = cross_compile_forth_gb(source_program);
             println!("{}", result);
         }
         Command::CompileC64 { .. } => {
-            let mut program = convert_to_superpax(script);
-
+            let mut program = source_program.clone();
             inline_into_function(&mut program, "main");
             let result = cross_compile_forth_c64(program);
             println!("{}", result);
         }
+
         Command::Optimize { .. } => {
-            optimize_forth(script);
+            optimize_forth(source_program);
         }
+
         Command::Dump { .. } => {
-            for (name, code) in script {
-                println!("{:?}:", name);
-                for (i, (op, pos)) in code.iter().enumerate() {
-                    println!("[{:>3}]  {:?}", i, op);
-                    println!("       ; {}:{}", arg_file.to_string_lossy(), pos);
-                    println!();
-                }
+            for (name, code) in source_program {
+                println!("[function {:?}]", name);
+                dump_blocks(&code);
                 println!();
             }
         }
-        Command::Run { .. } => {
-            let mut program = convert_to_superpax(script);
 
+        // Run the program directly
+        Command::Run { .. } => {
+            let mut program = source_program.clone();
             inline_into_function(&mut program, "main");
 
             // optimize_function(&mut program, "main");

@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
 use lazy_static::*;
@@ -10,13 +11,6 @@ pub enum ParseMode {
     CommentParens,
     Variable,
 }
-
-// Value for WebAssembly
-// const BASE_VARIABLE_OFFSET: usize = 10000;
-// Value for Gameboy
-// const BASE_VARIABLE_OFFSET: usize = 49216;
-// Value for C64
-pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
 
 pub type Span = Vec<Located<Pax>>;
 

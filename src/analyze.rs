@@ -4,8 +4,6 @@ use crate::*;
 use indexmap::{IndexMap, IndexSet};
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
-use std::cell::RefCell;
-use std::sync::Arc;
 
 // TODO TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
@@ -143,15 +141,15 @@ impl FunctionAnalysis {
     reg
   }
 
-  fn new_literal(&mut self, block: &mut BlockAnalysis, value: isize) -> Reg {
+  fn new_literal(&mut self, _block: &mut BlockAnalysis, value: isize) -> Reg {
     self.registers.allocate("L", Some(value))
   }
 
-  fn new_temp(&mut self, block: &mut BlockAnalysis, value: Option<isize>) -> Reg {
+  fn new_temp(&mut self, _block: &mut BlockAnalysis, value: Option<isize>) -> Reg {
     self.registers.allocate("T", value)
   }
 
-  fn new_var(&mut self, block: &mut BlockAnalysis) -> Reg {
+  fn new_var(&mut self, _block: &mut BlockAnalysis) -> Reg {
     self.registers.allocate("V", None)
   }
 }

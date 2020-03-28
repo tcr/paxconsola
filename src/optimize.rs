@@ -477,12 +477,10 @@ pub fn dump_blocks(blocks: &[Block]) {
     eprintln!();
 }
 
-pub fn optimize_forth(program: Program) {
-    let mut superprogram = convert_to_superpax(program);
+pub fn optimize_forth(mut program: SuperPaxProgram) {
+    inline_into_function(&mut program, "2dup");
 
-    inline_into_function(&mut superprogram, "2dup");
-
-    if let Some(blocks) = superprogram.get_mut("2dup") {
+    if let Some(blocks) = program.get_mut("2dup") {
         dump_blocks(&blocks);
 
         // println!("{:?}", graph);

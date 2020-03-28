@@ -1,6 +1,17 @@
+mod parse;
+
+use parse::*;
+
 use crate::*;
 use indexmap::IndexMap;
 use serde::*;
+
+// Value for WebAssemblyBASE_VARIABLE_OFFSET
+// const BASE_VARIABLE_OFFSET: usize = 10000;
+// Value for Gameboy
+// const BASE_VARIABLE_OFFSET: usize = 49216;
+// Value for C64
+pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
 
 // Only for Gameboy
 
