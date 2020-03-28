@@ -1,5 +1,6 @@
 #![allow(deprecated)]
 
+use derive_more::*;
 use paxconsola::*;
 use std::fs::File;
 use std::io::prelude::*;
@@ -13,6 +14,23 @@ struct Args {
     cmd: Command,
 }
 
+#[derive(Debug, Clone, enum_utils::FromStr, Display)]
+enum Target {
+    #[enumeration(rename = "wasm")]
+    #[display(fmt = "wasm")]
+    WebAssembly,
+    #[enumeration(rename = "gb")]
+    #[display(fmt = "fb")]
+    Gameboy,
+    #[enumeration(rename = "c64")]
+    #[display(fmt = "c64")]
+    Commodore64,
+}
+
+fn parse_target(value: &str) -> Result<Target, String> {
+    std::str::FromStr::from_str(value).map_err(|_| format!("{:?} is not a valid target", value))
+}
+
 #[derive(StructOpt, Debug)]
 enum Command {
     Inlineup {
@@ -23,11 +41,8 @@ enum Command {
     Compile {
         #[structopt(flatten)]
         file: FileOpts,
-    },
-
-    CompileC64 {
-        #[structopt(flatten)]
-        file: FileOpts,
+        #[structopt(long, parse(try_from_str=parse_target))]
+        target: Target,
     },
 
     Optimize {
@@ -56,7 +71,6 @@ struct FileOpts {
 fn main(args: Args) -> Result<(), std::io::Error> {
     // Extract file
     let arg_file = match &args.cmd {
-        Command::CompileC64 { file, .. } => file.file.to_owned(),
         Command::Compile { file, .. } => file.file.to_owned(),
         Command::Optimize { file, .. } => file.file.to_owned(),
         Command::Dump { file, .. } => file.file.to_owned(),
@@ -71,7 +85,6 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
     let source_program =
         parse_to_superpax(code, Some(arg_file.to_string_lossy().to_string().as_str()));
-    // TODO parse_to_superpax
 
     match args.cmd {
         Command::Inlineup { .. } => {
@@ -103,16 +116,21 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             println!("\ndone.");
         }
 
-        Command::Compile { .. } => {
-            let result = cross_compile_forth_gb(source_program);
-            println!("{}", result);
-        }
-        Command::CompileC64 { .. } => {
-            let mut program = source_program.clone();
-            inline_into_function(&mut program, "main");
-            let result = cross_compile_forth_c64(program);
-            println!("{}", result);
-        }
+        Command::Compile { target, .. } => match target {
+            Target::Commodore64 => {
+                let mut program = source_program.clone();
+                inline_into_function(&mut program, "main");
+                let result = cross_compile_forth_c64(program);
+                println!("{}", result);
+            }
+            Target::Gameboy => {
+                let result = cross_compile_forth_gb(source_program);
+                println!("{}", result);
+            }
+            Target::WebAssembly => {
+                todo!("can't compile to wasm and print it yet");
+            }
+        },
 
         Command::Optimize { .. } => {
             optimize_forth(source_program);

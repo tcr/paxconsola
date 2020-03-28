@@ -25,6 +25,8 @@ wasm3 = { git = "https://github.com/Veykril/wasm3-rs", rev = "7257d2b24b0d5398c2
 stdweb = { version = "*", optional = true }
 wasmi = { version = "*", default-features = false, features = [ "core" ], optional = true }
 serde = { version = "1.0.104", features = [ "derive" ] }
+enum-utils = "0.1.2"
+derive_more = "0.99.5"
 
 [features]
 default = ["wasm3"]
