@@ -78,44 +78,17 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Inlineup { file, .. } => file.file.to_owned(),
     };
 
+    // Read the file into a Vec<u8>
     let mut file = File::open(&arg_file).unwrap_or_else(|err| panic!("{}", err));
     let mut code = Vec::with_capacity(file.metadata().map(|m| m.len()).unwrap_or(0) as usize);
     file.read_to_end(&mut code)
         .unwrap_or_else(|err| panic!("{}", err));
 
+    // Parse program into Pax.
     let source_program =
         parse_to_superpax(code, Some(arg_file.to_string_lossy().to_string().as_str()));
 
     match args.cmd {
-        Command::Inlineup { .. } => {
-            for name in source_program.keys() {
-                // for name in vec!["myloopimpl"] {
-                if name == "main" {
-                    continue;
-                }
-
-                let mut program = source_program.clone();
-
-                // let name = "drop";
-                println!("[inlining] fn {:?}", name);
-
-                inline_into_function(&mut program, name);
-                optimize_function(&mut program, name);
-
-                eprintln!("----------> WHAT");
-                dump_blocks(program.get("main").unwrap());
-
-                inline_into_function(&mut program, "main");
-                // optimize_function(&mut program, "main");
-                let wasm = eval_forth(&program);
-                paxconsola::eval::run_wasm(&wasm);
-                // break;
-                println!();
-            }
-
-            println!("\ndone.");
-        }
-
         Command::Compile { target, .. } => match target {
             Target::Commodore64 => {
                 let mut program = source_program.clone();
@@ -146,13 +119,41 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Run the program directly
         Command::Run { .. } => {
+            // Main must be inlined before evaluating in WebAssembly.
             let mut program = source_program.clone();
             inline_into_function(&mut program, "main");
-
             // optimize_function(&mut program, "main");
+            let wasm = cross_compile_forth_wasm(&program);
+            run_wasm(&wasm);
+        }
 
-            let wasm = eval_forth(&program);
-            paxconsola::eval::run_wasm(&wasm);
+        Command::Inlineup { .. } => {
+            for name in source_program.keys() {
+                // for name in vec!["myloopimpl"] {
+                if name == "main" {
+                    continue;
+                }
+
+                let mut program = source_program.clone();
+
+                // let name = "drop";
+                println!("[inlining] fn {:?}", name);
+
+                inline_into_function(&mut program, name);
+                optimize_function(&mut program, name);
+
+                eprintln!("----------> WHAT");
+                dump_blocks(program.get("main").unwrap());
+
+                inline_into_function(&mut program, "main");
+                // optimize_function(&mut program, "main");
+                let wasm = cross_compile_forth_wasm(&program);
+                run_wasm(&wasm);
+                // break;
+                println!();
+            }
+
+            println!("\ndone.");
         }
     }
 

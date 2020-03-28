@@ -9,11 +9,13 @@ const WAT_TEMPLATE: &'static str = r#"
     (type $t2 (func (param i32) (result i32)))
     (type $t3 (func (param i32)))
     (type $t4 (func (result i32)))
+
     (import "root" "print" (func $print (type $t2)))
     (import "root" "extmem_load" (func $extmem_load (param i32) (result i32)))
     (import "root" "extmem_load_8" (func $extmem_load_8 (param i32) (result i32)))
     (import "root" "extmem_store" (func $extmem_store (param i32) (param i32)))
     (import "root" "extmem_store_8" (func $extmem_store_8 (param i32) (param i32)))
+    
     (func $__wasm_call_ctors (type $t0))
 
     (func $mem_load (export "mem_load") (type $t2) (param $p0 i32) (result i32)
@@ -156,7 +158,8 @@ const WAT_TEMPLATE: &'static str = r#"
   
 "#;
 
-pub fn eval_forth(program: &SuperPaxProgram) -> Vec<u8> {
+/// Returns a compiled WebAssembly file (binary, not WAT format)
+pub fn cross_compile_forth_wasm(program: &SuperPaxProgram) -> Vec<u8> {
     let mut wat_out = vec![];
     for (name, blocks) in program {
         if name != "main" {
