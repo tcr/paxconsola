@@ -27,6 +27,7 @@ enum-utils = "0.1.2"
 derive_more = "0.99.5"
 anyhow = "1.0.27"
 wasmtime = { version = "0.13.0", optional = true }
+take_mut = "0.2.2"
 
 [features]
 default = ["wasmtime"]

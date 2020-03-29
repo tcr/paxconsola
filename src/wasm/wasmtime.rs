@@ -1,17 +1,26 @@
 use std::collections::HashMap;
+use std::io::Write;
 use std::rc::Rc;
 use std::sync::Mutex;
 use wasmtime::*;
 
-fn run_wasm_result(binary: &[u8]) -> anyhow::Result<()> {
+pub fn run_wasm(binary: &[u8], export_buffer: bool) -> anyhow::Result<Vec<u8>> {
   let store = Store::default();
   let module = Module::from_binary(&store, binary)?;
 
   // Imports.
+  let buffer: Rc<Mutex<Vec<u8>>> = Rc::new(Mutex::new(Vec::new()));
   let memory: Rc<Mutex<HashMap<u32, u16>>> = Rc::new(Mutex::new(HashMap::new()));
-  let print_func = Func::wrap(&store, |value: i32| -> i32 {
-    println!("{}", value);
-    value
+  let print_func = Func::wrap(&store, {
+    let buffer = buffer.clone();
+    move |value: i32| -> i32 {
+      if export_buffer {
+        writeln!(&mut *buffer.lock().unwrap(), "{}", value).unwrap();
+      } else {
+        println!("{}", value);
+      }
+      value
+    }
   });
   let extmem_load_func = Func::wrap(&store, {
     let memory = memory.clone();
@@ -78,9 +87,7 @@ fn run_wasm_result(binary: &[u8]) -> anyhow::Result<()> {
     .get0::<i32>()?;
 
   run()?;
-  Ok(())
-}
 
-pub fn run_wasm(binary: &[u8]) {
-  run_wasm_result(binary).unwrap();
+  let buffer_ref = buffer.lock().unwrap();
+  Ok(buffer_ref.iter().cloned().collect::<Vec<u8>>())
 }
