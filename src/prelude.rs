@@ -1,19 +1,18 @@
 pub const PRELUDE: &str = r"
 
-: drop    if then ;
-: 2drop   + drop ;
+variable  temp \ first variable
 
-variable  temp \ 578
-: swap   >r temp ! r> temp @ ;
-: over   >r temp ! temp @ r> temp @ ;
+: swap   >r temp! r> temp@ ;
+: over   >r temp! temp@ r> temp@ ;
 : rot    >r swap r> swap ;
 
 \ note: must preserve return address!
-: r@   r> r> temp ! temp @ >r temp @ swap >r ;
+: r@   r> r> temp! temp@ >r temp@ swap >r ;
 
-: dup    temp ! temp @ temp @ ;
+: 2drop   + drop ;
+: dup    temp! temp@ temp@ ;
 : 2dup   over over ;
-: ?dup   temp ! temp @ if temp @ temp @ then ;
+: ?dup   temp! temp@ if temp@ temp@ then ;
 
 : cells dup + ;
 
@@ -41,8 +40,8 @@ variable  temp \ 578
 : -loopimpl r> swap r> swap r> swap - 2dup >r >r = swap >r ;
 
 \ note: must preserve return address!
-: i r> r> r> temp ! temp @ >r >r >r temp @ ;
-: j r> r> r> r> r> temp ! temp @ >r >r >r >r >r temp @ ;
+: i r> r> r> temp! temp@ >r >r >r temp@ ;
+: j r> r> r> r> r> temp! temp@ >r >r >r >r >r temp@ ;
 
 : * >r 0 r> 0 do over + loop swap drop ;
 

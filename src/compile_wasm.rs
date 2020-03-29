@@ -253,9 +253,9 @@ pub fn cross_compile_forth_wasm(program: &SuperPaxProgram) -> Vec<u8> {
                         } else if incoming.len() > 1 {
                             // End of an if or if/else block.
                             wat_out.push(format!("    end"));
-                            wat_block_stack.pop().expect("end if block");
+                            wat_block_stack.pop().expect("expected end of 'if' block");
                             wat_out.push(format!("    end"));
-                            wat_block_stack.pop().expect("end else block");
+                            wat_block_stack.pop().expect("expected end of 'else' block");
                         }
                     }
                     SuperPax::JumpIf0(target_index) => {

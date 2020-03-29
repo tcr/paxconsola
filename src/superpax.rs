@@ -15,7 +15,7 @@ pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
 
 // Only for Gameboy
 
-// Extends the regular Pax IR with some simple opcodes that
+// Pax IR with some simple opcodes that
 // are more practical for refactoring—might be worth formalizing
 // since they're just supersets of lower protocol, or not
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -177,28 +177,6 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
             // Peek matching.
             match op.0 {
                 Pax::PushLiteral(value) => {
-                    // Temp is always first assigned variable(??)
-                    // FIXME this is super fragile
-                    let temp_address = BASE_VARIABLE_OFFSET;
-
-                    // Temp values
-                    if value == temp_address as isize {
-                        // SuperPax::LoadTemp
-                        if let Some((_, &(Pax::Load, _))) = code_iter.peek() {
-                            stack.record_op(&(SuperPax::LoadTemp, op.1.clone()));
-
-                            code_iter.next();
-                            continue;
-                        }
-                        // SuperPax::StoreTemp
-                        if let Some((_, &(Pax::Store, _))) = code_iter.peek() {
-                            stack.record_op(&(SuperPax::StoreTemp, op.1.clone()));
-
-                            code_iter.next();
-                            continue;
-                        }
-                    }
-
                     // Jump Always
                     if value == 0 {
                         if let Some((_, &(Pax::JumpIf0(ref target), _))) = code_iter.peek() {
@@ -231,24 +209,13 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                 Pax::PushLiteral(value) => {
                     stack.record_op(&(SuperPax::PushLiteral(value), op.1.clone()));
                 }
-                Pax::BranchTarget => {
-                    // TODO this should inline the block number, not the opcode number
-                    stack.record_op(&(SuperPax::BranchTarget(loc_to_block[&i]), op.1.clone()));
-                    stack.branch_target_block();
-                }
                 Pax::AltPush => {
                     stack.record_op(&(SuperPax::AltPush, op.1.clone()));
                 }
                 Pax::AltPop => {
                     stack.record_op(&(SuperPax::AltPop, op.1.clone()));
                 }
-
-                Pax::Debugger | Pax::Sleep => {
-                    unreachable!("unknown opcode");
-                }
-
                 Pax::Metadata(ref arg) => {
-                    // noop
                     stack.record_op(&(SuperPax::Metadata(arg.clone()), op.1.clone()));
                 }
                 Pax::Print => {
@@ -272,6 +239,15 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                 Pax::Nand => {
                     stack.record_op(&(SuperPax::Nand, op.1.clone()));
                 }
+                Pax::Drop => {
+                    stack.record_op(&(SuperPax::Drop, op.1.clone()));
+                }
+                Pax::LoadTemp => {
+                    stack.record_op(&(SuperPax::LoadTemp, op.1.clone()));
+                }
+                Pax::StoreTemp => {
+                    stack.record_op(&(SuperPax::StoreTemp, op.1.clone()));
+                }
                 Pax::Exit => {
                     stack.record_op(&(SuperPax::Exit, op.1.clone()));
                     stack.exit_block();
@@ -280,9 +256,18 @@ pub fn convert_to_superpax(program: Program) -> SuperPaxProgram {
                     stack.record_op(&(SuperPax::Call(arg.clone()), op.1.clone()));
                     stack.call_block();
                 }
+                Pax::JumpAlways(ref target) => {
+                    stack.record_op(&(SuperPax::JumpAlways(loc_to_block[target]), op.1.clone()));
+                    stack.jump_always_block();
+                }
                 Pax::JumpIf0(ref target) => {
                     stack.record_op(&(SuperPax::JumpIf0(loc_to_block[target]), op.1.clone()));
                     stack.jump_if_0_block();
+                }
+                Pax::BranchTarget => {
+                    // TODO this should inline the block number, not the opcode number
+                    stack.record_op(&(SuperPax::BranchTarget(loc_to_block[&i]), op.1.clone()));
+                    stack.branch_target_block();
                 }
             }
         }

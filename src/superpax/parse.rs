@@ -4,6 +4,37 @@ use indexmap::{IndexMap, IndexSet};
 use lazy_static::*;
 use regex::Regex;
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum Pax {
+    Drop,
+
+    BranchTarget,
+
+    PushLiteral(isize),
+
+    AltPop,
+    AltPush,
+    LoadTemp,
+    StoreTemp,
+
+    Metadata(String),
+    Exit,
+
+    Call(String),
+    Add,
+    Nand,
+
+    Load,
+    Load8,
+    Store8,
+    Store,
+
+    JumpIf0(usize),
+    JumpAlways(usize),
+
+    Print,
+}
+
 pub enum ParseMode {
     Default,
     FunctionName,
@@ -48,13 +79,29 @@ impl MarkerGroup {
         self.source_index = Some(index);
 
         for target in &self.target_indices {
-            output[*target].0 = Pax::JumpIf0(index);
+            match output[*target].0 {
+                Pax::JumpIf0(_) => {
+                    output[*target].0 = Pax::JumpIf0(index);
+                }
+                Pax::JumpAlways(_) => {
+                    output[*target].0 = Pax::JumpAlways(index);
+                }
+                _ => {
+                    unreachable!();
+                }
+            }
         }
     }
 
-    fn push_marker(&mut self, output: &mut Span, pos: Pos) {
+    fn jump_if_0(&mut self, output: &mut Span, pos: Pos) {
         let index = output.len();
         output.push((Pax::JumpIf0(self.source_index.unwrap_or(0)), pos));
+        self.target_indices.push(index);
+    }
+
+    fn jump_always(&mut self, output: &mut Span, pos: Pos) {
+        let index = output.len();
+        output.push((Pax::JumpAlways(self.source_index.unwrap_or(0)), pos));
         self.target_indices.push(index);
     }
 }
@@ -238,9 +285,8 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
 
                             // Flow control
                             "recurse" => {
-                                current(&mut stack).push((Pax::PushLiteral(0), pos.clone()));
                                 // Address root flow group
-                                flow_markers[0].push_marker(current(&mut stack), pos.clone());
+                                flow_markers[0].jump_always(current(&mut stack), pos.clone());
                                 continue;
                             }
                             "begin" => {
@@ -254,7 +300,7 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<begin>", "expected begin loop");
-                                group.push_marker(current(&mut stack), pos.clone());
+                                group.jump_if_0(current(&mut stack), pos.clone());
                                 used_flow_markers.push(group);
                             }
                             "do" => {
@@ -278,16 +324,14 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(current(&mut stack), pos.clone());
+                                group.jump_if_0(current(&mut stack), pos.clone());
                                 used_flow_markers.push(group);
 
                                 // TODO need a concat method
                                 current(&mut stack).push((Pax::AltPop, pos.clone()));
-                                current(&mut stack)
-                                    .push((Pax::Call("drop".to_string()), pos.clone())); // TODO use Pax::Drop
+                                current(&mut stack).push((Pax::Drop, pos.clone()));
                                 current(&mut stack).push((Pax::AltPop, pos.clone()));
-                                current(&mut stack)
-                                    .push((Pax::Call("drop".to_string()), pos.clone()));
+                                current(&mut stack).push((Pax::Drop, pos.clone()));
                             }
                             "-loop" => {
                                 let name = "-loopimpl";
@@ -300,20 +344,18 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 let mut group =
                                     flow_markers.pop().expect("did not match marker group");
                                 assert_eq!(group.name, "<do>", "expected do loop");
-                                group.push_marker(current(&mut stack), pos.clone());
+                                group.jump_if_0(current(&mut stack), pos.clone());
                                 used_flow_markers.push(group);
 
                                 // TODO need a concat method
                                 current(&mut stack).push((Pax::AltPop, pos.clone()));
-                                current(&mut stack)
-                                    .push((Pax::Call("drop".to_string()), pos.clone())); // TODO use Pax::Drop
+                                current(&mut stack).push((Pax::Drop, pos.clone()));
                                 current(&mut stack).push((Pax::AltPop, pos.clone()));
-                                current(&mut stack)
-                                    .push((Pax::Call("drop".to_string()), pos.clone()));
+                                current(&mut stack).push((Pax::Drop, pos.clone()));
                             }
                             "if" => {
                                 let mut group = MarkerGroup::new("<if>", None);
-                                group.push_marker(current(&mut stack), pos);
+                                group.jump_if_0(current(&mut stack), pos);
 
                                 flow_markers.push(group);
                             }
@@ -321,8 +363,12 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 let mut if_group =
                                     flow_markers.pop().expect("did not match marker group");
                                 let mut else_group = MarkerGroup::new("<else>", None);
+
                                 current(&mut stack).push((Pax::PushLiteral(0), pos.clone())); // Always yes
-                                else_group.push_marker(current(&mut stack), pos.clone());
+                                else_group.jump_if_0(current(&mut stack), pos.clone());
+
+                                // TODO
+                                // else_group.x(current(&mut stack), pos.clone());
 
                                 flow_markers.push(else_group);
                                 if_group.set_target(current(&mut stack), pos.clone());
@@ -342,13 +388,13 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                             "!" => current(&mut stack).push((Pax::Store, pos)),
                             "@" => current(&mut stack).push((Pax::Load, pos)),
                             "nand" => current(&mut stack).push((Pax::Nand, pos)),
-
                             "print" => current(&mut stack).push((Pax::Print, pos)),
-                            "debugger" => current(&mut stack).push((Pax::Debugger, pos)),
-
                             "c!" => current(&mut stack).push((Pax::Store8, pos)),
                             "c@" => current(&mut stack).push((Pax::Load8, pos)),
-                            "sleep" => current(&mut stack).push((Pax::Sleep, pos)),
+                            "drop" => current(&mut stack).push((Pax::Drop, pos)),
+
+                            "temp@" => current(&mut stack).push((Pax::LoadTemp, pos)),
+                            "temp!" => current(&mut stack).push((Pax::StoreTemp, pos)),
 
                             _ => {
                                 panic!("unknown value: {:?}", word);
@@ -398,43 +444,3 @@ pub fn parse_forth(buffer: Vec<u8>, filename: Option<&str>) -> Program {
     parse_forth_inner(&mut program, buffer, filename);
     program
 }
-
-/*
-if true {
-    let keys = 0..functions.len();
-
-    // Move first function to end
-    for key in keys {
-        let func = &mut functions[key];
-        // eprintln!("moving {:?} to end", func.name);
-
-        let start = func.source_index.unwrap();
-        let mut end = start;
-        while output[end].0 != Pax::Exit {
-            end += 1;
-        }
-        end += 1;
-
-        // Extract this function, re-append to end.
-        let func_code: Vec<_> = output.splice(start..end, vec![]).collect();
-        let new_func_offset = output.len();
-        output.extend(func_code);
-        let adjust_inner = new_func_offset - start;
-
-        // Relocate all marker groups.
-        let mut groups = vec![];
-        groups.extend(functions.iter_mut());
-        for func in groups {
-            if func.source_index.unwrap() >= end {
-                // eprintln!("----> func.source_index {:?} -= adjust {:?}", func, adjust);
-                *func.source_index.as_mut().unwrap() -= end - start;
-            } else if func.source_index.unwrap() >= start {
-                // eprintln!("----> func.source_index {:?} += adjust {:?}", func, adjust);
-                *func.source_index.as_mut().unwrap() += adjust_inner;
-            }
-        }
-    }
-}
-
-return output;
-*/
