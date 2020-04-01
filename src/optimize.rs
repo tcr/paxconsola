@@ -3,7 +3,8 @@
 use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
-use petgraph::graph::Graph;
+use petgraph::graph::{Graph, NodeIndex};
+use petgraph::Direction;
 
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
@@ -19,8 +20,8 @@ fn propagate_literals_in_block(
         .enumerate()
         .rev()
         .map(|(i, input_command)| -> SuperSpan {
-            // eprintln!("{:?}\n-- {:?}", command.0, reg_blacklist);
             let command = (input_command.0).clone();
+            // eprintln!("{:?}\n-- {:?}", command, reg_blacklist);
             let stack: StackState = analysis.result()[i].clone();
 
             // The stack ahead of us, e.g. what the current command computed.
@@ -129,23 +130,34 @@ fn propagate_literals_in_block(
 
     new_commands.reverse();
 
-    // Peephole optimizations.
-    let mut splices = vec![];
-    new_commands
-        .windows(2)
-        .enumerate()
-        .for_each(|(i, window)| match window {
-            [(SuperPax::AltPush, _), (SuperPax::AltPop, _)] => {
-                splices.push(i);
-            }
-            _ => {}
-        });
-    let mut splice_delta = 0;
-    for mut splice in splices {
-        splice -= splice_delta;
-        new_commands.splice(splice..splice + 2, vec![]);
-        splice_delta += 2;
+    // Expand aliases.
+    // TODO can this happen instantaneously?
+    for alias in &registers.aliases {
+        if reg_blacklist.contains(&alias.0) {
+            reg_blacklist.insert(alias.1.clone());
+        }
+        if reg_blacklist.contains(&alias.1) {
+            reg_blacklist.insert(alias.0.clone());
+        }
     }
+
+    // Peephole optimizations.
+    // let mut splices = vec![];
+    // new_commands
+    //     .windows(2)
+    //     .enumerate()
+    //     .for_each(|(i, window)| match window {
+    //         [(SuperPax::AltPush, _), (SuperPax::AltPop, _)] => {
+    //             splices.push(i);
+    //         }
+    //         _ => {}
+    //     });
+    // let mut splice_delta = 0;
+    // for mut splice in splices {
+    //     splice -= splice_delta;
+    //     new_commands.splice(splice..splice + 2, vec![]);
+    //     splice_delta += 2;
+    // }
 
     new_commands
 }
@@ -168,22 +180,26 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     }
     eprintln!();
 
-    // Propagate dependencies backward.
+    // Propagate dependencies backward in reverse topological order.
     let mut blocks = blocks.to_owned();
     let mut reg_blacklist = IndexSet::new();
     eprintln!("[analyze_graph] propagate dependencies backward.");
     for i in analysis.blocks.keys().into_iter().rev() {
         let block = &mut blocks[*i];
         if let Some(block_analysis) = analysis.blocks.get(i) {
+            // Perform dead register elimination and update block.
             let new_commands = propagate_literals_in_block(
                 &block,
                 block_analysis,
                 analysis.registers.clone(),
                 &mut reg_blacklist,
             );
-            eprintln!("  block[{}]:", i);
-            eprintln!("    literals: {:?}", reg_blacklist);
             *block.commands_mut() = new_commands;
+
+            eprintln!("  block[{}]:", i);
+            eprintln!("    blacklist: {:?}", reg_blacklist);
+        } else {
+            // TODO ?
         }
     }
     eprintln!();
@@ -207,6 +223,7 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
 /// Reduces branching in a function by removing unused BranchTargets.
 /// This function will also rewrite target offsets.
 pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
+    return;
     eprintln!("[reducing_branches] removing unused BranchTargets...");
     if let Some(blocks) = program.get_mut(method) {
         let readonly_blocks = blocks.clone();
@@ -249,6 +266,8 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
 
 /// Helper method to otpimize a single function by propagating registers.
 pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
+    let start_arity = function_arity(program, method);
+    eprintln!("[optimize_function] arity: {:?}", start_arity,);
     if let Some(blocks) = program.get_mut(method) {
         let graph = dataflow_graph(&blocks);
 
@@ -260,6 +279,9 @@ pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
     if let Some(blocks) = program.get_mut(method) {
         dump_blocks(blocks);
     }
+    let end_arity = function_arity(program, method);
+    eprintln!("[optimize_function] arity: {:?}", end_arity,);
+    assert_eq!(start_arity, end_arity, "arity changed during optimization");
 }
 
 pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {

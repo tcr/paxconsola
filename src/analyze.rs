@@ -28,6 +28,7 @@ pub struct RegMeta {
 pub struct RegFile {
     pub index: usize,
     pub registers: IndexMap<Reg, RegMeta>,
+    pub aliases: Vec<(Reg, Reg)>, // list of associations
 }
 
 impl RegFile {
@@ -35,6 +36,7 @@ impl RegFile {
         Self {
             index: 0,
             registers: IndexMap::new(),
+            aliases: vec![],
         }
     }
 
@@ -163,15 +165,35 @@ pub struct BlockAnalysis {
 impl BlockAnalysis {
     // Accept registers from a previous block, but mask them
     // because we might have two block parents.
-    fn from_previous_masked(registers: &mut RegFile, previous: &BlockAnalysis) -> Self {
-        let prev_state = previous.exit_state();
+    fn from_previous_masked(registers: &mut RegFile, previous: &[BlockAnalysis]) -> Self {
+        assert!(
+            !previous.is_empty(),
+            "expected non empty list for BlockAnalysis masking"
+        );
 
-        let mut enter_state = prev_state.clone();
+        // Assert all equal
+        // TODO this picks up real bugs
+        // eprintln!("previous");
+        // for p in previous {
+        //     eprintln!("  {:?}", p);
+        // }
+        // assert!(
+        //     previous.windows(2).all(|l| l[0].exit_state().data.len()
+        //         == l[1].exit_state().data.len()
+        //         && l[0].exit_state().ret.len() == l[1].exit_state().ret.len()),
+        //     "not all register maps equal in size"
+        // );
+
+        let mut enter_state = previous[0].exit_state();
         enter_state.data.iter_mut().for_each(|d| {
+            let last_reg = d.clone();
             *d = registers.allocate("D", None);
+            registers.aliases.push((last_reg, d.clone()));
         });
         enter_state.ret.iter_mut().for_each(|d| {
+            let last_reg = d.clone();
             *d = registers.allocate("R", None);
+            registers.aliases.push((last_reg, d.clone()));
         });
         enter_state.temp = None;
 
@@ -336,6 +358,18 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
     Graph::<(), i32>::from_edges(&edges)
 }
 
+fn graph_directed_edges(graph: &Graph<(), i32>, block_index: usize, dir: Direction) -> Vec<usize> {
+    let mut incoming: Vec<usize> = graph
+        .neighbors_directed(NodeIndex::new(block_index), dir)
+        .map(|idx| idx.index() as usize)
+        .collect::<Vec<_>>();
+    incoming.dedup();
+    incoming.sort();
+    incoming
+}
+
+/// Iterate all blocks in descending topological order and produce a FunctionAnalysis
+/// of register use. Dead code elimination can happen in reverse.
 pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnalysis {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
@@ -350,14 +384,6 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         vec![0]
     };
 
-    // REVIEW The Analysis struct should hold the analyses of all blocks at once, injected
-    // in topological order, so that propagation of arguments from later blocks can happen
-    // on all blocks upstream (or parallel) to it. This would also allow splitting out
-    // the SharedRegFile and using it as a separate struct.
-    // This change isn't needed yet, because the main() function will never have an unknown
-    // number of values on the data or return stacks, they will always be empty. Blocks
-    // downstream from #0 don't have unknown stack requirements until a call site.
-
     eprintln!("[analyze_graph] start");
 
     let mut analysis = FunctionAnalysis {
@@ -365,49 +391,72 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         registers: RegFile::new(),
     };
 
-    for block_index in seq.clone() {
-        let mut incoming = graph
-            .neighbors_directed(NodeIndex::new(block_index), Direction::Incoming)
-            .map(|idx| idx.index() as usize)
-            .collect::<Vec<_>>();
-        incoming.sort();
+    #[derive(Debug)]
+    enum TargetType {
+        Start,
+        Block,
+        Then,
+        Begin,
+    }
 
-        let mut next_analysis = if incoming.len() == 0 {
-            BlockAnalysis::new()
+    for block_index in seq.clone() {
+        // Get the set of incoming edges to this block and iterate in ascending order.
+        let incoming = graph_directed_edges(graph, block_index, Direction::Incoming);
+
+        let target_type = if incoming.len() == 0 {
+            // If there are no incoming blocks, we are not a branch target.
+            TargetType::Start
         } else if incoming
             .iter()
             .find(|x| analysis.blocks.get(*x).is_none())
             .is_some()
         {
-            let prev_analysis = incoming
-                .iter()
-                .map(|x| analysis.blocks.get(x))
-                .find(|x| x.is_some())
-                .unwrap()
-                .unwrap()
-                .to_owned();
-
-            // Missing a previous analysis means we might be in a loop.
-            eprintln!("[analyze_graph] block[{}] is starting a loop.", block_index);
-            BlockAnalysis::from_previous_masked(&mut analysis.registers, &prev_analysis)
-        } else if let Some(prev) = incoming.get(1) {
-            let prev_analysis = analysis.blocks.get(prev).unwrap();
-
-            // Having two previous analysis means we joined from a branch.
-            eprintln!(
-                "[analyze_graph] block[{}] joining from branch.",
-                block_index
-            );
-            BlockAnalysis::from_previous_masked(&mut analysis.registers, prev_analysis)
+            // If an incoming block is not populated yet, we assume we are starting
+            // a loop ("begin").
+            TargetType::Begin
+        } else if incoming.len() >= 2 {
+            // If there are two or more incoming edges, we assume we are joining a branch ("then").
+            TargetType::Then
         } else {
-            // Pick the first analysis.
-            BlockAnalysis::from_previous(analysis.blocks.get(&incoming[0]).unwrap())
+            // A sole incoming edge is probably an "else" block.
+            TargetType::Block
         };
 
-        // Run analyze_block() on each block.
-        analyze_block(&blocks[block_index], &mut analysis, &mut next_analysis);
+        // Generate the next block analysis.
+        let mut next_analysis = match target_type {
+            TargetType::Start => BlockAnalysis::new(),
+            TargetType::Then | TargetType::Begin => {
+                // eprintln!("[analyze_graph] block[{}] is starting a loop.", block_index);
 
-        // Store the analysis.
+                let prev_analyses = incoming
+                    .into_iter()
+                    .filter_map(|x| analysis.blocks.get(&x))
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                // Missing a previous analysis means we might be in a loop.
+                eprintln!("from {:?}", target_type);
+                BlockAnalysis::from_previous_masked(
+                    &mut analysis.registers,
+                    prev_analyses.as_slice(),
+                )
+            }
+            TargetType::Block => {
+                BlockAnalysis::from_previous(analysis.blocks.get(&incoming[0]).unwrap())
+            }
+        };
+
+        // Get the set of outgoing edges.
+        // let outgoing = graph_directed_edges(graph, block_index, Direction::Outgoing);
+        // if outgoing.len() > 1 {
+        //     if let Some(begin_block_index) = outgoing.iter().find(|x| x < block_index) {
+        //         // Add as aliases to the register set we started with.
+        //     }
+        // }
+
+        // Run analyze_block() to finish the analysis, then store it.
+        // TODO this could be moved into a method of FunctionAnalyzer
+        analyze_block(&blocks[block_index], &mut analysis, &mut next_analysis);
         analysis.blocks.insert(block_index, next_analysis);
     }
     eprintln!();
