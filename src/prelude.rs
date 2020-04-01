@@ -12,7 +12,6 @@ variable  temp \ first variable
 : 2drop   + drop ;
 : dup    temp! temp@ temp@ ;
 : 2dup   over over ;
-: ?dup   temp! temp@ if temp@ temp@ then ;
 
 : cells dup + ;
 

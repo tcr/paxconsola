@@ -171,36 +171,56 @@ impl BlockAnalysis {
             "expected non empty list for BlockAnalysis masking"
         );
 
-        // Assert all equal
-        // TODO this picks up real bugs
-        // eprintln!("previous");
-        // for p in previous {
-        //     eprintln!("  {:?}", p);
-        // }
-        // assert!(
-        //     previous.windows(2).all(|l| l[0].exit_state().data.len()
-        //         == l[1].exit_state().data.len()
-        //         && l[0].exit_state().ret.len() == l[1].exit_state().ret.len()),
-        //     "not all register maps equal in size"
-        // );
-
+        // Model after the first previous entry state
         let mut enter_state = previous[0].exit_state();
         enter_state.data.iter_mut().for_each(|d| {
-            let last_reg = d.clone();
             *d = registers.allocate("D", None);
-            registers.aliases.push((last_reg, d.clone()));
         });
         enter_state.ret.iter_mut().for_each(|d| {
-            let last_reg = d.clone();
             *d = registers.allocate("R", None);
-            registers.aliases.push((last_reg, d.clone()));
         });
         enter_state.temp = None;
 
-        Self {
+        let this = Self {
             state: enter_state.clone(),
             record: vec![enter_state],
+        };
+
+        // Assert all equal
+        eprintln!("previous");
+        for p in previous {
+            eprintln!("  {:?}", p);
         }
+        assert!(
+            previous.windows(2).all(|l| l[0].exit_state().data.len()
+                == l[1].exit_state().data.len()
+                && l[0].exit_state().ret.len() == l[1].exit_state().ret.len()),
+            "not all register maps equal in size"
+        );
+        for prev in previous {
+            this.add_alias(registers, prev.exit_state());
+        }
+
+        this
+    }
+
+    fn add_alias(&self, registers: &mut RegFile, state: StackState) {
+        let enter_state = self.record.get(0).unwrap_or_else(|| &self.state);
+
+        // FIXME assert proper stack lengths
+        if state.data.len() != enter_state.data.len() || state.ret.len() != enter_state.ret.len() {
+            eprintln!();
+            eprintln!("WARNING: THIS SHOULD FAIL in add_alias.");
+            eprintln!();
+            return;
+        }
+
+        enter_state.data.iter().enumerate().for_each(|(i, d)| {
+            registers.aliases.push((state.data[i].clone(), d.clone()));
+        });
+        enter_state.ret.iter().enumerate().for_each(|(i, d)| {
+            registers.aliases.push((state.ret[i].clone(), d.clone()));
+        });
     }
 
     fn from_previous(previous: &BlockAnalysis) -> Self {
@@ -446,17 +466,21 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
             }
         };
 
-        // Get the set of outgoing edges.
-        // let outgoing = graph_directed_edges(graph, block_index, Direction::Outgoing);
-        // if outgoing.len() > 1 {
-        //     if let Some(begin_block_index) = outgoing.iter().find(|x| x < block_index) {
-        //         // Add as aliases to the register set we started with.
-        //     }
-        // }
-
         // Run analyze_block() to finish the analysis, then store it.
         // TODO this could be moved into a method of FunctionAnalyzer
         analyze_block(&blocks[block_index], &mut analysis, &mut next_analysis);
+
+        // Get the set of outgoing edges and find ones which call backward (loop).
+        // FIXME need to enable outgoing loop aliasing
+        // let outgoing = graph_directed_edges(graph, block_index, Direction::Outgoing);
+        // if outgoing.len() > 1 {
+        //     if let Some(begin_block_index) = outgoing.iter().find(|x| **x < block_index) {
+        //         // Add as aliases to the register set we started with.
+        //         analysis.blocks[&(*begin_block_index - 1)]
+        //             .add_alias(&mut analysis.registers, next_analysis.exit_state());
+        //     }
+        // }
+
         analysis.blocks.insert(block_index, next_analysis);
     }
     eprintln!();
@@ -496,7 +520,7 @@ pub fn function_arity(program: &SuperPaxProgram, method: &str) -> (usize, usize,
     let blocks = program.get(method).unwrap();
     let graph = dataflow_graph(blocks);
     let analysis = analyze_blocks(blocks, &graph);
-    println!(
+    eprintln!(
         "analysis\n  {:?}\n  {:?}",
         analysis.blocks[&0].record.iter().next(),
         analysis.blocks[&(blocks.len() - 1)].record.iter().last(),
@@ -519,10 +543,10 @@ pub fn function_arity(program: &SuperPaxProgram, method: &str) -> (usize, usize,
         .ret
         .len();
 
-    println!("data_in:  {:?}", data_in);
-    println!("data_out: {:?}", data_out);
-    println!(" ret_in:  {:?}", ret_in);
-    println!(" ret_out: {:?}", ret_out);
+    eprintln!("data_in:  {:?}", data_in);
+    eprintln!("data_out: {:?}", data_out);
+    eprintln!(" ret_in:  {:?}", ret_in);
+    eprintln!(" ret_out: {:?}", ret_out);
 
     (data_in, data_out, ret_in, ret_out)
 }
