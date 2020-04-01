@@ -1,0 +1,2662 @@
+warning: unused import: `NodeIndex`
+ --> src/optimize.rs:6:30
+  |
+6 | use petgraph::graph::{Graph, NodeIndex};
+  |                              ^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `petgraph::Direction`
+ --> src/optimize.rs:7:5
+  |
+7 | use petgraph::Direction;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unreachable statement
+   --> src/optimize.rs:227:5
+    |
+226 |     return;
+    |     ------ any code following this expression is unreachable
+227 |     eprintln!("[reducing_branches] removing unused BranchTargets...");
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+    |
+    = note: `#[warn(unreachable_code)]` on by default
+    = note: this warning originates in a macro outside of the current crate (in Nightly builds, run with -Z external-macro-backtrace for more info)
+
+warning: unused variable: `program`
+   --> src/optimize.rs:225:24
+    |
+225 | pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
+    |                        ^^^^^^^ help: consider prefixing with an underscore: `_program`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `method`
+   --> src/optimize.rs:225:55
+    |
+225 | pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
+    |                                                       ^^^^^^ help: consider prefixing with an underscore: `_method`
+
+warning: function is never used: `strip_unused`
+   --> src/superpax/parse.rs:417:8
+    |
+417 | pub fn strip_unused(program: &Program) -> Program {
+    |        ^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by default
+
+    Finished dev [unoptimized + debuginfo] target(s) in 0.17s
+     Running `target/debug/paxconsola inlineup examples/loopimpl.fs`
+[inlining] fn "swap"
+program:
+  block[0] with 2 entries:
+    Metadata("swap")               src/prelude.rs:5:3 in `main`
+    BranchTarget(0)                src/prelude.rs:5:3 in `main`
+  block[1] with 5 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    Exit                           src/prelude.rs:5:28 in `swap`
+
+
+program:
+  block[0] with 2 entries:
+    Metadata("swap")               src/prelude.rs:5:3 in `main`
+    BranchTarget(0)                src/prelude.rs:5:3 in `main`
+  block[1] with 5 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    Exit                           src/prelude.rs:5:28 in `swap`
+
+
+[analyze_graph] start
+
+block[0]
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  Metadata("swap")       src/prelude.rs:5:3 in `main`
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  BranchTarget(0)       src/prelude.rs:5:3 in `main`
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+block[1]
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D1"]
+        retn: ["D0"]
+        temp: ""
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: []
+        retn: ["D0"]
+        temp: "D1"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D0"]
+        retn: []
+        temp: "D1"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D0", "D1"]
+        retn: []
+        temp: "T2"
+  Exit       src/prelude.rs:5:28 in `swap`
+        data: ["D0", "D1"]
+        retn: []
+        temp: "T2"
+
+[analyze_graph] registers:
+  D0: RegMeta { literal: None }
+  D1: RegMeta { literal: None }
+  T2: RegMeta { literal: None }
+
+
+analysis
+  Some(StackState { data: ["D1", "D0"], ret: [], temp: None })
+  Some(StackState { data: ["D0", "D1"], ret: [], temp: Some("T2") })
+data_in:  2
+data_out: 2
+ ret_in:  0
+ ret_out: 0
+[optimize_function] arity: (2, 2, 0, 0)
+[analyze_graph] start
+
+block[0]
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  Metadata("swap")       src/prelude.rs:5:3 in `main`
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  BranchTarget(0)       src/prelude.rs:5:3 in `main`
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+block[1]
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D1"]
+        retn: ["D0"]
+        temp: ""
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: []
+        retn: ["D0"]
+        temp: "D1"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D0"]
+        retn: []
+        temp: "D1"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D0", "D1"]
+        retn: []
+        temp: "T2"
+  Exit       src/prelude.rs:5:28 in `swap`
+        data: ["D0", "D1"]
+        retn: []
+        temp: "T2"
+
+[analyze_graph] registers:
+  D0: RegMeta { literal: None }
+  D1: RegMeta { literal: None }
+  T2: RegMeta { literal: None }
+
+
+[analyze_graph] program: 7 commands (original)
+  block[0]
+    Metadata("swap")
+    BranchTarget(0)
+  block[1]
+    AltPush
+    StoreTemp
+    AltPop
+    LoadTemp
+    Exit
+
+[analyze_graph] propagate dependencies backward.
+  block[1]:
+    blacklist: {"T2"}
+  block[0]:
+    blacklist: {"T2"}
+
+[analyze_graph] 7 commands (after optimization)
+  block[0]
+    Metadata("swap")
+    BranchTarget(0)
+  block[1]
+    AltPush
+    StoreTemp
+    AltPop
+    LoadTemp
+    Exit
+
+program:
+  block[0] with 2 entries:
+    Metadata("swap")               src/prelude.rs:5:3 in `main`
+    BranchTarget(0)                src/prelude.rs:5:3 in `main`
+  block[1] with 5 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    Exit                           src/prelude.rs:5:28 in `swap`
+
+
+program:
+  block[0] with 2 entries:
+    Metadata("swap")               src/prelude.rs:5:3 in `main`
+    BranchTarget(0)                src/prelude.rs:5:3 in `main`
+  block[1] with 5 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    Exit                           src/prelude.rs:5:28 in `swap`
+
+
+[analyze_graph] start
+
+block[0]
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  Metadata("swap")       src/prelude.rs:5:3 in `main`
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  BranchTarget(0)       src/prelude.rs:5:3 in `main`
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+block[1]
+        data: ["D1", "D0"]
+        retn: []
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D1"]
+        retn: ["D0"]
+        temp: ""
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: []
+        retn: ["D0"]
+        temp: "D1"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D0"]
+        retn: []
+        temp: "D1"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D0", "D1"]
+        retn: []
+        temp: "T2"
+  Exit       src/prelude.rs:5:28 in `swap`
+        data: ["D0", "D1"]
+        retn: []
+        temp: "T2"
+
+[analyze_graph] registers:
+  D0: RegMeta { literal: None }
+  D1: RegMeta { literal: None }
+  T2: RegMeta { literal: None }
+
+
+analysis
+  Some(StackState { data: ["D1", "D0"], ret: [], temp: None })
+  Some(StackState { data: ["D0", "D1"], ret: [], temp: Some("T2") })
+data_in:  2
+data_out: 2
+ ret_in:  0
+ ret_out: 0
+[optimize_function] arity: (2, 2, 0, 0)
+program:
+  block[0] with 9 entries:
+    PushLiteral(3)                 examples/loopimpl.fs:3:1 in `main`
+    PushLiteral(14)                examples/loopimpl.fs:3:3 in `main`
+    AltPush                        examples/loopimpl.fs:8:1 in `main`
+    PushLiteral(0)                 examples/loopimpl.fs:8:4 in `main`
+    AltPop                         examples/loopimpl.fs:8:6 in `main`
+    PushLiteral(0)                 examples/loopimpl.fs:8:9 in `main`
+    AltPush                        examples/loopimpl.fs:8:11 in `main`
+    AltPush                        examples/loopimpl.fs:8:14 in `main`
+    BranchTarget(0)                examples/loopimpl.fs:8:17 in `main`
+  block[1] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:6:3 in `main`
+    AltPush                        src/prelude.rs:6:3 in `main`
+    BranchTarget(1)                src/prelude.rs:6:3 in `main`
+  block[2] with 11 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    AltPop                         src/prelude.rs:6:34 in `over`
+    Drop                           src/prelude.rs:6:34 in `over`
+    Add                            examples/loopimpl.fs:8:28 in `main`
+    PushLiteral(65535)             examples/loopimpl.fs:5:3 in `main`
+    AltPush                        examples/loopimpl.fs:5:3 in `main`
+    BranchTarget(2)                examples/loopimpl.fs:5:3 in `main`
+  block[3] with 6 entries:
+    AltPop                         examples/loopimpl.fs:5:14 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:17 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:20 in `myloopimpl`
+    PushLiteral(65535)             src/prelude.rs:22:3 in `main`
+    AltPush                        src/prelude.rs:22:3 in `main`
+    BranchTarget(3)                src/prelude.rs:22:3 in `main`
+  block[4] with 7 entries:
+    PushLiteral(1)                 src/prelude.rs:22:8 in `1+`
+    Add                            src/prelude.rs:22:10 in `1+`
+    AltPop                         src/prelude.rs:22:12 in `1+`
+    Drop                           src/prelude.rs:22:12 in `1+`
+    PushLiteral(65535)             src/prelude.rs:14:3 in `main`
+    AltPush                        src/prelude.rs:14:3 in `main`
+    BranchTarget(4)                src/prelude.rs:14:3 in `main`
+  block[5] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:6:3 in `main`
+    AltPush                        src/prelude.rs:6:3 in `main`
+    BranchTarget(5)                src/prelude.rs:6:3 in `main`
+  block[6] with 10 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    AltPop                         src/prelude.rs:6:34 in `over`
+    Drop                           src/prelude.rs:6:34 in `over`
+    PushLiteral(65535)             src/prelude.rs:6:3 in `main`
+    AltPush                        src/prelude.rs:6:3 in `main`
+    BranchTarget(6)                src/prelude.rs:6:3 in `main`
+  block[7] with 14 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    AltPop                         src/prelude.rs:6:34 in `over`
+    Drop                           src/prelude.rs:6:34 in `over`
+    AltPop                         src/prelude.rs:14:20 in `2dup`
+    Drop                           src/prelude.rs:14:20 in `2dup`
+    AltPush                        examples/loopimpl.fs:5:31 in `myloopimpl`
+    AltPush                        examples/loopimpl.fs:5:34 in `myloopimpl`
+    PushLiteral(65535)             src/prelude.rs:26:3 in `main`
+    AltPush                        src/prelude.rs:26:3 in `main`
+    BranchTarget(7)                src/prelude.rs:26:3 in `main`
+  block[8] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:20:3 in `main`
+    AltPush                        src/prelude.rs:20:3 in `main`
+    BranchTarget(8)                src/prelude.rs:20:3 in `main`
+  block[9] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:19:3 in `main`
+    AltPush                        src/prelude.rs:19:3 in `main`
+    BranchTarget(9)                src/prelude.rs:19:3 in `main`
+  block[10] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:18:3 in `main`
+    AltPush                        src/prelude.rs:18:3 in `main`
+    BranchTarget(10)               src/prelude.rs:18:3 in `main`
+  block[11] with 14 entries:
+    PushLiteral(-1)                src/prelude.rs:18:12 in `invert`
+    Nand                           src/prelude.rs:18:15 in `invert`
+    AltPop                         src/prelude.rs:18:20 in `invert`
+    Drop                           src/prelude.rs:18:20 in `invert`
+    PushLiteral(1)                 src/prelude.rs:19:19 in `negate`
+    Add                            src/prelude.rs:19:21 in `negate`
+    AltPop                         src/prelude.rs:19:23 in `negate`
+    Drop                           src/prelude.rs:19:23 in `negate`
+    Add                            src/prelude.rs:20:19 in `-`
+    AltPop                         src/prelude.rs:20:21 in `-`
+    Drop                           src/prelude.rs:20:21 in `-`
+    PushLiteral(65535)             src/prelude.rs:25:3 in `main`
+    AltPush                        src/prelude.rs:25:3 in `main`
+    BranchTarget(11)               src/prelude.rs:25:3 in `main`
+  block[12] with 1 entries:
+    JumpIf0(14)                    src/prelude.rs:25:8 in `0=`
+  block[13] with 2 entries:
+    PushLiteral(0)                 src/prelude.rs:25:11 in `0=`
+    JumpAlways(15)                 src/prelude.rs:25:13 in `0=`
+  block[14] with 1 entries:
+    BranchTarget(14)               src/prelude.rs:25:13 in `0=`
+  block[15] with 2 entries:
+    PushLiteral(-1)                src/prelude.rs:25:18 in `0=`
+    BranchTarget(15)               src/prelude.rs:25:21 in `0=`
+  block[16] with 7 entries:
+    AltPop                         src/prelude.rs:25:26 in `0=`
+    Drop                           src/prelude.rs:25:26 in `0=`
+    AltPop                         src/prelude.rs:26:13 in `=`
+    Drop                           src/prelude.rs:26:13 in `=`
+    PushLiteral(65535)             src/prelude.rs:5:3 in `main`
+    AltPush                        src/prelude.rs:5:3 in `main`
+    BranchTarget(16)               src/prelude.rs:5:3 in `main`
+  block[17] with 10 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    AltPop                         src/prelude.rs:5:28 in `swap`
+    Drop                           src/prelude.rs:5:28 in `swap`
+    AltPush                        examples/loopimpl.fs:5:44 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:47 in `myloopimpl`
+    Drop                           examples/loopimpl.fs:5:47 in `myloopimpl`
+    JumpIf0(0)                     examples/loopimpl.fs:12:1 in `main`
+  block[18] with 7 entries:
+    AltPop                         examples/loopimpl.fs:12:7 in `main`
+    AltPop                         examples/loopimpl.fs:12:10 in `main`
+    Drop                           examples/loopimpl.fs:12:13 in `main`
+    Drop                           examples/loopimpl.fs:12:18 in `main`
+    PushLiteral(65535)             src/prelude.rs:5:3 in `main`
+    AltPush                        src/prelude.rs:5:3 in `main`
+    BranchTarget(18)               src/prelude.rs:5:3 in `main`
+  block[19] with 9 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    AltPop                         src/prelude.rs:5:28 in `swap`
+    Drop                           src/prelude.rs:5:28 in `swap`
+    Drop                           examples/loopimpl.fs:12:28 in `main`
+    Print                          examples/loopimpl.fs:14:1 in `main`
+    Exit                           :0:0 in ``
+
+
+program:
+  block[0] with 9 entries:
+    PushLiteral(3)                 examples/loopimpl.fs:3:1 in `main`
+    PushLiteral(14)                examples/loopimpl.fs:3:3 in `main`
+    AltPush                        examples/loopimpl.fs:8:1 in `main`
+    PushLiteral(0)                 examples/loopimpl.fs:8:4 in `main`
+    AltPop                         examples/loopimpl.fs:8:6 in `main`
+    PushLiteral(0)                 examples/loopimpl.fs:8:9 in `main`
+    AltPush                        examples/loopimpl.fs:8:11 in `main`
+    AltPush                        examples/loopimpl.fs:8:14 in `main`
+    BranchTarget(0)                examples/loopimpl.fs:8:17 in `main`
+  block[1] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:6:3 in `main`
+    AltPush                        src/prelude.rs:6:3 in `main`
+    BranchTarget(1)                src/prelude.rs:6:3 in `main`
+  block[2] with 11 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    AltPop                         src/prelude.rs:6:34 in `over`
+    Drop                           src/prelude.rs:6:34 in `over`
+    Add                            examples/loopimpl.fs:8:28 in `main`
+    PushLiteral(65535)             examples/loopimpl.fs:5:3 in `main`
+    AltPush                        examples/loopimpl.fs:5:3 in `main`
+    BranchTarget(2)                examples/loopimpl.fs:5:3 in `main`
+  block[3] with 6 entries:
+    AltPop                         examples/loopimpl.fs:5:14 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:17 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:20 in `myloopimpl`
+    PushLiteral(65535)             src/prelude.rs:22:3 in `main`
+    AltPush                        src/prelude.rs:22:3 in `main`
+    BranchTarget(3)                src/prelude.rs:22:3 in `main`
+  block[4] with 7 entries:
+    PushLiteral(1)                 src/prelude.rs:22:8 in `1+`
+    Add                            src/prelude.rs:22:10 in `1+`
+    AltPop                         src/prelude.rs:22:12 in `1+`
+    Drop                           src/prelude.rs:22:12 in `1+`
+    PushLiteral(65535)             src/prelude.rs:14:3 in `main`
+    AltPush                        src/prelude.rs:14:3 in `main`
+    BranchTarget(4)                src/prelude.rs:14:3 in `main`
+  block[5] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:6:3 in `main`
+    AltPush                        src/prelude.rs:6:3 in `main`
+    BranchTarget(5)                src/prelude.rs:6:3 in `main`
+  block[6] with 10 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    AltPop                         src/prelude.rs:6:34 in `over`
+    Drop                           src/prelude.rs:6:34 in `over`
+    PushLiteral(65535)             src/prelude.rs:6:3 in `main`
+    AltPush                        src/prelude.rs:6:3 in `main`
+    BranchTarget(6)                src/prelude.rs:6:3 in `main`
+  block[7] with 14 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    AltPop                         src/prelude.rs:6:34 in `over`
+    Drop                           src/prelude.rs:6:34 in `over`
+    AltPop                         src/prelude.rs:14:20 in `2dup`
+    Drop                           src/prelude.rs:14:20 in `2dup`
+    AltPush                        examples/loopimpl.fs:5:31 in `myloopimpl`
+    AltPush                        examples/loopimpl.fs:5:34 in `myloopimpl`
+    PushLiteral(65535)             src/prelude.rs:26:3 in `main`
+    AltPush                        src/prelude.rs:26:3 in `main`
+    BranchTarget(7)                src/prelude.rs:26:3 in `main`
+  block[8] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:20:3 in `main`
+    AltPush                        src/prelude.rs:20:3 in `main`
+    BranchTarget(8)                src/prelude.rs:20:3 in `main`
+  block[9] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:19:3 in `main`
+    AltPush                        src/prelude.rs:19:3 in `main`
+    BranchTarget(9)                src/prelude.rs:19:3 in `main`
+  block[10] with 3 entries:
+    PushLiteral(65535)             src/prelude.rs:18:3 in `main`
+    AltPush                        src/prelude.rs:18:3 in `main`
+    BranchTarget(10)               src/prelude.rs:18:3 in `main`
+  block[11] with 14 entries:
+    PushLiteral(-1)                src/prelude.rs:18:12 in `invert`
+    Nand                           src/prelude.rs:18:15 in `invert`
+    AltPop                         src/prelude.rs:18:20 in `invert`
+    Drop                           src/prelude.rs:18:20 in `invert`
+    PushLiteral(1)                 src/prelude.rs:19:19 in `negate`
+    Add                            src/prelude.rs:19:21 in `negate`
+    AltPop                         src/prelude.rs:19:23 in `negate`
+    Drop                           src/prelude.rs:19:23 in `negate`
+    Add                            src/prelude.rs:20:19 in `-`
+    AltPop                         src/prelude.rs:20:21 in `-`
+    Drop                           src/prelude.rs:20:21 in `-`
+    PushLiteral(65535)             src/prelude.rs:25:3 in `main`
+    AltPush                        src/prelude.rs:25:3 in `main`
+    BranchTarget(11)               src/prelude.rs:25:3 in `main`
+  block[12] with 1 entries:
+    JumpIf0(14)                    src/prelude.rs:25:8 in `0=`
+  block[13] with 2 entries:
+    PushLiteral(0)                 src/prelude.rs:25:11 in `0=`
+    JumpAlways(15)                 src/prelude.rs:25:13 in `0=`
+  block[14] with 1 entries:
+    BranchTarget(14)               src/prelude.rs:25:13 in `0=`
+  block[15] with 2 entries:
+    PushLiteral(-1)                src/prelude.rs:25:18 in `0=`
+    BranchTarget(15)               src/prelude.rs:25:21 in `0=`
+  block[16] with 7 entries:
+    AltPop                         src/prelude.rs:25:26 in `0=`
+    Drop                           src/prelude.rs:25:26 in `0=`
+    AltPop                         src/prelude.rs:26:13 in `=`
+    Drop                           src/prelude.rs:26:13 in `=`
+    PushLiteral(65535)             src/prelude.rs:5:3 in `main`
+    AltPush                        src/prelude.rs:5:3 in `main`
+    BranchTarget(16)               src/prelude.rs:5:3 in `main`
+  block[17] with 10 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    AltPop                         src/prelude.rs:5:28 in `swap`
+    Drop                           src/prelude.rs:5:28 in `swap`
+    AltPush                        examples/loopimpl.fs:5:44 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:47 in `myloopimpl`
+    Drop                           examples/loopimpl.fs:5:47 in `myloopimpl`
+    JumpIf0(0)                     examples/loopimpl.fs:12:1 in `main`
+  block[18] with 7 entries:
+    AltPop                         examples/loopimpl.fs:12:7 in `main`
+    AltPop                         examples/loopimpl.fs:12:10 in `main`
+    Drop                           examples/loopimpl.fs:12:13 in `main`
+    Drop                           examples/loopimpl.fs:12:18 in `main`
+    PushLiteral(65535)             src/prelude.rs:5:3 in `main`
+    AltPush                        src/prelude.rs:5:3 in `main`
+    BranchTarget(18)               src/prelude.rs:5:3 in `main`
+  block[19] with 9 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    StoreTemp                      src/prelude.rs:5:13 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    LoadTemp                       src/prelude.rs:5:22 in `swap`
+    AltPop                         src/prelude.rs:5:28 in `swap`
+    Drop                           src/prelude.rs:5:28 in `swap`
+    Drop                           examples/loopimpl.fs:12:28 in `main`
+    Print                          examples/loopimpl.fs:14:1 in `main`
+    Exit                           :0:0 in ``
+
+
+[analyze_graph] start
+from Begin
+previous
+  BlockAnalysis { state: StackState { data: ["L0", "L2"], ret: ["L3", "L1"], temp: None }, record: [StackState { data: [], ret: [], temp: None }, StackState { data: ["L0"], ret: [], temp: None }, StackState { data: ["L0", "L1"], ret: [], temp: None }, StackState { data: ["L0"], ret: ["L1"], temp: None }, StackState { data: ["L0", "L2"], ret: ["L1"], temp: None }, StackState { data: ["L0", "L2", "L1"], ret: [], temp: None }, StackState { data: ["L0", "L2", "L1", "L3"], ret: [], temp: None }, StackState { data: ["L0", "L2", "L1"], ret: ["L3"], temp: None }, StackState { data: ["L0", "L2"], ret: ["L3", "L1"], temp: None }, StackState { data: ["L0", "L2"], ret: ["L3", "L1"], temp: None }] }
+from Then
+previous
+  BlockAnalysis { state: StackState { data: ["D4", "V11", "L12", "L33"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, record: [StackState { data: ["D4", "V11", "L12"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L33"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L33"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }] }
+  BlockAnalysis { state: StackState { data: ["D4", "V11", "L12", "L34"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, record: [StackState { data: ["D4", "V11", "L12"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L34"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L34"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }] }
+
+block[0]
+        data: []
+        retn: []
+        temp: ""
+  PushLiteral(3)       examples/loopimpl.fs:3:1 in `main`
+        data: ["L0"]
+        retn: []
+        temp: ""
+  PushLiteral(14)       examples/loopimpl.fs:3:3 in `main`
+        data: ["L0", "L1"]
+        retn: []
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:1 in `main`
+        data: ["L0"]
+        retn: ["L1"]
+        temp: ""
+  PushLiteral(0)       examples/loopimpl.fs:8:4 in `main`
+        data: ["L0", "L2"]
+        retn: ["L1"]
+        temp: ""
+  AltPop       examples/loopimpl.fs:8:6 in `main`
+        data: ["L0", "L2", "L1"]
+        retn: []
+        temp: ""
+  PushLiteral(0)       examples/loopimpl.fs:8:9 in `main`
+        data: ["L0", "L2", "L1", "L3"]
+        retn: []
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:11 in `main`
+        data: ["L0", "L2", "L1"]
+        retn: ["L3"]
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:14 in `main`
+        data: ["L0", "L2"]
+        retn: ["L3", "L1"]
+        temp: ""
+  BranchTarget(0)       examples/loopimpl.fs:8:17 in `main`
+        data: ["L0", "L2"]
+        retn: ["L3", "L1"]
+        temp: ""
+block[1]
+        data: ["D4", "D5"]
+        retn: ["R6", "R7"]
+        temp: ""
+  PushLiteral(65535)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "D5", "L8"]
+        retn: ["R6", "R7"]
+        temp: ""
+  AltPush       src/prelude.rs:6:3 in `main`
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: ""
+  BranchTarget(1)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: ""
+block[2]
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: ""
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D4"]
+        retn: ["R6", "R7", "L8", "D5"]
+        temp: ""
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: []
+        retn: ["R6", "R7", "L8", "D5"]
+        temp: "D4"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D4"]
+        retn: ["R6", "R7", "L8", "D5"]
+        temp: "T9"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: "T9"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D4", "D5", "T9"]
+        retn: ["R6", "R7", "L8"]
+        temp: "T10"
+  AltPop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "D5", "T9", "L8"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  Drop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "D5", "T9"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  Add       examples/loopimpl.fs:8:28 in `main`
+        data: ["D4", "V11"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  PushLiteral(65535)       examples/loopimpl.fs:5:3 in `main`
+        data: ["D4", "V11", "L12"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  AltPush       examples/loopimpl.fs:5:3 in `main`
+        data: ["D4", "V11"]
+        retn: ["R6", "R7", "L12"]
+        temp: "T10"
+  BranchTarget(2)       examples/loopimpl.fs:5:3 in `main`
+        data: ["D4", "V11"]
+        retn: ["R6", "R7", "L12"]
+        temp: "T10"
+block[3]
+        data: ["D4", "V11"]
+        retn: ["R6", "R7", "L12"]
+        temp: "T10"
+  AltPop       examples/loopimpl.fs:5:14 in `myloopimpl`
+        data: ["D4", "V11", "L12"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  AltPop       examples/loopimpl.fs:5:17 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["R6"]
+        temp: "T10"
+  AltPop       examples/loopimpl.fs:5:20 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: []
+        temp: "T10"
+  PushLiteral(65535)       src/prelude.rs:22:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "R6", "L13"]
+        retn: []
+        temp: "T10"
+  AltPush       src/prelude.rs:22:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: ["L13"]
+        temp: "T10"
+  BranchTarget(3)       src/prelude.rs:22:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: ["L13"]
+        temp: "T10"
+block[4]
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: ["L13"]
+        temp: "T10"
+  PushLiteral(1)       src/prelude.rs:22:8 in `1+`
+        data: ["D4", "V11", "L12", "R7", "R6", "L14"]
+        retn: ["L13"]
+        temp: "T10"
+  Add       src/prelude.rs:22:10 in `1+`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L13"]
+        temp: "T10"
+  AltPop       src/prelude.rs:22:12 in `1+`
+        data: ["D4", "V11", "L12", "R7", "V15", "L13"]
+        retn: []
+        temp: "T10"
+  Drop       src/prelude.rs:22:12 in `1+`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: []
+        temp: "T10"
+  PushLiteral(65535)       src/prelude.rs:14:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L16"]
+        retn: []
+        temp: "T10"
+  AltPush       src/prelude.rs:14:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16"]
+        temp: "T10"
+  BranchTarget(4)       src/prelude.rs:14:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16"]
+        temp: "T10"
+block[5]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16"]
+        temp: "T10"
+  PushLiteral(65535)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L17"]
+        retn: ["L16"]
+        temp: "T10"
+  AltPush       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T10"
+  BranchTarget(5)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T10"
+block[6]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T10"
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["L16", "L17", "V15"]
+        temp: "T10"
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: ["D4", "V11", "L12"]
+        retn: ["L16", "L17", "V15"]
+        temp: "R7"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["L16", "L17", "V15"]
+        temp: "T18"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T18"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L17"]
+        temp: "T19"
+  AltPop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "L17"]
+        retn: ["L16"]
+        temp: "T19"
+  Drop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16"]
+        temp: "T19"
+  PushLiteral(65535)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "L20"]
+        retn: ["L16"]
+        temp: "T19"
+  AltPush       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T19"
+  BranchTarget(6)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T19"
+block[7]
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T19"
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L20", "T18"]
+        temp: "T19"
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["L16", "L20", "T18"]
+        temp: "V15"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L20", "T18"]
+        temp: "T21"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T21"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21"]
+        retn: ["L16", "L20"]
+        temp: "T22"
+  AltPop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21", "L20"]
+        retn: ["L16"]
+        temp: "T22"
+  Drop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21"]
+        retn: ["L16"]
+        temp: "T22"
+  AltPop       src/prelude.rs:14:20 in `2dup`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21", "L16"]
+        retn: []
+        temp: "T22"
+  Drop       src/prelude.rs:14:20 in `2dup`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21"]
+        retn: []
+        temp: "T22"
+  AltPush       examples/loopimpl.fs:5:31 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["T21"]
+        temp: "T22"
+  AltPush       examples/loopimpl.fs:5:34 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:26:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L23"]
+        retn: ["T21", "T18"]
+        temp: "T22"
+  AltPush       src/prelude.rs:26:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  BranchTarget(7)       src/prelude.rs:26:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+block[8]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:20:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L24"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  AltPush       src/prelude.rs:20:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  BranchTarget(8)       src/prelude.rs:20:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+block[9]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:19:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L25"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  AltPush       src/prelude.rs:19:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  BranchTarget(9)       src/prelude.rs:19:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+block[10]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:18:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L26"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  AltPush       src/prelude.rs:18:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  BranchTarget(10)       src/prelude.rs:18:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+block[11]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  PushLiteral(-1)       src/prelude.rs:18:12 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V15", "L27"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  Nand       src/prelude.rs:18:15 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V28"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  AltPop       src/prelude.rs:18:20 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V28", "L26"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  Drop       src/prelude.rs:18:20 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V28"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  PushLiteral(1)       src/prelude.rs:19:19 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V28", "L29"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  Add       src/prelude.rs:19:21 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V30"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  AltPop       src/prelude.rs:19:23 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V30", "L25"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  Drop       src/prelude.rs:19:23 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V30"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  Add       src/prelude.rs:20:19 in `-`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  AltPop       src/prelude.rs:20:21 in `-`
+        data: ["D4", "V11", "L12", "V31", "L24"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  Drop       src/prelude.rs:20:21 in `-`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:25:3 in `main`
+        data: ["D4", "V11", "L12", "V31", "L32"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  AltPush       src/prelude.rs:25:3 in `main`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  BranchTarget(11)       src/prelude.rs:25:3 in `main`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[12]
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  JumpIf0(14)       src/prelude.rs:25:8 in `0=`
+        data: ["D4", "V11", "L12"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[13]
+        data: ["D4", "V11", "L12"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  PushLiteral(0)       src/prelude.rs:25:11 in `0=`
+        data: ["D4", "V11", "L12", "L33"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  JumpAlways(15)       src/prelude.rs:25:13 in `0=`
+        data: ["D4", "V11", "L12", "L33"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[15]
+        data: ["D4", "V11", "L12"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  PushLiteral(-1)       src/prelude.rs:25:18 in `0=`
+        data: ["D4", "V11", "L12", "L34"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  BranchTarget(15)       src/prelude.rs:25:21 in `0=`
+        data: ["D4", "V11", "L12", "L34"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[16]
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "R41", "R42"]
+        temp: ""
+  AltPop       src/prelude.rs:25:26 in `0=`
+        data: ["D35", "D36", "D37", "D38", "R42"]
+        retn: ["R39", "R40", "R41"]
+        temp: ""
+  Drop       src/prelude.rs:25:26 in `0=`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "R41"]
+        temp: ""
+  AltPop       src/prelude.rs:26:13 in `=`
+        data: ["D35", "D36", "D37", "D38", "R41"]
+        retn: ["R39", "R40"]
+        temp: ""
+  Drop       src/prelude.rs:26:13 in `=`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40"]
+        temp: ""
+  PushLiteral(65535)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "D37", "D38", "L43"]
+        retn: ["R39", "R40"]
+        temp: ""
+  AltPush       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: ""
+  BranchTarget(16)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: ""
+block[17]
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D35", "D36", "D37"]
+        retn: ["R39", "R40", "L43", "D38"]
+        temp: ""
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: ["D35", "D36"]
+        retn: ["R39", "R40", "L43", "D38"]
+        temp: "D37"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D35", "D36", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: "D37"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D35", "D36", "D38", "D37"]
+        retn: ["R39", "R40", "L43"]
+        temp: "T44"
+  AltPop       src/prelude.rs:5:28 in `swap`
+        data: ["D35", "D36", "D38", "D37", "L43"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  Drop       src/prelude.rs:5:28 in `swap`
+        data: ["D35", "D36", "D38", "D37"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  AltPush       examples/loopimpl.fs:5:44 in `myloopimpl`
+        data: ["D35", "D36", "D38"]
+        retn: ["R39", "R40", "D37"]
+        temp: "T44"
+  AltPop       examples/loopimpl.fs:5:47 in `myloopimpl`
+        data: ["D35", "D36", "D38", "D37"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  Drop       examples/loopimpl.fs:5:47 in `myloopimpl`
+        data: ["D35", "D36", "D38"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  JumpIf0(0)       examples/loopimpl.fs:12:1 in `main`
+        data: ["D35", "D36"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+block[18]
+        data: ["D35", "D36"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  AltPop       examples/loopimpl.fs:12:7 in `main`
+        data: ["D35", "D36", "R40"]
+        retn: ["R39"]
+        temp: "T44"
+  AltPop       examples/loopimpl.fs:12:10 in `main`
+        data: ["D35", "D36", "R40", "R39"]
+        retn: []
+        temp: "T44"
+  Drop       examples/loopimpl.fs:12:13 in `main`
+        data: ["D35", "D36", "R40"]
+        retn: []
+        temp: "T44"
+  Drop       examples/loopimpl.fs:12:18 in `main`
+        data: ["D35", "D36"]
+        retn: []
+        temp: "T44"
+  PushLiteral(65535)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "L45"]
+        retn: []
+        temp: "T44"
+  AltPush       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36"]
+        retn: ["L45"]
+        temp: "T44"
+  BranchTarget(18)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36"]
+        retn: ["L45"]
+        temp: "T44"
+block[19]
+        data: ["D35", "D36"]
+        retn: ["L45"]
+        temp: "T44"
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D35"]
+        retn: ["L45", "D36"]
+        temp: "T44"
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: []
+        retn: ["L45", "D36"]
+        temp: "D35"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D36"]
+        retn: ["L45"]
+        temp: "D35"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D36", "D35"]
+        retn: ["L45"]
+        temp: "T46"
+  AltPop       src/prelude.rs:5:28 in `swap`
+        data: ["D36", "D35", "L45"]
+        retn: []
+        temp: "T46"
+  Drop       src/prelude.rs:5:28 in `swap`
+        data: ["D36", "D35"]
+        retn: []
+        temp: "T46"
+  Drop       examples/loopimpl.fs:12:28 in `main`
+        data: ["D36"]
+        retn: []
+        temp: "T46"
+  Print       examples/loopimpl.fs:14:1 in `main`
+        data: []
+        retn: []
+        temp: "T46"
+  Exit       :0:0 in ``
+        data: []
+        retn: []
+        temp: "T46"
+
+[analyze_graph] registers:
+  L0: RegMeta { literal: Some(3) }
+  L1: RegMeta { literal: Some(14) }
+  L2: RegMeta { literal: Some(0) }
+  L3: RegMeta { literal: Some(0) }
+  D4: RegMeta { literal: None }
+  D5: RegMeta { literal: None }
+  R6: RegMeta { literal: None }
+  R7: RegMeta { literal: None }
+  L8: RegMeta { literal: Some(65535) }
+  T9: RegMeta { literal: None }
+  T10: RegMeta { literal: None }
+  V11: RegMeta { literal: None }
+  L12: RegMeta { literal: Some(65535) }
+  L13: RegMeta { literal: Some(65535) }
+  L14: RegMeta { literal: Some(1) }
+  V15: RegMeta { literal: None }
+  L16: RegMeta { literal: Some(65535) }
+  L17: RegMeta { literal: Some(65535) }
+  T18: RegMeta { literal: None }
+  T19: RegMeta { literal: None }
+  L20: RegMeta { literal: Some(65535) }
+  T21: RegMeta { literal: None }
+  T22: RegMeta { literal: None }
+  L23: RegMeta { literal: Some(65535) }
+  L24: RegMeta { literal: Some(65535) }
+  L25: RegMeta { literal: Some(65535) }
+  L26: RegMeta { literal: Some(65535) }
+  L27: RegMeta { literal: Some(-1) }
+  V28: RegMeta { literal: None }
+  L29: RegMeta { literal: Some(1) }
+  V30: RegMeta { literal: None }
+  V31: RegMeta { literal: None }
+  L32: RegMeta { literal: Some(65535) }
+  L33: RegMeta { literal: Some(0) }
+  L34: RegMeta { literal: Some(-1) }
+  D35: RegMeta { literal: None }
+  D36: RegMeta { literal: None }
+  D37: RegMeta { literal: None }
+  D38: RegMeta { literal: None }
+  R39: RegMeta { literal: None }
+  R40: RegMeta { literal: None }
+  R41: RegMeta { literal: None }
+  R42: RegMeta { literal: None }
+  L43: RegMeta { literal: Some(65535) }
+  T44: RegMeta { literal: None }
+  L45: RegMeta { literal: Some(65535) }
+  T46: RegMeta { literal: None }
+
+
+analysis
+  Some(StackState { data: [], ret: [], temp: None })
+  Some(StackState { data: [], ret: [], temp: Some("T46") })
+data_in:  0
+data_out: 0
+ ret_in:  0
+ ret_out: 0
+[optimize_function] arity: (0, 0, 0, 0)
+[analyze_graph] start
+from Begin
+previous
+  BlockAnalysis { state: StackState { data: ["L0", "L2"], ret: ["L3", "L1"], temp: None }, record: [StackState { data: [], ret: [], temp: None }, StackState { data: ["L0"], ret: [], temp: None }, StackState { data: ["L0", "L1"], ret: [], temp: None }, StackState { data: ["L0"], ret: ["L1"], temp: None }, StackState { data: ["L0", "L2"], ret: ["L1"], temp: None }, StackState { data: ["L0", "L2", "L1"], ret: [], temp: None }, StackState { data: ["L0", "L2", "L1", "L3"], ret: [], temp: None }, StackState { data: ["L0", "L2", "L1"], ret: ["L3"], temp: None }, StackState { data: ["L0", "L2"], ret: ["L3", "L1"], temp: None }, StackState { data: ["L0", "L2"], ret: ["L3", "L1"], temp: None }] }
+from Then
+previous
+  BlockAnalysis { state: StackState { data: ["D4", "V11", "L12", "L33"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, record: [StackState { data: ["D4", "V11", "L12"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L33"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L33"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }] }
+  BlockAnalysis { state: StackState { data: ["D4", "V11", "L12", "L34"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, record: [StackState { data: ["D4", "V11", "L12"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L34"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }, StackState { data: ["D4", "V11", "L12", "L34"], ret: ["T21", "T18", "L23", "L32"], temp: Some("T22") }] }
+
+block[0]
+        data: []
+        retn: []
+        temp: ""
+  PushLiteral(3)       examples/loopimpl.fs:3:1 in `main`
+        data: ["L0"]
+        retn: []
+        temp: ""
+  PushLiteral(14)       examples/loopimpl.fs:3:3 in `main`
+        data: ["L0", "L1"]
+        retn: []
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:1 in `main`
+        data: ["L0"]
+        retn: ["L1"]
+        temp: ""
+  PushLiteral(0)       examples/loopimpl.fs:8:4 in `main`
+        data: ["L0", "L2"]
+        retn: ["L1"]
+        temp: ""
+  AltPop       examples/loopimpl.fs:8:6 in `main`
+        data: ["L0", "L2", "L1"]
+        retn: []
+        temp: ""
+  PushLiteral(0)       examples/loopimpl.fs:8:9 in `main`
+        data: ["L0", "L2", "L1", "L3"]
+        retn: []
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:11 in `main`
+        data: ["L0", "L2", "L1"]
+        retn: ["L3"]
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:14 in `main`
+        data: ["L0", "L2"]
+        retn: ["L3", "L1"]
+        temp: ""
+  BranchTarget(0)       examples/loopimpl.fs:8:17 in `main`
+        data: ["L0", "L2"]
+        retn: ["L3", "L1"]
+        temp: ""
+block[1]
+        data: ["D4", "D5"]
+        retn: ["R6", "R7"]
+        temp: ""
+  PushLiteral(65535)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "D5", "L8"]
+        retn: ["R6", "R7"]
+        temp: ""
+  AltPush       src/prelude.rs:6:3 in `main`
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: ""
+  BranchTarget(1)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: ""
+block[2]
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: ""
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D4"]
+        retn: ["R6", "R7", "L8", "D5"]
+        temp: ""
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: []
+        retn: ["R6", "R7", "L8", "D5"]
+        temp: "D4"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D4"]
+        retn: ["R6", "R7", "L8", "D5"]
+        temp: "T9"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D4", "D5"]
+        retn: ["R6", "R7", "L8"]
+        temp: "T9"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D4", "D5", "T9"]
+        retn: ["R6", "R7", "L8"]
+        temp: "T10"
+  AltPop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "D5", "T9", "L8"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  Drop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "D5", "T9"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  Add       examples/loopimpl.fs:8:28 in `main`
+        data: ["D4", "V11"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  PushLiteral(65535)       examples/loopimpl.fs:5:3 in `main`
+        data: ["D4", "V11", "L12"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  AltPush       examples/loopimpl.fs:5:3 in `main`
+        data: ["D4", "V11"]
+        retn: ["R6", "R7", "L12"]
+        temp: "T10"
+  BranchTarget(2)       examples/loopimpl.fs:5:3 in `main`
+        data: ["D4", "V11"]
+        retn: ["R6", "R7", "L12"]
+        temp: "T10"
+block[3]
+        data: ["D4", "V11"]
+        retn: ["R6", "R7", "L12"]
+        temp: "T10"
+  AltPop       examples/loopimpl.fs:5:14 in `myloopimpl`
+        data: ["D4", "V11", "L12"]
+        retn: ["R6", "R7"]
+        temp: "T10"
+  AltPop       examples/loopimpl.fs:5:17 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["R6"]
+        temp: "T10"
+  AltPop       examples/loopimpl.fs:5:20 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: []
+        temp: "T10"
+  PushLiteral(65535)       src/prelude.rs:22:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "R6", "L13"]
+        retn: []
+        temp: "T10"
+  AltPush       src/prelude.rs:22:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: ["L13"]
+        temp: "T10"
+  BranchTarget(3)       src/prelude.rs:22:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: ["L13"]
+        temp: "T10"
+block[4]
+        data: ["D4", "V11", "L12", "R7", "R6"]
+        retn: ["L13"]
+        temp: "T10"
+  PushLiteral(1)       src/prelude.rs:22:8 in `1+`
+        data: ["D4", "V11", "L12", "R7", "R6", "L14"]
+        retn: ["L13"]
+        temp: "T10"
+  Add       src/prelude.rs:22:10 in `1+`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L13"]
+        temp: "T10"
+  AltPop       src/prelude.rs:22:12 in `1+`
+        data: ["D4", "V11", "L12", "R7", "V15", "L13"]
+        retn: []
+        temp: "T10"
+  Drop       src/prelude.rs:22:12 in `1+`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: []
+        temp: "T10"
+  PushLiteral(65535)       src/prelude.rs:14:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L16"]
+        retn: []
+        temp: "T10"
+  AltPush       src/prelude.rs:14:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16"]
+        temp: "T10"
+  BranchTarget(4)       src/prelude.rs:14:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16"]
+        temp: "T10"
+block[5]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16"]
+        temp: "T10"
+  PushLiteral(65535)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L17"]
+        retn: ["L16"]
+        temp: "T10"
+  AltPush       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T10"
+  BranchTarget(5)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T10"
+block[6]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T10"
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["L16", "L17", "V15"]
+        temp: "T10"
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: ["D4", "V11", "L12"]
+        retn: ["L16", "L17", "V15"]
+        temp: "R7"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["L16", "L17", "V15"]
+        temp: "T18"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L17"]
+        temp: "T18"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L17"]
+        temp: "T19"
+  AltPop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "L17"]
+        retn: ["L16"]
+        temp: "T19"
+  Drop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16"]
+        temp: "T19"
+  PushLiteral(65535)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "L20"]
+        retn: ["L16"]
+        temp: "T19"
+  AltPush       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T19"
+  BranchTarget(6)       src/prelude.rs:6:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T19"
+block[7]
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T19"
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L20", "T18"]
+        temp: "T19"
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: ["D4", "V11", "L12", "R7"]
+        retn: ["L16", "L20", "T18"]
+        temp: "V15"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["L16", "L20", "T18"]
+        temp: "T21"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["L16", "L20"]
+        temp: "T21"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21"]
+        retn: ["L16", "L20"]
+        temp: "T22"
+  AltPop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21", "L20"]
+        retn: ["L16"]
+        temp: "T22"
+  Drop       src/prelude.rs:6:34 in `over`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21"]
+        retn: ["L16"]
+        temp: "T22"
+  AltPop       src/prelude.rs:14:20 in `2dup`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21", "L16"]
+        retn: []
+        temp: "T22"
+  Drop       src/prelude.rs:14:20 in `2dup`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18", "T21"]
+        retn: []
+        temp: "T22"
+  AltPush       examples/loopimpl.fs:5:31 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7", "V15", "T18"]
+        retn: ["T21"]
+        temp: "T22"
+  AltPush       examples/loopimpl.fs:5:34 in `myloopimpl`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:26:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L23"]
+        retn: ["T21", "T18"]
+        temp: "T22"
+  AltPush       src/prelude.rs:26:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  BranchTarget(7)       src/prelude.rs:26:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+block[8]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:20:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L24"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  AltPush       src/prelude.rs:20:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  BranchTarget(8)       src/prelude.rs:20:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+block[9]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:19:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L25"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  AltPush       src/prelude.rs:19:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  BranchTarget(9)       src/prelude.rs:19:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+block[10]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:18:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15", "L26"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  AltPush       src/prelude.rs:18:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  BranchTarget(10)       src/prelude.rs:18:3 in `main`
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+block[11]
+        data: ["D4", "V11", "L12", "R7", "V15"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  PushLiteral(-1)       src/prelude.rs:18:12 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V15", "L27"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  Nand       src/prelude.rs:18:15 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V28"]
+        retn: ["T21", "T18", "L23", "L24", "L25", "L26"]
+        temp: "T22"
+  AltPop       src/prelude.rs:18:20 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V28", "L26"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  Drop       src/prelude.rs:18:20 in `invert`
+        data: ["D4", "V11", "L12", "R7", "V28"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  PushLiteral(1)       src/prelude.rs:19:19 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V28", "L29"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  Add       src/prelude.rs:19:21 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V30"]
+        retn: ["T21", "T18", "L23", "L24", "L25"]
+        temp: "T22"
+  AltPop       src/prelude.rs:19:23 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V30", "L25"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  Drop       src/prelude.rs:19:23 in `negate`
+        data: ["D4", "V11", "L12", "R7", "V30"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  Add       src/prelude.rs:20:19 in `-`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L24"]
+        temp: "T22"
+  AltPop       src/prelude.rs:20:21 in `-`
+        data: ["D4", "V11", "L12", "V31", "L24"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  Drop       src/prelude.rs:20:21 in `-`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  PushLiteral(65535)       src/prelude.rs:25:3 in `main`
+        data: ["D4", "V11", "L12", "V31", "L32"]
+        retn: ["T21", "T18", "L23"]
+        temp: "T22"
+  AltPush       src/prelude.rs:25:3 in `main`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  BranchTarget(11)       src/prelude.rs:25:3 in `main`
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[12]
+        data: ["D4", "V11", "L12", "V31"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  JumpIf0(14)       src/prelude.rs:25:8 in `0=`
+        data: ["D4", "V11", "L12"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[13]
+        data: ["D4", "V11", "L12"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  PushLiteral(0)       src/prelude.rs:25:11 in `0=`
+        data: ["D4", "V11", "L12", "L33"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  JumpAlways(15)       src/prelude.rs:25:13 in `0=`
+        data: ["D4", "V11", "L12", "L33"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[15]
+        data: ["D4", "V11", "L12"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  PushLiteral(-1)       src/prelude.rs:25:18 in `0=`
+        data: ["D4", "V11", "L12", "L34"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+  BranchTarget(15)       src/prelude.rs:25:21 in `0=`
+        data: ["D4", "V11", "L12", "L34"]
+        retn: ["T21", "T18", "L23", "L32"]
+        temp: "T22"
+block[16]
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "R41", "R42"]
+        temp: ""
+  AltPop       src/prelude.rs:25:26 in `0=`
+        data: ["D35", "D36", "D37", "D38", "R42"]
+        retn: ["R39", "R40", "R41"]
+        temp: ""
+  Drop       src/prelude.rs:25:26 in `0=`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "R41"]
+        temp: ""
+  AltPop       src/prelude.rs:26:13 in `=`
+        data: ["D35", "D36", "D37", "D38", "R41"]
+        retn: ["R39", "R40"]
+        temp: ""
+  Drop       src/prelude.rs:26:13 in `=`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40"]
+        temp: ""
+  PushLiteral(65535)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "D37", "D38", "L43"]
+        retn: ["R39", "R40"]
+        temp: ""
+  AltPush       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: ""
+  BranchTarget(16)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: ""
+block[17]
+        data: ["D35", "D36", "D37", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D35", "D36", "D37"]
+        retn: ["R39", "R40", "L43", "D38"]
+        temp: ""
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: ["D35", "D36"]
+        retn: ["R39", "R40", "L43", "D38"]
+        temp: "D37"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D35", "D36", "D38"]
+        retn: ["R39", "R40", "L43"]
+        temp: "D37"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D35", "D36", "D38", "D37"]
+        retn: ["R39", "R40", "L43"]
+        temp: "T44"
+  AltPop       src/prelude.rs:5:28 in `swap`
+        data: ["D35", "D36", "D38", "D37", "L43"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  Drop       src/prelude.rs:5:28 in `swap`
+        data: ["D35", "D36", "D38", "D37"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  AltPush       examples/loopimpl.fs:5:44 in `myloopimpl`
+        data: ["D35", "D36", "D38"]
+        retn: ["R39", "R40", "D37"]
+        temp: "T44"
+  AltPop       examples/loopimpl.fs:5:47 in `myloopimpl`
+        data: ["D35", "D36", "D38", "D37"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  Drop       examples/loopimpl.fs:5:47 in `myloopimpl`
+        data: ["D35", "D36", "D38"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  JumpIf0(0)       examples/loopimpl.fs:12:1 in `main`
+        data: ["D35", "D36"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+block[18]
+        data: ["D35", "D36"]
+        retn: ["R39", "R40"]
+        temp: "T44"
+  AltPop       examples/loopimpl.fs:12:7 in `main`
+        data: ["D35", "D36", "R40"]
+        retn: ["R39"]
+        temp: "T44"
+  AltPop       examples/loopimpl.fs:12:10 in `main`
+        data: ["D35", "D36", "R40", "R39"]
+        retn: []
+        temp: "T44"
+  Drop       examples/loopimpl.fs:12:13 in `main`
+        data: ["D35", "D36", "R40"]
+        retn: []
+        temp: "T44"
+  Drop       examples/loopimpl.fs:12:18 in `main`
+        data: ["D35", "D36"]
+        retn: []
+        temp: "T44"
+  PushLiteral(65535)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36", "L45"]
+        retn: []
+        temp: "T44"
+  AltPush       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36"]
+        retn: ["L45"]
+        temp: "T44"
+  BranchTarget(18)       src/prelude.rs:5:3 in `main`
+        data: ["D35", "D36"]
+        retn: ["L45"]
+        temp: "T44"
+block[19]
+        data: ["D35", "D36"]
+        retn: ["L45"]
+        temp: "T44"
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D35"]
+        retn: ["L45", "D36"]
+        temp: "T44"
+  StoreTemp       src/prelude.rs:5:13 in `swap`
+        data: []
+        retn: ["L45", "D36"]
+        temp: "D35"
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D36"]
+        retn: ["L45"]
+        temp: "D35"
+  LoadTemp       src/prelude.rs:5:22 in `swap`
+        data: ["D36", "D35"]
+        retn: ["L45"]
+        temp: "T46"
+  AltPop       src/prelude.rs:5:28 in `swap`
+        data: ["D36", "D35", "L45"]
+        retn: []
+        temp: "T46"
+  Drop       src/prelude.rs:5:28 in `swap`
+        data: ["D36", "D35"]
+        retn: []
+        temp: "T46"
+  Drop       examples/loopimpl.fs:12:28 in `main`
+        data: ["D36"]
+        retn: []
+        temp: "T46"
+  Print       examples/loopimpl.fs:14:1 in `main`
+        data: []
+        retn: []
+        temp: "T46"
+  Exit       :0:0 in ``
+        data: []
+        retn: []
+        temp: "T46"
+
+[analyze_graph] registers:
+  L0: RegMeta { literal: Some(3) }
+  L1: RegMeta { literal: Some(14) }
+  L2: RegMeta { literal: Some(0) }
+  L3: RegMeta { literal: Some(0) }
+  D4: RegMeta { literal: None }
+  D5: RegMeta { literal: None }
+  R6: RegMeta { literal: None }
+  R7: RegMeta { literal: None }
+  L8: RegMeta { literal: Some(65535) }
+  T9: RegMeta { literal: None }
+  T10: RegMeta { literal: None }
+  V11: RegMeta { literal: None }
+  L12: RegMeta { literal: Some(65535) }
+  L13: RegMeta { literal: Some(65535) }
+  L14: RegMeta { literal: Some(1) }
+  V15: RegMeta { literal: None }
+  L16: RegMeta { literal: Some(65535) }
+  L17: RegMeta { literal: Some(65535) }
+  T18: RegMeta { literal: None }
+  T19: RegMeta { literal: None }
+  L20: RegMeta { literal: Some(65535) }
+  T21: RegMeta { literal: None }
+  T22: RegMeta { literal: None }
+  L23: RegMeta { literal: Some(65535) }
+  L24: RegMeta { literal: Some(65535) }
+  L25: RegMeta { literal: Some(65535) }
+  L26: RegMeta { literal: Some(65535) }
+  L27: RegMeta { literal: Some(-1) }
+  V28: RegMeta { literal: None }
+  L29: RegMeta { literal: Some(1) }
+  V30: RegMeta { literal: None }
+  V31: RegMeta { literal: None }
+  L32: RegMeta { literal: Some(65535) }
+  L33: RegMeta { literal: Some(0) }
+  L34: RegMeta { literal: Some(-1) }
+  D35: RegMeta { literal: None }
+  D36: RegMeta { literal: None }
+  D37: RegMeta { literal: None }
+  D38: RegMeta { literal: None }
+  R39: RegMeta { literal: None }
+  R40: RegMeta { literal: None }
+  R41: RegMeta { literal: None }
+  R42: RegMeta { literal: None }
+  L43: RegMeta { literal: Some(65535) }
+  T44: RegMeta { literal: None }
+  L45: RegMeta { literal: Some(65535) }
+  T46: RegMeta { literal: None }
+
+
+[analyze_graph] program: 125 commands (original)
+  block[0]
+    PushLiteral(3)
+    PushLiteral(14)
+    AltPush
+    PushLiteral(0)
+    AltPop
+    PushLiteral(0)
+    AltPush
+    AltPush
+    BranchTarget(0)
+  block[1]
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(1)
+  block[2]
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    AltPop
+    Drop
+    Add
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(2)
+  block[3]
+    AltPop
+    AltPop
+    AltPop
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(3)
+  block[4]
+    PushLiteral(1)
+    Add
+    AltPop
+    Drop
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(4)
+  block[5]
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(5)
+  block[6]
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    AltPop
+    Drop
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(6)
+  block[7]
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    AltPop
+    Drop
+    AltPop
+    Drop
+    AltPush
+    AltPush
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(7)
+  block[8]
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(8)
+  block[9]
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(9)
+  block[10]
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(10)
+  block[11]
+    PushLiteral(-1)
+    Nand
+    AltPop
+    Drop
+    PushLiteral(1)
+    Add
+    AltPop
+    Drop
+    Add
+    AltPop
+    Drop
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(11)
+  block[12]
+    JumpIf0(14)
+  block[13]
+    PushLiteral(0)
+    JumpAlways(15)
+  block[14]
+    BranchTarget(14)
+  block[15]
+    PushLiteral(-1)
+    BranchTarget(15)
+  block[16]
+    AltPop
+    Drop
+    AltPop
+    Drop
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(16)
+  block[17]
+    AltPush
+    StoreTemp
+    AltPop
+    LoadTemp
+    AltPop
+    Drop
+    AltPush
+    AltPop
+    Drop
+    JumpIf0(0)
+  block[18]
+    AltPop
+    AltPop
+    Drop
+    Drop
+    PushLiteral(65535)
+    AltPush
+    BranchTarget(18)
+  block[19]
+    AltPush
+    StoreTemp
+    AltPop
+    LoadTemp
+    AltPop
+    Drop
+    Drop
+    Print
+    Exit
+
+[analyze_graph] propagate dependencies backward.
+  block[19]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4"}
+  block[18]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18"}
+  block[17]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12"}
+  block[16]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32"}
+  block[15]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32"}
+  block[13]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32"}
+  block[12]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32"}
+  block[11]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26"}
+  block[10]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26"}
+  block[9]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26"}
+  block[8]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "T21", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26"}
+  block[7]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21"}
+  block[6]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10"}
+  block[5]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10"}
+  block[4]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10", "L13"}
+  block[3]:
+    blacklist: {"T46", "D35", "L45", "T44", "D4", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10", "L13"}
+  block[2]:
+    blacklist: {"T46", "D35", "L45", "T44", "L8", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10", "L13", "D4"}
+  block[1]:
+    blacklist: {"T46", "D35", "L45", "T44", "L8", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10", "L13", "D4"}
+  block[0]:
+    blacklist: {"T46", "D35", "L45", "T44", "L8", "R40", "R39", "L0", "L20", "T18", "D37", "L43", "L12", "R41", "R42", "L23", "L32", "L24", "L25", "L26", "L16", "T19", "T21", "L17", "T10", "L13", "D4", "L1", "R7"}
+
+[analyze_graph] 56 commands (after optimization)
+  block[0]
+    PushLiteral(0)
+    PushLiteral(14)
+    PushLiteral(0)
+    AltPush
+    AltPush
+    BranchTarget(0)
+  block[1]
+    BranchTarget(1)
+  block[2]
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    LoadTemp
+    Add
+    BranchTarget(2)
+  block[3]
+    AltPop
+    AltPop
+    BranchTarget(3)
+  block[4]
+    PushLiteral(1)
+    Add
+    BranchTarget(4)
+  block[5]
+    BranchTarget(5)
+  block[6]
+    AltPush
+    StoreTemp
+    LoadTemp
+    AltPop
+    BranchTarget(6)
+  block[7]
+    StoreTemp
+    LoadTemp
+    LoadTemp
+    BranchTarget(7)
+  block[8]
+    BranchTarget(8)
+  block[9]
+    BranchTarget(9)
+  block[10]
+    BranchTarget(10)
+  block[11]
+    PushLiteral(-1)
+    Nand
+    PushLiteral(1)
+    Add
+    Add
+    BranchTarget(11)
+  block[12]
+    JumpIf0(14)
+  block[13]
+    PushLiteral(0)
+    JumpAlways(15)
+  block[14]
+    BranchTarget(14)
+  block[15]
+    PushLiteral(-1)
+    BranchTarget(15)
+  block[16]
+    BranchTarget(16)
+  block[17]
+    AltPush
+    AltPop
+    Drop
+    JumpIf0(0)
+  block[18]
+    BranchTarget(18)
+  block[19]
+    AltPush
+    AltPop
+    Drop
+    Print
+    Exit
+
+program:
+  block[0] with 6 entries:
+    PushLiteral(0)                 examples/loopimpl.fs:8:4 in `main`
+    PushLiteral(14)                examples/loopimpl.fs:8:6 in `main`
+    PushLiteral(0)                 examples/loopimpl.fs:8:9 in `main`
+    AltPush                        examples/loopimpl.fs:8:11 in `main`
+    AltPush                        examples/loopimpl.fs:8:14 in `main`
+    BranchTarget(0)                examples/loopimpl.fs:8:17 in `main`
+  block[1] with 1 entries:
+    BranchTarget(1)                src/prelude.rs:6:3 in `main`
+  block[2] with 7 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    Add                            examples/loopimpl.fs:8:28 in `main`
+    BranchTarget(2)                examples/loopimpl.fs:5:3 in `main`
+  block[3] with 3 entries:
+    AltPop                         examples/loopimpl.fs:5:17 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:20 in `myloopimpl`
+    BranchTarget(3)                src/prelude.rs:22:3 in `main`
+  block[4] with 3 entries:
+    PushLiteral(1)                 src/prelude.rs:22:8 in `1+`
+    Add                            src/prelude.rs:22:10 in `1+`
+    BranchTarget(4)                src/prelude.rs:14:3 in `main`
+  block[5] with 1 entries:
+    BranchTarget(5)                src/prelude.rs:6:3 in `main`
+  block[6] with 5 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    BranchTarget(6)                src/prelude.rs:6:3 in `main`
+  block[7] with 4 entries:
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    BranchTarget(7)                src/prelude.rs:26:3 in `main`
+  block[8] with 1 entries:
+    BranchTarget(8)                src/prelude.rs:20:3 in `main`
+  block[9] with 1 entries:
+    BranchTarget(9)                src/prelude.rs:19:3 in `main`
+  block[10] with 1 entries:
+    BranchTarget(10)               src/prelude.rs:18:3 in `main`
+  block[11] with 6 entries:
+    PushLiteral(-1)                src/prelude.rs:18:12 in `invert`
+    Nand                           src/prelude.rs:18:15 in `invert`
+    PushLiteral(1)                 src/prelude.rs:19:19 in `negate`
+    Add                            src/prelude.rs:19:21 in `negate`
+    Add                            src/prelude.rs:20:19 in `-`
+    BranchTarget(11)               src/prelude.rs:25:3 in `main`
+  block[12] with 1 entries:
+    JumpIf0(14)                    src/prelude.rs:25:8 in `0=`
+  block[13] with 2 entries:
+    PushLiteral(0)                 src/prelude.rs:25:11 in `0=`
+    JumpAlways(15)                 src/prelude.rs:25:13 in `0=`
+  block[14] with 1 entries:
+    BranchTarget(14)               src/prelude.rs:25:13 in `0=`
+  block[15] with 2 entries:
+    PushLiteral(-1)                src/prelude.rs:25:18 in `0=`
+    BranchTarget(15)               src/prelude.rs:25:21 in `0=`
+  block[16] with 1 entries:
+    BranchTarget(16)               src/prelude.rs:5:3 in `main`
+  block[17] with 4 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    Drop                           examples/loopimpl.fs:5:47 in `myloopimpl`
+    JumpIf0(0)                     examples/loopimpl.fs:12:1 in `main`
+  block[18] with 1 entries:
+    BranchTarget(18)               src/prelude.rs:5:3 in `main`
+  block[19] with 5 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    Drop                           examples/loopimpl.fs:12:28 in `main`
+    Print                          examples/loopimpl.fs:14:1 in `main`
+    Exit                           :0:0 in ``
+
+
+program:
+  block[0] with 6 entries:
+    PushLiteral(0)                 examples/loopimpl.fs:8:4 in `main`
+    PushLiteral(14)                examples/loopimpl.fs:8:6 in `main`
+    PushLiteral(0)                 examples/loopimpl.fs:8:9 in `main`
+    AltPush                        examples/loopimpl.fs:8:11 in `main`
+    AltPush                        examples/loopimpl.fs:8:14 in `main`
+    BranchTarget(0)                examples/loopimpl.fs:8:17 in `main`
+  block[1] with 1 entries:
+    BranchTarget(1)                src/prelude.rs:6:3 in `main`
+  block[2] with 7 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    Add                            examples/loopimpl.fs:8:28 in `main`
+    BranchTarget(2)                examples/loopimpl.fs:5:3 in `main`
+  block[3] with 3 entries:
+    AltPop                         examples/loopimpl.fs:5:17 in `myloopimpl`
+    AltPop                         examples/loopimpl.fs:5:20 in `myloopimpl`
+    BranchTarget(3)                src/prelude.rs:22:3 in `main`
+  block[4] with 3 entries:
+    PushLiteral(1)                 src/prelude.rs:22:8 in `1+`
+    Add                            src/prelude.rs:22:10 in `1+`
+    BranchTarget(4)                src/prelude.rs:14:3 in `main`
+  block[5] with 1 entries:
+    BranchTarget(5)                src/prelude.rs:6:3 in `main`
+  block[6] with 5 entries:
+    AltPush                        src/prelude.rs:6:10 in `over`
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    AltPop                         src/prelude.rs:6:25 in `over`
+    BranchTarget(6)                src/prelude.rs:6:3 in `main`
+  block[7] with 4 entries:
+    StoreTemp                      src/prelude.rs:6:13 in `over`
+    LoadTemp                       src/prelude.rs:6:19 in `over`
+    LoadTemp                       src/prelude.rs:6:28 in `over`
+    BranchTarget(7)                src/prelude.rs:26:3 in `main`
+  block[8] with 1 entries:
+    BranchTarget(8)                src/prelude.rs:20:3 in `main`
+  block[9] with 1 entries:
+    BranchTarget(9)                src/prelude.rs:19:3 in `main`
+  block[10] with 1 entries:
+    BranchTarget(10)               src/prelude.rs:18:3 in `main`
+  block[11] with 6 entries:
+    PushLiteral(-1)                src/prelude.rs:18:12 in `invert`
+    Nand                           src/prelude.rs:18:15 in `invert`
+    PushLiteral(1)                 src/prelude.rs:19:19 in `negate`
+    Add                            src/prelude.rs:19:21 in `negate`
+    Add                            src/prelude.rs:20:19 in `-`
+    BranchTarget(11)               src/prelude.rs:25:3 in `main`
+  block[12] with 1 entries:
+    JumpIf0(14)                    src/prelude.rs:25:8 in `0=`
+  block[13] with 2 entries:
+    PushLiteral(0)                 src/prelude.rs:25:11 in `0=`
+    JumpAlways(15)                 src/prelude.rs:25:13 in `0=`
+  block[14] with 1 entries:
+    BranchTarget(14)               src/prelude.rs:25:13 in `0=`
+  block[15] with 2 entries:
+    PushLiteral(-1)                src/prelude.rs:25:18 in `0=`
+    BranchTarget(15)               src/prelude.rs:25:21 in `0=`
+  block[16] with 1 entries:
+    BranchTarget(16)               src/prelude.rs:5:3 in `main`
+  block[17] with 4 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    Drop                           examples/loopimpl.fs:5:47 in `myloopimpl`
+    JumpIf0(0)                     examples/loopimpl.fs:12:1 in `main`
+  block[18] with 1 entries:
+    BranchTarget(18)               src/prelude.rs:5:3 in `main`
+  block[19] with 5 entries:
+    AltPush                        src/prelude.rs:5:10 in `swap`
+    AltPop                         src/prelude.rs:5:19 in `swap`
+    Drop                           examples/loopimpl.fs:12:28 in `main`
+    Print                          examples/loopimpl.fs:14:1 in `main`
+    Exit                           :0:0 in ``
+
+
+[analyze_graph] start
+from Begin
+previous
+  BlockAnalysis { state: StackState { data: ["L0"], ret: ["L2", "L1"], temp: None }, record: [StackState { data: [], ret: [], temp: None }, StackState { data: ["L0"], ret: [], temp: None }, StackState { data: ["L0", "L1"], ret: [], temp: None }, StackState { data: ["L0", "L1", "L2"], ret: [], temp: None }, StackState { data: ["L0", "L1"], ret: ["L2"], temp: None }, StackState { data: ["L0"], ret: ["L2", "L1"], temp: None }, StackState { data: ["L0"], ret: ["L2", "L1"], temp: None }] }
+from Then
+previous
+  BlockAnalysis { state: StackState { data: ["D6", "V9", "R5", "L20"], ret: [], temp: Some("T14") }, record: [StackState { data: ["D6", "V9", "R5"], ret: [], temp: Some("T14") }, StackState { data: ["D6", "V9", "R5", "L20"], ret: [], temp: Some("T14") }, StackState { data: ["D6", "V9", "R5", "L20"], ret: [], temp: Some("T14") }] }
+  BlockAnalysis { state: StackState { data: ["D6", "V9", "R5", "L21"], ret: [], temp: Some("T14") }, record: [StackState { data: ["D6", "V9", "R5"], ret: [], temp: Some("T14") }, StackState { data: ["D6", "V9", "R5", "L21"], ret: [], temp: Some("T14") }, StackState { data: ["D6", "V9", "R5", "L21"], ret: [], temp: Some("T14") }] }
+
+block[0]
+        data: ["D6"]
+        retn: []
+        temp: ""
+  PushLiteral(0)       examples/loopimpl.fs:8:4 in `main`
+        data: ["D6", "L0"]
+        retn: []
+        temp: ""
+  PushLiteral(14)       examples/loopimpl.fs:8:6 in `main`
+        data: ["D6", "L0", "L1"]
+        retn: []
+        temp: ""
+  PushLiteral(0)       examples/loopimpl.fs:8:9 in `main`
+        data: ["D6", "L0", "L1", "L2"]
+        retn: []
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:11 in `main`
+        data: ["D6", "L0", "L1"]
+        retn: ["L2"]
+        temp: ""
+  AltPush       examples/loopimpl.fs:8:14 in `main`
+        data: ["D6", "L0"]
+        retn: ["L2", "L1"]
+        temp: ""
+  BranchTarget(0)       examples/loopimpl.fs:8:17 in `main`
+        data: ["D6", "L0"]
+        retn: ["L2", "L1"]
+        temp: ""
+block[1]
+        data: ["D6", "D3"]
+        retn: ["R4", "R5"]
+        temp: ""
+  BranchTarget(1)       src/prelude.rs:6:3 in `main`
+        data: ["D6", "D3"]
+        retn: ["R4", "R5"]
+        temp: ""
+block[2]
+        data: ["D6", "D3"]
+        retn: ["R4", "R5"]
+        temp: ""
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D6"]
+        retn: ["R4", "R5", "D3"]
+        temp: ""
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: []
+        retn: ["R4", "R5", "D3"]
+        temp: "D6"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D6"]
+        retn: ["R4", "R5", "D3"]
+        temp: "T7"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D6", "D3"]
+        retn: ["R4", "R5"]
+        temp: "T7"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D6", "D3", "T7"]
+        retn: ["R4", "R5"]
+        temp: "T8"
+  Add       examples/loopimpl.fs:8:28 in `main`
+        data: ["D6", "V9"]
+        retn: ["R4", "R5"]
+        temp: "T8"
+  BranchTarget(2)       examples/loopimpl.fs:5:3 in `main`
+        data: ["D6", "V9"]
+        retn: ["R4", "R5"]
+        temp: "T8"
+block[3]
+        data: ["D6", "V9"]
+        retn: ["R4", "R5"]
+        temp: "T8"
+  AltPop       examples/loopimpl.fs:5:17 in `myloopimpl`
+        data: ["D6", "V9", "R5"]
+        retn: ["R4"]
+        temp: "T8"
+  AltPop       examples/loopimpl.fs:5:20 in `myloopimpl`
+        data: ["D6", "V9", "R5", "R4"]
+        retn: []
+        temp: "T8"
+  BranchTarget(3)       src/prelude.rs:22:3 in `main`
+        data: ["D6", "V9", "R5", "R4"]
+        retn: []
+        temp: "T8"
+block[4]
+        data: ["D6", "V9", "R5", "R4"]
+        retn: []
+        temp: "T8"
+  PushLiteral(1)       src/prelude.rs:22:8 in `1+`
+        data: ["D6", "V9", "R5", "R4", "L10"]
+        retn: []
+        temp: "T8"
+  Add       src/prelude.rs:22:10 in `1+`
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T8"
+  BranchTarget(4)       src/prelude.rs:14:3 in `main`
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T8"
+block[5]
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T8"
+  BranchTarget(5)       src/prelude.rs:6:3 in `main`
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T8"
+block[6]
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T8"
+  AltPush       src/prelude.rs:6:10 in `over`
+        data: ["D6", "V9", "R5"]
+        retn: ["V11"]
+        temp: "T8"
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: ["D6", "V9"]
+        retn: ["V11"]
+        temp: "R5"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D6", "V9", "R5"]
+        retn: ["V11"]
+        temp: "T12"
+  AltPop       src/prelude.rs:6:25 in `over`
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T12"
+  BranchTarget(6)       src/prelude.rs:6:3 in `main`
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T12"
+block[7]
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T12"
+  StoreTemp       src/prelude.rs:6:13 in `over`
+        data: ["D6", "V9", "R5"]
+        retn: []
+        temp: "V11"
+  LoadTemp       src/prelude.rs:6:19 in `over`
+        data: ["D6", "V9", "R5", "V11"]
+        retn: []
+        temp: "T13"
+  LoadTemp       src/prelude.rs:6:28 in `over`
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+  BranchTarget(7)       src/prelude.rs:26:3 in `main`
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+block[8]
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+  BranchTarget(8)       src/prelude.rs:20:3 in `main`
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+block[9]
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+  BranchTarget(9)       src/prelude.rs:19:3 in `main`
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+block[10]
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+  BranchTarget(10)       src/prelude.rs:18:3 in `main`
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+block[11]
+        data: ["D6", "V9", "R5", "V11", "T13"]
+        retn: []
+        temp: "T14"
+  PushLiteral(-1)       src/prelude.rs:18:12 in `invert`
+        data: ["D6", "V9", "R5", "V11", "T13", "L15"]
+        retn: []
+        temp: "T14"
+  Nand       src/prelude.rs:18:15 in `invert`
+        data: ["D6", "V9", "R5", "V11", "V16"]
+        retn: []
+        temp: "T14"
+  PushLiteral(1)       src/prelude.rs:19:19 in `negate`
+        data: ["D6", "V9", "R5", "V11", "V16", "L17"]
+        retn: []
+        temp: "T14"
+  Add       src/prelude.rs:19:21 in `negate`
+        data: ["D6", "V9", "R5", "V11", "V18"]
+        retn: []
+        temp: "T14"
+  Add       src/prelude.rs:20:19 in `-`
+        data: ["D6", "V9", "R5", "V19"]
+        retn: []
+        temp: "T14"
+  BranchTarget(11)       src/prelude.rs:25:3 in `main`
+        data: ["D6", "V9", "R5", "V19"]
+        retn: []
+        temp: "T14"
+block[12]
+        data: ["D6", "V9", "R5", "V19"]
+        retn: []
+        temp: "T14"
+  JumpIf0(14)       src/prelude.rs:25:8 in `0=`
+        data: ["D6", "V9", "R5"]
+        retn: []
+        temp: "T14"
+block[13]
+        data: ["D6", "V9", "R5"]
+        retn: []
+        temp: "T14"
+  PushLiteral(0)       src/prelude.rs:25:11 in `0=`
+        data: ["D6", "V9", "R5", "L20"]
+        retn: []
+        temp: "T14"
+  JumpAlways(15)       src/prelude.rs:25:13 in `0=`
+        data: ["D6", "V9", "R5", "L20"]
+        retn: []
+        temp: "T14"
+block[15]
+        data: ["D6", "V9", "R5"]
+        retn: []
+        temp: "T14"
+  PushLiteral(-1)       src/prelude.rs:25:18 in `0=`
+        data: ["D6", "V9", "R5", "L21"]
+        retn: []
+        temp: "T14"
+  BranchTarget(15)       src/prelude.rs:25:21 in `0=`
+        data: ["D6", "V9", "R5", "L21"]
+        retn: []
+        temp: "T14"
+block[16]
+        data: ["D22", "D23", "D24", "D25"]
+        retn: []
+        temp: ""
+  BranchTarget(16)       src/prelude.rs:5:3 in `main`
+        data: ["D22", "D23", "D24", "D25"]
+        retn: []
+        temp: ""
+block[17]
+        data: ["D22", "D23", "D24", "D25"]
+        retn: []
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D22", "D23", "D24"]
+        retn: ["D25"]
+        temp: ""
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D22", "D23", "D24", "D25"]
+        retn: []
+        temp: ""
+  Drop       examples/loopimpl.fs:5:47 in `myloopimpl`
+        data: ["D22", "D23", "D24"]
+        retn: []
+        temp: ""
+  JumpIf0(0)       examples/loopimpl.fs:12:1 in `main`
+        data: ["D22", "D23"]
+        retn: []
+        temp: ""
+block[18]
+        data: ["D22", "D23"]
+        retn: []
+        temp: ""
+  BranchTarget(18)       src/prelude.rs:5:3 in `main`
+        data: ["D22", "D23"]
+        retn: []
+        temp: ""
+block[19]
+        data: ["D22", "D23"]
+        retn: []
+        temp: ""
+  AltPush       src/prelude.rs:5:10 in `swap`
+        data: ["D22"]
+        retn: ["D23"]
+        temp: ""
+  AltPop       src/prelude.rs:5:19 in `swap`
+        data: ["D22", "D23"]
+        retn: []
+        temp: ""
+  Drop       examples/loopimpl.fs:12:28 in `main`
+        data: ["D22"]
+        retn: []
+        temp: ""
+  Print       examples/loopimpl.fs:14:1 in `main`
+        data: []
+        retn: []
+        temp: ""
+  Exit       :0:0 in ``
+        data: []
+        retn: []
+        temp: ""
+
+[analyze_graph] registers:
+  L0: RegMeta { literal: Some(0) }
+  L1: RegMeta { literal: Some(14) }
+  L2: RegMeta { literal: Some(0) }
+  D3: RegMeta { literal: None }
+  R4: RegMeta { literal: None }
+  R5: RegMeta { literal: None }
+  D6: RegMeta { literal: None }
+  T7: RegMeta { literal: None }
+  T8: RegMeta { literal: None }
+  V9: RegMeta { literal: None }
+  L10: RegMeta { literal: Some(1) }
+  V11: RegMeta { literal: None }
+  T12: RegMeta { literal: None }
+  T13: RegMeta { literal: None }
+  T14: RegMeta { literal: None }
+  L15: RegMeta { literal: Some(-1) }
+  V16: RegMeta { literal: None }
+  L17: RegMeta { literal: Some(1) }
+  V18: RegMeta { literal: None }
+  V19: RegMeta { literal: None }
+  L20: RegMeta { literal: Some(0) }
+  L21: RegMeta { literal: Some(-1) }
+  D22: RegMeta { literal: None }
+  D23: RegMeta { literal: None }
+  D24: RegMeta { literal: None }
+  D25: RegMeta { literal: None }
+
+
+analysis
+  Some(StackState { data: ["D6"], ret: [], temp: None })
+  Some(StackState { data: [], ret: [], temp: None })
+data_in:  1
+data_out: 0
+ ret_in:  0
+ ret_out: 0
+[optimize_function] arity: (1, 0, 0, 0)
+thread 'main' panicked at 'assertion failed: `(left == right)`
+  left: `(0, 0, 0, 0)`,
+ right: `(1, 0, 0, 0)`: arity changed during optimization', src/optimize.rs:284:5
+stack backtrace:
+   0: backtrace::backtrace::libunwind::trace
+             at /Users/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.40/src/backtrace/libunwind.rs:88
+   1: backtrace::backtrace::trace_unsynchronized
+             at /Users/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.40/src/backtrace/mod.rs:66
+   2: std::sys_common::backtrace::_print_fmt
+             at src/libstd/sys_common/backtrace.rs:77
+   3: <std::sys_common::backtrace::_print::DisplayBacktrace as core::fmt::Display>::fmt
+             at src/libstd/sys_common/backtrace.rs:59
+   4: core::fmt::write
+             at src/libcore/fmt/mod.rs:1052
+   5: std::io::Write::write_fmt
+             at src/libstd/io/mod.rs:1426
+   6: std::sys_common::backtrace::_print
+             at src/libstd/sys_common/backtrace.rs:62
+   7: std::sys_common::backtrace::print
+             at src/libstd/sys_common/backtrace.rs:49
+   8: std::panicking::default_hook::{{closure}}
+             at src/libstd/panicking.rs:204
+   9: std::panicking::default_hook
+             at src/libstd/panicking.rs:224
+  10: std::panicking::rust_panic_with_hook
+             at src/libstd/panicking.rs:472
+  11: rust_begin_unwind
+             at src/libstd/panicking.rs:380
+  12: std::thread::local::fast::Key<T>::try_initialize
+  13: paxconsola::optimize::optimize_function
+             at src/optimize.rs:284
+  14: paxconsola::main
+             at src/main.rs:151
+  15: std::rt::lang_start::{{closure}}
+             at /rustc/b8cedc00407a4c56a3bda1ed605c6fc166655447/src/libstd/rt.rs:67
+  16: std::rt::lang_start_internal::{{closure}}
+             at src/libstd/rt.rs:52
+  17: std::panicking::try::do_call
+             at src/libstd/panicking.rs:305
+  18: __rust_maybe_catch_panic
+             at src/libpanic_unwind/lib.rs:86
+  19: std::panicking::try
+             at src/libstd/panicking.rs:281
+  20: std::panic::catch_unwind
+             at src/libstd/panic.rs:394
+  21: std::rt::lang_start_internal
+             at src/libstd/rt.rs:51
+  22: std::rt::lang_start
+             at /rustc/b8cedc00407a4c56a3bda1ed605c6fc166655447/src/libstd/rt.rs:67
+  23: paxconsola::main
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.

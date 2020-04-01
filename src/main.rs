@@ -128,7 +128,9 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         }
 
         Command::Inlineup { .. } => {
-            for name in source_program.keys() {
+            let fns = source_program.keys().collect::<Vec<_>>();
+
+            for name in fns {
                 // for name in vec!["myloopimpl"] {
                 if name == "main" {
                     continue;
@@ -142,11 +144,14 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 inline_into_function(&mut program, name);
                 optimize_function(&mut program, name);
 
-                eprintln!("----------> WHAT");
-                dump_blocks(program.get("main").unwrap());
+                // eprintln!("----------> WHAT");
+                // dump_blocks(program.get("main").unwrap());
 
                 inline_into_function(&mut program, "main");
+
+                // FIXME allow optimization in main after independent optimization!
                 // optimize_function(&mut program, "main");
+
                 let wasm = cross_compile_forth_wasm(&program);
                 run_wasm(&wasm, false).unwrap();
                 // break;
