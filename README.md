@@ -1,4 +1,4 @@
-# Pax Consolas
+# Pax Consola
 
 An implementation of the forth programming language intended for cross-compilation.
 
