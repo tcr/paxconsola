@@ -14,20 +14,19 @@ structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
 lazy_static = "1.4.0"
 indexmap = { version = "*", features = [ "serde-1" ] }
-# color-backtrace = { version = "0.3" }
 percent-encoding = "*"
 itertools = "0.8.2"
 petgraph = "0.5.0"
 wat = "1"
-
-# choose a wasm implementation
-stdweb = { version = "*", optional = true }
 serde = { version = "1.0.104", features = [ "derive" ] }
 enum-utils = "0.1.2"
 derive_more = "0.99.5"
 anyhow = "1.0.27"
-wasmtime = { version = "0.13.0", optional = true }
 take_mut = "0.2.2"
+
+# wasm target (web / native)
+stdweb = { version = "*", optional = true }
+wasmtime = { version = "0.13.0", optional = true }
 
 [features]
 default = ["wasmtime"]

@@ -150,7 +150,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 inline_into_function(&mut program, "main");
 
                 // FIXME allow optimization in main after independent optimization!
-                // optimize_function(&mut program, "main");
+                optimize_function(&mut program, "main");
 
                 let wasm = cross_compile_forth_wasm(&program);
                 run_wasm(&wasm, false).unwrap();
