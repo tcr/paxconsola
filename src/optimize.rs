@@ -112,7 +112,7 @@ fn propagate_literals_in_block(
                 // Drop command can ignore their values entirely.
                 SuperPax::Drop => {
                     let reg = stack.data.last().unwrap();
-                    if !reg.starts_with("D") {
+                    if !reg.starts_with("D") && !reg.starts_with("R") {
                         // FIXME is this the wrong thing
                         reg_blacklist.insert(reg.clone());
                         return vec![];
