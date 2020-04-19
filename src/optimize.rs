@@ -3,8 +3,7 @@
 use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
-use petgraph::graph::{Graph, NodeIndex};
-use petgraph::Direction;
+use petgraph::graph::Graph;
 
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
@@ -215,7 +214,7 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
             eprintln!("  block[{}]:", i);
             eprintln!("    blacklist: {:?}", reg_blacklist);
         } else {
-            // TODO ?
+            todo!();
         }
     }
     eprintln!();
@@ -236,50 +235,6 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
     blocks
 }
 
-/// Reduces branching in a function by removing unused BranchTargets.
-/// This function will also rewrite target offsets.
-pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
-    return;
-    eprintln!("[reducing_branches] removing unused BranchTargets...");
-    if let Some(blocks) = program.get_mut(method) {
-        let readonly_blocks = blocks.clone();
-
-        let mut used_blocks = IndexSet::new();
-        for block in readonly_blocks {
-            match block.commands().last() {
-                Some((SuperPax::JumpAlways(target), ..))
-                | Some((SuperPax::JumpIf0(target), ..)) => {
-                    used_blocks.insert(*target);
-                }
-                _ => {}
-            }
-        }
-
-        let mut i = 0;
-        while i < blocks.len() {
-            match blocks[i].commands().last() {
-                Some((SuperPax::BranchTarget(target), ..)) => {
-                    if !used_blocks.contains(target) {
-                        let block = blocks.remove(i);
-                        let commands = block.commands().clone().into_iter().rev().skip(1).rev();
-
-                        blocks
-                            .get_mut(i)
-                            .unwrap()
-                            .commands_mut()
-                            .splice(0..0, commands);
-                        i = 0;
-                        continue;
-                    }
-                }
-                _ => {}
-            }
-
-            i += 1;
-        }
-    }
-}
-
 /// Helper method to otpimize a single function by propagating registers.
 pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
     let start_arity = function_arity(program, method);
@@ -290,7 +245,7 @@ pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
         // NOTE this also performs rewriting for some reason
         *blocks = propagate_registers(&blocks, &graph);
     }
-    reduce_branches(program, method);
+    // reduce_branches(program, method);
 
     if let Some(blocks) = program.get_mut(method) {
         dump_blocks(blocks);
@@ -376,7 +331,7 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         .clone();
                     let inline_pos = Pos {
                         filename: format!("<inline>"),
-                        function: method.to_string(),
+                        function: target.to_string(),
                         col: 0,
                         line: 0,
                     };
