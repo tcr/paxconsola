@@ -163,9 +163,20 @@ pub struct BlockAnalysis {
 }
 
 impl BlockAnalysis {
+    fn new() -> Self {
+        Self {
+            state: StackState::new(),
+            record: vec![StackState::new()],
+        }
+    }
+
     // Accept registers from a previous block, but mask them
     // because we might have two block parents.
-    fn from_previous_masked(registers: &mut RegFile, previous: &[BlockAnalysis]) -> Self {
+    fn from_previous_masked(
+        registers: &mut RegFile,
+        previous: &[BlockAnalysis],
+        add_aliases: bool,
+    ) -> Self {
         assert!(
             !previous.is_empty(),
             "expected non empty list for BlockAnalysis masking"
@@ -197,8 +208,11 @@ impl BlockAnalysis {
                 && l[0].exit_state().ret.len() == l[1].exit_state().ret.len()),
             "not all register maps equal in size"
         );
-        for prev in previous {
-            this.add_alias(registers, prev.exit_state());
+
+        if add_aliases {
+            for prev in previous {
+                this.add_alias(registers, prev.exit_state());
+            }
         }
 
         this
@@ -227,13 +241,6 @@ impl BlockAnalysis {
         Self {
             state: previous.exit_state(),
             record: vec![previous.exit_state()],
-        }
-    }
-
-    fn new() -> Self {
-        Self {
-            state: StackState::new(),
-            record: vec![StackState::new()],
         }
     }
 
@@ -404,7 +411,7 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         vec![0]
     };
 
-    eprintln!("[analyze_graph] start");
+    eprintln!("[analyze_blocks] start");
 
     let mut analysis = FunctionAnalysis {
         blocks: IndexMap::<usize, BlockAnalysis>::new(),
@@ -417,6 +424,7 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         Block,
         Then,
         Begin,
+        AfterLoop,
     }
 
     for block_index in seq.clone() {
@@ -434,6 +442,11 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
             // If an incoming block is not populated yet, we assume we are starting
             // a loop ("begin").
             TargetType::Begin
+        } else if incoming.len() == 1 && incoming[0] == block_index - 1 && {
+            let outgoing = graph_directed_edges(graph, incoming[0], Direction::Outgoing);
+            outgoing.len() > 1 && outgoing.iter().any(|x| *x < incoming[0])
+        } {
+            TargetType::AfterLoop
         } else if incoming.len() >= 2 {
             // If there are two or more incoming edges, we assume we are joining a branch ("then").
             TargetType::Then
@@ -443,6 +456,12 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
         };
 
         // Generate the next block analysis.
+        eprintln!("  [incoming] {:?}", incoming);
+        eprintln!(
+            "[analyze_blocks] block [{}] is target {:?}",
+            block_index, target_type
+        );
+        eprintln!();
         let mut next_analysis = match target_type {
             TargetType::Start => BlockAnalysis::new(),
             TargetType::Then | TargetType::Begin => {
@@ -455,10 +474,24 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
                     .collect::<Vec<_>>();
 
                 // Missing a previous analysis means we might be in a loop.
-                eprintln!("from {:?}", target_type);
                 BlockAnalysis::from_previous_masked(
                     &mut analysis.registers,
                     prev_analyses.as_slice(),
+                    true,
+                )
+            }
+            TargetType::AfterLoop => {
+                let prev_analyses = incoming
+                    .into_iter()
+                    .filter_map(|x| analysis.blocks.get(&x))
+                    .cloned()
+                    .collect::<Vec<_>>();
+
+                // Missing a previous analysis means we might be in a loop.
+                BlockAnalysis::from_previous_masked(
+                    &mut analysis.registers,
+                    prev_analyses.as_slice(),
+                    false,
                 )
             }
             TargetType::Block => {

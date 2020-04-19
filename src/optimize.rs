@@ -32,12 +32,21 @@ fn propagate_literals_in_block(
                 SuperPax::AltPop | SuperPax::PushLiteral(_) => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
+                        // REVIEW need a better detection mechanism
+                        // if reg.starts_with("D") || reg.starts_with("R") {
+                        //     return vec![(SuperPax::Drop, input_command.1.clone())];
+                        // }
                         return vec![];
                     }
                 }
                 SuperPax::AltPush => {
                     let reg = next_stack.as_ref().unwrap().ret.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
+                        // REVIEW need a better detection mechanism
+                        // if reg.starts_with("D") || reg.starts_with("R") {
+                        //     // return vec![(SuperPax::Drop, input_command.1.clone())];
+                        //     todo!();
+                        // }
                         return vec![];
                     }
                 }
