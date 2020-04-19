@@ -130,9 +130,9 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Inlineup { .. } => {
             let fns = source_program.keys().collect::<Vec<_>>();
 
-            for name in fns {
+            for name in fns.iter() {
                 // for name in vec!["myloopimpl"] {
-                if name == "main" {
+                if *name == "main" || *name == "*" {
                     continue;
                 }
 

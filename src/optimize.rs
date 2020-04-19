@@ -55,6 +55,13 @@ fn propagate_literals_in_block(
 
                     let reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
                     if reg_blacklist.contains(&*reg) {
+                        // if stack.data.last().unwrap().starts_with("D") {
+                        //     // eprintln!(
+                        //     //     "\n\nwow okay that's slow: {:?}\n\n",
+                        //     //     stack.data.last().unwrap()
+                        //     // );
+                        //     return vec![(SuperPax::Drop, input_command.1.clone())];
+                        // }
                         return vec![];
                     }
                 }
@@ -96,9 +103,9 @@ fn propagate_literals_in_block(
                 // Drop command can ignore their values entirely.
                 SuperPax::Drop => {
                     let reg = stack.data.last().unwrap();
-                    reg_blacklist.insert(reg.clone());
                     if !reg.starts_with("D") {
                         // FIXME is this the wrong thing
+                        reg_blacklist.insert(reg.clone());
                         return vec![];
                     }
                 }
@@ -358,14 +365,20 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         .unwrap()
                         .1
                         .clone();
+                    let inline_pos = Pos {
+                        filename: format!("<inline>"),
+                        function: method.to_string(),
+                        col: 0,
+                        line: 0,
+                    };
 
                     let return_stack_enter = vec![
-                        (SuperPax::PushLiteral(0xFFFF), first_pos.clone()),
-                        (SuperPax::AltPush, first_pos.clone()),
+                        (SuperPax::PushLiteral(0xFFFF), inline_pos.clone()),
+                        (SuperPax::AltPush, inline_pos.clone()),
                     ];
                     let return_stack_exit = vec![
-                        (SuperPax::AltPop, last_pos.clone()),
-                        (SuperPax::Drop, last_pos.clone()),
+                        (SuperPax::AltPop, inline_pos.clone()),
+                        (SuperPax::Drop, inline_pos.clone()),
                     ];
 
                     if inlined_blocks.len() == 1 {

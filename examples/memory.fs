@@ -2,6 +2,6 @@
 
 variable  temporary
 
-: swap   >r temporary ! r> temporary @ ;
+: myswap   >r temporary ! r> temporary @ ;
 
-20 0 swap print if then
+20 0 myswap print if then
