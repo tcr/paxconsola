@@ -106,7 +106,34 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         },
 
         Command::Optimize { .. } => {
-            optimize_forth(source_program);
+            let mut program = source_program.clone();
+
+            eprintln!("[optimize] dump_blocks");
+            dump_blocks(program.get("main").unwrap());
+            eprintln!();
+
+            eprintln!("[optimize] reduce_branches(main)");
+            reduce_branches(&mut program, "main");
+            eprintln!();
+
+            eprintln!("[optimize] dump_blocks");
+            dump_blocks(program.get("main").unwrap());
+            eprintln!();
+
+            eprintln!("[optimize] inline_into_function(main)");
+            inline_into_function(&mut program, "main");
+            eprintln!();
+
+            eprintln!("[optimize] reduce_branches(main)");
+            reduce_branches(&mut program, "main");
+            eprintln!();
+
+            eprintln!("[optimize] optimize_function(main)");
+            optimize_function(&mut program, "main");
+            eprintln!();
+
+            eprintln!("[optimize] reduce_branches(main)");
+            reduce_branches(&mut program, "main");
         }
 
         Command::Dump { .. } => {
