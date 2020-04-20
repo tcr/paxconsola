@@ -30,25 +30,6 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
             .cloned()
             .collect::<IndexSet<usize>>();
 
-        // Rewrite jumps.
-        for (i, block) in blocks.iter_mut().enumerate() {
-            match block.commands_mut().last_mut() {
-                Some((SuperPax::JumpAlways(ref mut target), ..))
-                | Some((SuperPax::JumpIf0(ref mut target), ..)) => {
-                    if *target > i {
-                        // Jumping forward.
-                        let delta = dead_blocks.iter().filter(|x: &&usize| *x < target).count();
-                        *target -= delta;
-                    } else {
-                        // Jumping backward.
-                        let delta = dead_blocks.iter().filter(|x: &&usize| *x < target).count();
-                        *target -= delta;
-                    }
-                }
-                _ => {}
-            }
-        }
-
         // Remove unused BranchTarget blocks.
         let mut i = 0;
         while i < blocks.len() {
@@ -71,6 +52,25 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
             }
 
             i += 1;
+        }
+
+        // Rewrite jumps.
+        for block in blocks.iter_mut() {
+            match block.commands_mut().last_mut() {
+                Some((SuperPax::JumpAlways(ref mut target), ..))
+                | Some((SuperPax::JumpIf0(ref mut target), ..)) => {
+                    let delta = dead_blocks.iter().filter(|x: &&usize| *x < target).count();
+                    *target -= delta;
+                }
+                Some((SuperPax::BranchTarget(ref mut target), ..)) => {
+                    if !dead_blocks.contains(target) {
+                        // Jumping forward.
+                        let delta = dead_blocks.iter().filter(|x: &&usize| *x < target).count();
+                        *target -= delta;
+                    }
+                }
+                _ => {}
+            }
         }
     }
 }

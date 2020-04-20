@@ -13,14 +13,17 @@ fn propagate_literals_in_block(
     registers: RegFile,
     reg_blacklist: &mut IndexSet<Reg>,
 ) -> SuperSpan {
-    let mut new_commands = block
+    eprintln!("\n\n-----> input commands: {:?}", block.commands());
+
+    let mut new_reverse_commands = block
         .commands()
         .iter()
         .enumerate()
-        .rev()
+        .rev() // iterate in reverse order
         .map(|(i, input_command)| -> SuperSpan {
             let command = (input_command.0).clone();
-            // eprintln!("{:?}\n-- {:?}", command, reg_blacklist);
+            eprintln!("{:?}", input_command);
+            eprintln!(" -- {:?}", reg_blacklist);
             let stack: StackState = analysis.result()[i].clone();
 
             // The stack ahead of us, e.g. what the current command computed.
@@ -30,11 +33,17 @@ fn propagate_literals_in_block(
                 // If the register is in a blacklist, drop this command.
                 SuperPax::AltPop | SuperPax::PushLiteral(_) => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
+                    // eprintln!("---> blacklist {:?} of {:?}", reg_blacklist, reg);
                     if reg_blacklist.contains(&*reg) {
                         // REVIEW need a better detection mechanism
                         // if reg.starts_with("D") || reg.starts_with("R") {
                         //     return vec![(SuperPax::Drop, input_command.1.clone())];
                         // }
+
+                        // FIXME remove this log
+                        if reg == "L0" {
+                            eprintln!("---> what the heck? {} : {:?}", i, input_command);
+                        }
                         return vec![];
                     }
                 }
@@ -79,11 +88,12 @@ fn propagate_literals_in_block(
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
 
                     // If we are used to load a temp value, de-blacklist this register.
+                    eprintln!("      ^-> loadtemp: {:?}", next_reg);
                     if !reg_blacklist.contains(&*next_reg) {
                         reg_blacklist.remove(reg);
                     }
                     // Else if this register is in a blacklist, drop this command.
-                    if reg_blacklist.contains(&*reg) {
+                    if reg_blacklist.contains(&*next_reg) {
                         return vec![];
                     }
                 }
@@ -132,7 +142,7 @@ fn propagate_literals_in_block(
                     literal: Some(lit), ..
                 }) = registers.registers.get(target_reg)
                 {
-                    // eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
+                    eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
                     reg_blacklist.insert(target_reg.clone());
                     return vec![(SuperPax::PushLiteral(*lit), input_command.1.clone())];
                 }
@@ -140,6 +150,11 @@ fn propagate_literals_in_block(
 
             vec![(command, input_command.1.clone())]
         })
+        .collect::<Vec<_>>();
+    eprintln!("\n\n-----> result 1: {:?}", new_reverse_commands);
+
+    let mut new_commands = new_reverse_commands
+        .into_iter()
         .flatten()
         .collect::<Vec<_>>();
 
@@ -329,20 +344,26 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         .unwrap()
                         .1
                         .clone();
-                    let inline_pos = Pos {
-                        filename: format!("<inline>"),
+                    let inline_enter_pos = Pos {
+                        filename: format!("<inline_enter>"),
+                        function: target.to_string(),
+                        col: 0,
+                        line: 0,
+                    };
+                    let inline_exit_pos = Pos {
+                        filename: format!("<inline_exit>"),
                         function: target.to_string(),
                         col: 0,
                         line: 0,
                     };
 
                     let return_stack_enter = vec![
-                        (SuperPax::PushLiteral(0xFFFF), inline_pos.clone()),
-                        (SuperPax::AltPush, inline_pos.clone()),
+                        (SuperPax::PushLiteral(0xFFFF), inline_enter_pos.clone()),
+                        (SuperPax::AltPush, inline_enter_pos.clone()),
                     ];
                     let return_stack_exit = vec![
-                        (SuperPax::AltPop, inline_pos.clone()),
-                        (SuperPax::Drop, inline_pos.clone()),
+                        (SuperPax::AltPop, inline_exit_pos.clone()),
+                        (SuperPax::Drop, inline_exit_pos.clone()),
                     ];
 
                     if inlined_blocks.len() == 1 {
