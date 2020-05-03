@@ -1,9 +1,10 @@
 use ggez;
-use ggez::event;
-use ggez::graphics;
-use ggez::graphics::DrawParam;
+use ggez::event::{self, Axis, Button, GamepadId, KeyCode, KeyMods, MouseButton};
+use ggez::graphics::{self, DrawMode, DrawParam};
+use ggez::input;
 use ggez::nalgebra as na;
 use ggez::timer;
+use ggez::{Context, GameResult};
 use paxconsola::wasm::wasmtime::*;
 use paxconsola::*;
 
@@ -46,6 +47,27 @@ impl event::EventHandler for MainState {
         }
 
         Ok(())
+    }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        keymod: KeyMods,
+        repeat: bool,
+    ) {
+        if keycode == KeyCode::Down {
+            self.runner.set_mem(0xC020, 40);
+        }
+        if keycode == KeyCode::Left {
+            self.runner.set_mem(0xC020, 37);
+        }
+        if keycode == KeyCode::Up {
+            self.runner.set_mem(0xC020, 38);
+        }
+        if keycode == KeyCode::Right {
+            self.runner.set_mem(0xC020, 39);
+        }
     }
 
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {

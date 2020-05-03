@@ -34,6 +34,12 @@ impl WasmContext {
         let memory_ref = self.memory.lock().unwrap();
         Ok(memory_ref.get(&index).map(|x| *x).unwrap_or(0))
     }
+
+    pub fn set_mem(&self, index: u32, value: u16) -> anyhow::Result<()> {
+        let mut memory_ref = self.memory.lock().unwrap();
+        memory_ref.insert(index, value);
+        Ok(())
+    }
 }
 
 pub fn parse_wasm(binary: &[u8], export_buffer: bool) -> anyhow::Result<WasmContext> {
