@@ -25,6 +25,9 @@ enum Target {
     #[enumeration(rename = "c64")]
     #[display(fmt = "c64")]
     Commodore64,
+    #[enumeration(rename = "tom")]
+    #[display(fmt = "tom")]
+    TOM,
 }
 
 fn parse_target(value: &str) -> Result<Target, String> {
@@ -102,6 +105,12 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             }
             Target::WebAssembly => {
                 todo!("can't compile to wasm and print it yet");
+            }
+            Target::TOM => {
+                let mut program = source_program.clone();
+                inline_into_function(&mut program, "main");
+                let result = cross_compile_forth_tom(program);
+                println!("{}", result);
             }
         },
 
