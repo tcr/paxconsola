@@ -1,25 +1,31 @@
 # Pax Consola
 
-An implementation of the forth programming language intended for cross-compilation.
+An implementation of the Forth programming language intended for cross-compilation.
 
-Some things you can run:
+### Tests
+
+```sh
+cd paxforth
+cargo test
+```
 
 ### Compile Snake
 
 ```sh
+cd paxforth
 cargo run -- run snake/gb/snake.pax
 ```
 
 ### Run snake on Gameboy
 
-```
-cd snake/gb
+```sh
+cd paxconsola-ide/snake/gb
 make run
 ```
 
 ### Run the paxconsola IDE
 
-```
+```sh
 cd paxconsola-ide
 ./deploy.sh
 ```

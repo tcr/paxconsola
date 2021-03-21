@@ -1,12 +1,12 @@
 [package]
 name = "paxconsola-ide"
 version = "0.1.0"
-authors = ["Tim Ryan <trim@fb.com>"]
+authors = ["Tim Ryan <tim@timryan.org>"]
 edition = "2018"
 
 [dependencies]
 yew = "0.11.0"
-paxconsola = { path = "../", default-features = false, features = ["stdweb"] }
+paxforth = { path = "../paxforth", default-features = false, features = ["stdweb"] }
 stdweb = "*"
 indexmap = "*"
 serde = "1.0.104"

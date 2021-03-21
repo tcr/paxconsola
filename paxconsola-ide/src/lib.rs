@@ -1,16 +1,16 @@
 #![recursion_limit = "4096"]
 
-use ::stdweb;
-use ::stdweb::js;
+use stdweb;
+use stdweb::js;
 use include_dir::*;
 use indexmap::IndexMap;
-use paxconsola::*;
+use paxforth::*;
 use serde::*;
 use yew::services::interval::*;
 use yew::worker::*;
 use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
 
-static GB_DIR: Dir = include_dir!("../template/gb");
+static GB_DIR: Dir = include_dir!("./template/gb");
 
 const START_CODE: &str = r"$C020 constant last-key
 $C022 constant random-register

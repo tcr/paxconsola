@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 ggez = "*"
-paxconsola = { path = "../" }
+paxforth = { path = "../paxforth" }
 anyhow = "1.0.28"

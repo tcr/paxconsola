@@ -1,4 +1,3 @@
-pub use crate::wasm::*;
 use crate::*;
 use petgraph::{graph::NodeIndex, Direction};
 
@@ -161,8 +160,8 @@ const WAT_TEMPLATE: &'static str = r#"
 pub struct WasmForthCompiler {}
 
 impl ForthCompiler for WasmForthCompiler {
-    /// Returns a compiled WebAssembly file (binary, not WAT format)
-    fn compile(program: &SuperPaxProgram) -> Vec<u8> {
+    /// Returns a compiled WAT file
+    fn compile(program: &SuperPaxProgram) -> String {
         let mut wat_out = vec![];
         for (name, blocks) in program {
             if name != "main" {
@@ -320,7 +319,13 @@ impl ForthCompiler for WasmForthCompiler {
             .replace("{{main}}", &wat_out.join("\n"));
 
         // eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
+        wat_output
+    }
+}
 
-        wat::parse_str(&wat_output).unwrap()
+impl WasmForthCompiler {
+    /// Returns a compiled WebAssembly file (binary, not WAT format)
+    pub fn compile_binary(program: &SuperPaxProgram) -> Vec<u8> {
+        wat::parse_str(&Self::compile(program)).unwrap()
     }
 }

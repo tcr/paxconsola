@@ -1652,13 +1652,22 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "paxconsola"
+name = "paxconsola-desktop"
+version = "0.1.0"
+dependencies = [
+ "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ggez 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paxforth 0.1.0",
+]
+
+[[package]]
+name = "paxforth"
 version = "0.1.0"
 dependencies = [
  "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_more 0.99.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum-utils 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "glob 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glob 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "indexmap 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1668,22 +1677,13 @@ dependencies = [
  "paw 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "percent-encoding 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "petgraph 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.106 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "take_mut 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "wasmtime 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "wat 1.0.15 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "paxconsola-desktop"
-version = "0.1.0"
-dependencies = [
- "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
- "ggez 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "paxconsola 0.1.0",
 ]
 
 [[package]]

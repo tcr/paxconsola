@@ -436,7 +436,7 @@ PAX_FN_{}:
 pub struct GameboyForthCompiler {}
 
 impl ForthCompiler for GameboyForthCompiler {
-    fn compile(program: &SuperPaxProgram) -> Vec<u8> {
+    fn compile(program: &SuperPaxProgram) -> String {
         let mut out = String::new();
         for (_name, code) in program {
             let mut result = vec![];
@@ -566,6 +566,6 @@ impl ForthCompiler for GameboyForthCompiler {
                 */
         }
 
-        out.as_bytes().to_vec()
+        out
     }
 }

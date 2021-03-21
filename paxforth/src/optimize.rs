@@ -3,8 +3,7 @@
 use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
-use petgraph::graph::{Graph, NodeIndex};
-use petgraph::Direction;
+use petgraph::graph::Graph;
 
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.

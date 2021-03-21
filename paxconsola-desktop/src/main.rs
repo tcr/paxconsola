@@ -5,8 +5,9 @@ use ggez::input;
 use ggez::nalgebra as na;
 use ggez::timer;
 use ggez::{Context, GameResult};
-use paxconsola::wasm::wasmtime::*;
-use paxconsola::*;
+use paxforth::targets::wasm::wasmtime::*;
+use paxforth::targets::wasm::*;
+use paxforth::*;
 
 struct MainState {
     pos_x: f32,
@@ -24,7 +25,7 @@ impl MainState {
         let mut program = source_program.clone();
         inline_into_function(&mut program, "main");
         // optimize_function(&mut program, "main");
-        let wasm = cross_compile_forth_wasm(&program);
+        let wasm = WasmForthCompiler::compile_binary(&program);
 
         let mut runner = parse_wasm(wasm.as_slice(), true).unwrap();
 

@@ -84,7 +84,7 @@ jump_if_0(target_{})",
 pub struct Tom1ForthCompiler {}
 
 impl ForthCompiler for Tom1ForthCompiler {
-    fn compile(program: &SuperPaxProgram) -> Vec<u8> {
+    fn compile(program: &SuperPaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
             if name != "main" {
@@ -109,6 +109,6 @@ impl ForthCompiler for Tom1ForthCompiler {
             out.push_str("\n");
         }
 
-        out.as_bytes().to_vec()
+        out
     }
 }

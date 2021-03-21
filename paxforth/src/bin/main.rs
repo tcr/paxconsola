@@ -1,37 +1,22 @@
 #![allow(deprecated)]
 
-use derive_more::*;
-use paxconsola::*;
+use paxforth::*;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+use crate::targets::c64::*;
+use crate::targets::gb::*;
+use crate::targets::tom1::*;
+use crate::targets::wasm::*;
+use crate::targets::*;
+
 #[derive(StructOpt, Debug)]
-#[structopt(name = "paxconsola")]
+#[structopt(name = "paxforth")]
 struct Args {
-    #[structopt(subcommand)] // Note that we mark a field as a subcommand
+    #[structopt(subcommand)]
     cmd: Command,
-}
-
-#[derive(Debug, Clone, enum_utils::FromStr, Display)]
-enum Target {
-    #[enumeration(rename = "wasm")]
-    #[display(fmt = "wasm")]
-    WebAssembly,
-    #[enumeration(rename = "gb")]
-    #[display(fmt = "gb")]
-    Gameboy,
-    #[enumeration(rename = "c64")]
-    #[display(fmt = "c64")]
-    Commodore64,
-    #[enumeration(rename = "tom")]
-    #[display(fmt = "tom")]
-    TOM,
-}
-
-fn parse_target(value: &str) -> Result<Target, String> {
-    std::str::FromStr::from_str(value).map_err(|_| format!("{:?} is not a valid target", value))
 }
 
 #[derive(StructOpt, Debug)]
@@ -97,11 +82,11 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 let mut program = source_program.clone();
                 inline_into_function(&mut program, "main");
                 let result = C64ForthCompiler::compile(&program);
-                println!("{}", String::from_utf8_lossy(&result));
+                println!("{}", &result);
             }
             Target::Gameboy => {
                 let result = GameboyForthCompiler::compile(&source_program);
-                println!("{}", String::from_utf8_lossy(&result));
+                println!("{}", &result);
             }
             Target::WebAssembly => {
                 todo!("can't compile to wasm and print it yet");
@@ -110,7 +95,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 let mut program = source_program.clone();
                 inline_into_function(&mut program, "main");
                 let result = Tom1ForthCompiler::compile(&program);
-                println!("{}", String::from_utf8_lossy(&result));
+                println!("{}", &result);
             }
         },
 
@@ -132,7 +117,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             let mut program = source_program.clone();
             inline_into_function(&mut program, "main");
             // optimize_function(&mut program, "main");
-            let wasm = WasmForthCompiler::compile(&program);
+            let wasm = WasmForthCompiler::compile_binary(&program);
             run_wasm(&wasm, false).unwrap();
         }
 
@@ -161,7 +146,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 // FIXME allow optimization in main after independent optimization!
                 optimize_function(&mut program, "main");
 
-                let wasm = WasmForthCompiler::compile(&program);
+                let wasm = WasmForthCompiler::compile_binary(&program);
                 run_wasm(&wasm, false).unwrap();
                 // break;
                 println!();

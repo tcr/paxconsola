@@ -1,12 +1,5 @@
-#[cfg(feature = "wasm3")]
-pub mod wasm3;
-#[cfg(feature = "wasm3")]
-pub use self::wasm3::*;
-
-#[cfg(feature = "wasmi")]
-pub mod wasmi;
-#[cfg(feature = "wasmi")]
-pub use self::wasmi::*;
+pub mod compile;
+pub use compile::*;
 
 #[cfg(feature = "stdweb")]
 pub mod stdweb;

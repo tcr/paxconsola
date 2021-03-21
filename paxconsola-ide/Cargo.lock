@@ -251,18 +251,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ide"
-version = "0.1.0"
-dependencies = [
- "include_dir 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "indexmap 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "paxconsola 0.1.0",
- "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
- "stdweb 0.4.20 (registry+https://github.com/rust-lang/crates.io-index)",
- "yew 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "include_dir"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -399,7 +387,19 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "paxconsola"
+name = "paxconsola-ide"
+version = "0.1.0"
+dependencies = [
+ "include_dir 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "indexmap 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "paxforth 0.1.0",
+ "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
+ "stdweb 0.4.20 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yew 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "paxforth"
 version = "0.1.0"
 dependencies = [
  "anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -1,4 +1,4 @@
-use ide::*;
+use paxconsola_ide::*;
 use yew::agent::Threaded;
 
 fn main() {
