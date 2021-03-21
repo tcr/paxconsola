@@ -20,7 +20,7 @@ enum Target {
     #[display(fmt = "wasm")]
     WebAssembly,
     #[enumeration(rename = "gb")]
-    #[display(fmt = "fb")]
+    #[display(fmt = "gb")]
     Gameboy,
     #[enumeration(rename = "c64")]
     #[display(fmt = "c64")]
@@ -96,12 +96,12 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             Target::Commodore64 => {
                 let mut program = source_program.clone();
                 inline_into_function(&mut program, "main");
-                let result = cross_compile_forth_c64(program);
-                println!("{}", result);
+                let result = C64ForthCompiler::compile(&program);
+                println!("{}", String::from_utf8_lossy(&result));
             }
             Target::Gameboy => {
-                let result = cross_compile_forth_gb(source_program);
-                println!("{}", result);
+                let result = GameboyForthCompiler::compile(&source_program);
+                println!("{}", String::from_utf8_lossy(&result));
             }
             Target::WebAssembly => {
                 todo!("can't compile to wasm and print it yet");
@@ -109,8 +109,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             Target::TOM => {
                 let mut program = source_program.clone();
                 inline_into_function(&mut program, "main");
-                let result = cross_compile_forth_tom(program);
-                println!("{}", result);
+                let result = Tom1ForthCompiler::compile(&program);
+                println!("{}", String::from_utf8_lossy(&result));
             }
         },
 
@@ -132,7 +132,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             let mut program = source_program.clone();
             inline_into_function(&mut program, "main");
             // optimize_function(&mut program, "main");
-            let wasm = cross_compile_forth_wasm(&program);
+            let wasm = WasmForthCompiler::compile(&program);
             run_wasm(&wasm, false).unwrap();
         }
 
@@ -161,7 +161,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 // FIXME allow optimization in main after independent optimization!
                 optimize_function(&mut program, "main");
 
-                let wasm = cross_compile_forth_wasm(&program);
+                let wasm = WasmForthCompiler::compile(&program);
                 run_wasm(&wasm, false).unwrap();
                 // break;
                 println!();

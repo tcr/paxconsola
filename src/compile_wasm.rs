@@ -158,165 +158,169 @@ const WAT_TEMPLATE: &'static str = r#"
   
 "#;
 
-/// Returns a compiled WebAssembly file (binary, not WAT format)
-pub fn cross_compile_forth_wasm(program: &SuperPaxProgram) -> Vec<u8> {
-    let mut wat_out = vec![];
-    for (name, blocks) in program {
-        if name != "main" {
-            continue;
-        }
+pub struct WasmForthCompiler {}
 
-        let graph = crate::dataflow_graph(&blocks);
-        eprintln!("graph {:?}", graph);
+impl ForthCompiler for WasmForthCompiler {
+    /// Returns a compiled WebAssembly file (binary, not WAT format)
+    fn compile(program: &SuperPaxProgram) -> Vec<u8> {
+        let mut wat_out = vec![];
+        for (name, blocks) in program {
+            if name != "main" {
+                continue;
+            }
 
-        let mut wat_block_index = 0;
-        let mut wat_block_stack = vec![];
-        for (block_index, block) in blocks.iter().enumerate() {
-            for op in block.commands() {
-                wat_out.push(format!(";; {:?}", &op.0));
-                match &op.0 {
-                    SuperPax::PushLiteral(lit) => {
-                        wat_out.push(format!("    i32.const {}", lit));
-                        wat_out.push(format!("    call $data_push"));
-                    }
-                    SuperPax::Add => {
-                        wat_out.push(format!("    call $add"));
-                    }
-                    SuperPax::Nand => {
-                        wat_out.push(format!("    call $nand"));
-                    }
-                    SuperPax::Drop => {
-                        wat_out.push(format!("    call $drop"));
-                    }
-                    SuperPax::AltPop => {
-                        wat_out.push(format!("    call $return_pop"));
-                    }
-                    SuperPax::AltPush => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $return_push"));
-                    }
-                    SuperPax::LoadTemp => {
-                        wat_out.push(format!("    call $temp_load"));
-                        wat_out.push(format!("    call $data_push"));
-                    }
-                    SuperPax::StoreTemp => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $temp_store"));
-                    }
-                    SuperPax::Exit => {}
-                    SuperPax::Metadata(_) => {}
-                    SuperPax::Call(s) => {
-                        unreachable!("expected all methods to be inlined: {}", s);
-                    }
-                    SuperPax::Load => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $mem_load"));
-                        wat_out.push(format!("    call $data_push"));
-                    }
-                    SuperPax::Load8 => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $mem_load_8"));
-                        wat_out.push(format!("    call $data_push"));
-                    }
-                    SuperPax::Store => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $mem_store"));
-                    }
-                    SuperPax::Store8 => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $mem_store_8"));
-                    }
-                    SuperPax::BranchTarget(target_index) => {
-                        let mut incoming = graph
-                            .neighbors_directed(
-                                NodeIndex::new(*target_index + 1),
-                                Direction::Incoming,
-                            )
-                            .map(|idx| idx.index() as usize)
-                            .collect::<Vec<_>>();
-                        incoming.sort();
+            let graph = crate::dataflow_graph(&blocks);
+            eprintln!("graph {:?}", graph);
 
-                        let mut is_loop = false;
-                        for edge in &incoming {
-                            if edge > target_index {
-                                is_loop = true;
+            let mut wat_block_index = 0;
+            let mut wat_block_stack = vec![];
+            for (block_index, block) in blocks.iter().enumerate() {
+                for op in block.commands() {
+                    wat_out.push(format!(";; {:?}", &op.0));
+                    match &op.0 {
+                        SuperPax::PushLiteral(lit) => {
+                            wat_out.push(format!("    i32.const {}", lit));
+                            wat_out.push(format!("    call $data_push"));
+                        }
+                        SuperPax::Add => {
+                            wat_out.push(format!("    call $add"));
+                        }
+                        SuperPax::Nand => {
+                            wat_out.push(format!("    call $nand"));
+                        }
+                        SuperPax::Drop => {
+                            wat_out.push(format!("    call $drop"));
+                        }
+                        SuperPax::AltPop => {
+                            wat_out.push(format!("    call $return_pop"));
+                        }
+                        SuperPax::AltPush => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $return_push"));
+                        }
+                        SuperPax::LoadTemp => {
+                            wat_out.push(format!("    call $temp_load"));
+                            wat_out.push(format!("    call $data_push"));
+                        }
+                        SuperPax::StoreTemp => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $temp_store"));
+                        }
+                        SuperPax::Exit => {}
+                        SuperPax::Metadata(_) => {}
+                        SuperPax::Call(s) => {
+                            unreachable!("expected all methods to be inlined: {}", s);
+                        }
+                        SuperPax::Load => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $mem_load"));
+                            wat_out.push(format!("    call $data_push"));
+                        }
+                        SuperPax::Load8 => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $mem_load_8"));
+                            wat_out.push(format!("    call $data_push"));
+                        }
+                        SuperPax::Store => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $mem_store"));
+                        }
+                        SuperPax::Store8 => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $mem_store_8"));
+                        }
+                        SuperPax::BranchTarget(target_index) => {
+                            let mut incoming = graph
+                                .neighbors_directed(
+                                    NodeIndex::new(*target_index + 1),
+                                    Direction::Incoming,
+                                )
+                                .map(|idx| idx.index() as usize)
+                                .collect::<Vec<_>>();
+                            incoming.sort();
+
+                            let mut is_loop = false;
+                            for edge in &incoming {
+                                if edge > target_index {
+                                    is_loop = true;
+                                }
+                            }
+                            if is_loop {
+                                let id = format!("$L{}", wat_block_index);
+                                wat_block_index += 1;
+
+                                wat_block_stack.push(id.clone());
+                                wat_out.push(format!("    loop {}", id));
+                            } else if incoming.len() > 1 {
+                                // End of an if or if/else block.
+                                wat_out.push(format!("    end"));
+                                wat_block_stack.pop().expect("expected end of 'if' block");
+                                wat_out.push(format!("    end"));
+                                wat_block_stack.pop().expect("expected end of 'else' block");
                             }
                         }
-                        if is_loop {
-                            let id = format!("$L{}", wat_block_index);
+                        SuperPax::JumpIf0(target_index) => {
+                            if *target_index > block_index {
+                                // Start of an if block
+                                let parent_id = format!("$B{}", wat_block_index);
+                                wat_block_index += 1;
+                                wat_block_stack.push(parent_id.clone());
+                                let if_id = format!("$B{}", wat_block_index);
+                                wat_block_index += 1;
+                                wat_block_stack.push(if_id.clone());
+
+                                wat_out.push(format!("    block {}", parent_id));
+                                wat_out.push(format!("    block {}", if_id));
+                                wat_out.push(format!("    call $data_pop"));
+                                wat_out.push(format!("    i32.eqz"));
+                                wat_out.push(format!("    br_if {}", if_id));
+                            } else {
+                                // End of a loop
+                                let id = wat_block_stack.pop().unwrap();
+                                wat_out.push(format!("    call $data_pop"));
+                                wat_out.push(format!("    i32.eqz"));
+                                wat_out.push(format!("    br_if {}", id));
+                                wat_out.push(format!("    end"));
+                            }
+                        }
+                        SuperPax::JumpAlways(_) => {
+                            wat_block_stack.pop().unwrap(); // last_block
+                            let parent_block = wat_block_stack.pop().unwrap();
+                            wat_block_stack.push(parent_block.clone());
+
+                            let next_block = format!("$B{}", wat_block_index);
                             wat_block_index += 1;
 
-                            wat_block_stack.push(id.clone());
-                            wat_out.push(format!("    loop {}", id));
-                        } else if incoming.len() > 1 {
-                            // End of an if or if/else block.
+                            wat_out.push(format!("    br {}", parent_block));
                             wat_out.push(format!("    end"));
-                            wat_block_stack.pop().expect("expected end of 'if' block");
-                            wat_out.push(format!("    end"));
-                            wat_block_stack.pop().expect("expected end of 'else' block");
+                            wat_out.push(format!("    block {}", next_block));
+                            wat_block_stack.push(next_block);
+                        }
+                        SuperPax::Print => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $print"));
+                            wat_out.push(format!("    drop"));
                         }
                     }
-                    SuperPax::JumpIf0(target_index) => {
-                        if *target_index > block_index {
-                            // Start of an if block
-                            let parent_id = format!("$B{}", wat_block_index);
-                            wat_block_index += 1;
-                            wat_block_stack.push(parent_id.clone());
-                            let if_id = format!("$B{}", wat_block_index);
-                            wat_block_index += 1;
-                            wat_block_stack.push(if_id.clone());
-
-                            wat_out.push(format!("    block {}", parent_id));
-                            wat_out.push(format!("    block {}", if_id));
-                            wat_out.push(format!("    call $data_pop"));
-                            wat_out.push(format!("    i32.eqz"));
-                            wat_out.push(format!("    br_if {}", if_id));
-                        } else {
-                            // End of a loop
-                            let id = wat_block_stack.pop().unwrap();
-                            wat_out.push(format!("    call $data_pop"));
-                            wat_out.push(format!("    i32.eqz"));
-                            wat_out.push(format!("    br_if {}", id));
-                            wat_out.push(format!("    end"));
-                        }
-                    }
-                    SuperPax::JumpAlways(_) => {
-                        wat_block_stack.pop().unwrap(); // last_block
-                        let parent_block = wat_block_stack.pop().unwrap();
-                        wat_block_stack.push(parent_block.clone());
-
-                        let next_block = format!("$B{}", wat_block_index);
-                        wat_block_index += 1;
-
-                        wat_out.push(format!("    br {}", parent_block));
-                        wat_out.push(format!("    end"));
-                        wat_out.push(format!("    block {}", next_block));
-                        wat_block_stack.push(next_block);
-                    }
-                    SuperPax::Print => {
-                        wat_out.push(format!("    call $data_pop"));
-                        wat_out.push(format!("    call $print"));
-                        wat_out.push(format!("    drop"));
-                    }
+                    wat_out.push(format!(""));
+                    // println!("  {:?}", op.0);
                 }
-                wat_out.push(format!(""));
-                // println!("  {:?}", op.0);
             }
         }
+
+        let wat_output = WAT_TEMPLATE
+            .replace("{{return_ptr}}", "1024")
+            .replace("{{data_ptr}}", "1028")
+            .replace("{{temp}}", "1032")
+            .replace("{{data}}", "2048")
+            .replace("{{return}}", "4096")
+            .replace("{{mem}}", "10000")
+            .replace("{{main}}", &wat_out.join("\n"));
+
+        // eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
+
+        wat::parse_str(&wat_output).unwrap()
     }
-
-    let wat_output = WAT_TEMPLATE
-        .replace("{{return_ptr}}", "1024")
-        .replace("{{data_ptr}}", "1028")
-        .replace("{{temp}}", "1032")
-        .replace("{{data}}", "2048")
-        .replace("{{return}}", "4096")
-        .replace("{{mem}}", "10000")
-        .replace("{{main}}", &wat_out.join("\n"));
-
-    // eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
-
-    wat::parse_str(&wat_output).unwrap()
 }

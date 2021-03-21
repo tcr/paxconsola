@@ -7,6 +7,7 @@ pub mod compile_tom;
 pub mod compile_wasm;
 pub mod location;
 pub mod optimize;
+pub mod parse;
 pub mod prelude;
 pub mod superpax;
 pub mod tokenizer;
@@ -19,5 +20,10 @@ pub use compile_tom::*;
 pub use compile_wasm::*;
 pub use location::*;
 pub use optimize::*;
+pub use parse::*;
 pub use superpax::*;
 pub use tokenizer::*;
+
+pub trait ForthCompiler {
+    fn compile(program: &SuperPaxProgram) -> Vec<u8>;
+}

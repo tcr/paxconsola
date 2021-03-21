@@ -241,30 +241,34 @@ PAX_FN_{}:
     out
 }
 
-pub fn cross_compile_forth_c64(program: SuperPaxProgram) -> String {
-    let mut out = String::new();
-    for (name, code) in program {
-        if name != "main" {
-            continue;
-        }
+pub struct C64ForthCompiler {}
 
-        let mut result = vec![];
-        for (_i, block) in code.iter().enumerate() {
-            for (op, _pos) in block.commands() {
-                result.push(op.to_owned());
+impl ForthCompiler for C64ForthCompiler {
+    fn compile(program: &SuperPaxProgram) -> Vec<u8> {
+        let mut out = String::new();
+        for (name, code) in program {
+            if name != "main" {
+                continue;
             }
+
+            let mut result = vec![];
+            for (_i, block) in code.iter().enumerate() {
+                for (op, _pos) in block.commands() {
+                    result.push(op.to_owned());
+                }
+            }
+
+            out.push_str(
+                &result
+                    .iter()
+                    .enumerate()
+                    .map(|(i, ir)| cross_compile_ir_c64(i, ir.clone()))
+                    .collect::<Vec<String>>()
+                    .join("\n"),
+            );
+            out.push_str("\n");
         }
 
-        out.push_str(
-            &result
-                .iter()
-                .enumerate()
-                .map(|(i, ir)| cross_compile_ir_c64(i, ir.clone()))
-                .collect::<Vec<String>>()
-                .join("\n"),
-        );
-        out.push_str("\n");
+        out.as_bytes().to_vec()
     }
-
-    out
 }
