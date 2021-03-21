@@ -4,23 +4,24 @@ An implementation of the forth programming language intended for cross-compilati
 
 Some things you can run:
 
-```sh
-./check.sh
-cargo run -- run examples/snake.txt --interactive
-cargo run -- compile examples/gb.txt > ./snake/gb/pax_generated.asm
+### Run the paxconsola IDE
+
+```
+cd ide
+cargo run
 ```
 
-## Snake on Gameboy
+### Compile Snake
+
+```sh
+cargo run -- run snake/gb/snake.pax
+```
+
+### Run snake on Gameboy
 
 ```
 cd snake/gb
 make run
-```
-
-Analysis for compilation:
-
-```
-RUST_BACKTRACE=1 cargo run -- compile examples/constprop.fs
 ```
 
 ## Inspiration
