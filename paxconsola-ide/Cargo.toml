@@ -1,5 +1,5 @@
 [package]
-name = "ide"
+name = "paxconsola-ide"
 version = "0.1.0"
 authors = ["Tim Ryan <trim@fb.com>"]
 edition = "2018"

@@ -4,13 +4,6 @@ An implementation of the forth programming language intended for cross-compilati
 
 Some things you can run:
 
-### Run the paxconsola IDE
-
-```
-cd ide
-cargo run
-```
-
 ### Compile Snake
 
 ```sh
@@ -22,6 +15,13 @@ cargo run -- run snake/gb/snake.pax
 ```
 cd snake/gb
 make run
+```
+
+### Run the paxconsola IDE
+
+```
+cd paxconsola-ide
+./deploy.sh
 ```
 
 ## Inspiration
