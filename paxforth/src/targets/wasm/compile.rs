@@ -161,7 +161,7 @@ pub struct WasmForthCompiler {}
 
 impl ForthCompiler for WasmForthCompiler {
     /// Returns a compiled WAT file
-    fn compile(program: &SuperPaxProgram) -> String {
+    fn compile(program: &PaxProgram) -> String {
         let mut wat_out = vec![];
         for (name, blocks) in program {
             if name != "main" {
@@ -177,60 +177,60 @@ impl ForthCompiler for WasmForthCompiler {
                 for op in block.commands() {
                     wat_out.push(format!(";; {:?}", &op.0));
                     match &op.0 {
-                        SuperPax::PushLiteral(lit) => {
+                        Pax::PushLiteral(lit) => {
                             wat_out.push(format!("    i32.const {}", lit));
                             wat_out.push(format!("    call $data_push"));
                         }
-                        SuperPax::Add => {
+                        Pax::Add => {
                             wat_out.push(format!("    call $add"));
                         }
-                        SuperPax::Nand => {
+                        Pax::Nand => {
                             wat_out.push(format!("    call $nand"));
                         }
-                        SuperPax::Drop => {
+                        Pax::Drop => {
                             wat_out.push(format!("    call $drop"));
                         }
-                        SuperPax::AltPop => {
+                        Pax::AltPop => {
                             wat_out.push(format!("    call $return_pop"));
                         }
-                        SuperPax::AltPush => {
+                        Pax::AltPush => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $return_push"));
                         }
-                        SuperPax::LoadTemp => {
+                        Pax::LoadTemp => {
                             wat_out.push(format!("    call $temp_load"));
                             wat_out.push(format!("    call $data_push"));
                         }
-                        SuperPax::StoreTemp => {
+                        Pax::StoreTemp => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $temp_store"));
                         }
-                        SuperPax::Exit => {}
-                        SuperPax::Metadata(_) => {}
-                        SuperPax::Call(s) => {
+                        Pax::Exit => {}
+                        Pax::Metadata(_) => {}
+                        Pax::Call(s) => {
                             unreachable!("expected all methods to be inlined: {}", s);
                         }
-                        SuperPax::Load => {
+                        Pax::Load => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_load"));
                             wat_out.push(format!("    call $data_push"));
                         }
-                        SuperPax::Load8 => {
+                        Pax::Load8 => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_load_8"));
                             wat_out.push(format!("    call $data_push"));
                         }
-                        SuperPax::Store => {
+                        Pax::Store => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_store"));
                         }
-                        SuperPax::Store8 => {
+                        Pax::Store8 => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_store_8"));
                         }
-                        SuperPax::BranchTarget(target_index) => {
+                        Pax::BranchTarget(target_index) => {
                             let mut incoming = graph
                                 .neighbors_directed(
                                     NodeIndex::new(*target_index + 1),
@@ -260,7 +260,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_block_stack.pop().expect("expected end of 'else' block");
                             }
                         }
-                        SuperPax::JumpIf0(target_index) => {
+                        Pax::JumpIf0(target_index) => {
                             if *target_index > block_index {
                                 // Start of an if block
                                 let parent_id = format!("$B{}", wat_block_index);
@@ -284,7 +284,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_out.push(format!("    end"));
                             }
                         }
-                        SuperPax::JumpAlways(_) => {
+                        Pax::JumpAlways(_) => {
                             wat_block_stack.pop().unwrap(); // last_block
                             let parent_block = wat_block_stack.pop().unwrap();
                             wat_block_stack.push(parent_block.clone());
@@ -297,7 +297,7 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
                         }
-                        SuperPax::Print => {
+                        Pax::Print => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $print"));
                             wat_out.push(format!("    drop"));
@@ -325,7 +325,7 @@ impl ForthCompiler for WasmForthCompiler {
 
 impl WasmForthCompiler {
     /// Returns a compiled WebAssembly file (binary, not WAT format)
-    pub fn compile_binary(program: &SuperPaxProgram) -> Vec<u8> {
+    pub fn compile_binary(program: &PaxProgram) -> Vec<u8> {
         wat::parse_str(&Self::compile(program)).unwrap()
     }
 }

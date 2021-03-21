@@ -28,34 +28,34 @@ fn propagate_literals_in_block(
 
             match &command {
                 // If the register is in a blacklist, drop this command.
-                SuperPax::AltPop | SuperPax::PushLiteral(_) => {
+                Pax::AltPop | Pax::PushLiteral(_) => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
                         // REVIEW need a better detection mechanism
                         // if reg.starts_with("D") || reg.starts_with("R") {
-                        //     return vec![(SuperPax::Drop, input_command.1.clone())];
+                        //     return vec![(Pax::Drop, input_command.1.clone())];
                         // }
                         return vec![];
                     }
                 }
-                SuperPax::AltPush => {
+                Pax::AltPush => {
                     let reg = next_stack.as_ref().unwrap().ret.last().unwrap();
                     if reg_blacklist.contains(&*reg) {
                         // REVIEW need a better detection mechanism
                         // if reg.starts_with("D") || reg.starts_with("R") {
-                        //     // return vec![(SuperPax::Drop, input_command.1.clone())];
+                        //     // return vec![(Pax::Drop, input_command.1.clone())];
                         //     todo!();
                         // }
                         return vec![];
                     }
                 }
-                SuperPax::Exit => {
+                Pax::Exit => {
                     // Blacklist previous temp value.
                     if let Some(ref temp_reg) = stack.temp {
                         reg_blacklist.insert(temp_reg.clone());
                     }
                 }
-                SuperPax::StoreTemp => {
+                Pax::StoreTemp => {
                     // Blacklist previous temp value.
                     if let Some(ref temp_reg) = stack.temp {
                         reg_blacklist.insert(temp_reg.clone());
@@ -68,13 +68,13 @@ fn propagate_literals_in_block(
                         //     //     "\n\nwow okay that's slow: {:?}\n\n",
                         //     //     stack.data.last().unwrap()
                         //     // );
-                        //     return vec![(SuperPax::Drop, input_command.1.clone())];
+                        //     return vec![(Pax::Drop, input_command.1.clone())];
                         // }
                         return vec![];
                     }
                 }
 
-                SuperPax::LoadTemp => {
+                Pax::LoadTemp => {
                     let next_reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
 
@@ -89,7 +89,7 @@ fn propagate_literals_in_block(
                 }
 
                 // Blacklist is viral.
-                SuperPax::Add | SuperPax::Nand => {
+                Pax::Add | Pax::Nand => {
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
 
                     // If the computed register is discarded, discard both inputs.
@@ -101,7 +101,7 @@ fn propagate_literals_in_block(
                             reg_blacklist.insert(reg.to_owned());
                             // REVIEW need a better detection mechanism
                             if reg.starts_with("D") {
-                                ret.push((SuperPax::Drop, input_command.1.clone()));
+                                ret.push((Pax::Drop, input_command.1.clone()));
                             }
                         }
                         return ret;
@@ -109,7 +109,7 @@ fn propagate_literals_in_block(
                 }
 
                 // Drop command can ignore their values entirely.
-                SuperPax::Drop => {
+                Pax::Drop => {
                     let reg = stack.data.last().unwrap();
                     if !reg.starts_with("D") && !reg.starts_with("R") {
                         // FIXME is this the wrong thing
@@ -123,8 +123,8 @@ fn propagate_literals_in_block(
             // When a TOS register load is a literal, replace with
             // a direct literal load and blacklist the register.
             let target_reg = match &command {
-                SuperPax::AltPop => next_stack.as_ref().and_then(|s| s.data.last()),
-                SuperPax::LoadTemp => stack.temp.as_ref(),
+                Pax::AltPop => next_stack.as_ref().and_then(|s| s.data.last()),
+                Pax::LoadTemp => stack.temp.as_ref(),
                 _ => None,
             };
             if let Some(target_reg) = target_reg {
@@ -134,7 +134,7 @@ fn propagate_literals_in_block(
                 {
                     // eprintln!("      ^-> {:?} <= {:?}", target_reg, lit);
                     reg_blacklist.insert(target_reg.clone());
-                    return vec![(SuperPax::PushLiteral(*lit), input_command.1.clone())];
+                    return vec![(Pax::PushLiteral(*lit), input_command.1.clone())];
                 }
             }
 
@@ -162,7 +162,7 @@ fn propagate_literals_in_block(
     //     .windows(2)
     //     .enumerate()
     //     .for_each(|(i, window)| match window {
-    //         [(SuperPax::AltPush, _), (SuperPax::AltPop, _)] => {
+    //         [(Pax::AltPush, _), (Pax::AltPop, _)] => {
     //             splices.push(i);
     //         }
     //         _ => {}
@@ -237,7 +237,7 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
 
 /// Reduces branching in a function by removing unused BranchTargets.
 /// This function will also rewrite target offsets.
-pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
+pub fn reduce_branches(program: &mut PaxProgram, method: &str) {
     return;
     eprintln!("[reducing_branches] removing unused BranchTargets...");
     if let Some(blocks) = program.get_mut(method) {
@@ -246,8 +246,7 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
         let mut used_blocks = IndexSet::new();
         for block in readonly_blocks {
             match block.commands().last() {
-                Some((SuperPax::JumpAlways(target), ..))
-                | Some((SuperPax::JumpIf0(target), ..)) => {
+                Some((Pax::JumpAlways(target), ..)) | Some((Pax::JumpIf0(target), ..)) => {
                     used_blocks.insert(*target);
                 }
                 _ => {}
@@ -257,7 +256,7 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
         let mut i = 0;
         while i < blocks.len() {
             match blocks[i].commands().last() {
-                Some((SuperPax::BranchTarget(target), ..)) => {
+                Some((Pax::BranchTarget(target), ..)) => {
                     if !used_blocks.contains(target) {
                         let block = blocks.remove(i);
                         let commands = block.commands().clone().into_iter().rev().skip(1).rev();
@@ -280,7 +279,7 @@ pub fn reduce_branches(program: &mut SuperPaxProgram, method: &str) {
 }
 
 /// Helper method to otpimize a single function by propagating registers.
-pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
+pub fn optimize_function(program: &mut PaxProgram, method: &str) {
     let start_arity = function_arity(program, method);
     eprintln!("[optimize_function] arity: {:?}", start_arity,);
     if let Some(blocks) = program.get_mut(method) {
@@ -299,7 +298,7 @@ pub fn optimize_function(program: &mut SuperPaxProgram, method: &str) {
     assert_eq!(start_arity, end_arity, "arity changed during optimization");
 }
 
-pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
+pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
     let mut continue_pass = true;
     'pass_loop: while continue_pass {
         continue_pass = false;
@@ -315,7 +314,7 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
 
             // Determine what the next block target is going to be.
             match block.commands().last() {
-                Some((SuperPax::Call(target), ..)) => {
+                Some((Pax::Call(target), ..)) => {
                     // eprintln!("call to {:?}", target);
                     // eprintln!();
 
@@ -337,9 +336,9 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                     // Rewrite the sequence we're inlining.
                     for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
                         match inline_block.commands_mut().last_mut() {
-                            Some((SuperPax::BranchTarget(ref mut target), ..))
-                            | Some((SuperPax::JumpIf0(ref mut target), ..))
-                            | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                            Some((Pax::BranchTarget(ref mut target), ..))
+                            | Some((Pax::JumpIf0(ref mut target), ..))
+                            | Some((Pax::JumpAlways(ref mut target), ..)) => {
                                 *target += j - 1;
                             }
                             _ => {}
@@ -351,9 +350,9 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                     // Now rewrite all targets inside this block.
                     for (_i, main_block) in main_mut.iter_mut().enumerate() {
                         match main_block.commands_mut().last_mut() {
-                            Some((SuperPax::BranchTarget(ref mut target), ..))
-                            | Some((SuperPax::JumpIf0(ref mut target), ..))
-                            | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                            Some((Pax::BranchTarget(ref mut target), ..))
+                            | Some((Pax::JumpIf0(ref mut target), ..))
+                            | Some((Pax::JumpAlways(ref mut target), ..)) => {
                                 if *target >= j {
                                     *target += inlined_blocks_len;
                                 }
@@ -381,12 +380,12 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                     };
 
                     let return_stack_enter = vec![
-                        (SuperPax::PushLiteral(0xFFFF), inline_pos.clone()),
-                        (SuperPax::AltPush, inline_pos.clone()),
+                        (Pax::PushLiteral(0xFFFF), inline_pos.clone()),
+                        (Pax::AltPush, inline_pos.clone()),
                     ];
                     let return_stack_exit = vec![
-                        (SuperPax::AltPop, inline_pos.clone()),
-                        (SuperPax::Drop, inline_pos.clone()),
+                        (Pax::AltPop, inline_pos.clone()),
+                        (Pax::Drop, inline_pos.clone()),
                     ];
 
                     if inlined_blocks.len() == 1 {
@@ -423,9 +422,9 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         // Rewrite all targets after this.
                         for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
                             match main_block.commands_mut().last_mut() {
-                                Some((SuperPax::BranchTarget(ref mut target), ..))
-                                | Some((SuperPax::JumpIf0(ref mut target), ..))
-                                | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                                Some((Pax::BranchTarget(ref mut target), ..))
+                                | Some((Pax::JumpIf0(ref mut target), ..))
+                                | Some((Pax::JumpAlways(ref mut target), ..)) => {
                                     if *target >= j {
                                         *target -= 1;
                                     }
@@ -437,9 +436,9 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         // Now rewrite all targets before this.
                         for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
                             match main_block.commands_mut().last_mut() {
-                                Some((SuperPax::BranchTarget(ref mut target), ..))
-                                | Some((SuperPax::JumpIf0(ref mut target), ..))
-                                | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                                Some((Pax::BranchTarget(ref mut target), ..))
+                                | Some((Pax::JumpIf0(ref mut target), ..))
+                                | Some((Pax::JumpAlways(ref mut target), ..)) => {
                                     if *target >= j {
                                         *target -= 1;
                                     }
@@ -483,9 +482,9 @@ pub fn inline_into_function(program: &mut SuperPaxProgram, method: &str) {
                         // Now rewrite all targets before this.
                         // for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
                         //     match main_block.commands_mut().last_mut() {
-                        //         Some((SuperPax::BranchTarget(ref mut target), ..))
-                        //         | Some((SuperPax::JumpIf0(ref mut target), ..))
-                        //         | Some((SuperPax::JumpAlways(ref mut target), ..)) => {
+                        //         Some((Pax::BranchTarget(ref mut target), ..))
+                        //         | Some((Pax::JumpIf0(ref mut target), ..))
+                        //         | Some((Pax::JumpAlways(ref mut target), ..)) => {
                         //             if *target >= j {
                         //                 *target += inline_seq.len();
                         //             }
@@ -520,7 +519,7 @@ pub fn dump_blocks(blocks: &[Block]) {
     eprintln!();
 }
 
-pub fn optimize_forth(mut program: SuperPaxProgram) {
+pub fn optimize_forth(mut program: PaxProgram) {
     inline_into_function(&mut program, "2dup");
 
     if let Some(blocks) = program.get_mut("2dup") {

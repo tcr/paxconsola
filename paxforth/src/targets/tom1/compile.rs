@@ -26,53 +26,53 @@ macro_rules! tom_output {
     );
 }
 
-pub fn cross_compile_ir_tom(i: usize, op: SuperPax) -> String {
+pub fn cross_compile_ir_tom(i: usize, op: Pax) -> String {
     let mut out = String::new();
     match op {
-        SuperPax::Drop => tom_output!(out, "drop()"),
-        SuperPax::PushLiteral(n) => tom_output!(out, "push_literal({})", n,),
-        SuperPax::Add => tom_output!(out, "add()"),
-        SuperPax::Nand => tom_output!(out, "nand()"),
-        SuperPax::AltPop => tom_output!(out, "return_pop()"),
-        SuperPax::AltPush => tom_output!(out, "return_push()"),
+        Pax::Drop => tom_output!(out, "drop()"),
+        Pax::PushLiteral(n) => tom_output!(out, "push_literal({})", n,),
+        Pax::Add => tom_output!(out, "add()"),
+        Pax::Nand => tom_output!(out, "nand()"),
+        Pax::AltPop => tom_output!(out, "return_pop()"),
+        Pax::AltPush => tom_output!(out, "return_push()"),
 
         // FIXME should implement real load16
-        SuperPax::LoadTemp => tom_output!(
+        Pax::LoadTemp => tom_output!(
             out,
             "push_literal(0x100)
 load()"
         ),
         // FIXME should implement real store16
-        SuperPax::StoreTemp => tom_output!(
+        Pax::StoreTemp => tom_output!(
             out,
             "push_literal(0x100)
 store()"
         ),
 
-        SuperPax::JumpAlways(target) => tom_output!(
+        Pax::JumpAlways(target) => tom_output!(
             out,
             "push_literal(0x0)
 jump_if_0(target_{})",
             target
         ),
-        SuperPax::JumpIf0(target) => tom_output!(out, "jump_if_0(target_{})", target),
+        Pax::JumpIf0(target) => tom_output!(out, "jump_if_0(target_{})", target),
 
         // FIXME should implement real load16
-        SuperPax::Load | SuperPax::Load8 => tom_output!(out, "load()"),
+        Pax::Load | Pax::Load8 => tom_output!(out, "load()"),
         // FIXME should implement real store16
-        SuperPax::Store | SuperPax::Store8 => tom_output!(out, "store()"),
+        Pax::Store | Pax::Store8 => tom_output!(out, "store()"),
 
-        SuperPax::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
+        Pax::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
 
-        SuperPax::Metadata(s) => tom_output!(out, "start()"),
-        SuperPax::Exit => {
+        Pax::Metadata(s) => tom_output!(out, "start()"),
+        Pax::Exit => {
             tom_output!(out, "");
         }
-        SuperPax::Call(label) => {
+        Pax::Call(label) => {
             tom_output!(out, "");
         }
 
-        SuperPax::Print => tom_output!(out, ""),
+        Pax::Print => tom_output!(out, ""),
 
         e => {
             unimplemented!("e {:?}", e);
@@ -84,7 +84,7 @@ jump_if_0(target_{})",
 pub struct Tom1ForthCompiler {}
 
 impl ForthCompiler for Tom1ForthCompiler {
-    fn compile(program: &SuperPaxProgram) -> String {
+    fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
             if name != "main" {

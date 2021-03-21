@@ -1,11 +1,11 @@
 #![recursion_limit = "4096"]
 
-use stdweb;
-use stdweb::js;
 use include_dir::*;
 use indexmap::IndexMap;
 use paxforth::*;
 use serde::*;
+use stdweb;
+use stdweb::js;
 use yew::services::interval::*;
 use yew::worker::*;
 use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
@@ -205,7 +205,7 @@ pub enum Request {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Response {
-    Answer(SuperPaxProgram, ExecutionTarget),
+    Answer(PaxProgram, ExecutionTarget),
     CompilationError(String),
 }
 
@@ -276,7 +276,7 @@ pub enum Msg {
     InlineAndOptimize(String),
     ShowMethod(String),
     RunInput,
-    CompileResult(SuperPaxProgram, ExecutionTarget),
+    CompileResult(PaxProgram, ExecutionTarget),
     CompilationError(String),
     NextTick(Vec<u8>),
     GameStop,
@@ -290,7 +290,7 @@ pub enum Msg {
 
 pub struct App {
     forth_input: String,
-    program: SuperPaxProgram,
+    program: PaxProgram,
     link: ComponentLink<Self>,
     method: Option<(String, Vec<Block>)>,
     context: Box<dyn Bridge<Worker>>,

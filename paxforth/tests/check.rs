@@ -61,7 +61,7 @@ fn test_all_in_check_directory() {
         eprintln!("[forth] evaluating '{}'", test.path.display());
 
         // Main must be inlined before evaluating in WebAssembly.
-        let mut program = parse_to_superpax(
+        let mut program = parse_to_pax(
             test.contents.as_bytes().to_owned(),
             Some(&test.path.display().to_string()),
         );

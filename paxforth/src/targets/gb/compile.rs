@@ -67,55 +67,55 @@ pub enum GbIr {
     Inc,
 }
 
-fn translate_to_gb(_i: usize, op: SuperPax) -> Vec<GbIr> {
+fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
     match op {
-        SuperPax::Metadata(s) => vec![GbIr::Metadata(s)],
+        Pax::Metadata(s) => vec![GbIr::Metadata(s)],
         // ( -- value )
-        SuperPax::PushLiteral(value) => vec![GbIr::Dup, GbIr::ReplaceLiteral(value as _)],
+        Pax::PushLiteral(value) => vec![GbIr::Dup, GbIr::ReplaceLiteral(value as _)],
         // ( address -- value )
-        SuperPax::Load => vec![GbIr::ReplaceLoad],
+        Pax::Load => vec![GbIr::ReplaceLoad],
         // ( address -- value )
-        SuperPax::Load8 => vec![GbIr::ReplaceLoad8],
+        Pax::Load8 => vec![GbIr::ReplaceLoad8],
         // ( value address -- )
-        SuperPax::Store => vec![GbIr::NipIntoDE, GbIr::StoreDE, GbIr::Pop],
+        Pax::Store => vec![GbIr::NipIntoDE, GbIr::StoreDE, GbIr::Pop],
         // ( value address -- )
-        SuperPax::Store8 => vec![GbIr::NipIntoDE, GbIr::StoreDE8, GbIr::Pop],
+        Pax::Store8 => vec![GbIr::NipIntoDE, GbIr::StoreDE8, GbIr::Pop],
         // ( cond -- )
-        SuperPax::JumpIf0(offset) => vec![
+        Pax::JumpIf0(offset) => vec![
             GbIr::CopyToDE,
             GbIr::Pop,
             GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
         // ( cond -- )
-        SuperPax::JumpAlways(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
+        Pax::JumpAlways(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
         // ( address -- )
-        SuperPax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
+        Pax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
         // ( -- )
-        SuperPax::Exit => vec![GbIr::Ret],
+        Pax::Exit => vec![GbIr::Ret],
         // ( a b -- c )
-        SuperPax::Add => vec![GbIr::NipIntoDE, GbIr::ReplaceAddWithDE],
+        Pax::Add => vec![GbIr::NipIntoDE, GbIr::ReplaceAddWithDE],
         // ( a b -- c )
-        SuperPax::Nand => vec![GbIr::NipIntoDE, GbIr::ReplaceNandWithDE],
+        Pax::Nand => vec![GbIr::NipIntoDE, GbIr::ReplaceNandWithDE],
         // ( a -- )
-        SuperPax::AltPush => vec![GbIr::AltDupFromTOS, GbIr::Pop],
+        Pax::AltPush => vec![GbIr::AltDupFromTOS, GbIr::Pop],
         // ( a -- )
-        SuperPax::AltPop => vec![GbIr::Dup, GbIr::AltPop],
-        SuperPax::Print => vec![
+        Pax::AltPop => vec![GbIr::Dup, GbIr::AltPop],
+        Pax::Print => vec![
             // nah
         ],
         // ( -- )
-        SuperPax::BranchTarget(n) => vec![GbIr::Label(format!(".target_{}", n))],
+        Pax::BranchTarget(n) => vec![GbIr::Label(format!(".target_{}", n))],
         // ( a -- )
-        SuperPax::Drop => vec![GbIr::Pop],
+        Pax::Drop => vec![GbIr::Pop],
         // ( -- t )
-        SuperPax::LoadTemp => vec![
+        Pax::LoadTemp => vec![
             GbIr::Dup,
             // FIXME assumes temp is first variable
             GbIr::ReplaceLiteral(BASE_VARIABLE_OFFSET as _),
             GbIr::ReplaceLoad,
         ],
         // ( t -- )
-        SuperPax::StoreTemp => vec![
+        Pax::StoreTemp => vec![
             GbIr::Dup,
             // FIXME assumes temp is first variable
             GbIr::ReplaceLiteral(BASE_VARIABLE_OFFSET as _),
@@ -436,7 +436,7 @@ PAX_FN_{}:
 pub struct GameboyForthCompiler {}
 
 impl ForthCompiler for GameboyForthCompiler {
-    fn compile(program: &SuperPaxProgram) -> String {
+    fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (_name, code) in program {
             let mut result = vec![];

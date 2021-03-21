@@ -73,8 +73,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         .unwrap_or_else(|err| panic!("{}", err));
 
     // Parse program into Pax.
-    let source_program =
-        parse_to_superpax(code, Some(arg_file.to_string_lossy().to_string().as_str()));
+    let source_program = parse_to_pax(code, Some(arg_file.to_string_lossy().to_string().as_str()));
 
     match args.cmd {
         Command::Compile { target, .. } => match target {

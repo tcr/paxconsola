@@ -263,7 +263,7 @@ fn analyze_block(
     block_analysis: &mut BlockAnalysis,
 ) {
     for command in block.commands() {
-        use SuperPax::*;
+        use Pax::*;
         match (command.0).clone() {
             JumpAlways(_) => {}
             Drop | JumpIf0(_) | Print => {
@@ -351,7 +351,7 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
 
             // Determine what the next block target is going to be.
             match block.commands().last() {
-                Some((SuperPax::JumpIf0(target), ..)) => {
+                Some((Pax::JumpIf0(target), ..)) => {
                     // Inject next edge (for both absolute jump OR branch)
                     let alt_target = target + 1;
                     edges.push((i as u32, alt_target as u32));
@@ -362,7 +362,7 @@ pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
                         conditions.push_front(alt_target);
                     }
                 }
-                Some((SuperPax::JumpAlways(target), ..)) => {
+                Some((Pax::JumpAlways(target), ..)) => {
                     // Inject next edge (for both absolute jump OR branch)
                     let alt_target = target + 1;
                     edges.push((i as u32, alt_target as u32));
@@ -547,7 +547,7 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
 
 // Returns the arity of the function. You require the whole program
 // for this, because you need the arity of nested functions.
-pub fn function_arity(program: &SuperPaxProgram, method: &str) -> (usize, usize, usize, usize) {
+pub fn function_arity(program: &PaxProgram, method: &str) -> (usize, usize, usize, usize) {
     let mut program = program.to_owned();
     inline_into_function(&mut program, method);
     let blocks = program.get(method).unwrap();
@@ -591,7 +591,7 @@ mod tests {
 
     #[test]
     fn test_function_arity() {
-        let program = parse_to_superpax("1 print".as_bytes().to_owned(), None);
+        let program = parse_to_pax("1 print".as_bytes().to_owned(), None);
 
         assert_eq!(function_arity(&program, "2drop"), (2, 0, 0, 0));
         assert_eq!(function_arity(&program, "swap"), (2, 2, 0, 0));

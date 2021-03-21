@@ -26,7 +26,7 @@ macro_rules! gb_output {
     );
 }
 
-pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
+pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
     let mut out = String::new();
     gb_output!(
         out,
@@ -37,7 +37,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         op
     );
     match op {
-        SuperPax::Drop => gb_output!(
+        Pax::Drop => gb_output!(
             out,
             "
     pla
@@ -45,7 +45,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
     pla
         "
         ),
-        SuperPax::PushLiteral(n) => gb_output!(
+        Pax::PushLiteral(n) => gb_output!(
             out,
             "
     pha
@@ -57,7 +57,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
             ((n as u16) >> 8) & 0xFF,
             (n as u8) & 0xFF,
         ),
-        SuperPax::Add => gb_output!(
+        Pax::Add => gb_output!(
             out,
             "
     clc
@@ -74,7 +74,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
     lda TEMP
         "
         ),
-        SuperPax::Nand => gb_output!(
+        Pax::Nand => gb_output!(
             out,
             "
     sty TEMP
@@ -88,7 +88,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
     eor #$ff
         "
         ),
-        SuperPax::AltPop => gb_output!(
+        Pax::AltPop => gb_output!(
             out,
             "
     pha
@@ -101,7 +101,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
     lda $00,x
         "
         ),
-        SuperPax::AltPush => gb_output!(
+        Pax::AltPush => gb_output!(
             out,
             "
     sta $00,x
@@ -116,7 +116,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         ),
 
         // FIXME should implement real load16
-        SuperPax::LoadTemp => gb_output!(
+        Pax::LoadTemp => gb_output!(
             out,
             "
     pha
@@ -127,7 +127,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         "
         ),
         // FIXME should implement real store16
-        SuperPax::StoreTemp => gb_output!(
+        Pax::StoreTemp => gb_output!(
             out,
             "
     sta TEMP_PAX1
@@ -138,14 +138,14 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         "
         ),
 
-        SuperPax::JumpAlways(target) => gb_output!(
+        Pax::JumpAlways(target) => gb_output!(
             out,
             "
     jmp @target_{}
         ",
             target
         ),
-        SuperPax::JumpIf0(target) => gb_output!(
+        Pax::JumpIf0(target) => gb_output!(
             out,
             "
     sta TEMP
@@ -167,7 +167,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         ),
 
         // FIXME should implement real load16
-        SuperPax::Load | SuperPax::Load8 => gb_output!(
+        Pax::Load | Pax::Load8 => gb_output!(
             out,
             "
     sta TEMP
@@ -177,7 +177,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         "
         ),
         // FIXME should implement real store16
-        SuperPax::Store | SuperPax::Store8 => gb_output!(
+        Pax::Store | Pax::Store8 => gb_output!(
             out,
             "
     sta TEMP
@@ -192,7 +192,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
         "
         ),
 
-        SuperPax::BranchTarget(n) => gb_output!(
+        Pax::BranchTarget(n) => gb_output!(
             out,
             "
 @target_{}:
@@ -200,7 +200,7 @@ pub fn cross_compile_ir_c64(i: usize, op: SuperPax) -> String {
             n
         ),
 
-        SuperPax::Metadata(s) => gb_output!(
+        Pax::Metadata(s) => gb_output!(
             out,
             "
     ; [metadata] {:?}
@@ -209,7 +209,7 @@ PAX_FN_{}:
             s,
             name_slug(&s)
         ),
-        SuperPax::Exit => {
+        Pax::Exit => {
             gb_output!(
                 out,
                 "
@@ -224,7 +224,7 @@ PAX_FN_{}:
             "
             );
         }
-        SuperPax::Call(label) => {
+        Pax::Call(label) => {
             gb_output!(
                 out,
                 "
@@ -244,7 +244,7 @@ PAX_FN_{}:
 pub struct C64ForthCompiler {}
 
 impl ForthCompiler for C64ForthCompiler {
-    fn compile(program: &SuperPaxProgram) -> String {
+    fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
             if name != "main" {
