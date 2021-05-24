@@ -1,8 +1,6 @@
 #![allow(deprecated)]
 
 use paxforth::*;
-use std::fs::File;
-use std::io::prelude::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
