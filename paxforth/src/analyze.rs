@@ -287,6 +287,10 @@ fn analyze_block(
                 analysis.push_data(block_analysis, reg);
             }
 
+            Abort => {
+                panic!("Throw not supported in analyze");
+            }
+
             Store | Store8 => {
                 analysis.pop_data(block_analysis);
                 analysis.pop_data(block_analysis);

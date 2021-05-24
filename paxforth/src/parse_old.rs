@@ -34,6 +34,8 @@ pub enum PaxOld {
     JumpIf0(usize),
     JumpAlways(usize),
 
+    Abort,
+
     Print,
 }
 
@@ -398,6 +400,7 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                             "c!" => current(&mut stack).push((PaxOld::Store8, pos)),
                             "c@" => current(&mut stack).push((PaxOld::Load8, pos)),
                             "drop" => current(&mut stack).push((PaxOld::Drop, pos)),
+                            "abort" => current(&mut stack).push((PaxOld::Abort, pos)),
 
                             "temp@" => current(&mut stack).push((PaxOld::LoadTemp, pos)),
                             "temp!" => current(&mut stack).push((PaxOld::StoreTemp, pos)),

@@ -48,6 +48,8 @@ pub enum Pax {
     JumpIf0(usize),
     JumpAlways(usize),
 
+    Abort,
+
     // pax debug
     Print,
 }
@@ -243,6 +245,9 @@ pub fn convert_to_pax(program: Program) -> PaxProgram {
                 }
                 PaxOld::StoreTemp => {
                     stack.record_op(&(Pax::StoreTemp, op.1.clone()));
+                }
+                PaxOld::Abort => {
+                    stack.record_op(&(Pax::Abort, op.1.clone()));
                 }
                 PaxOld::Exit => {
                     stack.record_op(&(Pax::Exit, op.1.clone()));

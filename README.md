@@ -35,3 +35,6 @@ cd paxconsola-ide
 * [NybbleForth](https://github.com/larsbrinkhoff/nybbleForth)
 * [ColorForth](https://web.archive.org/web/20160310112802/http://colorforth.com/inst.htm)
 * [Retroforth](https://stackoverflow.com/a/12548223)
+* [Easy Forth](https://skilldrick.github.io/easyforth/)
+* [Hardware Simulation in Forth](https://comp.lang.forth.narkive.com/6U6BPhcA/hardware-simulation-in-forth#post2)
+* [liforth prelude](https://github.com/howerj/libforth/blob/b851c6a25150e7d2114804fc8712664c6d825214/forth.fth)

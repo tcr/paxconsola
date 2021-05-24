@@ -107,6 +107,8 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
         Pax::BranchTarget(n) => vec![GbIr::Label(format!(".target_{}", n))],
         // ( a -- )
         Pax::Drop => vec![GbIr::Pop],
+        // ( a -- )
+        Pax::Abort => panic!("gb backend doesn't support abort"),
         // ( -- t )
         Pax::LoadTemp => vec![
             GbIr::Dup,

@@ -1,3 +1,5 @@
+\ https://github.com/fis/fungot/blob/master/twungot-forth/buf.fs
+
 \ flexible-size auto-allocated byte buffers
 
 \ memory layout:
@@ -45,11 +47,25 @@
     0
     ;
 
+: throw 0 = if else abort then ;
+
+( move should check that u is not negative )
+: move ( addr1 addr2 u -- : copy u words of memory from 'addr2' to 'addr1' )
+	0 do
+		2dup i + @ swap i + !
+	loop
+	2drop ;
+
 : buf-new ( size -- buf )
     dup 0= if drop 16 then
     dup 2 cells + allocate throw \ size buf
     dup rot swap !               \ buf
     0 over cell+ ! ;
+
+\ free at the moment does nothing :()
+: free ( addr -- )
+    drop
+    ;
 
 : buf-append ( char buf -- buf )
     dup @ over cell+ @                    \ char buf size len
@@ -84,12 +100,18 @@
     rot swap !
     dup cell+ dup @ 1+ swap ! ;
 
+: pick3
+    rot dup temp! rot rot temp@
+    ;
+
 : strdup ( c-addr1 u -- c-addr2 u )
     dup allocate throw   \ c-addr1 u c-addr2
-    rot over 3 pick move \ u c-addr2
+    rot over pick3 move \ u c-addr2
     swap ;
 
 : arrdup ( addr1 u -- addr2 u )
     dup cells allocate throw   \ addr1 u addr2
-    rot over 3 pick cells move \ u addr2
+    rot over pick3 cells move \ u addr2
     swap ;
+
+4 buf-new 1 over buf-append 2 over buf-append buf-count print

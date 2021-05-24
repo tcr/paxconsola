@@ -14,6 +14,7 @@ variable  temp \ first variable
 : 2dup   over over ;
 
 : cells dup + ;
+: cell+ 1 cells + ;
 
 : invert   -1 nand ;
 : negate   invert 1 + ;
@@ -43,6 +44,7 @@ variable  temp \ first variable
 : j r> r> r> r> r> temp! temp@ >r >r >r >r >r temp@ ;
 
 : * >r 0 r> 0 do over + loop swap drop ;
+: 2* 2 * ;
 
 : 0<   $8000 nand invert if -1 else 0 then ;
 : % ( value divisor -- modulus ) begin 2dup - dup 0< if rot drop + -1 else rot drop swap 0 then until ;

@@ -14,7 +14,7 @@ const WAT_TEMPLATE: &'static str = r#"
     (import "root" "extmem_load_8" (func $extmem_load_8 (param i32) (result i32)))
     (import "root" "extmem_store" (func $extmem_store (param i32) (param i32)))
     (import "root" "extmem_store_8" (func $extmem_store_8 (param i32) (param i32)))
-    
+
     (func $__wasm_call_ctors (type $t0))
 
     (func $mem_load (export "mem_load") (type $t2) (param $p0 i32) (result i32)
@@ -154,7 +154,7 @@ const WAT_TEMPLATE: &'static str = r#"
 
 
     (memory $memory (export "memory") 2))
-  
+
 "#;
 
 pub struct WasmForthCompiler {}
@@ -301,6 +301,10 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $print"));
                             wat_out.push(format!("    drop"));
+                        }
+                        Pax::Abort => {
+                            wat_out.push(format!("    unreachable"));
+                            // wat_out.push(format!("    throw 0"));
                         }
                     }
                     wat_out.push(format!(""));
