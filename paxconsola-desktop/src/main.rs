@@ -19,7 +19,7 @@ impl MainState {
         let src = std::fs::read_to_string("snake.pax").unwrap();
 
         // Parse program into Pax.
-        let source_program = parse_to_superpax(src.as_bytes().to_owned(), Some("snake.pax"));
+        let source_program = parse_to_pax(&src, Some("snake.pax"));
 
         // Main must be inlined before evaluating in WebAssembly.
         let mut program = source_program.clone();
@@ -27,7 +27,7 @@ impl MainState {
         // optimize_function(&mut program, "main");
         let wasm = WasmForthCompiler::compile_binary(&program);
 
-        let mut runner = parse_wasm(wasm.as_slice(), true).unwrap();
+        let runner = parse_wasm(wasm.as_slice(), true).unwrap();
 
         let s = MainState { pos_x: 0.0, runner };
 

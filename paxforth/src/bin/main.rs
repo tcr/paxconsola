@@ -67,13 +67,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     };
 
     // Read the file into a Vec<u8>
-    let mut file = File::open(&arg_file).unwrap_or_else(|err| panic!("{}", err));
-    let mut code = Vec::with_capacity(file.metadata().map(|m| m.len()).unwrap_or(0) as usize);
-    file.read_to_end(&mut code)
-        .unwrap_or_else(|err| panic!("{}", err));
-
-    // Parse program into Pax.
-    let source_program = parse_to_pax(code, Some(arg_file.to_string_lossy().to_string().as_str()));
+    let code = std::fs::read_to_string(&arg_file).expect("could not read file");
+    let source_program = parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
 
     match args.cmd {
         Command::Compile { target, .. } => match target {

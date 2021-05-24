@@ -420,26 +420,6 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
     functions.get_mut("main").unwrap().extend(output);
 }
 
-pub fn strip_unused(program: &Program) -> Program {
-    let mut used = IndexSet::<String>::new();
-    used.insert("main".to_string());
-    for (_name, body) in program {
-        for op in body {
-            match &op.0 {
-                PaxOld::Call(word) => {
-                    used.insert(word.to_string());
-                }
-                _ => {}
-            }
-        }
-    }
-    program
-        .into_iter()
-        .filter(|(k, _)| used.contains(k.as_str()))
-        .map(|(k, v)| (k.clone(), v.clone()))
-        .collect()
-}
-
 pub fn parse_forth(buffer: Vec<u8>, filename: Option<&str>) -> Program {
     let mut program = IndexMap::new();
     parse_forth_inner(

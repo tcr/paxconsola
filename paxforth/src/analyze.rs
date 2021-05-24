@@ -591,7 +591,7 @@ mod tests {
 
     #[test]
     fn test_function_arity() {
-        let program = parse_to_pax("1 print".as_bytes().to_owned(), None);
+        let program = parse_to_pax("1 print", None);
 
         assert_eq!(function_arity(&program, "2drop"), (2, 0, 0, 0));
         assert_eq!(function_arity(&program, "swap"), (2, 2, 0, 0));

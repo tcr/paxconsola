@@ -60,11 +60,10 @@ fn test_all_in_check_directory() {
     for test in check_tests {
         eprintln!("[forth] evaluating '{}'", test.path.display());
 
+        // Parse the program.
+        let mut program = parse_to_pax(&test.contents, Some(&test.path.display().to_string()));
+
         // Main must be inlined before evaluating in WebAssembly.
-        let mut program = parse_to_pax(
-            test.contents.as_bytes().to_owned(),
-            Some(&test.path.display().to_string()),
-        );
         inline_into_function(&mut program, "main");
 
         // TODO
@@ -74,7 +73,7 @@ fn test_all_in_check_directory() {
         let wasm = WasmForthCompiler::compile_binary(&program);
         let buffer = run_wasm(&wasm, true).expect("failed execution");
 
-        // Parse "print" statements.
+        // Parse output from "print" statements.
         let buffer_string = String::from_utf8_lossy(&buffer).to_string();
         let found = buffer_string.split_whitespace().collect::<Vec<_>>();
 

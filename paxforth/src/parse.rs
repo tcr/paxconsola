@@ -140,7 +140,7 @@ impl BlockBuilder {
     }
 }
 
-pub fn convert_to_Pax(program: Program) -> PaxProgram {
+pub fn convert_to_pax(program: Program) -> PaxProgram {
     let mut program_stacks = IndexMap::new();
     for (name, code) in program {
         // Load indexes of BranchTarget opcodes.
@@ -274,7 +274,8 @@ pub fn convert_to_Pax(program: Program) -> PaxProgram {
     program_stacks
 }
 
-pub fn parse_to_pax(buffer: Vec<u8>, filename: Option<&str>) -> PaxProgram {
+pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
+    let buffer = contents.as_bytes().to_owned();
     let program = parse_forth(buffer, filename);
-    convert_to_Pax(program)
+    convert_to_pax(program)
 }
