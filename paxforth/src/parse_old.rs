@@ -44,6 +44,122 @@ pub enum Pax {
     Print,
 }
 
+pub type PaxSpan = Vec<Located<Pax>>;
+
+pub type PaxProgram = IndexMap<String, Vec<Block>>;
+
+// Value for WebAssembly
+// const BASE_VARIABLE_OFFSET: usize = 10000;
+// Value for Gameboy
+// const BASE_VARIABLE_OFFSET: usize = 49216;
+// Value for C64
+pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
+
+
+/**
+ * Blocks
+ */
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Block {
+    ExitBlock(PaxSpan),
+    JumpAlways(PaxSpan),
+    JumpIf0Block(PaxSpan),
+    BranchTargetBlock(PaxSpan),
+    CallBlock(PaxSpan),
+}
+
+impl Block {
+    pub fn commands(&'_ self) -> &'_ PaxSpan {
+        match self {
+            Block::ExitBlock(ref commands) => commands,
+            Block::JumpIf0Block(ref commands) => commands,
+            Block::JumpAlways(ref commands) => commands,
+            Block::BranchTargetBlock(ref commands) => commands,
+            Block::CallBlock(ref commands) => commands,
+        }
+    }
+
+    pub fn commands_mut(&'_ mut self) -> &'_ mut PaxSpan {
+        match self {
+            Block::ExitBlock(ref mut commands) => commands,
+            Block::JumpIf0Block(ref mut commands) => commands,
+            Block::JumpAlways(ref mut commands) => commands,
+            Block::BranchTargetBlock(ref mut commands) => commands,
+            Block::CallBlock(ref mut commands) => commands,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BlockBuilder {
+    pub current_block: PaxSpan,
+    pub blocks: Vec<Block>,
+}
+
+impl BlockBuilder {
+    pub fn new() -> BlockBuilder {
+        BlockBuilder {
+            current_block: vec![],
+            blocks: vec![],
+        }
+    }
+
+    pub fn record_op(&mut self, op: &Located<Pax>) {
+        self.current_block.push(op.to_owned());
+    }
+
+    pub fn exit_block(&mut self) {
+        self.blocks
+            .push(Block::ExitBlock(self.current_block.clone()));
+        self.reset();
+    }
+
+    pub fn jump_if_0_block(&mut self) {
+        self.blocks
+            .push(Block::JumpIf0Block(self.current_block.clone()));
+        self.reset();
+    }
+
+    pub fn jump_always_block(&mut self) {
+        self.blocks
+            .push(Block::JumpAlways(self.current_block.clone()));
+        self.reset();
+    }
+
+    pub fn branch_target_block(&mut self) {
+        self.blocks
+            .push(Block::BranchTargetBlock(self.current_block.clone()));
+        self.reset();
+    }
+
+    pub fn call_block(&mut self) {
+        self.blocks
+            .push(Block::CallBlock(self.current_block.clone()));
+        self.reset();
+    }
+
+    pub fn reset(&mut self) {
+        self.current_block = vec![];
+    }
+}
+
+/**
+ * Marker groups
+ */
+
+#[derive(Debug)]
+pub struct MarkerGroup {
+    name: String,
+    target_indices: Vec<usize>,
+    source_index: Option<usize>,
+}
+
+
+/**
+ * Parsing
+ */
+
 pub enum ParseMode {
     Default,
     FunctionName,
@@ -52,28 +168,69 @@ pub enum ParseMode {
     Variable,
 }
 
-pub type PaxSpan = Vec<Located<Pax>>;
+pub type Program = IndexMap<String, PaxSpan>;
 
-#[derive(Debug)]
-pub struct MarkerGroup {
-    #[allow(unused)]
-    name: String,
-    target_indices: Vec<usize>,
-    source_index: Option<usize>,
+struct StackAbstraction {
+    stack: Vec<(String, PaxSpan)>,
+    block_builder: BlockBuilder,
 }
 
-impl MarkerGroup {
-    fn new(name: &str, source_index: Option<usize>) -> MarkerGroup {
-        MarkerGroup {
-            name: name.to_string(),
-            target_indices: vec![],
-            source_index,
-        }
+impl StackAbstraction {
+
+    pub fn record_op(&mut self, op: Located<Pax>) {
+        self.stack.last_mut().unwrap().1.push(op.clone());
+        self.block_builder.record_op(&op);
     }
 
-    fn new_target(name: &str, output: &mut PaxSpan, pos: Pos) -> MarkerGroup {
-        let index = output.len();
-        output.push((Pax::OldBranchTarget, pos));
+    pub fn exit_block(&mut self) {
+        self.block_builder.exit_block();
+    }
+
+    pub fn jump_if_0_block(&mut self) {
+        self.block_builder.jump_if_0_block();
+    }
+
+    pub fn jump_always_block(&mut self) {
+        self.block_builder.jump_always_block();
+    }
+
+    pub fn branch_target_block(&mut self) {
+        self.block_builder.branch_target_block();
+    }
+
+    pub fn call_block(&mut self) {
+        self.block_builder.call_block();
+    }
+
+    pub fn reset(&mut self) {
+        self.block_builder.reset();
+    }
+
+    // rest
+
+    fn current(&'_ mut self) -> &'_ mut PaxSpan {
+        &mut self.stack.last_mut().unwrap().1
+    }
+
+    fn current_pop(&mut self) {
+        self.stack.last_mut().unwrap().1.pop();
+    }
+
+    fn push(&mut self, arg: (String, PaxSpan)) {
+        self.stack.push(arg);
+    }
+
+    fn pop(&mut self) -> Option<(String, PaxSpan)> {
+        self.stack.pop()
+    }
+
+    fn len(&self) -> usize {
+        self.stack.len()
+    }
+
+    fn new_marker_group(&mut self, name: &str, pos: Pos) -> MarkerGroup {
+        let index = self.current().len();
+        self.record_op((Pax::OldBranchTarget, pos));
         MarkerGroup {
             name: name.to_string(),
             target_indices: vec![],
@@ -81,13 +238,14 @@ impl MarkerGroup {
         }
     }
 
-    fn set_target(&mut self, output: &mut PaxSpan, pos: Pos) {
-        assert!(self.source_index.is_none());
-        let index = output.len();
-        output.push((Pax::OldBranchTarget, pos));
-        self.source_index = Some(index);
+    fn set_target(&mut self, marker_group: &mut MarkerGroup, pos: Pos) {
+        assert!(marker_group.source_index.is_none());
+        let index = self.current().len();
+        self.record_op((Pax::OldBranchTarget, pos));
+        marker_group.source_index = Some(index);
 
-        for target in &self.target_indices {
+        let output = self.current();
+        for target in &marker_group.target_indices {
             match output[*target].0 {
                 Pax::JumpIf0(_) => {
                     output[*target].0 = Pax::JumpIf0(index);
@@ -102,20 +260,18 @@ impl MarkerGroup {
         }
     }
 
-    fn jump_if_0(&mut self, output: &mut PaxSpan, pos: Pos) {
-        let index = output.len();
-        output.push((Pax::JumpIf0(self.source_index.unwrap_or(0)), pos));
-        self.target_indices.push(index);
+    fn jump_if_0(&mut self, marker_group: &mut MarkerGroup, pos: Pos) {
+        let index = self.current().len();
+        self.record_op((Pax::JumpIf0(marker_group.source_index.unwrap_or(0)), pos));
+        marker_group.target_indices.push(index);
     }
 
-    fn jump_always(&mut self, output: &mut PaxSpan, pos: Pos) {
-        let index = output.len();
-        output.push((Pax::JumpAlways(self.source_index.unwrap_or(0)), pos));
-        self.target_indices.push(index);
+    fn jump_always(&mut self, marker_group: &mut MarkerGroup, pos: Pos) {
+        let index = self.current().len();
+        self.record_op((Pax::JumpAlways(marker_group.source_index.unwrap_or(0)), pos));
+        marker_group.target_indices.push(index);
     }
 }
-
-pub type Program = IndexMap<String, PaxSpan>;
 
 fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<&str>) {
     lazy_static! {
@@ -136,18 +292,24 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
     let mut flow_markers: Vec<MarkerGroup> = vec![];
     let mut used_flow_markers: Vec<MarkerGroup> = vec![];
 
+
+
     // Start in "main" (the global function).
     functions.insert("main".to_string(), vec![]);
 
     // Create the function stack. Should always be at len 1 (main) or len 2 (inside a function)
-    let mut stack: Vec<(String, PaxSpan)> = vec![("main".to_string(), vec![])];
-    fn current(stack: &'_ mut Vec<(String, PaxSpan)>) -> &'_ mut PaxSpan {
-        &mut stack.last_mut().unwrap().1
-    }
+    let mut stack = StackAbstraction {
+        stack: vec![
+            ("main".to_string(), vec![])
+        ],
+        block_builder: BlockBuilder::new(),
+    };
 
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
     let mut current_function = "main".to_string();
+
+    // let mut code_iter = code.iter().enumerate().peekable();
     for (token, mut pos) in parser {
         pos.function = current_function.clone();
 
@@ -179,10 +341,10 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                         stack.push((word.to_string(), vec![]));
 
                         current_function = word.clone();
-                        current(&mut stack).push((Pax::Metadata(word.to_string()), pos.clone()));
+                        stack.record_op((Pax::Metadata(word.to_string()), pos.clone()));
 
                         // Flow control for recurse
-                        let group = MarkerGroup::new_target(word, current(&mut stack), pos.clone());
+                        let group = stack.new_marker_group(word, pos.clone());
                         flow_markers.push(group);
                     }
                     _ => panic!("expected function name"),
@@ -198,11 +360,13 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                 }
                 parse_mode = ParseMode::Default;
             }
+
+            // Standard parsing mode.
             ParseMode::Default => {
                 match token {
                     // Literals (e.g. numbers)
                     Token::Literal(lit) => {
-                        current(&mut stack).push((Pax::PushLiteral(lit as isize), pos));
+                        stack.record_op((Pax::PushLiteral(lit as isize), pos));
                     }
 
                     // Skip comments inside parentheses
@@ -217,7 +381,7 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
 
                     // Constants shadow all terms
                     Token::Word(word) if constants.contains_key(word.as_str()) => {
-                        current(&mut stack).push((
+                        stack.record_op((
                             Pax::PushLiteral(constants[word.as_str()] as isize),
                             pos,
                         ));
@@ -225,12 +389,12 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
 
                     // Functions shadow all terms
                     Token::Word(word) if functions.contains_key(&word) => {
-                        current(&mut stack).push((Pax::Call(word.to_string()), pos));
+                        stack.record_op((Pax::Call(word.to_string()), pos));
                     }
 
                     // Variables shadow all terms
                     Token::Word(word) if variables.contains_key(word.as_str()) => {
-                        current(&mut stack).push((
+                        stack.record_op((
                             Pax::PushLiteral(variables[word.as_str()] as isize),
                             pos,
                         ));
@@ -246,8 +410,8 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                                 Token::Word(_) => panic!("Expected literal"),
                                 Token::Literal(cells) => {
                                     // eprintln!("allocating {}", cells);
-                                    current(&mut stack).pop(); // "cells"
-                                    current(&mut stack).pop(); // value
+                                    stack.current_pop(); // "cells"
+                                    stack.current_pop(); // value
                                     variable_offset += (*cells as usize) * 2;
                                 }
                             }
@@ -260,7 +424,7 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                         match cells {
                             Token::Word(_) => panic!("Expected literal"),
                             Token::Literal(value) => {
-                                current(&mut stack).pop(); // value
+                                stack.current_pop(); // value
 
                                 parse_mode = ParseMode::ConstantName(*value);
                             }
@@ -284,7 +448,8 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
 
                         let recurse_group = flow_markers.pop().unwrap();
                         used_flow_markers.push(recurse_group);
-                        current(&mut stack).push((Pax::Exit, pos.clone()));
+                        stack.record_op((Pax::Exit, pos.clone()));
+                        // stack.exit_block
 
                         // Extract function into its own body.
                         let (name, body) = stack.pop().unwrap();
@@ -296,12 +461,11 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                     // Flow control
                     Token::Word(word) if word == "recurse" => {
                         // Address root flow group
-                        flow_markers[0].jump_always(current(&mut stack), pos.clone());
+                        stack.jump_always(&mut flow_markers[0], pos.clone());
                     }
                     Token::Word(word) if word == "begin" => {
-                        flow_markers.push(MarkerGroup::new_target(
+                        flow_markers.push(stack.new_marker_group(
                             "<begin>",
-                            current(&mut stack),
                             pos.clone(),
                         ));
                     }
@@ -309,15 +473,14 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                         let mut group =
                             flow_markers.pop().expect("did not match marker group");
                         assert_eq!(group.name, "<begin>", "expected begin loop");
-                        group.jump_if_0(current(&mut stack), pos.clone());
+                        stack.jump_if_0(&mut group, pos.clone());
                         used_flow_markers.push(group);
                     }
                     Token::Word(word) if word == "do" => {
-                        current(&mut stack).push((Pax::AltPush, pos.clone()));
-                        current(&mut stack).push((Pax::AltPush, pos.clone()));
-                        flow_markers.push(MarkerGroup::new_target(
+                        stack.record_op((Pax::AltPush, pos.clone()));
+                        stack.record_op((Pax::AltPush, pos.clone()));
+                        flow_markers.push(stack.new_marker_group(
                             "<do>",
-                            current(&mut stack),
                             pos.clone(),
                         ));
                     }
@@ -327,84 +490,91 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                         if !functions.contains_key(name) {
                             panic!("no loopimpl defn found");
                         }
-                        current(&mut stack)
-                            .push((Pax::Call(name.to_string()), pos.clone()));
+                        stack.record_op((Pax::Call(name.to_string()), pos.clone()));
 
                         let mut group =
                             flow_markers.pop().expect("did not match marker group");
                         assert_eq!(group.name, "<do>", "expected do loop");
-                        group.jump_if_0(current(&mut stack), pos.clone());
+                        stack.jump_if_0(&mut group, pos.clone());
                         used_flow_markers.push(group);
 
                         // TODO need a concat method
-                        current(&mut stack).push((Pax::AltPop, pos.clone()));
-                        current(&mut stack).push((Pax::Drop, pos.clone()));
-                        current(&mut stack).push((Pax::AltPop, pos.clone()));
-                        current(&mut stack).push((Pax::Drop, pos.clone()));
+                        stack.record_op((Pax::AltPop, pos.clone()));
+                        stack.record_op((Pax::Drop, pos.clone()));
+                        stack.record_op((Pax::AltPop, pos.clone()));
+                        stack.record_op((Pax::Drop, pos.clone()));
                     }
                     Token::Word(word) if word == "-loop" => {
                         let name = "-loopimpl";
                         if !functions.contains_key(name) {
                             panic!("no -loopimpl defn found");
                         }
-                        current(&mut stack)
-                            .push((Pax::Call(name.to_string()), pos.clone()));
+                        stack.record_op((Pax::Call(name.to_string()), pos.clone()));
 
                         let mut group =
                             flow_markers.pop().expect("did not match marker group");
                         assert_eq!(group.name, "<do>", "expected do loop");
-                        group.jump_if_0(current(&mut stack), pos.clone());
+                        stack.jump_if_0(&mut group, pos.clone());
                         used_flow_markers.push(group);
 
                         // TODO need a concat method
-                        current(&mut stack).push((Pax::AltPop, pos.clone()));
-                        current(&mut stack).push((Pax::Drop, pos.clone()));
-                        current(&mut stack).push((Pax::AltPop, pos.clone()));
-                        current(&mut stack).push((Pax::Drop, pos.clone()));
+                        stack.record_op((Pax::AltPop, pos.clone()));
+                        stack.record_op((Pax::Drop, pos.clone()));
+                        stack.record_op((Pax::AltPop, pos.clone()));
+                        stack.record_op((Pax::Drop, pos.clone()));
                     }
                     Token::Word(word) if word == "if" => {
-                        let mut group = MarkerGroup::new("<if>", None);
-                        group.jump_if_0(current(&mut stack), pos);
+                        let mut group = MarkerGroup {
+                            name: format!("<if>"),
+                            target_indices: vec![],
+                            source_index: None,
+                        };
+                        stack.jump_if_0(&mut group, pos);
 
                         flow_markers.push(group);
                     }
                     Token::Word(word) if word == "else" => {
                         let mut if_group =
                             flow_markers.pop().expect("did not match marker group");
-                        let mut else_group = MarkerGroup::new("<else>", None);
+                        let mut else_group = MarkerGroup {
+                            name: format!("<else>"),
+                            target_indices: vec![],
+                            source_index: None,
+                        };
 
-                        current(&mut stack).push((Pax::PushLiteral(0), pos.clone())); // Always yes
-                        else_group.jump_if_0(current(&mut stack), pos.clone());
+                        stack.record_op((Pax::PushLiteral(0), pos.clone())); // Always yes
+                        stack.jump_if_0(&mut else_group, pos.clone());
 
                         // TODO
                         // else_group.x(current(&mut stack), pos.clone());
 
                         flow_markers.push(else_group);
-                        if_group.set_target(current(&mut stack), pos.clone());
+                        stack.set_target(&mut if_group, pos.clone());
                         used_flow_markers.push(if_group);
                     }
                     Token::Word(word) if word == "then" => {
                         let mut else_group =
                             flow_markers.pop().expect("did not match marker group");
-                        else_group.set_target(current(&mut stack), pos);
+                        stack.set_target(&mut else_group, pos);
                         used_flow_markers.push(else_group);
                     }
 
                     // Opcodes
-                    Token::Word(word) if word == "+" => current(&mut stack).push((Pax::Add, pos)),
-                    Token::Word(word) if word == ">r" => current(&mut stack).push((Pax::AltPush, pos)),
-                    Token::Word(word) if word == "r>" => current(&mut stack).push((Pax::AltPop, pos)),
-                    Token::Word(word) if word == "!" => current(&mut stack).push((Pax::Store, pos)),
-                    Token::Word(word) if word == "@" => current(&mut stack).push((Pax::Load, pos)),
-                    Token::Word(word) if word == "nand" => current(&mut stack).push((Pax::Nand, pos)),
-                    Token::Word(word) if word == "print" => current(&mut stack).push((Pax::Print, pos)),
-                    Token::Word(word) if word == "c!" => current(&mut stack).push((Pax::Store8, pos)),
-                    Token::Word(word) if word == "c@" => current(&mut stack).push((Pax::Load8, pos)),
-                    Token::Word(word) if word == "drop" => current(&mut stack).push((Pax::Drop, pos)),
-                    Token::Word(word) if word == "abort" => current(&mut stack).push((Pax::Abort, pos)),
+                    Token::Word(word) if word == "+" => stack.record_op((Pax::Add, pos)),
+                    Token::Word(word) if word == ">r" => stack.record_op((Pax::AltPush, pos)),
+                    Token::Word(word) if word == "r>" => stack.record_op((Pax::AltPop, pos)),
+                    Token::Word(word) if word == "!" => stack.record_op((Pax::Store, pos)),
+                    Token::Word(word) if word == "@" => stack.record_op((Pax::Load, pos)),
+                    Token::Word(word) if word == "nand" => stack.record_op((Pax::Nand, pos)),
+                    Token::Word(word) if word == "print" => stack.record_op((Pax::Print, pos)),
+                    Token::Word(word) if word == "c!" => stack.record_op((Pax::Store8, pos)),
+                    Token::Word(word) if word == "c@" => stack.record_op((Pax::Load8, pos)),
+                    Token::Word(word) if word == "drop" => stack.record_op((Pax::Drop, pos)),
+                    Token::Word(word) if word == "abort" => stack.record_op((Pax::Abort, pos)),
 
-                    Token::Word(word) if word == "temp@" => current(&mut stack).push((Pax::LoadTemp, pos)),
-                    Token::Word(word) if word == "temp!" => current(&mut stack).push((Pax::StoreTemp, pos)),
+                    // Temp values
+                    Token::Word(word) if word == "temp@" => stack.record_op((Pax::LoadTemp, pos)),
+                    Token::Word(word) if word == "temp!" => stack.record_op((Pax::StoreTemp, pos)),
 
                     Token::Word(word) => {
                         panic!("unknown value: {:?}", word);
@@ -422,7 +592,8 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
     functions.get_mut("main").unwrap().extend(output);
 }
 
-pub fn parse_forth(buffer: Vec<u8>, filename: Option<&str>) -> Program {
+pub fn parse_forth(contents: &str, filename: Option<&str>) -> Program {
+    let buffer = contents.as_bytes().to_owned();
     let mut program = IndexMap::new();
     parse_forth_inner(
         &mut program,

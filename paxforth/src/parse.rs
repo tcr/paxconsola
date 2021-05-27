@@ -1,104 +1,9 @@
 //! Modern parsing logic.
 
 use crate::parse_old::*;
-use crate::*;
 use indexmap::IndexMap;
-use serde::*;
 
-pub use crate::parse_old::{Pax, PaxSpan};
-
-// Value for WebAssemblyBASE_VARIABLE_OFFSET
-// const BASE_VARIABLE_OFFSET: usize = 10000;
-// Value for Gameboy
-// const BASE_VARIABLE_OFFSET: usize = 49216;
-// Value for C64
-pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Block {
-    ExitBlock(PaxSpan),
-    JumpAlways(PaxSpan),
-    JumpIf0Block(PaxSpan),
-    BranchTargetBlock(PaxSpan),
-    CallBlock(PaxSpan),
-}
-
-pub type PaxProgram = IndexMap<String, Vec<Block>>;
-
-impl Block {
-    pub fn commands(&'_ self) -> &'_ PaxSpan {
-        match self {
-            Block::ExitBlock(ref commands) => commands,
-            Block::JumpIf0Block(ref commands) => commands,
-            Block::JumpAlways(ref commands) => commands,
-            Block::BranchTargetBlock(ref commands) => commands,
-            Block::CallBlock(ref commands) => commands,
-        }
-    }
-
-    pub fn commands_mut(&'_ mut self) -> &'_ mut PaxSpan {
-        match self {
-            Block::ExitBlock(ref mut commands) => commands,
-            Block::JumpIf0Block(ref mut commands) => commands,
-            Block::JumpAlways(ref mut commands) => commands,
-            Block::BranchTargetBlock(ref mut commands) => commands,
-            Block::CallBlock(ref mut commands) => commands,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-struct BlockBuilder {
-    current_block: PaxSpan,
-    blocks: Vec<Block>,
-}
-
-impl BlockBuilder {
-    fn new() -> BlockBuilder {
-        BlockBuilder {
-            current_block: vec![],
-            blocks: vec![],
-        }
-    }
-
-    fn record_op(&mut self, op: &Located<Pax>) {
-        self.current_block.push(op.to_owned());
-    }
-
-    fn exit_block(&mut self) {
-        self.blocks
-            .push(Block::ExitBlock(self.current_block.clone()));
-        self.reset();
-    }
-
-    fn jump_if_0_block(&mut self) {
-        self.blocks
-            .push(Block::JumpIf0Block(self.current_block.clone()));
-        self.reset();
-    }
-
-    fn jump_always_block(&mut self) {
-        self.blocks
-            .push(Block::JumpAlways(self.current_block.clone()));
-        self.reset();
-    }
-
-    fn branch_target_block(&mut self) {
-        self.blocks
-            .push(Block::BranchTargetBlock(self.current_block.clone()));
-        self.reset();
-    }
-
-    fn call_block(&mut self) {
-        self.blocks
-            .push(Block::CallBlock(self.current_block.clone()));
-        self.reset();
-    }
-
-    fn reset(&mut self) {
-        self.current_block = vec![];
-    }
-}
+pub use crate::parse_old::{Pax, PaxSpan, BASE_VARIABLE_OFFSET, PaxProgram, Block, BlockBuilder};
 
 pub fn convert_to_pax(program: Program) -> PaxProgram {
     let mut program_stacks = IndexMap::new();
@@ -198,7 +103,6 @@ pub fn convert_to_pax(program: Program) -> PaxProgram {
 }
 
 pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
-    let buffer = contents.as_bytes().to_owned();
-    let program = parse_forth(buffer, filename);
+    let program = parse_forth(contents, filename);
     convert_to_pax(program)
 }
