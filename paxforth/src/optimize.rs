@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use crate::analyze::*;
+use crate::parse::*;
 use crate::*;
 use indexmap::IndexSet;
 use petgraph::graph::Graph;
