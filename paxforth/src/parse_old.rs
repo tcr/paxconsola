@@ -172,6 +172,7 @@ pub type Program = IndexMap<String, PaxSpan>;
 
 struct StackAbstraction {
     stack: Vec<(String, PaxSpan)>,
+    _current_function: String,
     block_builder: BlockBuilder,
 }
 
@@ -208,6 +209,18 @@ impl StackAbstraction {
 
     // rest
 
+    fn in_function(&self) -> bool {
+        self._current_function != "main"
+    }
+
+    fn in_main(&self) -> bool {
+        self._current_function == "main"
+    }
+
+    fn get_main(&self) -> PaxSpan {
+        self.stack[0].clone().1
+    }
+
     fn current(&'_ mut self) -> &'_ mut PaxSpan {
         &mut self.stack.last_mut().unwrap().1
     }
@@ -216,21 +229,20 @@ impl StackAbstraction {
         self.stack.last_mut().unwrap().1.pop();
     }
 
-    fn push(&mut self, arg: (String, PaxSpan)) {
-        self.stack.push(arg);
+    fn push_function(&mut self, (name, contents): (String, PaxSpan)) {
+        self._current_function = name.clone();
+        self.stack.push((name, contents));
     }
 
-    fn pop(&mut self) -> Option<(String, PaxSpan)> {
+    fn pop_function(&mut self) -> Option<(String, PaxSpan)> {
+        self._current_function = format!("main");
         self.stack.pop()
-    }
-
-    fn len(&self) -> usize {
-        self.stack.len()
     }
 
     fn new_marker_group(&mut self, name: &str, pos: Pos) -> MarkerGroup {
         let index = self.current().len();
         self.record_op((Pax::OldBranchTarget, pos));
+        self.branch_target_block();
         MarkerGroup {
             name: name.to_string(),
             target_indices: vec![],
@@ -264,12 +276,14 @@ impl StackAbstraction {
         let index = self.current().len();
         self.record_op((Pax::JumpIf0(marker_group.source_index.unwrap_or(0)), pos));
         marker_group.target_indices.push(index);
+        self.jump_if_0_block();
     }
 
     fn jump_always(&mut self, marker_group: &mut MarkerGroup, pos: Pos) {
         let index = self.current().len();
         self.record_op((Pax::JumpAlways(marker_group.source_index.unwrap_or(0)), pos));
         marker_group.target_indices.push(index);
+        self.jump_always_block();
     }
 }
 
@@ -292,8 +306,6 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
     let mut flow_markers: Vec<MarkerGroup> = vec![];
     let mut used_flow_markers: Vec<MarkerGroup> = vec![];
 
-
-
     // Start in "main" (the global function).
     functions.insert("main".to_string(), vec![]);
 
@@ -302,16 +314,16 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
         stack: vec![
             ("main".to_string(), vec![])
         ],
+        _current_function: format!("main"),
         block_builder: BlockBuilder::new(),
     };
 
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
-    let mut current_function = "main".to_string();
 
     // let mut code_iter = code.iter().enumerate().peekable();
     for (token, mut pos) in parser {
-        pos.function = current_function.clone();
+        pos.function = stack._current_function.clone();
 
         // eprintln!("[token] {:?} at {:?}", token, pos);
         previous_tokens.push(token.clone());
@@ -338,9 +350,8 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
             ParseMode::FunctionName => {
                 match token {
                     Token::Word(ref word) => {
-                        stack.push((word.to_string(), vec![]));
+                        stack.push_function((word.to_string(), vec![]));
 
-                        current_function = word.clone();
                         stack.record_op((Pax::Metadata(word.to_string()), pos.clone()));
 
                         // Flow control for recurse
@@ -369,30 +380,29 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                         stack.record_op((Pax::PushLiteral(lit as isize), pos));
                     }
 
-                    // Skip comments inside parentheses
+                    // Parse mode for comments (inside parentheses)
                     Token::Word(word) if word == "(" => {
                         parse_mode = ParseMode::CommentParens;
                     }
-
-                    // Parse "variable"
+                    // Parse mode for variables
                     Token::Word(word) if word == "variable" => {
                         parse_mode = ParseMode::Variable;
                     }
 
-                    // Constants shadow all terms
+                    // Constants (shadows all terms)
                     Token::Word(word) if constants.contains_key(word.as_str()) => {
                         stack.record_op((
                             Pax::PushLiteral(constants[word.as_str()] as isize),
                             pos,
                         ));
                     }
-
-                    // Functions shadow all terms
+                    // Functions (shadows all terms)
                     Token::Word(word) if functions.contains_key(&word) => {
                         stack.record_op((Pax::Call(word.to_string()), pos));
-                    }
+                        stack.call_block();
 
-                    // Variables shadow all terms
+                    }
+                    // Variables (shadows all terms)
                     Token::Word(word) if variables.contains_key(word.as_str()) => {
                         stack.record_op((
                             Pax::PushLiteral(variables[word.as_str()] as isize),
@@ -433,13 +443,13 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
 
                     // Function delimiters
                     Token::Word(word) if word == ":" => {
-                        assert_eq!(stack.len(), 1, "cannot nest functions");
+                        assert!(stack.in_main(), "cannot nest functions");
                         assert_eq!(flow_markers.len(), 0, "expected empty flow stack");
 
                         parse_mode = ParseMode::FunctionName;
                     }
                     Token::Word(word) if word == ";" => {
-                        assert!(stack.len() == 2, "expected to be inside a function");
+                        assert!(stack.in_function(), "expected to be inside a function");
                         assert_eq!(
                             flow_markers.len(),
                             1,
@@ -449,13 +459,11 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                         let recurse_group = flow_markers.pop().unwrap();
                         used_flow_markers.push(recurse_group);
                         stack.record_op((Pax::Exit, pos.clone()));
-                        // stack.exit_block
+                        stack.exit_block();
 
                         // Extract function into its own body.
-                        let (name, body) = stack.pop().unwrap();
+                        let (name, body) = stack.pop_function().unwrap();
                         functions.insert(name, body);
-
-                        current_function = "main".to_string();
                     }
 
                     // Flow control
@@ -491,6 +499,7 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
                             panic!("no loopimpl defn found");
                         }
                         stack.record_op((Pax::Call(name.to_string()), pos.clone()));
+                        stack.call_block();
 
                         let mut group =
                             flow_markers.pop().expect("did not match marker group");
@@ -586,8 +595,8 @@ fn parse_forth_inner(functions: &mut Program, buffer: Vec<u8>, filename: Option<
 
     // Finish "main" function.
     assert_eq!(flow_markers.len(), 0, "did not exhaust all flow markers");
-    assert_eq!(stack.len(), 1, "did not exhaust all functions");
-    let (_main, mut output) = stack.pop().unwrap();
+    assert!(stack.in_main(), "did not exhaust all functions");
+    let mut output = stack.get_main();
     output.push((Pax::Exit, Default::default()));
     functions.get_mut("main").unwrap().extend(output);
 }
