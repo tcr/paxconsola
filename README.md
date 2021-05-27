@@ -38,3 +38,4 @@ cd paxconsola-ide
 * [Easy Forth](https://skilldrick.github.io/easyforth/)
 * [Hardware Simulation in Forth](https://comp.lang.forth.narkive.com/6U6BPhcA/hardware-simulation-in-forth#post2)
 * [liforth prelude](https://github.com/howerj/libforth/blob/b851c6a25150e7d2114804fc8712664c6d825214/forth.fth)
+* [Building Forth Structures](http://www.figuk.plus.com/articles/jb/struct.htm)

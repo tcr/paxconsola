@@ -12,13 +12,13 @@ fn propagate_literals_in_block(
     analysis: &BlockAnalysis,
     registers: RegFile,
     reg_blacklist: &mut IndexSet<Reg>,
-) -> SuperSpan {
+) -> PaxSpan {
     let mut new_commands = block
         .commands()
         .iter()
         .enumerate()
         .rev()
-        .map(|(i, input_command)| -> SuperSpan {
+        .map(|(i, input_command)| -> PaxSpan {
             let command = (input_command.0).clone();
             // eprintln!("{:?}\n-- {:?}", command, reg_blacklist);
             let stack: StackState = analysis.result()[i].clone();

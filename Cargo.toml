@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "paxforth",
+    "paxconsola-ide",
+    "paxconsola-desktop",
+]
+
+[profile.release]
+debug = true
