@@ -229,22 +229,14 @@ fn parse_forth_inner(stack: &mut StackAbstraction, source_code: &str, filename: 
                         stack.record_op((Pax::Drop, pos.clone()));
                     }
                     Token::Word(word) if word == "if" => {
-                        let mut group = MarkerGroup {
-                            name: format!("<if>"),
-                            target_indices: vec![],
-                            source_index: None,
-                        };
+                        let mut group = stack.empty_marker_group("<if>");
                         stack.jump_if_0(&mut group, pos);
 
                         flow_markers.push(group);
                     }
                     Token::Word(word) if word == "else" => {
                         let mut if_group = flow_markers.pop().expect("did not match marker group");
-                        let mut else_group = MarkerGroup {
-                            name: format!("<else>"),
-                            target_indices: vec![],
-                            source_index: None,
-                        };
+                        let mut else_group = stack.empty_marker_group("<else>");
 
                         stack.record_op((Pax::PushLiteral(0), pos.clone())); // Always yes
                         stack.jump_if_0(&mut else_group, pos.clone());
@@ -302,8 +294,32 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
     parse_forth_inner(&mut stack, contents, filename);
 
     // Add final exit termination opcode.
-    stack.functions["main"].push((Pax::Exit, Default::default()));
+    stack.record_op((Pax::Exit, Default::default()));
+    stack.exit_block();
 
+    // @nocommit debug logging
+    for (name, block_builder) in &stack.program {
+        eprintln!("[modern] {:?}", name);
+        for (i, block) in block_builder.blocks.iter().enumerate() {
+            eprintln!(
+                "  {}[{}] with {} entries:",
+                block.enum_type(),
+                i,
+                block.commands().len()
+            );
+            for command in block.commands() {
+                eprintln!("    {:30} {}", format!("{:?}", command.0), command.1);
+            }
+        }
+        eprintln!();
+        eprintln!();
+    }
+
+    if false {
+        return stack.get_program();
+    }
+
+    // /*
     // convert_to_pax()
     let mut program_stacks = IndexMap::new();
     for (name, code) in stack.functions {
@@ -399,4 +415,5 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
     }
 
     program_stacks
+    // */
 }

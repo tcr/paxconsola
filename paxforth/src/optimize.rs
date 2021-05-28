@@ -505,13 +505,19 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
         }
     }
 
+    dump_blocks(program.get("%").unwrap());
     dump_blocks(program.get(method).unwrap());
 }
 
 pub fn dump_blocks(blocks: &[Block]) {
     eprintln!("program:");
     for (i, block) in blocks.iter().enumerate() {
-        eprintln!("  block[{}] with {} entries:", i, block.commands().len());
+        eprintln!(
+            "  {}[{}] with {} entries:",
+            block.enum_type(),
+            i,
+            block.commands().len()
+        );
         for command in block.commands() {
             eprintln!("    {:30} {}", format!("{:?}", command.0), command.1);
         }
