@@ -324,7 +324,6 @@ fn analyze_block(
             Call(_) => {
                 unreachable!("Cannot optimize non-inlined method");
             }
-            OldBranchTarget => unreachable!(),
         }
         block_analysis.record_state();
     }

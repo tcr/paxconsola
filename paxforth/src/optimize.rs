@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use crate::analyze::*;
-use crate::parse::*;
 use crate::*;
 use indexmap::IndexSet;
 use petgraph::graph::Graph;
@@ -239,7 +238,6 @@ fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
 /// Reduces branching in a function by removing unused BranchTargets.
 /// This function will also rewrite target offsets.
 pub fn reduce_branches(program: &mut PaxProgram, method: &str) {
-    return;
     eprintln!("[reducing_branches] removing unused BranchTargets...");
     if let Some(blocks) = program.get_mut(method) {
         let readonly_blocks = blocks.clone();
@@ -289,7 +287,10 @@ pub fn optimize_function(program: &mut PaxProgram, method: &str) {
         // NOTE this also performs rewriting for some reason
         *blocks = propagate_registers(&blocks, &graph);
     }
-    reduce_branches(program, method);
+
+    // disabled
+    // TODO why is this disabled?
+    // reduce_branches(program, method);
 
     if let Some(blocks) = program.get_mut(method) {
         dump_blocks(blocks);
@@ -362,19 +363,8 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                         }
                     }
 
-                    let first_pos = inlined_blocks[0].commands()[0].1.clone();
-                    let last_pos = inlined_blocks
-                        .iter()
-                        .last()
-                        .unwrap()
-                        .commands()
-                        .iter()
-                        .last()
-                        .unwrap()
-                        .1
-                        .clone();
                     let inline_pos = Pos {
-                        filename: format!("<inline>"),
+                        filename: "<inline>".to_string(),
                         function: method.to_string(),
                         col: 0,
                         line: 0,
@@ -512,12 +502,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
 pub fn dump_blocks(blocks: &[Block]) {
     eprintln!("program:");
     for (i, block) in blocks.iter().enumerate() {
-        eprintln!(
-            "  {}[{}] with {} entries:",
-            block.enum_type(),
-            i,
-            block.commands().len()
-        );
+        eprintln!("  block[{}] with {} entries:", i, block.commands().len());
         for command in block.commands() {
             eprintln!("    {:30} {}", format!("{:?}", command.0), command.1);
         }

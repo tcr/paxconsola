@@ -26,7 +26,7 @@ macro_rules! tom_output {
     );
 }
 
-pub fn cross_compile_ir_tom(i: usize, op: Pax) -> String {
+pub fn cross_compile_ir_tom(_i: usize, op: Pax) -> String {
     let mut out = String::new();
     match op {
         Pax::Drop => tom_output!(out, "drop()"),
@@ -64,11 +64,11 @@ jump_if_0(target_{})",
 
         Pax::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
 
-        Pax::Metadata(s) => tom_output!(out, "start()"),
+        Pax::Metadata(_s) => tom_output!(out, "start()"),
         Pax::Exit => {
             tom_output!(out, "");
         }
-        Pax::Call(label) => {
+        Pax::Call(_label) => {
             tom_output!(out, "");
         }
 

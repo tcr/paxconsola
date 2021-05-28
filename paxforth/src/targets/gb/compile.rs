@@ -125,8 +125,6 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
             GbIr::StoreDE,
             GbIr::Pop,
         ],
-
-        Pax::OldBranchTarget => unreachable!(),
     }
 }
 

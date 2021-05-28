@@ -306,8 +306,6 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    unreachable"));
                             // wat_out.push(format!("    throw 0"));
                         }
-
-                        Pax::OldBranchTarget => unreachable!(),
                     }
                     wat_out.push(format!(""));
                     // println!("  {:?}", op.0);
