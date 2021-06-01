@@ -22,6 +22,8 @@ pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
  * Opcodes
  */
 
+pub type PaxLiteral = isize;
+
 // Pax IR with some simple opcodes that
 // are more practical for refactoring—might be worth formalizing
 // since they're just supersets of lower protocol, or not
@@ -29,7 +31,7 @@ pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
 pub enum Pax {
     Drop,
 
-    PushLiteral(isize),
+    PushLiteral(PaxLiteral),
 
     AltPop,
     AltPush,
@@ -48,7 +50,7 @@ pub enum Pax {
 
     Print,
 
-    // Split these off as block opcodes
+    // TODO Split these off as block opcodes
     BranchTarget(usize),
     Exit,
     Call(String),

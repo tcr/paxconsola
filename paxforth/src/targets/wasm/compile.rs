@@ -159,6 +159,155 @@ const WAT_TEMPLATE: &'static str = r#"
 
 pub struct WasmForthCompiler {}
 
+mod state {
+    use crate::PaxLiteral;
+
+    #[derive(Debug, Clone)]
+    pub enum Reg {
+        DataParam(usize),
+        AltParam(usize),
+        Literal(PaxLiteral),
+        Var,
+    }
+
+    #[derive(Debug)]
+    pub struct RegState {
+        data: Vec<Reg>,
+        data_pos: usize,
+        alt: Vec<Reg>,
+        alt_pos: usize,
+        temp: Option<Reg>,
+    }
+
+    impl RegState {
+        pub fn new() -> RegState {
+            RegState {
+                data: vec![],
+                data_pos: 0,
+                alt: vec![],
+                alt_pos: 0,
+                temp: None,
+            }
+        }
+
+        fn data_param(&mut self) -> Reg {
+            self.data_pos += 1;
+            Reg::DataParam(self.data_pos)
+        }
+
+        fn alt_param(&mut self) -> Reg {
+            self.alt_pos += 1;
+            Reg::AltParam(self.alt_pos)
+        }
+
+        pub fn pop_data(&mut self) -> Reg {
+            self.data.pop().unwrap_or_else(|| self.data_param())
+        }
+
+        pub fn push_data(&mut self, reg: Reg) {
+            self.data.push(reg);
+        }
+
+        pub fn pop_return(&mut self) -> Reg {
+            self.alt.pop().unwrap_or_else(|| self.alt_param())
+        }
+
+        pub fn push_return(&mut self, reg: Reg) {
+            self.alt.push(reg);
+        }
+
+        pub fn pop_temp(&mut self) -> Reg {
+            self.temp.clone().expect("No temp value in block to load")
+        }
+
+        pub fn push_temp(&mut self, reg: Reg) {
+            self.temp = Some(reg);
+        }
+
+        pub fn signature(&self) -> (usize, usize, usize, usize) {
+            (self.data_pos, self.alt_pos, self.data.len(), self.alt.len())
+        }
+    }
+}
+
+use self::state::{Reg, RegState};
+
+fn block_analyze(block: &Block) -> RegState {
+    let commands = block.commands();
+    let mut state = RegState::new();
+
+    // Iterate opcodes
+    for (opcode, _pos) in commands.iter().take(commands.len() - 1) {
+        use Pax::*;
+        match opcode {
+            PushLiteral(value) => {
+                state.push_data(Reg::Literal(*value));
+            }
+            AltPush => {
+                let reg = state.pop_data();
+                state.push_return(reg);
+            }
+            Drop | Print => {
+                state.pop_data();
+            }
+            Load | Load8 => {
+                state.pop_data();
+                state.push_data(Reg::Var);
+            }
+            Add | Nand => {
+                state.pop_data();
+                state.pop_data();
+                state.push_data(Reg::Var);
+            }
+            Store | Store8 => {
+                state.pop_data();
+                state.pop_data();
+            }
+            AltPop => {
+                let reg = state.pop_return();
+                state.push_data(reg);
+            }
+            Metadata(_) => {}
+            LoadTemp => {
+                let reg = state.pop_temp();
+                state.push_data(reg);
+            }
+            StoreTemp => {
+                let reg = state.pop_data();
+                state.push_temp(reg);
+            }
+
+            _ => {
+                unreachable!("expected non-terminating opcode");
+            }
+        }
+    }
+
+    // Terminating opcode
+    let (opcode, _pos) = commands.iter().last().unwrap();
+    use Pax::*;
+    match opcode {
+        JumpAlways(_) => {}
+        JumpIf0(_) => {
+            state.pop_data();
+        }
+        BranchTarget(_) => {}
+        Exit => {}
+
+        Abort => {
+            panic!("Throw not supported in analyze");
+        }
+        Call(_) => {
+            unreachable!("Cannot optimize non-inlined method");
+        }
+        _ => {
+            unreachable!("expected terminating opcode");
+        }
+    }
+
+    state
+}
+
 impl ForthCompiler for WasmForthCompiler {
     /// Returns a compiled WAT file
     fn compile(program: &PaxProgram) -> String {
@@ -169,7 +318,17 @@ impl ForthCompiler for WasmForthCompiler {
             }
 
             let graph = crate::dataflow_graph(&blocks);
-            eprintln!("graph {:?}", graph);
+            eprintln!("[compile.rs] graph {:?}", graph);
+            eprintln!();
+
+            eprintln!("[compile.rs] block analyze");
+            dump_blocks(blocks);
+            for block in blocks {
+                let state = block_analyze(&block);
+                eprintln!("{:?}", state);
+                eprintln!("{:?}", state.signature());
+            }
+            eprintln!();
 
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];

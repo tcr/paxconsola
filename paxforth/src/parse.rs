@@ -94,41 +94,46 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
         }
 
         // ParseMode::Default =>
-        match token {
+        let word = match token {
             // Literals (e.g. numbers)
             Token::Literal(lit) => {
                 program.current().op(&(Pax::PushLiteral(lit as isize), pos));
+                continue;
             }
 
-            // Parse mode for comments (inside parentheses)
-            Token::Word(word) if word == "(" => {
+            Token::Word(word) => word,
+        };
+
+        // Parse mode for comments (inside parentheses)
+        match word.as_str() {
+            "(" => {
                 parse_mode = ParseMode::CommentParens;
             }
             // Parse mode for variables
-            Token::Word(word) if word == "variable" => {
+            "variable" => {
                 parse_mode = ParseMode::Variable;
             }
 
             // Constants (shadows all terms)
-            Token::Word(word) if constants.contains_key(word.as_str()) => {
+            word if constants.contains_key(word) => {
                 program
                     .current()
-                    .op(&(Pax::PushLiteral(constants[word.as_str()] as isize), pos));
+                    .op(&(Pax::PushLiteral(constants[word] as isize), pos));
             }
             // Functions (shadows all terms)
-            Token::Word(word) if program.program.contains_key(&word) => {
+            word if program.program.contains_key(word) => {
                 program.current().op(&(Pax::Call(word.to_string()), pos));
                 program.current().exit_block();
             }
             // Variables (shadows all terms)
-            Token::Word(word) if variables.contains_key(word.as_str()) => {
+            word if variables.contains_key(word) => {
                 program
                     .current()
-                    .op(&(Pax::PushLiteral(variables[word.as_str()] as isize), pos));
+                    .op(&(Pax::PushLiteral(variables[word] as isize), pos));
             }
 
             // Compiler keywords
-            Token::Word(word) if word == "allot" => {
+            "allot" => {
                 if previous_tokens[previous_tokens.len() - 2] == Token::Word("cells".to_string()) {
                     let cells = &previous_tokens[previous_tokens.len() - 3];
                     match cells {
@@ -144,7 +149,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     panic!("expected cells");
                 }
             }
-            Token::Word(word) if word == "constant" => {
+            "constant" => {
                 let cells = &previous_tokens[previous_tokens.len() - 2];
                 match cells {
                     Token::Word(_) => panic!("Expected literal"),
@@ -157,13 +162,13 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // Function delimiters
-            Token::Word(word) if word == ":" => {
+            ":" => {
                 assert!(!program.in_function(), "cannot nest functions");
                 assert_eq!(block_refs.len(), 0, "expected empty flow stack");
 
                 parse_mode = ParseMode::FunctionName;
             }
-            Token::Word(word) if word == ";" => {
+            ";" => {
                 assert!(program.in_function(), "expected to be inside a function");
                 assert_eq!(block_refs.len(), 1, "expected flow stack with just recurse");
 
@@ -176,30 +181,30 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // Flow control
-            Token::Word(word) if word == "recurse" => {
+            "recurse" => {
                 // Address root flow group
                 program
                     .current()
                     .jump_always(&mut block_refs[0], pos.clone());
             }
-            Token::Word(word) if word == "begin" => {
+            "begin" => {
                 block_refs.push(
                     program
                         .current()
                         .forward_branch_target("<begin>", pos.clone()),
                 );
             }
-            Token::Word(word) if word == "until" => {
+            "until" => {
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<begin>", "expected begin loop");
                 program.current().jump_if_0(&mut group, pos.clone());
             }
-            Token::Word(word) if word == "do" => {
+            "do" => {
                 program.current().op(&(Pax::AltPush, pos.clone()));
                 program.current().op(&(Pax::AltPush, pos.clone()));
                 block_refs.push(program.current().forward_branch_target("<do>", pos.clone()));
             }
-            Token::Word(word) if word == "loop" => {
+            "loop" => {
                 // TODO just inline loopimpl here?
                 let name = "loopimpl";
                 if !program.program.contains_key(name) {
@@ -220,7 +225,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 program.current().op(&(Pax::AltPop, pos.clone()));
                 program.current().op(&(Pax::Drop, pos.clone()));
             }
-            Token::Word(word) if word == "-loop" => {
+            "-loop" => {
                 let name = "-loopimpl";
                 if !program.program.contains_key(name) {
                     panic!("no -loopimpl defn found");
@@ -240,13 +245,13 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 program.current().op(&(Pax::AltPop, pos.clone()));
                 program.current().op(&(Pax::Drop, pos.clone()));
             }
-            Token::Word(word) if word == "if" => {
+            "if" => {
                 let mut group = BlockReference::new("<if>", None);
                 program.current().jump_if_0(&mut group, pos);
 
                 block_refs.push(group);
             }
-            Token::Word(word) if word == "else" => {
+            "else" => {
                 let mut if_group = block_refs.pop().expect("did not match marker group");
                 let mut else_group = BlockReference::new("<else>", None);
 
@@ -259,30 +264,30 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 block_refs.push(else_group);
                 program.current().set_target(&mut if_group, pos.clone());
             }
-            Token::Word(word) if word == "then" => {
+            "then" => {
                 let mut else_group = block_refs.pop().expect("did not match marker group");
                 program.current().set_target(&mut else_group, pos);
             }
 
             // Opcodes
-            Token::Word(word) if word == "+" => program.current().op(&(Pax::Add, pos)),
-            Token::Word(word) if word == ">r" => program.current().op(&(Pax::AltPush, pos)),
-            Token::Word(word) if word == "r>" => program.current().op(&(Pax::AltPop, pos)),
-            Token::Word(word) if word == "!" => program.current().op(&(Pax::Store, pos)),
-            Token::Word(word) if word == "@" => program.current().op(&(Pax::Load, pos)),
-            Token::Word(word) if word == "nand" => program.current().op(&(Pax::Nand, pos)),
-            Token::Word(word) if word == "print" => program.current().op(&(Pax::Print, pos)),
-            Token::Word(word) if word == "c!" => program.current().op(&(Pax::Store8, pos)),
-            Token::Word(word) if word == "c@" => program.current().op(&(Pax::Load8, pos)),
-            Token::Word(word) if word == "drop" => program.current().op(&(Pax::Drop, pos)),
-            Token::Word(word) if word == "abort" => program.current().op(&(Pax::Abort, pos)),
+            "+" => program.current().op(&(Pax::Add, pos)),
+            ">r" => program.current().op(&(Pax::AltPush, pos)),
+            "r>" => program.current().op(&(Pax::AltPop, pos)),
+            "!" => program.current().op(&(Pax::Store, pos)),
+            "@" => program.current().op(&(Pax::Load, pos)),
+            "nand" => program.current().op(&(Pax::Nand, pos)),
+            "print" => program.current().op(&(Pax::Print, pos)),
+            "c!" => program.current().op(&(Pax::Store8, pos)),
+            "c@" => program.current().op(&(Pax::Load8, pos)),
+            "drop" => program.current().op(&(Pax::Drop, pos)),
+            "abort" => program.current().op(&(Pax::Abort, pos)),
 
             // Temp values
-            Token::Word(word) if word == "temp@" => program.current().op(&(Pax::LoadTemp, pos)),
-            Token::Word(word) if word == "temp!" => program.current().op(&(Pax::StoreTemp, pos)),
+            "temp@" => program.current().op(&(Pax::LoadTemp, pos)),
+            "temp!" => program.current().op(&(Pax::StoreTemp, pos)),
 
             // Unknown word
-            Token::Word(word) => {
+            word => {
                 panic!("unknown value: {:?}", word);
             }
         }
