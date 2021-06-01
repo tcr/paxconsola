@@ -233,13 +233,16 @@ mod state {
 use self::state::{Reg, RegState};
 
 fn block_analyze(block: &Block) -> RegState {
-    let commands = block.commands();
+    use Pax::*;
+
     let mut state = RegState::new();
 
+    let (commands, terminator) = block.commands_and_terminator();
+
     // Iterate opcodes
-    for (opcode, _pos) in commands.iter().take(commands.len() - 1) {
-        use Pax::*;
+    for (opcode, _pos) in commands {
         match opcode {
+            Metadata(_) => {}
             PushLiteral(value) => {
                 state.push_data(Reg::Literal(*value));
             }
@@ -267,7 +270,6 @@ fn block_analyze(block: &Block) -> RegState {
                 let reg = state.pop_return();
                 state.push_data(reg);
             }
-            Metadata(_) => {}
             LoadTemp => {
                 let reg = state.pop_temp();
                 state.push_data(reg);
@@ -284,8 +286,7 @@ fn block_analyze(block: &Block) -> RegState {
     }
 
     // Terminating opcode
-    let (opcode, _pos) = commands.iter().last().unwrap();
-    use Pax::*;
+    let (opcode, _pos) = terminator;
     match opcode {
         JumpAlways(_) => {}
         JumpIf0(_) => {
@@ -317,8 +318,9 @@ impl ForthCompiler for WasmForthCompiler {
                 continue;
             }
 
-            let graph = crate::dataflow_graph(&blocks);
+            let graph = FunctionGraph::from_blocks(&blocks);
             eprintln!("[compile.rs] graph {:?}", graph);
+            eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
             eprintln!();
 
             eprintln!("[compile.rs] block analyze");
@@ -391,6 +393,7 @@ impl ForthCompiler for WasmForthCompiler {
                         }
                         Pax::BranchTarget(target_index) => {
                             let mut incoming = graph
+                                .graph
                                 .neighbors_directed(
                                     NodeIndex::new(*target_index + 1),
                                     Direction::Incoming,

@@ -1,9 +1,12 @@
 #![allow(dead_code)]
 
+pub use self::graph::*;
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
+
+pub mod graph;
 
 // TODO TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
@@ -329,91 +332,12 @@ fn analyze_block(
     }
 }
 
-/// Composes blocks together into a graph.
-pub fn dataflow_graph(stack_blocks: &[Block]) -> Graph<(), i32> {
-    // List of blocks we've already seen.
-    let mut visited = IndexSet::new();
-
-    // Starting conditions. Each block flow starts (originally from 0) at a block
-    // and continues until we hit a "visited" block, or a terminating "exit" block.
-    let mut conditions = std::collections::VecDeque::<usize>::new();
-    conditions.push_front(0);
-
-    // Collect edges which will compose the graph.
-    let mut edges: Vec<(u32, u32)> = vec![];
-    while let Some(start) = conditions.pop_back() {
-        // We iterate through blocks using an index.
-        let mut i = start;
-        while i < stack_blocks.len() {
-            let block: &Block = &stack_blocks[i];
-
-            // If we've visited this block already, we can stop here.
-            if visited.contains(&i) {
-                break;
-            }
-            visited.insert(i);
-
-            // Determine what the next block target is going to be.
-            match block.commands().last() {
-                Some((Pax::JumpIf0(target), ..)) => {
-                    // Inject next edge (for both absolute jump OR branch)
-                    let alt_target = target + 1;
-                    edges.push((i as u32, alt_target as u32));
-
-                    // Invoke branch as though we jumped (nonzero).
-                    // only iterate future branches, not reverse ones (which are loops)
-                    if alt_target > i {
-                        conditions.push_front(alt_target);
-                    }
-                }
-                Some((Pax::JumpAlways(target), ..)) => {
-                    // Inject next edge (for both absolute jump OR branch)
-                    let alt_target = target + 1;
-                    edges.push((i as u32, alt_target as u32));
-
-                    // Invoke branch as though we jumped (nonzero).
-                    i = *target as usize;
-                }
-                _ => {}
-            }
-
-            // Add new edge to the forthcoming block.
-            if i < stack_blocks.len() - 1 {
-                edges.push((i as u32, (i + 1) as u32));
-            }
-
-            i += 1;
-        }
-    }
-
-    Graph::<(), i32>::from_edges(&edges)
-}
-
-fn graph_directed_edges(graph: &Graph<(), i32>, block_index: usize, dir: Direction) -> Vec<usize> {
-    let mut incoming: Vec<usize> = graph
-        .neighbors_directed(NodeIndex::new(block_index), dir)
-        .map(|idx| idx.index() as usize)
-        .collect::<Vec<_>>();
-    incoming.dedup();
-    incoming.sort();
-    incoming
-}
-
 /// Iterate all blocks in descending topological order and produce a FunctionAnalysis
 /// of register use. Dead code elimination can happen in reverse.
-pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnalysis {
+pub fn analyze_blocks(blocks: &[Block], graph: &FunctionGraph) -> FunctionAnalysis {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
-    let seq = if graph.node_count() > 1 {
-        let mut bfs = petgraph::visit::Bfs::new(&graph, 0.into());
-        let mut seq = vec![];
-        while let Some(block_index) = bfs.next(&graph) {
-            seq.push(block_index.index() as usize);
-        }
-        seq
-    } else {
-        vec![0]
-    };
+    let seq = graph.bfs_sequence();
 
     eprintln!("[analyze_blocks] start");
 
@@ -433,7 +357,7 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
 
     for block_index in seq.clone() {
         // Get the set of incoming edges to this block and iterate in ascending order.
-        let incoming = graph_directed_edges(graph, block_index, Direction::Incoming);
+        let incoming = graph.directed_edges_from_node(block_index, Direction::Incoming);
 
         let target_type = if incoming.len() == 0 {
             // If there are no incoming blocks, we are not a branch target.
@@ -447,7 +371,7 @@ pub fn analyze_blocks(blocks: &[Block], graph: &Graph<(), i32>) -> FunctionAnaly
             // a loop ("begin").
             TargetType::Begin
         } else if incoming.len() == 1 && incoming[0] == block_index - 1 && {
-            let outgoing = graph_directed_edges(graph, incoming[0], Direction::Outgoing);
+            let outgoing = graph.directed_edges_from_node(incoming[0], Direction::Outgoing);
             outgoing.len() > 1 && outgoing.iter().any(|x| *x < incoming[0])
         } {
             TargetType::AfterLoop
@@ -555,7 +479,7 @@ pub fn function_arity(program: &PaxProgram, method: &str) -> (usize, usize, usiz
     let mut program = program.to_owned();
     inline_into_function(&mut program, method);
     let blocks = program.get(method).unwrap();
-    let graph = dataflow_graph(blocks);
+    let graph = FunctionGraph::from_blocks(blocks);
     let analysis = analyze_blocks(blocks, &graph);
     eprintln!(
         "analysis\n  {:?}\n  {:?}",

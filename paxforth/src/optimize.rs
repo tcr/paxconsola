@@ -3,7 +3,6 @@
 use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
-use petgraph::graph::Graph;
 
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
@@ -179,7 +178,7 @@ fn propagate_literals_in_block(
 
 /// Analyse stack values and produce a register mapping for values as they
 /// move through the function. Then propagate registers.
-fn propagate_registers(blocks: &[Block], graph: &Graph<(), i32>) -> Vec<Block> {
+fn propagate_registers(blocks: &[Block], graph: &FunctionGraph) -> Vec<Block> {
     let analysis = analyze_blocks(blocks, graph);
 
     eprintln!(
@@ -282,7 +281,7 @@ pub fn optimize_function(program: &mut PaxProgram, method: &str) {
     let start_arity = function_arity(program, method);
     eprintln!("[optimize_function] arity: {:?}", start_arity,);
     if let Some(blocks) = program.get_mut(method) {
-        let graph = dataflow_graph(&blocks);
+        let graph = FunctionGraph::from_blocks(&blocks);
 
         // NOTE this also performs rewriting for some reason
         *blocks = propagate_registers(&blocks, &graph);
@@ -526,7 +525,7 @@ pub fn optimize_forth(mut program: PaxProgram) {
         // println!();
         // println!();
 
-        let graph = dataflow_graph(&blocks);
+        let graph = FunctionGraph::from_blocks(&blocks);
         propagate_registers(&blocks, &graph);
     }
 

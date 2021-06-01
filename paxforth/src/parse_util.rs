@@ -2,7 +2,6 @@
 
 use crate::*;
 use indexmap::{indexmap, IndexMap};
-use serde::*;
 
 /**
  * Constants
@@ -17,76 +16,6 @@ const MAIN_FUNCTION: &'static str = "main";
 // const BASE_VARIABLE_OFFSET: usize = 49216;
 // Value for C64
 pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
-
-/**
- * Opcodes
- */
-
-pub type PaxLiteral = isize;
-
-// Pax IR with some simple opcodes that
-// are more practical for refactoring—might be worth formalizing
-// since they're just supersets of lower protocol, or not
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub enum Pax {
-    Drop,
-
-    PushLiteral(PaxLiteral),
-
-    AltPop,
-    AltPush,
-    LoadTemp,
-    StoreTemp,
-
-    Metadata(String),
-
-    Add,
-    Nand,
-
-    Load,
-    Load8,
-    Store8,
-    Store,
-
-    Print,
-
-    // TODO Split these off as block opcodes
-    BranchTarget(usize),
-    Exit,
-    Call(String),
-    JumpIf0(usize),
-    JumpAlways(usize),
-    Abort,
-}
-
-pub type PaxSpan = Vec<Located<Pax>>;
-
-pub type PaxProgram = IndexMap<String, Vec<Block>>;
-
-/**
- * Blocks
- */
-
-// TODO make blocks read-only
-// And do validation on creation each block ends with a terminating opcode
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Block {
-    commands: PaxSpan,
-}
-
-impl Block {
-    pub fn new(commands: PaxSpan) -> Block {
-        Block { commands }
-    }
-
-    pub fn commands(&self) -> &PaxSpan {
-        &self.commands
-    }
-
-    pub fn commands_mut(&mut self) -> &mut PaxSpan {
-        &mut self.commands
-    }
-}
 
 /**
  * BlockBuilder
@@ -164,7 +93,7 @@ impl BlockBuilder {
 
         // Update forward references.
         for target in &marker_group.to_block_indices {
-            let last_op = self.blocks[*target].commands.last_mut();
+            let last_op = self.blocks[*target].commands_mut().last_mut();
             match last_op {
                 Some((Pax::JumpIf0(ref mut target), _))
                 | Some((Pax::JumpAlways(ref mut target), _)) => {
