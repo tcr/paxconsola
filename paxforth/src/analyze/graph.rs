@@ -121,8 +121,6 @@ impl FunctionGraph {
         // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
         let seq = self.bfs_sequence();
 
-        eprintln!("[analyze_blocks] start");
-
         let mut seen = IndexMap::new();
 
         for block_index in seq {
@@ -150,15 +148,15 @@ impl FunctionGraph {
             };
 
             // Generate the next block analysis.
-            eprintln!("  [incoming] {:?}", incoming);
             eprintln!(
-                "[analyze_blocks] block [{}] is target {:?}",
+                "[graph.rs] [block#{}] target {:?}",
                 block_index, target_type
             );
-            eprintln!();
 
             seen.insert(block_index, target_type);
         }
+
+        eprintln!();
 
         seen
     }

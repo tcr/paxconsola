@@ -3,14 +3,11 @@
 pub use self::graph::*;
 pub use self::util::*;
 use crate::*;
-use indexmap::{IndexMap, IndexSet};
-use petgraph::graph::{Graph, NodeIndex};
+use indexmap::IndexMap;
 use petgraph::Direction;
 
 pub mod graph;
 pub mod util;
-
-// TODO TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
 // TODO use these to model stacks and merging logic, converge on ExitStack after minimizing loops
 // once there's full coverage of all/most functions, can refactor GbIr generation to do explicit
@@ -20,6 +17,8 @@ pub mod util;
 // inline for up to N opcodes (determined from stack vector) and see if there is speed improvement
 // or,
 // recursively solve call ependencies to correct local stacks
+
+// TODO make wasm run on a non-inlined program
 
 pub type Reg = String;
 pub type RegList = Vec<Reg>;

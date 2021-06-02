@@ -83,13 +83,15 @@ impl RegState {
 fn block_analyze(
     block: &Block,
     prev_state: Option<RegState>,
-    functions_arity: Option<IndexMap<String, FunctionArity>>,
+    functions_arity_input: Option<IndexMap<String, FunctionArity>>,
 ) -> RegState {
     use Pax::*;
 
     let mut state = prev_state.unwrap_or_else(|| RegState::new());
 
     let (commands, terminator) = block.commands_and_terminator();
+
+    let functions_arity = functions_arity_input.unwrap_or_else(|| IndexMap::new());
 
     // Iterate opcodes
     for (opcode, _pos) in commands {
@@ -150,8 +152,13 @@ fn block_analyze(
         Abort => {
             panic!("Throw not supported in analyze");
         }
-        Call(_) => {
-            // unreachable!("Cannot call block_analyze on non-inlined method");
+        Call(name) => {
+            if let Some(arity) = functions_arity.get(name) {
+                // TODO apply this arity to state
+                eprintln!("TODO: apply arity to state {:?}", arity);
+            } else {
+                unreachable!("Missing arity for block_analyze on non-inlined call {}");
+            }
         }
         _ => {
             unreachable!("expected terminating opcode");
@@ -194,11 +201,19 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
 
         let pos_string = block.commands().iter().last().unwrap().1.to_string();
         let state = match target.clone() {
-            TargetType::Start => block_analyze(&block, None, None),
+            TargetType::Start => {
+                // There are no parents.
+                block_analyze(&block, None, None)
+            }
+            TargetType::Block(target) | TargetType::AfterLoop(target) => {
+                // There is only one parent.
+                block_analyze(&block, last_states.get(&target).map(|x| x.clone()), None)
+            }
             TargetType::Begin(targets) => {
+                // There are two parents.
                 let base_states = last_states
                     .iter()
-                    .filter(|(key, value)| targets.contains(key))
+                    .filter(|(key, _value)| targets.contains(key))
                     .collect::<Vec<_>>();
                 // TODO compare base_States?
                 assert_eq!(
@@ -222,9 +237,10 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
                 )
             }
             TargetType::Then(targets) => {
+                // There are two parents.
                 let base_states = last_states
                     .iter()
-                    .filter(|(key, value)| targets.contains(key))
+                    .filter(|(key, _value)| targets.contains(key))
                     .collect::<Vec<_>>();
                 assert_eq!(
                     base_states.len(),
@@ -243,9 +259,6 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
                     None,
                 )
             }
-            TargetType::Block(target) | TargetType::AfterLoop(target) => {
-                block_analyze(&block, last_states.get(&target).map(|x| x.clone()), None)
-            }
         };
 
         eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
@@ -253,7 +266,9 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
         eprintln!("     alt: {:?}", state.alt());
         last_states.insert(block_index, state.clone());
     }
+
     eprintln!();
+
     graph
 }
 
@@ -286,7 +301,7 @@ pub fn program_graph(program: &PaxProgram) {
 
     // Trim all functions unaccessible from "main".
     let main = idx.get("main").unwrap().clone();
-    for (name, value) in idx {
+    for (_name, value) in idx {
         if !petgraph::algo::has_path_connecting(&deps, main, value, None) {
             deps.remove_node(value);
         }
@@ -304,17 +319,17 @@ pub fn program_graph(program: &PaxProgram) {
     eprintln!();
 
     for name in &seq {
-        if *name != "main" {
-            continue;
-        }
         eprintln!("[util.rs] function name: {}", name);
         eprintln!();
         if let Some(blocks) = program.get(&name.to_string()) {
             // Do some analysis lol
             // if name == "main" {
-            let graph = function_analyze(&blocks);
+            let _graph = function_analyze(&blocks);
             // }
         }
         eprintln!();
     }
+
+    // Re-analyze main for the CLI.
+    function_analyze(program.get("main").expect("main was not found"));
 }
