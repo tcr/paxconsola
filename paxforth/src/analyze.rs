@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 
 pub use self::graph::*;
+pub use self::util::*;
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
 
 pub mod graph;
+pub mod util;
 
 // TODO TODO make all labels one of Parameter(i), Temporary(i), or Return(i) instead of S0, A1, etc
 
