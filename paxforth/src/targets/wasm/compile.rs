@@ -162,13 +162,6 @@ pub struct WasmForthCompiler {}
 impl ForthCompiler for WasmForthCompiler {
     /// Returns a compiled WAT file
     fn compile(program: &PaxProgram) -> String {
-        // analysis that should be moved
-        {
-            program_graph(program);
-
-            panic!("abort before actually running webassembly");
-        }
-
         let mut wat_out = vec![];
         for (name, blocks) in program {
             if name != "main" {

@@ -20,6 +20,8 @@ pub struct RegState {
     temp: Option<Reg>,
 }
 
+pub type FunctionArity = (usize, usize, usize, usize);
+
 impl RegState {
     pub fn new() -> RegState {
         RegState {
@@ -65,7 +67,7 @@ impl RegState {
         self.temp = Some(reg);
     }
 
-    pub fn signature(&self) -> (usize, usize, usize, usize) {
+    pub fn arity(&self) -> FunctionArity {
         (self.data_pos, self.alt_pos, self.data.len(), self.alt.len())
     }
 
@@ -78,7 +80,11 @@ impl RegState {
     }
 }
 
-fn block_analyze(block: &Block, prev_state: Option<RegState>) -> RegState {
+fn block_analyze(
+    block: &Block,
+    prev_state: Option<RegState>,
+    functions_arity: Option<IndexMap<String, FunctionArity>>,
+) -> RegState {
     use Pax::*;
 
     let mut state = prev_state.unwrap_or_else(|| RegState::new());
@@ -145,7 +151,7 @@ fn block_analyze(block: &Block, prev_state: Option<RegState>) -> RegState {
             panic!("Throw not supported in analyze");
         }
         Call(_) => {
-            // unreachable!("Cannot optimize non-inlined method");
+            // unreachable!("Cannot call block_analyze on non-inlined method");
         }
         _ => {
             unreachable!("expected terminating opcode");
@@ -188,7 +194,7 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
 
         let pos_string = block.commands().iter().last().unwrap().1.to_string();
         let state = match target.clone() {
-            TargetType::Start => block_analyze(&block, None),
+            TargetType::Start => block_analyze(&block, None, None),
             TargetType::Begin(targets) => {
                 let base_states = last_states
                     .iter()
@@ -212,6 +218,7 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
                 block_analyze(
                     &block,
                     last_states.get(&*base_states[0].0).map(|x| x.clone()),
+                    None,
                 )
             }
             TargetType::Then(targets) => {
@@ -233,14 +240,15 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
                 block_analyze(
                     &block,
                     last_states.get(&*base_states[0].0).map(|x| x.clone()),
+                    None,
                 )
             }
             TargetType::Block(target) | TargetType::AfterLoop(target) => {
-                block_analyze(&block, last_states.get(&target).map(|x| x.clone()))
+                block_analyze(&block, last_states.get(&target).map(|x| x.clone()), None)
             }
         };
 
-        eprintln!("{:?} for {}", state.signature(), pos_string,);
+        eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
         eprintln!("    data: {:?}", state.data());
         eprintln!("     alt: {:?}", state.alt());
         last_states.insert(block_index, state.clone());
@@ -249,6 +257,9 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
     graph
 }
 
+/**
+ * Walk the call graph of the program.
+ */
 pub fn program_graph(program: &PaxProgram) {
     let mut deps = Graph::<&str, ()>::new();
 
@@ -273,12 +284,7 @@ pub fn program_graph(program: &PaxProgram) {
         }
     }
 
-    // Get the minimum spanning tree of the graph as a new graph, and check that
-    // one edge was trimmed.
-    // let mst = UnGraph::<_, _>::from_elements(min_spanning_tree(&deps));
-    // assert_eq!(g.raw_edges().len() - 1, mst.raw_edges().len());
-
-    // Trim down to main.
+    // Trim all functions unaccessible from "main".
     let main = idx.get("main").unwrap().clone();
     for (name, value) in idx {
         if !petgraph::algo::has_path_connecting(&deps, main, value, None) {
@@ -286,19 +292,29 @@ pub fn program_graph(program: &PaxProgram) {
         }
     }
 
-    // Depth-first search into the dependencies of "main".
+    // Depth-first search into the call graph of "main".
     let mut dfs = DfsPostOrder::new(&deps, main);
     let mut seq = vec![];
     while let Some(block_index) = dfs.next(&deps) {
-        seq.push(deps.node_weight(block_index).clone());
+        seq.push(deps.node_weight(block_index).unwrap().clone());
     }
     eprintln!("[graph] whole deps: {:?}", deps);
     eprintln!();
     eprintln!("[graph] dfs: {:?}", seq);
     eprintln!();
 
-    for (name, blocks) in program {
-        // Do some analysis lol
-        let graph = function_analyze(&blocks);
+    for name in &seq {
+        if *name != "main" {
+            continue;
+        }
+        eprintln!("[util.rs] function name: {}", name);
+        eprintln!();
+        if let Some(blocks) = program.get(&name.to_string()) {
+            // Do some analysis lol
+            // if name == "main" {
+            let graph = function_analyze(&blocks);
+            // }
+        }
+        eprintln!();
     }
 }

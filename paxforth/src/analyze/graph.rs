@@ -1,9 +1,6 @@
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
-use petgraph::algo::{dijkstra, min_spanning_tree};
-use petgraph::data::FromElements;
-use petgraph::graph::{Graph, NodeIndex, UnGraph};
-use petgraph::visit::DfsPostOrder;
+use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
 
 #[derive(Debug)]
