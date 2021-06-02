@@ -107,7 +107,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Run { .. } => {
             // Main must be inlined before evaluating in WebAssembly.
             let mut program = source_program.clone();
-            inline_into_function(&mut program, "main");
+            // inline_into_function(&mut program, "main");
             // optimize_function(&mut program, "main");
             let wasm = WasmForthCompiler::compile_binary(&program);
             run_wasm(&wasm, false).unwrap();

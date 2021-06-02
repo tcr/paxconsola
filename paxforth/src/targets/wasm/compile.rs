@@ -308,7 +308,7 @@ fn block_analyze(block: &Block, prev_state: Option<RegState>) -> RegState {
             panic!("Throw not supported in analyze");
         }
         Call(_) => {
-            unreachable!("Cannot optimize non-inlined method");
+            // unreachable!("Cannot optimize non-inlined method");
         }
         _ => {
             unreachable!("expected terminating opcode");
@@ -415,13 +415,25 @@ fn analyze(blocks: &[Block]) -> FunctionGraph {
 impl ForthCompiler for WasmForthCompiler {
     /// Returns a compiled WAT file
     fn compile(program: &PaxProgram) -> String {
+        // analysis that should be moved
+        {
+            for (name, blocks) in program {
+                // Do some analysis lol
+                let graph = analyze(&blocks);
+            }
+
+            program_graph(program);
+
+            panic!("abort before actually running webassembly");
+        }
+
         let mut wat_out = vec![];
         for (name, blocks) in program {
             if name != "main" {
                 continue;
             }
 
-            let graph = analyze(&blocks);
+            let graph = FunctionGraph::from_blocks(&blocks);
 
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];

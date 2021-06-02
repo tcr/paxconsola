@@ -1,7 +1,59 @@
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
-use petgraph::graph::{Graph, NodeIndex};
+use petgraph::algo::{dijkstra, min_spanning_tree};
+use petgraph::data::FromElements;
+use petgraph::graph::{Graph, NodeIndex, UnGraph};
+use petgraph::visit::DfsPostOrder;
 use petgraph::Direction;
+
+pub fn program_graph(program: &PaxProgram) {
+    let mut deps = Graph::<&str, ()>::new();
+
+    let mut idx = IndexMap::new();
+    for (name, _block) in program {
+        idx.insert(name.clone(), deps.add_node(name));
+    }
+
+    // Create call tree for all methods.
+    for (name, blocks) in program {
+        let from = idx.get(name).unwrap();
+        for block in blocks {
+            for command in block.commands() {
+                match command {
+                    (Pax::Call(target_name), _) => {
+                        let to = idx.get(target_name).unwrap();
+                        deps.update_edge(from.clone(), to.clone(), ());
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    // Get the minimum spanning tree of the graph as a new graph, and check that
+    // one edge was trimmed.
+    // let mst = UnGraph::<_, _>::from_elements(min_spanning_tree(&deps));
+    // assert_eq!(g.raw_edges().len() - 1, mst.raw_edges().len());
+
+    // Trim down to main.
+    let main = idx.get("main").unwrap().clone();
+    for (name, value) in idx {
+        if !petgraph::algo::has_path_connecting(&deps, main, value, None) {
+            deps.remove_node(value);
+        }
+    }
+
+    // Depth-first search into the dependencies of "main".
+    let mut dfs = DfsPostOrder::new(&deps, main);
+    let mut seq = vec![];
+    while let Some(block_index) = dfs.next(&deps) {
+        seq.push(deps.node_weight(block_index).clone());
+    }
+    eprintln!("[graph] whole deps: {:?}", deps);
+    eprintln!();
+    eprintln!("[graph] dfs: {:?}", seq);
+    eprintln!();
+}
 
 #[derive(Debug)]
 pub struct FunctionGraph {
