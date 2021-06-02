@@ -259,6 +259,10 @@ fn block_analyze(block: &Block, prev_state: Option<RegState>) -> RegState {
                 let reg = state.pop_data();
                 state.push_return(reg);
             }
+            AltPop => {
+                let reg = state.pop_return();
+                state.push_data(reg);
+            }
             Drop | Print => {
                 state.pop_data();
             }
@@ -274,10 +278,6 @@ fn block_analyze(block: &Block, prev_state: Option<RegState>) -> RegState {
             Store | Store8 => {
                 state.pop_data();
                 state.pop_data();
-            }
-            AltPop => {
-                let reg = state.pop_return();
-                state.push_data(reg);
             }
             LoadTemp => {
                 let reg = state.pop_temp();
@@ -329,6 +329,7 @@ fn analyze(blocks: &[Block]) -> FunctionGraph {
     dump_blocks(blocks);
     let mut last_states = IndexMap::<usize, RegState>::new();
     let mut conditions: Vec<(usize, RegState)> = vec![];
+
     for (block_index, target) in graph.target_sequence() {
         let block = &blocks[block_index];
 
@@ -363,12 +364,18 @@ fn analyze(blocks: &[Block]) -> FunctionGraph {
                     "expected only one iterated branch {:?}",
                     target
                 );
+
                 for target in &targets {
                     if target != base_states[0].0 {
                         conditions.push((*target, base_states[0].1.clone()));
                     }
                 }
-                base_states[0].1.clone()
+
+                // Inherit only from the first branch.
+                block_analyze(
+                    &block,
+                    last_states.get(&*base_states[0].0).map(|x| x.clone()),
+                )
             }
             TargetType::Then(targets) => {
                 let base_states = last_states
@@ -385,7 +392,11 @@ fn analyze(blocks: &[Block]) -> FunctionGraph {
                 // TODO compare base_States?
                 // Generate a result?
 
-                base_states[0].1.clone()
+                // Inherit only from the first branch.
+                block_analyze(
+                    &block,
+                    last_states.get(&*base_states[0].0).map(|x| x.clone()),
+                )
             }
             TargetType::Block(target) | TargetType::AfterLoop(target) => {
                 block_analyze(&block, last_states.get(&target).map(|x| x.clone()))
@@ -472,16 +483,8 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $mem_store_8"));
                         }
                         Pax::BranchTarget(target_index) => {
-                            let mut incoming = graph
-                                .graph
-                                .neighbors_directed(
-                                    NodeIndex::new(*target_index + 1),
-                                    Direction::Incoming,
-                                )
-                                .map(|idx| idx.index() as usize)
-                                .collect::<Vec<_>>();
-                            incoming.sort();
-
+                            let incoming = graph
+                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
                             let mut is_loop = false;
                             for edge in &incoming {
                                 if edge > target_index {
