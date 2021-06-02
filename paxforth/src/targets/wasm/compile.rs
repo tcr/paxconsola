@@ -1,4 +1,5 @@
 use crate::*;
+use indexmap::{IndexMap, IndexSet};
 use petgraph::{graph::NodeIndex, Direction};
 
 const WAT_TEMPLATE: &'static str = r#"
@@ -170,7 +171,7 @@ mod state {
         Var,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Clone)]
     pub struct RegState {
         data: Vec<Reg>,
         data_pos: usize,
@@ -227,15 +228,23 @@ mod state {
         pub fn signature(&self) -> (usize, usize, usize, usize) {
             (self.data_pos, self.alt_pos, self.data.len(), self.alt.len())
         }
+
+        pub fn data(&self) -> &[Reg] {
+            &self.data
+        }
+
+        pub fn alt(&self) -> &[Reg] {
+            &self.alt
+        }
     }
 }
 
 use self::state::{Reg, RegState};
 
-fn block_analyze(block: &Block) -> RegState {
+fn block_analyze(block: &Block, prev_state: Option<RegState>) -> RegState {
     use Pax::*;
 
-    let mut state = RegState::new();
+    let mut state = prev_state.unwrap_or_else(|| RegState::new());
 
     let (commands, terminator) = block.commands_and_terminator();
 
@@ -309,6 +318,89 @@ fn block_analyze(block: &Block) -> RegState {
     state
 }
 
+fn analyze(blocks: &[Block]) -> FunctionGraph {
+    let graph = FunctionGraph::from_blocks(&blocks);
+    eprintln!("[compile.rs] graph {:?}", graph);
+    eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
+    eprintln!("[compile.rs] graph {:?}", graph.target_sequence());
+    eprintln!();
+
+    eprintln!("[compile.rs] block analyze");
+    dump_blocks(blocks);
+    let mut last_states = IndexMap::<usize, RegState>::new();
+    let mut conditions: Vec<(usize, RegState)> = vec![];
+    for (block_index, target) in graph.target_sequence() {
+        let block = &blocks[block_index];
+
+        // Evaluate conditions
+        conditions = conditions
+            .into_iter()
+            .filter(|(index, condition)| {
+                if *index == block_index {
+                    // TODO
+                    eprintln!();
+                    eprintln!("[compile.rs] TESTING CONDITION: {:?}", condition);
+                    eprintln!();
+                    false
+                } else {
+                    true
+                }
+            })
+            .collect();
+
+        let pos_string = block.commands().iter().last().unwrap().1.to_string();
+        let state = match target.clone() {
+            TargetType::Start => block_analyze(&block, None),
+            TargetType::Begin(targets) => {
+                let base_states = last_states
+                    .iter()
+                    .filter(|(key, value)| targets.contains(key))
+                    .collect::<Vec<_>>();
+                // TODO compare base_States?
+                assert_eq!(
+                    base_states.len(),
+                    1,
+                    "expected only one iterated branch {:?}",
+                    target
+                );
+                for target in &targets {
+                    if target != base_states[0].0 {
+                        conditions.push((*target, base_states[0].1.clone()));
+                    }
+                }
+                base_states[0].1.clone()
+            }
+            TargetType::Then(targets) => {
+                let base_states = last_states
+                    .iter()
+                    .filter(|(key, value)| targets.contains(key))
+                    .collect::<Vec<_>>();
+                assert_eq!(
+                    base_states.len(),
+                    2,
+                    "expected tp have two iterated branch {:?}",
+                    target
+                );
+
+                // TODO compare base_States?
+                // Generate a result?
+
+                base_states[0].1.clone()
+            }
+            TargetType::Block(target) | TargetType::AfterLoop(target) => {
+                block_analyze(&block, last_states.get(&target).map(|x| x.clone()))
+            }
+        };
+
+        eprintln!("{:?} for {}", state.signature(), pos_string,);
+        eprintln!("    data: {:?}", state.data());
+        eprintln!("     alt: {:?}", state.alt());
+        last_states.insert(block_index, state.clone());
+    }
+    eprintln!();
+    graph
+}
+
 impl ForthCompiler for WasmForthCompiler {
     /// Returns a compiled WAT file
     fn compile(program: &PaxProgram) -> String {
@@ -318,19 +410,7 @@ impl ForthCompiler for WasmForthCompiler {
                 continue;
             }
 
-            let graph = FunctionGraph::from_blocks(&blocks);
-            eprintln!("[compile.rs] graph {:?}", graph);
-            eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
-            eprintln!();
-
-            eprintln!("[compile.rs] block analyze");
-            dump_blocks(blocks);
-            for block in blocks {
-                let state = block_analyze(&block);
-                eprintln!("{:?}", state);
-                eprintln!("{:?}", state.signature());
-            }
-            eprintln!();
+            let graph = analyze(&blocks);
 
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];

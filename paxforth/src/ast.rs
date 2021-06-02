@@ -74,7 +74,7 @@ impl Block {
     pub fn commands_and_terminator(&self) -> (&[Located<Pax>], &Located<Pax>) {
         let len = self.commands.len();
         (
-            &self.commands[0..(if len > 1 { len - 2 } else { 0 })],
+            &self.commands[0..(if len > 1 { len - 1 } else { 0 })],
             &self.commands[len - 1],
         )
     }

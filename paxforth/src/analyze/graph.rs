@@ -8,6 +8,15 @@ pub struct FunctionGraph {
     pub graph: Graph<(), i32>,
 }
 
+#[derive(Debug, Clone)]
+pub enum TargetType {
+    Start,
+    Block(usize),
+    Then(Vec<usize>),
+    Begin(Vec<usize>),
+    AfterLoop(usize),
+}
+
 impl FunctionGraph {
     /// Composes blocks together into a graph.
     pub fn from_blocks(stack_blocks: &[Block]) -> FunctionGraph {
@@ -85,6 +94,10 @@ impl FunctionGraph {
         incoming
     }
 
+    /**
+     * Get the breadth-first sequence of blocks as you navigate from the first block
+     * through the function.
+     */
     pub fn bfs_sequence(&self) -> Vec<usize> {
         // First we want to analyze the whole program and identify basic blocks.
         // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
@@ -98,5 +111,55 @@ impl FunctionGraph {
         } else {
             vec![0]
         }
+    }
+
+    /**
+     *
+     */
+    pub fn target_sequence(&self) -> IndexMap<usize, TargetType> {
+        // First we want to analyze the whole program and identify basic blocks.
+        // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
+        let seq = self.bfs_sequence();
+
+        eprintln!("[analyze_blocks] start");
+
+        let mut seen = IndexMap::new();
+
+        for block_index in seq {
+            // Get the set of incoming edges to this block and iterate in ascending order.
+            let incoming = self.directed_edges_from_node(block_index, Direction::Incoming);
+
+            let target_type = if incoming.len() == 0 {
+                // If there are no incoming blocks, we are not a branch target.
+                TargetType::Start
+            } else if incoming.iter().find(|x| seen.get(*x).is_none()).is_some() {
+                // If an incoming block is not populated yet, we assume we are starting
+                // a loop ("begin").
+                TargetType::Begin(incoming.clone())
+            } else if incoming.len() == 1 && incoming[0] == block_index - 1 && {
+                let outgoing = self.directed_edges_from_node(incoming[0], Direction::Outgoing);
+                outgoing.len() > 1 && outgoing.iter().any(|x| *x < incoming[0])
+            } {
+                TargetType::AfterLoop(incoming[0])
+            } else if incoming.len() >= 2 {
+                // If there are two or more incoming edges, we assume we are joining a branch ("then").
+                TargetType::Then(incoming.clone())
+            } else {
+                // A sole incoming edge is probably an "else" block.
+                TargetType::Block(incoming[0])
+            };
+
+            // Generate the next block analysis.
+            eprintln!("  [incoming] {:?}", incoming);
+            eprintln!(
+                "[analyze_blocks] block [{}] is target {:?}",
+                block_index, target_type
+            );
+            eprintln!();
+
+            seen.insert(block_index, target_type);
+        }
+
+        seen
     }
 }
