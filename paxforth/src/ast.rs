@@ -33,6 +33,7 @@ pub enum Pax {
     Store,
 
     Print,
+    Abort,
 
     // TODO Split these off as block opcodes
     BranchTarget(usize),
@@ -40,7 +41,6 @@ pub enum Pax {
     Call(String),
     JumpIf0(usize),
     JumpAlways(usize),
-    Abort,
 }
 
 pub type PaxSpan = Vec<Located<Pax>>;

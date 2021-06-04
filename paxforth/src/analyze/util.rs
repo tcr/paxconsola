@@ -11,6 +11,8 @@ pub enum Reg {
     Var,
 }
 
+pub type FunctionArity = (usize, usize, usize, usize);
+
 #[derive(Debug, Clone)]
 pub struct RegState {
     data: Vec<Reg>,
@@ -19,9 +21,6 @@ pub struct RegState {
     alt_pos: usize,
     temp: Option<Reg>,
 }
-
-pub type FunctionArity = (usize, usize, usize, usize);
-
 impl RegState {
     pub fn new() -> RegState {
         RegState {
@@ -30,6 +29,21 @@ impl RegState {
             alt: vec![],
             alt_pos: 0,
             temp: None,
+        }
+    }
+
+    fn apply(&mut self, arity: &FunctionArity) {
+        for _ in 0..arity.0 {
+            self.pop_data();
+        }
+        for _ in 0..arity.1 {
+            self.pop_return();
+        }
+        for _ in 0..arity.2 {
+            self.push_data(Reg::Var);
+        }
+        for _ in 0..arity.3 {
+            self.push_return(Reg::Var);
         }
     }
 
@@ -83,7 +97,7 @@ impl RegState {
 fn block_analyze(
     block: &Block,
     prev_state: Option<RegState>,
-    functions_arity_input: Option<IndexMap<String, FunctionArity>>,
+    functions_arity_input: Option<&IndexMap<String, FunctionArity>>,
 ) -> RegState {
     use Pax::*;
 
@@ -91,7 +105,8 @@ fn block_analyze(
 
     let (commands, terminator) = block.commands_and_terminator();
 
-    let functions_arity = functions_arity_input.unwrap_or_else(|| IndexMap::new());
+    let functions_arity_default = IndexMap::new();
+    let functions_arity = functions_arity_input.unwrap_or_else(|| &functions_arity_default);
 
     // Iterate opcodes
     for (opcode, _pos) in commands {
@@ -132,9 +147,12 @@ fn block_analyze(
                 let reg = state.pop_data();
                 state.push_temp(reg);
             }
+            Abort => {
+                eprintln!("Encountered abort in block_analyze, not sure what to do");
+            }
 
-            _ => {
-                unreachable!("expected non-terminating opcode");
+            op => {
+                unreachable!("expected non-terminating opcode, got {:?}", op);
             }
         }
     }
@@ -149,15 +167,14 @@ fn block_analyze(
         BranchTarget(_) => {}
         Exit => {}
 
-        Abort => {
-            panic!("Throw not supported in analyze");
-        }
         Call(name) => {
             if let Some(arity) = functions_arity.get(name) {
-                // TODO apply this arity to state
-                eprintln!("TODO: apply arity to state {:?}", arity);
+                state.apply(arity);
             } else {
-                unreachable!("Missing arity for block_analyze on non-inlined call {}");
+                panic!(
+                    "[util.rs] FIXME: `functions_arity.get('{}')` is null, and call is not inlined",
+                    name
+                );
             }
         }
         _ => {
@@ -168,7 +185,10 @@ fn block_analyze(
     state
 }
 
-fn function_analyze(blocks: &[Block]) -> FunctionGraph {
+fn function_analyze(
+    blocks: &[Block],
+    arities: Option<&IndexMap<String, FunctionArity>>,
+) -> (FunctionGraph, FunctionArity) {
     let graph = FunctionGraph::from_blocks(&blocks);
     eprintln!("[compile.rs] graph {:?}", graph);
     eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
@@ -203,11 +223,11 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
         let state = match target.clone() {
             TargetType::Start => {
                 // There are no parents.
-                block_analyze(&block, None, None)
+                block_analyze(&block, None, arities)
             }
             TargetType::Block(target) | TargetType::AfterLoop(target) => {
                 // There is only one parent.
-                block_analyze(&block, last_states.get(&target).map(|x| x.clone()), None)
+                block_analyze(&block, last_states.get(&target).map(|x| x.clone()), arities)
             }
             TargetType::Begin(targets) => {
                 // There are two parents.
@@ -233,7 +253,7 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
                 block_analyze(
                     &block,
                     last_states.get(&*base_states[0].0).map(|x| x.clone()),
-                    None,
+                    arities,
                 )
             }
             TargetType::Then(targets) => {
@@ -256,7 +276,7 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
                 block_analyze(
                     &block,
                     last_states.get(&*base_states[0].0).map(|x| x.clone()),
-                    None,
+                    arities,
                 )
             }
         };
@@ -267,9 +287,12 @@ fn function_analyze(blocks: &[Block]) -> FunctionGraph {
         last_states.insert(block_index, state.clone());
     }
 
+    let arity = last_states.last().unwrap().1.arity();
+    eprintln!("----> final arity: {:?}", arity);
+
     eprintln!();
 
-    graph
+    (graph, arity)
 }
 
 /**
@@ -313,10 +336,10 @@ pub fn program_graph(program: &PaxProgram) {
     while let Some(block_index) = dfs.next(&deps) {
         seq.push(deps.node_weight(block_index).unwrap().clone());
     }
-    eprintln!("[graph] whole deps: {:?}", deps);
-    eprintln!();
     eprintln!("[graph] dfs: {:?}", seq);
     eprintln!();
+
+    let mut function_arities = IndexMap::new();
 
     for name in &seq {
         eprintln!("[util.rs] function name: {}", name);
@@ -324,12 +347,10 @@ pub fn program_graph(program: &PaxProgram) {
         if let Some(blocks) = program.get(&name.to_string()) {
             // Do some analysis lol
             // if name == "main" {
-            let _graph = function_analyze(&blocks);
+            let (_graph, arity) = function_analyze(&blocks, Some(&function_arities));
+            function_arities.insert(name.to_string(), arity);
             // }
         }
         eprintln!();
     }
-
-    // Re-analyze main for the CLI.
-    function_analyze(program.get("main").expect("main was not found"));
 }

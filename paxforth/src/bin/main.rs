@@ -113,7 +113,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
             // TODO: remove this
             program_graph(&program);
-            panic!("abort before actually running webassembly");
+            // panic!("abort before actually running webassembly");
 
             let wasm = WasmForthCompiler::compile_binary(&program);
             run_wasm(&wasm, false).unwrap();

@@ -1,5 +1,14 @@
 use crate::*;
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use petgraph::Direction;
+
+fn name_slug(name: &str) -> String {
+    const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
+    utf8_percent_encode(name, &NON_ALPHA)
+        .to_string()
+        .replace("%", "")
+        .to_string()
+}
 
 const WAT_TEMPLATE: &'static str = r#"
 (module
@@ -147,9 +156,10 @@ const WAT_TEMPLATE: &'static str = r#"
         i32.xor
         call $data_push)
 
+    {{functions}}
 
     (func $main (export "main") (type $t4) (result i32)
-        {{main}}
+        call $fn_main
         i32.const 255)
 
 
@@ -163,10 +173,9 @@ impl ForthCompiler for WasmForthCompiler {
     /// Returns a compiled WAT file
     fn compile(program: &PaxProgram) -> String {
         let mut wat_out = vec![];
+
         for (name, blocks) in program {
-            if name != "main" {
-                continue;
-            }
+            wat_out.push(format!("(func $fn_{} (type $t0)", name_slug(name)));
 
             let graph = FunctionGraph::from_blocks(&blocks);
 
@@ -207,7 +216,7 @@ impl ForthCompiler for WasmForthCompiler {
                         Pax::Exit => {}
                         Pax::Metadata(_) => {}
                         Pax::Call(s) => {
-                            unreachable!("expected all methods to be inlined: {}", s);
+                            wat_out.push(format!("    call $fn_{}", name_slug(s)));
                         }
                         Pax::Load => {
                             wat_out.push(format!("    call $data_pop"));
@@ -303,6 +312,9 @@ impl ForthCompiler for WasmForthCompiler {
                     // println!("  {:?}", op.0);
                 }
             }
+
+            wat_out.push(format!(")"));
+            wat_out.push(format!(""));
         }
 
         let wat_output = WAT_TEMPLATE
@@ -312,9 +324,10 @@ impl ForthCompiler for WasmForthCompiler {
             .replace("{{data}}", "2048")
             .replace("{{return}}", "4096")
             .replace("{{mem}}", "10000")
-            .replace("{{main}}", &wat_out.join("\n"));
+            .replace("{{functions}}", &wat_out.join("\n"));
 
         // eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);
+
         wat_output
     }
 }
