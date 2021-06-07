@@ -1,4 +1,4 @@
-( check 5 1 )
+( @check 5 1 )
 
 : wrapswap swap drop ;
 

@@ -1,3 +1,3 @@
-( check 24 )
+( @check 24 )
 
 4 6 * print

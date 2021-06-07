@@ -1,4 +1,4 @@
-( check 4 )
+( @check 4 )
 
 : d  4 ;
 

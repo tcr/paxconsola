@@ -1,4 +1,4 @@
-( check 20 33 44 44 44 44 )
+( @check 20 33 44 44 44 44 )
 
 : invert  -1 nand ;
 : or   invert swap invert nand ;

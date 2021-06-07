@@ -1,4 +1,4 @@
-( check 20 )
+( @check 20 )
 
 variable  temporary
 

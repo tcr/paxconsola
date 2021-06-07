@@ -1,6 +1,6 @@
-( check 42 )
+( @check 42 )
 
-3 14 
+3 14
 
 : myloopimpl r> r> r> 1+ 2dup >r >r = swap >r ;
 

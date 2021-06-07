@@ -1,3 +1,3 @@
-( check 11 )
+( @check 11 )
 
 5 5 1 + + print

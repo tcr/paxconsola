@@ -1,4 +1,4 @@
-( check 10 22 23 24 23 )
+( @check 10 22 23 24 23 )
 
 1 begin 1 + dup 10 = until print
 

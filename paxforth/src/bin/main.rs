@@ -1,6 +1,7 @@
 #![allow(deprecated)]
 
 use paxforth::*;
+use regex::Regex;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -36,6 +37,11 @@ enum Command {
         file: FileOpts,
     },
 
+    Check {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
+
     Run {
         #[structopt(flatten)]
         file: FileOpts,
@@ -60,6 +66,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Compile { file, .. } => file.file.to_owned(),
         Command::Optimize { file, .. } => file.file.to_owned(),
         Command::Dump { file, .. } => file.file.to_owned(),
+        Command::Check { file, .. } => file.file.to_owned(),
         Command::Run { file, .. } => file.file.to_owned(),
         Command::Inlineup { file, .. } => file.file.to_owned(),
     };
@@ -100,6 +107,44 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 println!("[function {:?}]", name);
                 dump_blocks(&code);
                 println!();
+            }
+        }
+
+        // Check the program output
+        Command::Check { .. } => {
+            // Main must be inlined before evaluating in WebAssembly.
+            let mut program = source_program.clone();
+
+            // inline_into_function(&mut program, "main");
+            // optimize_function(&mut program, "main");
+
+            // TODO: remove this
+            program_graph(&program);
+            // panic!("abort before actually running webassembly");
+
+            let wasm = WasmForthCompiler::compile_binary(&program);
+            let buffer = run_wasm(&wasm, true).expect("failed execution");
+
+            // Parse output from "print" statements.
+            let buffer_string = String::from_utf8_lossy(&buffer).to_string();
+            let found = buffer_string.split_whitespace().collect::<Vec<_>>();
+
+            // TODO @nocommit fix this check logic
+            let re_check = Regex::new(r"\(\s*@check\s+([^)]+?)\s*\)").unwrap();
+
+            if re_check.is_match(&code) {
+                let captures = re_check.captures(&code).unwrap();
+                let expected = captures[1].split_whitespace().collect::<Vec<_>>();
+
+                // Compare output to expected values.
+                eprintln!("[forth] expected: {:?}", expected);
+                eprintln!("[forth]   output: {:?}", found);
+                if expected != found {
+                    eprintln!("[forth] FAILED.");
+                    std::process::exit(1);
+                } else {
+                    eprintln!("[forth] SUCCESS!");
+                }
             }
         }
 

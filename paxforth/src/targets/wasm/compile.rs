@@ -6,7 +6,8 @@ fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
     utf8_percent_encode(name, &NON_ALPHA)
         .to_string()
-        .replace("%", "")
+        .replace("$", "$$")
+        .replace("%", "$")
         .to_string()
 }
 

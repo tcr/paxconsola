@@ -13,7 +13,7 @@ struct CheckTest {
 /// Load tests from "check" directory.
 fn get_check_tests() -> Vec<CheckTest> {
     // Regex for (checks X) header.
-    let re_check = Regex::new(r"^\(\s*check\s+([^)]+?)\s*\)").unwrap();
+    let re_check = Regex::new(r"\(\s*@check\s+([^)]+?)\s*\)").unwrap();
 
     // Load the tests from the "check" directory.
     let check_tests = glob("tests/check/*.fs")
@@ -81,8 +81,10 @@ fn test_all_in_check_directory() {
         eprintln!("[forth] expected: {:?}", test.expected);
         eprintln!("[forth]   output: {:?}", found);
         if test.expected != found {
-            eprintln!("[forth] FAILED");
+            eprintln!("[forth] FAILED.");
             failed += 1;
+        } else {
+            eprintln!("[forth] SUCCESS!");
         }
     }
 
