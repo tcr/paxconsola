@@ -64,7 +64,7 @@ fn test_all_in_check_directory() {
         let mut program = parse_to_pax(&test.contents, Some(&test.path.display().to_string()));
 
         // Main must be inlined before evaluating in WebAssembly.
-        inline_into_function(&mut program, "main");
+        // inline_into_function(&mut program, "main");
 
         // TODO
         // optimize_function(&mut program, "main");
@@ -80,6 +80,7 @@ fn test_all_in_check_directory() {
         // Compare output to expected values.
         eprintln!("[forth] expected: {:?}", test.expected);
         eprintln!("[forth]   output: {:?}", found);
+
         if test.expected != found {
             eprintln!("[forth] FAILED.");
             failed += 1;

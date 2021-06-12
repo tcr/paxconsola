@@ -9,6 +9,8 @@ cd paxforth
 cargo test
 ```
 
+Broken tests: `paxforth check paxforth/tests/check/invert.fs`
+
 ### Compile Snake
 
 ```sh

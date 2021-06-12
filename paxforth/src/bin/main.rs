@@ -122,6 +122,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             program_graph(&program);
             // panic!("abort before actually running webassembly");
 
+            // dump_as_forth(program.get("main").unwrap());
+
             let wasm = WasmForthCompiler::compile_binary(&program);
             let buffer = run_wasm(&wasm, true).expect("failed execution");
 
@@ -151,7 +153,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         // Run the program directly
         Command::Run { .. } => {
             // Main must be inlined before evaluating in WebAssembly.
-            let mut program = source_program.clone();
+            let program = source_program.clone();
 
             // inline_into_function(&mut program, "main");
             // optimize_function(&mut program, "main");

@@ -1,12 +1,16 @@
 #![allow(dead_code)]
 
 pub use self::graph::*;
+pub use self::inline::*;
+pub use self::reduce_branches::*;
 pub use self::util::*;
 use crate::*;
 use indexmap::IndexMap;
 use petgraph::Direction;
 
 pub mod graph;
+pub mod inline;
+pub mod reduce_branches;
 pub mod util;
 
 // TODO use these to model stacks and merging logic, converge on ExitStack after minimizing loops
@@ -17,8 +21,6 @@ pub mod util;
 // inline for up to N opcodes (determined from stack vector) and see if there is speed improvement
 // or,
 // recursively solve call ependencies to correct local stacks
-
-// TODO make wasm run on a non-inlined program
 
 pub type Reg = String;
 pub type RegList = Vec<Reg>;
