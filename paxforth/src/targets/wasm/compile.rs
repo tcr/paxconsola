@@ -1,4 +1,5 @@
 use crate::*;
+use maplit::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use petgraph::Direction;
 
@@ -182,6 +183,8 @@ impl ForthCompiler for WasmForthCompiler {
 
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];
+            let mut last_command = None;
+            let mut not_jumped_always = hashset![];
             for (block_index, block) in blocks.iter().enumerate() {
                 for op in block.commands() {
                     wat_out.push(format!(";; {:?}", &op.0));
@@ -258,8 +261,12 @@ impl ForthCompiler for WasmForthCompiler {
 
                                 wat_block_stack.push(id.clone());
                                 wat_out.push(format!("    loop {}", id));
-                            } else if incoming.len() > 1 {
-                                // End of an if or if/else block.
+                            } else if incoming.len() > 1
+                                /* Ignore incoming edges that are optimized to jump always */
+                                /* This is because WASM requires structured loops */
+                                && !not_jumped_always.contains(&block_index)
+                            {
+                                // End of an if block.
                                 wat_out.push(format!("    end"));
                                 wat_block_stack.pop().expect("expected end of 'if' block");
                                 wat_out.push(format!("    end"));
@@ -267,7 +274,28 @@ impl ForthCompiler for WasmForthCompiler {
                             }
                         }
                         Pax::JumpIf0(target_index) => {
-                            if *target_index > block_index {
+                            if let Some(Pax::PushLiteral(0)) = last_command {
+                                // Jump always
+                                wat_block_stack.pop().unwrap(); // last_block
+                                let parent_block = wat_block_stack.pop().unwrap();
+                                wat_block_stack.push(parent_block.clone());
+
+                                wat_out.push(format!(";;   (optimized as JumpAlways)"));
+                                eprintln!("----> {:?}", block_index);
+                                not_jumped_always.insert(block_index + 1);
+
+                                wat_out.push(format!("    call $drop"));
+
+                                let next_block = format!("$B{}", wat_block_index);
+                                wat_block_index += 1;
+
+                                wat_out.push(format!("    br {}", parent_block));
+                                wat_out.push(format!("    end"));
+                                wat_out.push(format!("    block {}", next_block));
+                                wat_block_stack.push(next_block);
+                                // wat_block_stack.push(next_block.clone());
+                                // wat_block_stack.push(next_block.clone());
+                            } else if *target_index > block_index {
                                 // Start of an if block
                                 let parent_id = format!("$B{}", wat_block_index);
                                 wat_block_index += 1;
@@ -315,6 +343,8 @@ impl ForthCompiler for WasmForthCompiler {
                     }
                     wat_out.push(format!(""));
                     // println!("  {:?}", op.0);
+
+                    last_command = Some(op.0.clone());
                 }
             }
 

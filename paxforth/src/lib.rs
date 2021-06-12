@@ -34,6 +34,7 @@ pub fn dump_blocks(blocks: &[Block]) {
     eprintln!();
 }
 
+// Silly introspection method
 pub fn dump_as_forth(blocks: &[Block]) {
     eprintln!("\\ Forth Decompiled ");
     for (i, block) in blocks.iter().enumerate() {

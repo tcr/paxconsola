@@ -88,7 +88,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 println!("{}", &result);
             }
             Target::WebAssembly => {
-                todo!("can't compile to wasm and print it yet");
+                let result = WasmForthCompiler::compile(&source_program);
+                println!("{}", &result);
             }
             Target::TOM => {
                 let mut program = source_program.clone();

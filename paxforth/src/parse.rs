@@ -311,27 +311,5 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
     stack.current().exit_block();
 
     // Convert StackAbstraction into program.
-    let mut program = stack.result();
-
-    // Optimize PushLiteral(0), JumpIf0(x) to JumpAlways(x)
-    // TODO figure out why this is necessary for wasm target
-    for (_name, blocks) in &mut program {
-        for block in blocks {
-            if let Some((Pax::PushLiteral(0), _)) = block.commands().iter().rev().nth(1) {
-                if let Some((Pax::JumpIf0(dest), _)) = block.commands().iter().rev().next() {
-                    let mut new_span = block.commands().clone();
-
-                    // Pop opcodes PushLiteral(0), JumpIf0(x)
-                    let (_, pos) = new_span.pop().unwrap();
-                    new_span.pop();
-
-                    // Push the new JumpAlways instruction and create a block.
-                    new_span.push((Pax::JumpAlways(*dest), pos));
-                    *block = Block::new(new_span);
-                }
-            }
-        }
-    }
-
-    program
+    stack.result()
 }
