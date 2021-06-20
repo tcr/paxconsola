@@ -21,8 +21,7 @@ pub enum Pax {
     LoadTemp,
     StoreTemp,
 
-    Metadata(String),
-
+    // Metadata(String),
     Add,
     Nand,
 

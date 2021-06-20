@@ -32,7 +32,7 @@ pub fn dump_blocks(blocks: &[Block]) {
                 Pax::Load => format!("@"),
                 Pax::Load8 => format!("c@"),
                 Pax::LoadTemp => format!("temp@"),
-                Pax::Metadata(name) => format!("( declare \"{}\" )", name),
+                // Pax::Metadata(name) => format!("( declare \"{}\" )", name),
                 Pax::Nand => format!("nand"),
                 Pax::Print => format!("print"),
                 Pax::PushLiteral(l) => format!("{}", l),

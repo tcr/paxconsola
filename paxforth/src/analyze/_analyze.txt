@@ -315,7 +315,7 @@ fn analyze_block(
 
             // Pax ports
             BranchTarget(_) => {}
-            Metadata(_) => {}
+            //Metadata(_) => {}
             Exit => {}
 
             Call(_) => {

@@ -64,7 +64,7 @@ jump_if_0(target_{})",
 
         Pax::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
 
-        Pax::Metadata(_s) => tom_output!(out, "start()"),
+        // Pax::Metadata(_s) => tom_output!(out, "start()"),
         Pax::Exit => {
             tom_output!(out, "");
         }

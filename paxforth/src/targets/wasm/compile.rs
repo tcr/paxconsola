@@ -218,7 +218,7 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $temp_store"));
                         }
                         Pax::Exit => {}
-                        Pax::Metadata(_) => {}
+                        // Pax::Metadata(_) => {}
                         Pax::Call(s) => {
                             wat_out.push(format!("    i32.const {}", 0)); // dummy value
                             wat_out.push(format!("    call $return_push"));

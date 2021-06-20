@@ -200,15 +200,15 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
             n
         ),
 
-        Pax::Metadata(s) => gb_output!(
-            out,
-            "
-    ; [metadata] {:?}
-PAX_FN_{}:
-        ",
-            s,
-            name_slug(&s)
-        ),
+        //         Pax::Metadata(s) => gb_output!(
+        //             out,
+        //             "
+        //     ; [metadata] {:?}
+        // PAX_FN_{}:
+        //         ",
+        //             s,
+        //             name_slug(&s)
+        //         ),
         Pax::Exit => {
             gb_output!(
                 out,

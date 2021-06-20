@@ -113,7 +113,7 @@ fn block_analyze(
     // Iterate opcodes
     for (opcode, _pos) in commands {
         match opcode {
-            Metadata(_) => {}
+            //Metadata(_) => {}
             PushLiteral(value) => {
                 state.push_data(Reg::Literal(*value));
             }

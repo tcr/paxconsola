@@ -69,9 +69,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     Token::Word(ref word) => {
                         program.enter_function(word.to_string());
 
-                        program
-                            .current()
-                            .op(&(Pax::Metadata(word.to_string()), pos.clone()));
+                        // program
+                        //     .current()
+                        //     .op(&(Pax::Metadata(word.to_string()), pos.clone()));
 
                         // Flow control for recurse
                         let group = program.current().forward_branch_target(word, pos.clone());
