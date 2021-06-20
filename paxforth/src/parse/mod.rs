@@ -1,11 +1,15 @@
 //! Modern parsing logic.
 
-use crate::parse_util::*;
+pub mod parse_util;
+pub mod tokenizer;
+
 use crate::prelude::*;
 use crate::*;
 use indexmap::IndexMap;
 use lazy_static::*;
+pub use parse_util::*;
 use regex::Regex;
+pub use tokenizer::*;
 
 /**
  * Internal parse logic for code (whether it is prelude, code, etc.)
