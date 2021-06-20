@@ -4,6 +4,7 @@ use paxforth::*;
 use regex::Regex;
 use std::path::PathBuf;
 
+#[derive(Clone)]
 struct CheckTest {
     path: PathBuf,
     contents: String,
@@ -48,8 +49,7 @@ fn get_check_tests() -> Vec<CheckTest> {
         .collect::<Vec<_>>()
 }
 
-#[test]
-fn test_all_in_check_directory() {
+fn run_check_tests(inline: bool) {
     let check_tests = get_check_tests();
     if check_tests.is_empty() {
         panic!("error: found 0 tests!");
@@ -58,13 +58,18 @@ fn test_all_in_check_directory() {
     // Iterate through each test.
     let mut failed = 0;
     for test in check_tests {
-        eprintln!("[forth] evaluating '{}'", test.path.display());
+        eprintln!(
+            "[forth] evaluating '{}' (inline: {})",
+            test.path.display(),
+            inline
+        );
 
         // Parse the program.
         let mut program = parse_to_pax(&test.contents, Some(&test.path.display().to_string()));
 
-        // Main must be inlined before evaluating in WebAssembly.
-        // inline_into_function(&mut program, "main");
+        if inline {
+            inline_into_function(&mut program, "main");
+        }
 
         // TODO
         // optimize_function(&mut program, "main");
@@ -93,4 +98,14 @@ fn test_all_in_check_directory() {
         eprintln!("[forth] failed {} tests.", failed);
     }
     assert_eq!(failed, 0, "failed more than 0 tests");
+}
+
+#[test]
+fn test_all_in_check_directory() {
+    run_check_tests(false);
+}
+
+#[test]
+fn test_all_in_check_directory_inlined() {
+    run_check_tests(true);
 }
