@@ -2,6 +2,7 @@
 
 pub mod analyze;
 pub mod ast;
+pub mod check;
 pub mod parse;
 pub mod prelude;
 pub mod targets;

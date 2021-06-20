@@ -1,10 +1,8 @@
-#![allow(deprecated)]
-
 use paxforth::*;
-use regex::Regex;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+use crate::check::*;
 use crate::targets::c64::*;
 use crate::targets::gb::*;
 use crate::targets::tom1::*;
@@ -124,38 +122,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Check the program output
         Command::Check { .. } => {
-            // Main must be inlined before evaluating in WebAssembly.
-            let mut program = source_program.clone();
-
-            // optimize_function(&mut program, "main");
-
-            // TODO: remove this
-            program_graph(&program);
-            // panic!("abort before actually running webassembly");
-
-            let wasm = WasmForthCompiler::compile_binary(&program);
-            let buffer = run_wasm(&wasm, true).expect("failed execution");
-
-            // Parse output from "print" statements.
-            let buffer_string = String::from_utf8_lossy(&buffer).to_string();
-            let found = buffer_string.split_whitespace().collect::<Vec<_>>();
-
-            // TODO @nocommit fix this check logic
-            let re_check = Regex::new(r"\(\s*@check\s+([^)]+?)\s*\)").unwrap();
-
-            if re_check.is_match(&code) {
-                let captures = re_check.captures(&code).unwrap();
-                let expected = captures[1].split_whitespace().collect::<Vec<_>>();
-
-                // Compare output to expected values.
-                eprintln!("[forth] expected: {:?}", expected);
-                eprintln!("[forth]   output: {:?}", found);
-                if expected != found {
-                    eprintln!("[forth] FAILED.");
-                    std::process::exit(1);
-                } else {
-                    eprintln!("[forth] SUCCESS!");
-                }
+            if !check_program(&code, &source_program) {
+                std::process::exit(1);
             }
         }
 

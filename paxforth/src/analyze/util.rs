@@ -328,19 +328,13 @@ pub fn program_analyze(program: &PaxProgram) -> (Graph<&str, ()>, IndexMap<Strin
 }
 
 /**
- * Do some "analysis" for command line.
+ * Get arities for all functions in a program.
  */
-pub fn program_graph(program: &PaxProgram) {
-    let (mut deps, idx) = program_analyze(program);
+pub fn program_arities(program: &PaxProgram) -> IndexMap<String, FunctionArity> {
+    let (deps, idx) = program_analyze(program);
 
     // Trim all functions unaccessible from "main".
     let main = idx.get("main").unwrap().clone();
-    for (_name, value) in idx {
-        eprintln!("----> {:?}", deps);
-        if !petgraph::algo::has_path_connecting(&deps, main, value, None) {
-            deps.remove_node(value);
-        }
-    }
 
     // Depth-first search into the call graph of "main".
     let mut dfs = DfsPostOrder::new(&deps, main);
@@ -348,21 +342,15 @@ pub fn program_graph(program: &PaxProgram) {
     while let Some(block_index) = dfs.next(&deps) {
         seq.push(deps.node_weight(block_index).unwrap().clone());
     }
-    eprintln!("[graph] dfs: {:?}", seq);
-    eprintln!();
 
     let mut function_arities = IndexMap::new();
 
     for name in &seq {
-        eprintln!("[util.rs] function name: {}", name);
-        eprintln!();
         if let Some(blocks) = program.get(&name.to_string()) {
-            // Do some analysis lol
-            // if name == "main" {
             let (_graph, arity) = function_analyze(&blocks, Some(&function_arities));
             function_arities.insert(name.to_string(), arity);
-            // }
         }
-        eprintln!();
     }
+
+    function_arities
 }
