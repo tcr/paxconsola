@@ -315,5 +315,11 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
     stack.current().exit_block();
 
     // Convert StackAbstraction into program.
-    stack.result()
+    let mut result = stack.result();
+
+    // Move "main" entry to the end for better console logging.
+    let main = result.remove("main").unwrap();
+    result.insert("main".to_string(), main);
+
+    result
 }

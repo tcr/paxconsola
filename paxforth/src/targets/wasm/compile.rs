@@ -281,7 +281,6 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_block_stack.push(parent_block.clone());
 
                                 wat_out.push(format!(";;   (optimized as JumpAlways)"));
-                                eprintln!("----> {:?}", block_index);
                                 not_jumped_always.insert(block_index + 1);
 
                                 wat_out.push(format!("    call $drop"));

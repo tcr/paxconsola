@@ -245,7 +245,7 @@ pub fn optimize_function(program: &mut PaxProgram, method: &str) {
 
     // disabled
     // TODO why is this disabled?
-    // reduce_branches(program, method);
+    // strip_branches(program, method);
 
     if let Some(blocks) = program.get_mut(method) {
         dump_blocks(blocks);

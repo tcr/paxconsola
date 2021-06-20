@@ -15,46 +15,41 @@ pub trait ForthCompiler {
 }
 
 pub fn dump_blocks(blocks: &[Block]) {
-    eprintln!("program:");
     for (i, block) in blocks.iter().enumerate() {
-        eprintln!("  block[{}] with {} entries:", i, block.commands().len());
+        eprintln!("    ( block {} )", i);
         for command in block.commands() {
-            eprintln!("    {:30} {}", format!("{:?}", command.0), command.1);
+            let opcode = match &command.0 {
+                Pax::Abort => format!("abort"),
+                Pax::Add => format!("+"),
+                Pax::AltPop => format!("r<"),
+                Pax::AltPush => format!("r>"),
+                Pax::BranchTarget(n) => format!("[target-{}]", n),
+                Pax::Call(f) => format!("call {:?}", f),
+                Pax::Drop => format!("drop"),
+                Pax::Exit => format!("exit"),
+                Pax::JumpAlways(n) => format!("0 branch0 [target-{}]", n),
+                Pax::JumpIf0(n) => format!("branch0 [target-{}]", n),
+                Pax::Load => format!("@"),
+                Pax::Load8 => format!("c@"),
+                Pax::LoadTemp => format!("temp@"),
+                Pax::Metadata(name) => format!("( declare \"{}\" )", name),
+                Pax::Nand => format!("nand"),
+                Pax::Print => format!("print"),
+                Pax::PushLiteral(l) => format!("{}", l),
+                Pax::Store => format!("!"),
+                Pax::Store8 => format!("c!"),
+                Pax::StoreTemp => format!("temp!"),
+            };
+            eprintln!("        {:<40} {}", opcode, format!("\\ {:>80}", command.1));
         }
     }
-    eprintln!();
     eprintln!();
 }
 
-// Silly introspection method
-pub fn dump_as_forth(blocks: &[Block]) {
-    eprintln!("\\ Forth Decompiled ");
-    for (i, block) in blocks.iter().enumerate() {
-        for command in block.commands() {
-            match &command.0 {
-                Pax::Abort => eprintln!("abort"),
-                Pax::Add => eprintln!("+"),
-                Pax::AltPop => eprintln!("r<"),
-                Pax::AltPush => eprintln!("r>"),
-                Pax::BranchTarget(n) => eprintln!("[{}]", n),
-                Pax::Call(f) => eprintln!("{}", f),
-                Pax::Drop => eprintln!("drop"),
-                Pax::Exit => {}
-                Pax::JumpAlways(n) => eprintln!("0 branch0"),
-                Pax::JumpIf0(n) => eprintln!("branch0"),
-                Pax::Load => eprintln!("@"),
-                Pax::Load8 => eprintln!("c@"),
-                Pax::LoadTemp => eprintln!("temp@"),
-                Pax::Metadata(n) => {}
-                Pax::Nand => eprintln!("nand"),
-                Pax::Print => eprintln!("print"),
-                Pax::PushLiteral(l) => eprintln!("{}", l),
-                Pax::Store => eprintln!("!"),
-                Pax::Store8 => eprintln!("c!"),
-                Pax::StoreTemp => eprintln!("temp!"),
-            }
-        }
+pub fn dump_program(source_program: &PaxProgram) {
+    for (name, code) in source_program {
+        println!("( fn \"{}\" )", name);
+        dump_blocks(&code);
+        println!();
     }
-    eprintln!();
-    eprintln!();
 }

@@ -1,10 +1,10 @@
-use crate::analyze::*;
+use crate::*;
 use indexmap::IndexSet;
 
 /// Reduces branching in a function by removing unused BranchTargets.
 /// This function will also rewrite target offsets.
-pub fn reduce_branches(program: &mut PaxProgram, method: &str) {
-    eprintln!("[reducing_branches] removing unused BranchTargets...");
+pub fn strip_branches(program: &mut PaxProgram, method: &str) {
+    eprintln!("[strip.rs] removing unused BranchTargets...");
     if let Some(blocks) = program.get_mut(method) {
         let readonly_blocks = blocks.clone();
 
@@ -41,4 +41,24 @@ pub fn reduce_branches(program: &mut PaxProgram, method: &str) {
             i += 1;
         }
     }
+}
+
+/// Removes unused functions.
+pub fn strip_functions(program: &mut PaxProgram) {
+    let program_readonly = program.clone();
+    let (deps, idx) = program_analyze(&program_readonly);
+
+    // Trim all functions unaccessible from "main".
+    let main = idx.get("main").unwrap().clone();
+    for (name, value) in idx {
+        if !petgraph::algo::has_path_connecting(&deps, main, value, None) {
+            program.shift_remove(&name);
+        }
+    }
+}
+
+// Strip all unused data from a program.
+pub fn strip(program: &mut PaxProgram) {
+    strip_functions(program);
+    // TODO strip_branches also
 }

@@ -1,6 +1,7 @@
 use crate::*;
 use indexmap::IndexMap;
 use petgraph::graph::Graph;
+use petgraph::prelude::*;
 use petgraph::visit::DfsPostOrder;
 
 #[derive(Debug, Clone)]
@@ -21,6 +22,7 @@ pub struct RegState {
     alt_pos: usize,
     temp: Option<Reg>,
 }
+
 impl RegState {
     pub fn new() -> RegState {
         RegState {
@@ -298,7 +300,7 @@ fn function_analyze(
 /**
  * Walk the call graph of the program.
  */
-pub fn program_graph(program: &PaxProgram) {
+pub fn program_analyze(program: &PaxProgram) -> (Graph<&str, ()>, IndexMap<String, NodeIndex>) {
     let mut deps = Graph::<&str, ()>::new();
 
     let mut idx = IndexMap::new();
@@ -322,9 +324,19 @@ pub fn program_graph(program: &PaxProgram) {
         }
     }
 
+    (deps, idx)
+}
+
+/**
+ * Do some "analysis" for command line.
+ */
+pub fn program_graph(program: &PaxProgram) {
+    let (mut deps, idx) = program_analyze(program);
+
     // Trim all functions unaccessible from "main".
     let main = idx.get("main").unwrap().clone();
     for (_name, value) in idx {
+        eprintln!("----> {:?}", deps);
         if !petgraph::algo::has_path_connecting(&deps, main, value, None) {
             deps.remove_node(value);
         }

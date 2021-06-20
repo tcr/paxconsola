@@ -56,23 +56,40 @@ enum Command {
 struct FileOpts {
     #[structopt(name = "FILE", parse(from_os_str))]
     file: PathBuf,
+
+    /// Inline all functions into main.
+    #[structopt(long)]
+    inline: bool,
 }
 
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
     // Extract file
-    let arg_file = match &args.cmd {
-        Command::Compile { file, .. } => file.file.to_owned(),
+    let file_opts = match &args.cmd {
+        Command::Compile { file, .. } |
         // Command::Optimize { file, .. } => file.file.to_owned(),
-        Command::Dump { file, .. } => file.file.to_owned(),
-        Command::Check { file, .. } => file.file.to_owned(),
-        Command::Run { file, .. } => file.file.to_owned(),
-        Command::Inlineup { file, .. } => file.file.to_owned(),
+        Command::Dump { file, .. } |
+        Command::Check { file, .. } |
+        Command::Run { file, .. } |
+        Command::Inlineup { file, .. } => file,
     };
+
+    // Extract inline
+    let arg_file = file_opts.file.to_owned();
+    let arg_inline = file_opts.inline;
 
     // Read the file into a Vec<u8>
     let code = std::fs::read_to_string(&arg_file).expect("could not read file");
-    let source_program = parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
+    let mut source_program =
+        parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
+
+    // Inline arguments.
+    if arg_inline {
+        inline_into_function(&mut source_program, "main");
+    }
+
+    // Strip unneeded values from source_program.
+    strip(&mut source_program);
 
     match args.cmd {
         Command::Compile { target, .. } => match target {
@@ -102,11 +119,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         //     optimize_forth(source_program);
         // }
         Command::Dump { .. } => {
-            for (name, code) in source_program {
-                println!("[function {:?}]", name);
-                dump_blocks(&code);
-                println!();
-            }
+            dump_program(&source_program);
         }
 
         // Check the program output
@@ -114,14 +127,11 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             // Main must be inlined before evaluating in WebAssembly.
             let mut program = source_program.clone();
 
-            // inline_into_function(&mut program, "main");
             // optimize_function(&mut program, "main");
 
             // TODO: remove this
             program_graph(&program);
             // panic!("abort before actually running webassembly");
-
-            // dump_as_forth(program.get("main").unwrap());
 
             let wasm = WasmForthCompiler::compile_binary(&program);
             let buffer = run_wasm(&wasm, true).expect("failed execution");
@@ -151,17 +161,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Run the program directly
         Command::Run { .. } => {
-            // Main must be inlined before evaluating in WebAssembly.
-            let program = source_program.clone();
-
-            // inline_into_function(&mut program, "main");
-            // optimize_function(&mut program, "main");
-
-            // TODO: remove this
-            program_graph(&program);
-            // panic!("abort before actually running webassembly");
-
-            let wasm = WasmForthCompiler::compile_binary(&program);
+            let wasm = WasmForthCompiler::compile_binary(&source_program);
             run_wasm(&wasm, false).unwrap();
         }
 
