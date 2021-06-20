@@ -32,11 +32,10 @@ enum Command {
         target: Target,
     },
 
-    Optimize {
-        #[structopt(flatten)]
-        file: FileOpts,
-    },
-
+    // Optimize {
+    //     #[structopt(flatten)]
+    //     file: FileOpts,
+    // },
     Check {
         #[structopt(flatten)]
         file: FileOpts,
@@ -64,7 +63,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     // Extract file
     let arg_file = match &args.cmd {
         Command::Compile { file, .. } => file.file.to_owned(),
-        Command::Optimize { file, .. } => file.file.to_owned(),
+        // Command::Optimize { file, .. } => file.file.to_owned(),
         Command::Dump { file, .. } => file.file.to_owned(),
         Command::Check { file, .. } => file.file.to_owned(),
         Command::Run { file, .. } => file.file.to_owned(),
@@ -99,10 +98,9 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             }
         },
 
-        Command::Optimize { .. } => {
-            optimize_forth(source_program);
-        }
-
+        // Command::Optimize { .. } => {
+        //     optimize_forth(source_program);
+        // }
         Command::Dump { .. } => {
             for (name, code) in source_program {
                 println!("[function {:?}]", name);
@@ -182,7 +180,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 println!("[inlining] fn {:?}", name);
 
                 inline_into_function(&mut program, name);
-                optimize_function(&mut program, name);
+                // optimize_function(&mut program, name);
 
                 // eprintln!("----------> WHAT");
                 // dump_blocks(program.get("main").unwrap());
@@ -190,7 +188,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 inline_into_function(&mut program, "main");
 
                 // FIXME allow optimization in main after independent optimization!
-                optimize_function(&mut program, "main");
+                // optimize_function(&mut program, "main");
 
                 let wasm = WasmForthCompiler::compile_binary(&program);
                 run_wasm(&wasm, false).unwrap();

@@ -77,6 +77,14 @@ impl Block {
             &self.commands[len - 1],
         )
     }
+
+    pub fn terminator(&self) -> &Located<Pax> {
+        self.commands.last().unwrap()
+    }
+
+    pub fn terminator_mut(&mut self) -> &mut Located<Pax> {
+        self.commands.last_mut().unwrap()
+    }
 }
 
 /**

@@ -1,4 +1,4 @@
-use crate::analyze::*;
+use crate::*;
 
 pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
     let mut continue_pass = true;
@@ -15,186 +15,183 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             j += 1;
 
             // Determine what the next block target is going to be.
-            match block.commands().last() {
-                Some((Pax::Call(target), ..)) => {
-                    // eprintln!("call to {:?}", target);
-                    // eprintln!();
+            let target = match block.terminator() {
+                (Pax::Call(target), ..) => target,
+                _ => continue,
+            };
 
-                    // Flag that this pass succeeded.
-                    continue_pass = true;
+            // eprintln!("call to {:?}", target);
+            // eprintln!();
 
-                    // We want to inline this function. First grab our offsets.
-                    let mut inlined_blocks = program.get(target).unwrap().clone();
-                    assert!(!inlined_blocks.is_empty());
-                    // dump_blocks(&inlined_blocks);
+            // Flag that this pass succeeded.
+            continue_pass = true;
 
-                    // Inline code length (trim off start and end block).
-                    let inlined_blocks_len = if inlined_blocks.len() > 1 {
-                        inlined_blocks.len() - 2
-                    } else {
-                        0
-                    };
+            // We want to inline this function. First grab our offsets.
+            let mut inlined_blocks = program.get(target).unwrap().clone();
+            assert!(!inlined_blocks.is_empty());
+            // dump_blocks(&inlined_blocks);
 
-                    // Rewrite the sequence we're inlining.
-                    for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
-                        match inline_block.commands_mut().last_mut() {
-                            Some((Pax::BranchTarget(ref mut target), ..))
-                            | Some((Pax::JumpIf0(ref mut target), ..))
-                            | Some((Pax::JumpAlways(ref mut target), ..)) => {
-                                *target += j - 1;
-                            }
-                            _ => {}
-                        }
+            // Inline code length (trim off start and end block).
+            let inlined_blocks_len = if inlined_blocks.len() > 1 {
+                inlined_blocks.len() - 2
+            } else {
+                0
+            };
+
+            // Rewrite the sequence we're inlining.
+            for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
+                match inline_block.terminator_mut() {
+                    (Pax::BranchTarget(ref mut target), ..)
+                    | (Pax::JumpIf0(ref mut target), ..)
+                    | (Pax::JumpAlways(ref mut target), ..) => {
+                        *target += j - 1;
                     }
-
-                    // Refetch a mutable version of this method.
-                    let main_mut = program.get_mut(method).unwrap();
-                    // Now rewrite all targets inside this block.
-                    for (_i, main_block) in main_mut.iter_mut().enumerate() {
-                        match main_block.commands_mut().last_mut() {
-                            Some((Pax::BranchTarget(ref mut target), ..))
-                            | Some((Pax::JumpIf0(ref mut target), ..))
-                            | Some((Pax::JumpAlways(ref mut target), ..)) => {
-                                if *target >= j {
-                                    *target += inlined_blocks_len;
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-
-                    let inline_pos = Pos {
-                        filename: "<inline>".to_string(),
-                        function: method.to_string(),
-                        col: 0,
-                        line: 0,
-                    };
-
-                    let return_stack_enter = vec![
-                        (Pax::PushLiteral(0xFFFF), inline_pos.clone()),
-                        (Pax::AltPush, inline_pos.clone()),
-                    ];
-                    let return_stack_exit = vec![
-                        (Pax::AltPop, inline_pos.clone()),
-                        (Pax::Drop, inline_pos.clone()),
-                    ];
-
-                    if inlined_blocks.len() == 1 {
-                        // Rest of next block
-                        let function_commands = inlined_blocks[0]
-                            .commands()
-                            .to_owned()
-                            .into_iter()
-                            .skip(1)
-                            .rev()
-                            .skip(1)
-                            .rev()
-                            .chain(return_stack_exit.into_iter());
-                        // Generate enter block.
-                        let enter_commands = block
-                            .commands()
-                            .to_owned()
-                            .into_iter()
-                            .rev()
-                            .skip(1)
-                            .rev()
-                            .chain(return_stack_enter.into_iter())
-                            .chain(function_commands);
-
-                        eprintln!("-----> {:?}", enter_commands.clone().collect::<Vec<_>>());
-
-                        // Combine current block, fn block, and next block.
-                        let mut next_block = main_mut.remove(j);
-                        next_block.commands_mut().splice(0..0, enter_commands);
-
-                        // Combine current block.
-                        main_mut[j - 1] = next_block;
-
-                        // Rewrite all targets after this.
-                        for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
-                            match main_block.commands_mut().last_mut() {
-                                Some((Pax::BranchTarget(ref mut target), ..))
-                                | Some((Pax::JumpIf0(ref mut target), ..))
-                                | Some((Pax::JumpAlways(ref mut target), ..)) => {
-                                    if *target >= j {
-                                        *target -= 1;
-                                    }
-                                }
-                                _ => {}
-                            }
-                        }
-
-                        // Now rewrite all targets before this.
-                        for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
-                            match main_block.commands_mut().last_mut() {
-                                Some((Pax::BranchTarget(ref mut target), ..))
-                                | Some((Pax::JumpIf0(ref mut target), ..))
-                                | Some((Pax::JumpAlways(ref mut target), ..)) => {
-                                    if *target >= j {
-                                        *target -= 1;
-                                    }
-                                }
-                                _ => {}
-                            }
-                        }
-                    } else {
-                        // Generate enter block.
-                        let mut enter_block = inlined_blocks[0].clone();
-                        let enter_commands = block
-                            .commands()
-                            .to_owned()
-                            .into_iter()
-                            .rev()
-                            .skip(1)
-                            .rev()
-                            .chain(return_stack_enter.into_iter());
-                        enter_block.commands_mut().splice(0..1, enter_commands);
-                        // Generate exit block.
-                        let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
-                            .commands()
-                            .to_owned()
-                            .into_iter()
-                            .rev()
-                            .skip(1)
-                            .rev()
-                            .chain(return_stack_exit.into_iter());
-                        let mut exit_block = main_mut[j].clone();
-                        exit_block.commands_mut().splice(0..0, exit_commands);
-                        // Remove first + last blocks from our inline sequence.
-                        let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
-
-                        // Combine current block.
-                        main_mut[j - 1] = enter_block;
-                        // Combine next block.
-                        main_mut[j] = exit_block;
-                        // Splice in new chunk.
-                        main_mut.splice(j..j, inline_seq.clone());
-
-                        // Now rewrite all targets before this.
-                        // for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
-                        //     match main_block.commands_mut().last_mut() {
-                        //         Some((Pax::BranchTarget(ref mut target), ..))
-                        //         | Some((Pax::JumpIf0(ref mut target), ..))
-                        //         | Some((Pax::JumpAlways(ref mut target), ..)) => {
-                        //             if *target >= j {
-                        //                 *target += inline_seq.len();
-                        //             }
-                        //         }
-                        //         _ => {}
-                        //     }
-                        // }
-                    }
-
-                    // Arbitrarily stop after this, though we could keep going,
-                    // instead just perform another pass
-                    // let j = inlined_blocks_len + 1;
-                    continue 'pass_loop;
+                    _ => {}
                 }
-                _ => {}
             }
+
+            // Refetch a mutable version of this method.
+            let main_mut = program.get_mut(method).unwrap();
+            // Now rewrite all targets inside this block.
+            for (_i, main_block) in main_mut.iter_mut().enumerate() {
+                match main_block.terminator_mut() {
+                    (Pax::BranchTarget(ref mut target), ..)
+                    | (Pax::JumpIf0(ref mut target), ..)
+                    | (Pax::JumpAlways(ref mut target), ..) => {
+                        if *target >= j {
+                            *target += inlined_blocks_len;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            let inline_pos = Pos {
+                filename: "<inline>".to_string(),
+                function: method.to_string(),
+                col: 0,
+                line: 0,
+            };
+
+            let return_stack_enter = vec![
+                (Pax::PushLiteral(0xFFFF), inline_pos.clone()),
+                (Pax::AltPush, inline_pos.clone()),
+            ];
+            let return_stack_exit = vec![
+                (Pax::AltPop, inline_pos.clone()),
+                (Pax::Drop, inline_pos.clone()),
+            ];
+
+            if inlined_blocks.len() == 1 {
+                // Rest of next block
+                let function_commands = inlined_blocks[0]
+                    .commands()
+                    .to_owned()
+                    .into_iter()
+                    .skip(1)
+                    .rev()
+                    .skip(1)
+                    .rev()
+                    .chain(return_stack_exit.into_iter());
+                // Generate enter block.
+                let enter_commands = block
+                    .commands()
+                    .to_owned()
+                    .into_iter()
+                    .rev()
+                    .skip(1)
+                    .rev()
+                    .chain(return_stack_enter.into_iter())
+                    .chain(function_commands);
+
+                eprintln!("-----> {:?}", enter_commands.clone().collect::<Vec<_>>());
+
+                // Combine current block, fn block, and next block.
+                let mut next_block = main_mut.remove(j);
+                next_block.commands_mut().splice(0..0, enter_commands);
+
+                // Combine current block.
+                main_mut[j - 1] = next_block;
+
+                // Rewrite all targets after this.
+                for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
+                    match main_block.terminator_mut() {
+                        (Pax::BranchTarget(ref mut target), ..)
+                        | (Pax::JumpIf0(ref mut target), ..)
+                        | (Pax::JumpAlways(ref mut target), ..) => {
+                            if *target >= j {
+                                *target -= 1;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
+                // Now rewrite all targets before this.
+                for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
+                    match main_block.terminator_mut() {
+                        (Pax::BranchTarget(ref mut target), ..)
+                        | (Pax::JumpIf0(ref mut target), ..)
+                        | (Pax::JumpAlways(ref mut target), ..) => {
+                            if *target >= j {
+                                *target -= 1;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            } else {
+                // Generate enter block.
+                let mut enter_block = inlined_blocks[0].clone();
+                let enter_commands = block
+                    .commands()
+                    .to_owned()
+                    .into_iter()
+                    .rev()
+                    .skip(1)
+                    .rev()
+                    .chain(return_stack_enter.into_iter());
+                enter_block.commands_mut().splice(0..1, enter_commands);
+                // Generate exit block.
+                let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
+                    .commands()
+                    .to_owned()
+                    .into_iter()
+                    .rev()
+                    .skip(1)
+                    .rev()
+                    .chain(return_stack_exit.into_iter());
+                let mut exit_block = main_mut[j].clone();
+                exit_block.commands_mut().splice(0..0, exit_commands);
+                // Remove first + last blocks from our inline sequence.
+                let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
+
+                // Combine current block.
+                main_mut[j - 1] = enter_block;
+                // Combine next block.
+                main_mut[j] = exit_block;
+                // Splice in new chunk.
+                main_mut.splice(j..j, inline_seq.clone());
+
+                // Now rewrite all targets before this.
+                // for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
+                //     match main_block.commands_mut().last_mut() {
+                //         Some((Pax::BranchTarget(ref mut target), ..))
+                //         | Some((Pax::JumpIf0(ref mut target), ..))
+                //         | Some((Pax::JumpAlways(ref mut target), ..)) => {
+                //             if *target >= j {
+                //                 *target += inline_seq.len();
+                //             }
+                //         }
+                //         _ => {}
+                //     }
+                // }
+            }
+
+            // Arbitrarily stop after this, though we could keep going,
+            // instead just perform another pass
+            // let j = inlined_blocks_len + 1;
+            continue 'pass_loop;
         }
     }
-
-    dump_blocks(program.get("%").unwrap());
-    dump_blocks(program.get(method).unwrap());
 }

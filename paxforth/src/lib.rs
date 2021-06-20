@@ -2,14 +2,12 @@
 
 pub mod analyze;
 pub mod ast;
-pub mod optimize;
 pub mod parse;
 pub mod prelude;
 pub mod targets;
 
 pub use analyze::*;
 pub use ast::*;
-pub use optimize::*;
 pub use parse::*;
 
 pub trait ForthCompiler {
