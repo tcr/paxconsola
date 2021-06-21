@@ -80,18 +80,6 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
         Pax::Store => vec![GbIr::NipIntoDE, GbIr::StoreDE, GbIr::Pop],
         // ( value address -- )
         Pax::Store8 => vec![GbIr::NipIntoDE, GbIr::StoreDE8, GbIr::Pop],
-        // ( cond -- )
-        Pax::JumpIf0(offset) => vec![
-            GbIr::CopyToDE,
-            GbIr::Pop,
-            GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
-        ],
-        // ( cond -- )
-        Pax::JumpAlways(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
-        // ( address -- )
-        Pax::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
-        // ( -- )
-        Pax::Exit => vec![GbIr::Ret],
         // ( a b -- c )
         Pax::Add => vec![GbIr::NipIntoDE, GbIr::ReplaceAddWithDE],
         // ( a b -- c )
@@ -103,8 +91,6 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
         Pax::Print => vec![
             // nah
         ],
-        // ( -- )
-        Pax::BranchTarget(n) => vec![GbIr::Label(format!(".target_{}", n))],
         // ( a -- )
         Pax::Drop => vec![GbIr::Pop],
         // ( a -- )
@@ -125,6 +111,25 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
             GbIr::StoreDE,
             GbIr::Pop,
         ],
+    }
+}
+
+fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
+    match op {
+        // ( cond -- )
+        PaxTerm::JumpIf0(offset) => vec![
+            GbIr::CopyToDE,
+            GbIr::Pop,
+            GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
+        ],
+        // ( cond -- )
+        PaxTerm::JumpAlways(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
+        // ( address -- )
+        PaxTerm::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
+        // ( -- )
+        PaxTerm::Exit => vec![GbIr::Ret],
+        // ( -- )
+        PaxTerm::BranchTarget(n) => vec![GbIr::Label(format!(".target_{}", n))],
     }
 }
 
@@ -446,7 +451,7 @@ impl ForthCompiler for GameboyForthCompiler {
                 for (op, _pos) in block.opcodes() {
                     result.extend(translate_to_gb(i, op.to_owned()));
                 }
-                result.extend(translate_to_gb(i, block.terminator().0.to_owned()));
+                result.extend(translate_to_gb_term(i, block.terminator().0.to_owned()));
             }
 
             // In-place optimizations.

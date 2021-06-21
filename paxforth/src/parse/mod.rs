@@ -128,7 +128,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             word if program.program.contains_key(word) => {
                 program
                     .current()
-                    .exit_block((Pax::Call(word.to_string()), pos));
+                    .exit_block((PaxTerm::Call(word.to_string()), pos));
             }
             // Variables (shadows all terms)
             word if variables.contains_key(word) => {
@@ -178,7 +178,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 assert_eq!(block_refs.len(), 1, "expected flow stack with just recurse");
 
                 block_refs.pop();
-                program.current().exit_block((Pax::Exit, pos.clone()));
+                program.current().exit_block((PaxTerm::Exit, pos.clone()));
 
                 // Extract function into its own body.
                 program.exit_function();
@@ -216,7 +216,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 }
                 program
                     .current()
-                    .exit_block((Pax::Call(name.to_string()), pos.clone()));
+                    .exit_block((PaxTerm::Call(name.to_string()), pos.clone()));
 
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<do>", "expected do loop");
@@ -235,7 +235,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 }
                 program
                     .current()
-                    .exit_block((Pax::Call(name.to_string()), pos.clone()));
+                    .exit_block((PaxTerm::Call(name.to_string()), pos.clone()));
 
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<do>", "expected do loop");
@@ -309,7 +309,9 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
     parse_forth_inner(&mut stack, contents, filename);
 
     // Add final exit termination opcode.
-    stack.current().exit_block((Pax::Exit, Default::default()));
+    stack
+        .current()
+        .exit_block((PaxTerm::Exit, Default::default()));
 
     // Convert StackAbstraction into program.
     let mut result = stack.result();

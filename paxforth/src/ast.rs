@@ -7,9 +7,7 @@ use serde::*;
 
 pub type PaxLiteral = isize;
 
-// Pax IR with some simple opcodes that
-// are more practical for refactoring—might be worth formalizing
-// since they're just supersets of lower protocol, or not
+// Pax opcodes for execution.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Pax {
     Drop,
@@ -32,8 +30,11 @@ pub enum Pax {
 
     Print,
     Abort,
+}
 
-    // TODO Split these off as block opcodes
+// Pax opcodes for terminating a block.
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub enum PaxTerm {
     BranchTarget(usize),
     Exit,
     Call(String),
@@ -54,11 +55,11 @@ pub type PaxProgram = IndexMap<String, Vec<Block>>;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Block {
     opcodes: PaxSpan,
-    terminator: Located<Pax>,
+    terminator: Located<PaxTerm>,
 }
 
 impl Block {
-    pub fn new(opcodes: PaxSpan, terminator: Located<Pax>) -> Block {
+    pub fn new(opcodes: PaxSpan, terminator: Located<PaxTerm>) -> Block {
         Block {
             opcodes,
             terminator,
@@ -73,15 +74,15 @@ impl Block {
         &mut self.opcodes
     }
 
-    pub fn opcodes_and_terminator(&self) -> (&[Located<Pax>], &Located<Pax>) {
+    pub fn opcodes_and_terminator(&self) -> (&[Located<Pax>], &Located<PaxTerm>) {
         (&self.opcodes, &self.terminator)
     }
 
-    pub fn terminator(&self) -> &Located<Pax> {
+    pub fn terminator(&self) -> &Located<PaxTerm> {
         &self.terminator
     }
 
-    pub fn terminator_mut(&mut self) -> &mut Located<Pax> {
+    pub fn terminator_mut(&mut self) -> &mut Located<PaxTerm> {
         &mut self.terminator
     }
 }

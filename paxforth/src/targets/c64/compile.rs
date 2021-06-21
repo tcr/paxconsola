@@ -138,34 +138,6 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
         "
         ),
 
-        Pax::JumpAlways(target) => gb_output!(
-            out,
-            "
-    jmp @target_{}
-        ",
-            target
-        ),
-        Pax::JumpIf0(target) => gb_output!(
-            out,
-            "
-    sta TEMP
-
-    pla
-    tay
-    pla
-
-    sta TEMP2
-    lda #0
-    cmp TEMP
-    bne *+7
-    lda TEMP2
-    jmp @target_{}
-
-    lda TEMP2
-        ",
-            target
-        ),
-
         // FIXME should implement real load16
         Pax::Load | Pax::Load8 => gb_output!(
             out,
@@ -192,7 +164,62 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
         "
         ),
 
-        Pax::BranchTarget(n) => gb_output!(
+        //         Pax::Metadata(s) => gb_output!(
+        //             out,
+        //             "
+        //     ; [metadata] {:?}
+        // PAX_FN_{}:
+        //         ",
+        //             s,
+        //             name_slug(&s)
+        //         ),
+        e => {
+            unimplemented!("e {:?}", e);
+        }
+    }
+    out
+}
+
+pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
+    let mut out = String::new();
+    gb_output!(
+        out,
+        "
+@OPCODE_{}:   ; [c64_ir] {:?}
+        ",
+        i,
+        op
+    );
+    match op {
+        PaxTerm::JumpAlways(target) => gb_output!(
+            out,
+            "
+    jmp @target_{}
+        ",
+            target
+        ),
+        PaxTerm::JumpIf0(target) => gb_output!(
+            out,
+            "
+    sta TEMP
+
+    pla
+    tay
+    pla
+
+    sta TEMP2
+    lda #0
+    cmp TEMP
+    bne *+7
+    lda TEMP2
+    jmp @target_{}
+
+    lda TEMP2
+        ",
+            target
+        ),
+
+        PaxTerm::BranchTarget(n) => gb_output!(
             out,
             "
 @target_{}:
@@ -209,7 +236,7 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
         //             s,
         //             name_slug(&s)
         //         ),
-        Pax::Exit => {
+        PaxTerm::Exit => {
             gb_output!(
                 out,
                 "
@@ -224,7 +251,7 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
             "
             );
         }
-        Pax::Call(label) => {
+        PaxTerm::Call(label) => {
             gb_output!(
                 out,
                 "
@@ -232,10 +259,6 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
             ",
                 name_slug(&label)
             );
-        }
-
-        e => {
-            unimplemented!("e {:?}", e);
         }
     }
     out
@@ -255,19 +278,15 @@ impl ForthCompiler for C64ForthCompiler {
             for (_i, block) in code.iter().enumerate() {
                 let (opcodes, terminator) = block.opcodes_and_terminator();
                 for (op, _pos) in opcodes {
-                    result.push(op.to_owned());
+                    result.push(cross_compile_ir_c64(result.len(), op.to_owned()));
                 }
-                result.push(terminator.0.to_owned());
+                result.push(cross_compile_ir_term_c64(
+                    result.len(),
+                    terminator.0.to_owned(),
+                ));
             }
 
-            out.push_str(
-                &result
-                    .iter()
-                    .enumerate()
-                    .map(|(i, ir)| cross_compile_ir_c64(i, ir.clone()))
-                    .collect::<Vec<String>>()
-                    .join("\n"),
-            );
+            out.push_str(&result.join("\n"));
             out.push_str("\n");
         }
 

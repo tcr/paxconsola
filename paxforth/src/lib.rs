@@ -35,18 +35,16 @@ pub fn dump_blocks(blocks: &[Block]) {
                 Pax::Store => format!("!"),
                 Pax::Store8 => format!("c!"),
                 Pax::StoreTemp => format!("temp!"),
-                _ => unreachable!(),
             };
             eprintln!("        {:<40} {}", opcode, format!("\\ {:>80}", command.1));
         }
         {
             let opcode = match &terminator.0 {
-                Pax::BranchTarget(n) => format!("[target-{}]", n),
-                Pax::Call(f) => format!("call {:?}", f),
-                Pax::Exit => format!("exit"),
-                Pax::JumpAlways(n) => format!("0 branch0 [target-{}]", n),
-                Pax::JumpIf0(n) => format!("branch0 [target-{}]", n),
-                _ => unreachable!(),
+                PaxTerm::BranchTarget(n) => format!("[target-{}]", n),
+                PaxTerm::Call(f) => format!("call {:?}", f),
+                PaxTerm::Exit => format!("exit"),
+                PaxTerm::JumpAlways(n) => format!("0 branch0 [target-{}]", n),
+                PaxTerm::JumpIf0(n) => format!("branch0 [target-{}]", n),
             };
             eprintln!(
                 "        {:<40} {}",

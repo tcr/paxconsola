@@ -16,7 +16,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
 
             // Determine what the next block target is going to be.
             let target = match block.terminator() {
-                (Pax::Call(target), ..) => target,
+                (PaxTerm::Call(target), ..) => target,
                 _ => continue,
             };
 
@@ -41,9 +41,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             // Rewrite the sequence we're inlining.
             for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
                 match inline_block.terminator_mut() {
-                    (Pax::BranchTarget(ref mut target), ..)
-                    | (Pax::JumpIf0(ref mut target), ..)
-                    | (Pax::JumpAlways(ref mut target), ..) => {
+                    (PaxTerm::BranchTarget(ref mut target), ..)
+                    | (PaxTerm::JumpIf0(ref mut target), ..)
+                    | (PaxTerm::JumpAlways(ref mut target), ..) => {
                         *target += j - 1;
                     }
                     _ => {}
@@ -55,9 +55,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             // Now rewrite all targets inside this block.
             for (_i, main_block) in main_mut.iter_mut().enumerate() {
                 match main_block.terminator_mut() {
-                    (Pax::BranchTarget(ref mut target), ..)
-                    | (Pax::JumpIf0(ref mut target), ..)
-                    | (Pax::JumpAlways(ref mut target), ..) => {
+                    (PaxTerm::BranchTarget(ref mut target), ..)
+                    | (PaxTerm::JumpIf0(ref mut target), ..)
+                    | (PaxTerm::JumpAlways(ref mut target), ..) => {
                         if *target >= j {
                             *target += inlined_blocks_len;
                         }
@@ -110,9 +110,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 // Rewrite all targets after this.
                 for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
                     match main_block.terminator_mut() {
-                        (Pax::BranchTarget(ref mut target), ..)
-                        | (Pax::JumpIf0(ref mut target), ..)
-                        | (Pax::JumpAlways(ref mut target), ..) => {
+                        (PaxTerm::BranchTarget(ref mut target), ..)
+                        | (PaxTerm::JumpIf0(ref mut target), ..)
+                        | (PaxTerm::JumpAlways(ref mut target), ..) => {
                             if *target >= j {
                                 *target -= 1;
                             }
@@ -124,9 +124,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 // Now rewrite all targets before this.
                 for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
                     match main_block.terminator_mut() {
-                        (Pax::BranchTarget(ref mut target), ..)
-                        | (Pax::JumpIf0(ref mut target), ..)
-                        | (Pax::JumpAlways(ref mut target), ..) => {
+                        (PaxTerm::BranchTarget(ref mut target), ..)
+                        | (PaxTerm::JumpIf0(ref mut target), ..)
+                        | (PaxTerm::JumpAlways(ref mut target), ..) => {
                             if *target >= j {
                                 *target -= 1;
                             }

@@ -49,33 +49,39 @@ load()"
 store()"
         ),
 
-        Pax::JumpAlways(target) => tom_output!(
-            out,
-            "push_literal(0x0)
-jump_if_0(target_{})",
-            target
-        ),
-        Pax::JumpIf0(target) => tom_output!(out, "jump_if_0(target_{})", target),
-
         // FIXME should implement real load16
         Pax::Load | Pax::Load8 => tom_output!(out, "load()"),
         // FIXME should implement real store16
         Pax::Store | Pax::Store8 => tom_output!(out, "store()"),
 
-        Pax::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
-
-        // Pax::Metadata(_s) => tom_output!(out, "start()"),
-        Pax::Exit => {
-            tom_output!(out, "");
-        }
-        Pax::Call(_label) => {
-            tom_output!(out, "");
-        }
-
         Pax::Print => tom_output!(out, ""),
 
         e => {
             unimplemented!("e {:?}", e);
+        }
+    }
+    out
+}
+
+pub fn cross_compile_ir_term_tom(_i: usize, op: PaxTerm) -> String {
+    let mut out = String::new();
+    match op {
+        PaxTerm::JumpAlways(target) => tom_output!(
+            out,
+            "push_literal(0x0)
+jump_if_0(target_{})",
+            target
+        ),
+        PaxTerm::JumpIf0(target) => tom_output!(out, "jump_if_0(target_{})", target),
+
+        PaxTerm::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
+
+        // Pax::Metadata(_s) => tom_output!(out, "start()"),
+        PaxTerm::Exit => {
+            tom_output!(out, "");
+        }
+        PaxTerm::Call(_label) => {
+            tom_output!(out, "");
         }
     }
     out
@@ -94,19 +100,15 @@ impl ForthCompiler for Tom1ForthCompiler {
             let mut result = vec![];
             for (_i, block) in code.iter().enumerate() {
                 for (op, _pos) in block.opcodes() {
-                    result.push(op.to_owned());
+                    result.push(cross_compile_ir_tom(result.len(), op.to_owned()));
                 }
-                result.push(block.terminator().0.to_owned());
+                result.push(cross_compile_ir_term_tom(
+                    result.len(),
+                    block.terminator().0.to_owned(),
+                ));
             }
 
-            out.push_str(
-                &result
-                    .iter()
-                    .enumerate()
-                    .map(|(i, ir)| cross_compile_ir_tom(i, ir.clone()))
-                    .collect::<Vec<String>>()
-                    .join("\n"),
-            );
+            out.push_str(&result.join("\n"));
             out.push_str("\n");
         }
 

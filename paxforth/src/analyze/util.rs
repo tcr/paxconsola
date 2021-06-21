@@ -101,8 +101,6 @@ fn block_analyze(
     prev_state: Option<RegState>,
     functions_arity_input: Option<&IndexMap<String, FunctionArity>>,
 ) -> RegState {
-    use Pax::*;
-
     let mut state = prev_state.unwrap_or_else(|| RegState::new());
 
     let (commands, terminator) = block.opcodes_and_terminator();
@@ -114,47 +112,43 @@ fn block_analyze(
     for (opcode, _pos) in commands {
         match opcode {
             //Metadata(_) => {}
-            PushLiteral(value) => {
+            Pax::PushLiteral(value) => {
                 state.push_data(Reg::Literal(*value));
             }
-            AltPush => {
+            Pax::AltPush => {
                 let reg = state.pop_data();
                 state.push_return(reg);
             }
-            AltPop => {
+            Pax::AltPop => {
                 let reg = state.pop_return();
                 state.push_data(reg);
             }
-            Drop | Print => {
+            Pax::Drop | Pax::Print => {
                 state.pop_data();
             }
-            Load | Load8 => {
+            Pax::Load | Pax::Load8 => {
                 state.pop_data();
                 state.push_data(Reg::Var);
             }
-            Add | Nand => {
+            Pax::Add | Pax::Nand => {
                 state.pop_data();
                 state.pop_data();
                 state.push_data(Reg::Var);
             }
-            Store | Store8 => {
+            Pax::Store | Pax::Store8 => {
                 state.pop_data();
                 state.pop_data();
             }
-            LoadTemp => {
+            Pax::LoadTemp => {
                 let reg = state.pop_temp();
                 state.push_data(reg);
             }
-            StoreTemp => {
+            Pax::StoreTemp => {
                 let reg = state.pop_data();
                 state.push_temp(reg);
             }
-            Abort => {
+            Pax::Abort => {
                 eprintln!("Encountered abort in block_analyze, not sure what to do");
-            }
-
-            op => {
-                unreachable!("expected non-terminating opcode, got {:?}", op);
             }
         }
     }
@@ -162,14 +156,14 @@ fn block_analyze(
     // Terminating opcode
     let (opcode, _pos) = terminator;
     match opcode {
-        JumpAlways(_) => {}
-        JumpIf0(_) => {
+        PaxTerm::JumpAlways(_) => {}
+        PaxTerm::JumpIf0(_) => {
             state.pop_data();
         }
-        BranchTarget(_) => {}
-        Exit => {}
+        PaxTerm::BranchTarget(_) => {}
+        PaxTerm::Exit => {}
 
-        Call(name) => {
+        PaxTerm::Call(name) => {
             if let Some(arity) = functions_arity.get(name) {
                 state.apply(arity);
             } else {
@@ -178,9 +172,6 @@ fn block_analyze(
                     name
                 );
             }
-        }
-        _ => {
-            unreachable!("expected terminating opcode");
         }
     }
 
@@ -313,7 +304,7 @@ pub fn program_analyze(program: &PaxProgram) -> (Graph<&str, ()>, IndexMap<Strin
         let from = idx.get(name).unwrap();
         for block in blocks {
             match block.terminator() {
-                (Pax::Call(target_name), _) => {
+                (PaxTerm::Call(target_name), _) => {
                     let to = idx.get(target_name).unwrap();
                     deps.update_edge(from.clone(), to.clone(), ());
                 }

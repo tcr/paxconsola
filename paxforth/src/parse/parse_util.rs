@@ -39,7 +39,7 @@ impl BlockBuilder {
         self.current_block.push(op.to_owned());
     }
 
-    pub fn exit_block(&mut self, terminator: Located<Pax>) -> usize {
+    pub fn exit_block(&mut self, terminator: Located<PaxTerm>) -> usize {
         let index = self.blocks.len();
         self.blocks
             .push(Block::new(self.current_block.clone(), terminator));
@@ -55,7 +55,7 @@ impl BlockBuilder {
 
     pub fn jump_if_0(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         let block_index = self.exit_block((
-            Pax::JumpIf0(marker_group.from_block_index.unwrap_or(0)),
+            PaxTerm::JumpIf0(marker_group.from_block_index.unwrap_or(0)),
             pos,
         ));
         marker_group.to_block_indices.push(block_index);
@@ -63,7 +63,7 @@ impl BlockBuilder {
 
     pub fn jump_always(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         let block_index = self.exit_block((
-            Pax::JumpAlways(marker_group.from_block_index.unwrap_or(0)),
+            PaxTerm::JumpAlways(marker_group.from_block_index.unwrap_or(0)),
             pos,
         ));
         marker_group.to_block_indices.push(block_index);
@@ -72,7 +72,7 @@ impl BlockBuilder {
     /* Forwward references */
 
     pub fn forward_branch_target(&mut self, label: &str, pos: Pos) -> BlockReference {
-        let block_index = self.exit_block((Pax::BranchTarget(self.blocks.len()), pos));
+        let block_index = self.exit_block((PaxTerm::BranchTarget(self.blocks.len()), pos));
 
         BlockReference::new(label, Some(block_index))
     }
@@ -80,14 +80,15 @@ impl BlockBuilder {
     pub fn set_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         // Set this as the target of a forward reference group.
         assert!(marker_group.from_block_index.is_none());
-        let block_index = self.exit_block((Pax::BranchTarget(self.blocks.len()), pos));
+        let block_index = self.exit_block((PaxTerm::BranchTarget(self.blocks.len()), pos));
         marker_group.from_block_index = Some(block_index);
 
         // Update forward references.
         for target in &marker_group.to_block_indices {
             let last_op = self.blocks[*target].terminator_mut();
             match last_op {
-                (Pax::JumpIf0(ref mut target), _) | (Pax::JumpAlways(ref mut target), _) => {
+                (PaxTerm::JumpIf0(ref mut target), _)
+                | (PaxTerm::JumpAlways(ref mut target), _) => {
                     *target = block_index;
                 }
                 _ => {

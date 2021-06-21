@@ -11,7 +11,7 @@ pub fn strip_branches(program: &mut PaxProgram, method: &str) {
         let mut used_blocks = IndexSet::new();
         for block in readonly_blocks {
             match block.terminator() {
-                (Pax::JumpAlways(target), ..) | (Pax::JumpIf0(target), ..) => {
+                (PaxTerm::JumpAlways(target), ..) | (PaxTerm::JumpIf0(target), ..) => {
                     used_blocks.insert(*target);
                 }
                 _ => {}
@@ -21,7 +21,7 @@ pub fn strip_branches(program: &mut PaxProgram, method: &str) {
         let mut i = 0;
         while i < blocks.len() {
             match blocks[i].terminator() {
-                (Pax::BranchTarget(target), ..) => {
+                (PaxTerm::BranchTarget(target), ..) => {
                     if !used_blocks.contains(target) {
                         let block = blocks.remove(i);
                         let commands = block.opcodes().into_iter().cloned();
