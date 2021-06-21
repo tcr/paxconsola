@@ -253,9 +253,11 @@ impl ForthCompiler for C64ForthCompiler {
 
             let mut result = vec![];
             for (_i, block) in code.iter().enumerate() {
-                for (op, _pos) in block.commands() {
+                let (commands, terminator) = block.opcodes_and_terminator();
+                for (op, _pos) in commands {
                     result.push(op.to_owned());
                 }
+                result.push(terminator.0.to_owned());
             }
 
             out.push_str(

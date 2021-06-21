@@ -54,35 +54,35 @@ pub type PaxProgram = IndexMap<String, Vec<Block>>;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Block {
     commands: PaxSpan,
+    terminator: Located<Pax>,
 }
 
 impl Block {
-    pub fn new(commands: PaxSpan) -> Block {
-        Block { commands }
+    pub fn new(commands: PaxSpan, terminator: Located<Pax>) -> Block {
+        Block {
+            commands,
+            terminator,
+        }
     }
 
-    pub fn commands(&self) -> &PaxSpan {
+    pub fn opcodes_and_terminator(&self) -> (&[Located<Pax>], &Located<Pax>) {
+        (&self.commands, &self.terminator)
+    }
+
+    pub fn opcodes(&self) -> &PaxSpan {
         &self.commands
     }
 
-    pub fn commands_mut(&mut self) -> &mut PaxSpan {
+    pub fn opcodes_mut(&mut self) -> &mut PaxSpan {
         &mut self.commands
     }
 
-    pub fn commands_and_terminator(&self) -> (&[Located<Pax>], &Located<Pax>) {
-        let len = self.commands.len();
-        (
-            &self.commands[0..(if len > 1 { len - 1 } else { 0 })],
-            &self.commands[len - 1],
-        )
-    }
-
     pub fn terminator(&self) -> &Located<Pax> {
-        self.commands.last().unwrap()
+        &self.terminator
     }
 
     pub fn terminator_mut(&mut self) -> &mut Located<Pax> {
-        self.commands.last_mut().unwrap()
+        &mut self.terminator
     }
 }
 

@@ -105,7 +105,7 @@ fn block_analyze(
 
     let mut state = prev_state.unwrap_or_else(|| RegState::new());
 
-    let (commands, terminator) = block.commands_and_terminator();
+    let (commands, terminator) = block.opcodes_and_terminator();
 
     let functions_arity_default = IndexMap::new();
     let functions_arity = functions_arity_input.unwrap_or_else(|| &functions_arity_default);
@@ -312,14 +312,12 @@ pub fn program_analyze(program: &PaxProgram) -> (Graph<&str, ()>, IndexMap<Strin
     for (name, blocks) in program {
         let from = idx.get(name).unwrap();
         for block in blocks {
-            for command in block.commands() {
-                match command {
-                    (Pax::Call(target_name), _) => {
-                        let to = idx.get(target_name).unwrap();
-                        deps.update_edge(from.clone(), to.clone(), ());
-                    }
-                    _ => {}
+            match block.terminator() {
+                (Pax::Call(target_name), _) => {
+                    let to = idx.get(target_name).unwrap();
+                    deps.update_edge(from.clone(), to.clone(), ());
                 }
+                _ => {}
             }
         }
     }

@@ -93,9 +93,10 @@ impl ForthCompiler for Tom1ForthCompiler {
 
             let mut result = vec![];
             for (_i, block) in code.iter().enumerate() {
-                for (op, _pos) in block.commands() {
+                for (op, _pos) in block.opcodes() {
                     result.push(op.to_owned());
                 }
+                result.push(block.terminator().0.to_owned());
             }
 
             out.push_str(

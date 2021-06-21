@@ -443,9 +443,10 @@ impl ForthCompiler for GameboyForthCompiler {
         for (_name, code) in program {
             let mut result = vec![];
             for (i, block) in code.iter().enumerate() {
-                for (op, _pos) in block.commands() {
+                for (op, _pos) in block.opcodes() {
                     result.extend(translate_to_gb(i, op.to_owned()));
                 }
+                result.extend(translate_to_gb(i, block.terminator().0.to_owned()));
             }
 
             // In-place optimizations.

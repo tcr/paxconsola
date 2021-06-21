@@ -39,9 +39,10 @@ impl BlockBuilder {
         self.current_block.push(op.to_owned());
     }
 
-    pub fn exit_block(&mut self) -> usize {
+    pub fn exit_block(&mut self, terminator: Located<Pax>) -> usize {
         let index = self.blocks.len();
-        self.blocks.push(Block::new(self.current_block.clone()));
+        self.blocks
+            .push(Block::new(self.current_block.clone(), terminator));
         self.reset();
         index
     }
@@ -53,33 +54,25 @@ impl BlockBuilder {
     /* Marker methods */
 
     pub fn jump_if_0(&mut self, marker_group: &mut BlockReference, pos: Pos) {
-        self.op(&(
+        let block_index = self.exit_block((
             Pax::JumpIf0(marker_group.from_block_index.unwrap_or(0)),
             pos,
         ));
-        let block_index = self.exit_block();
         marker_group.to_block_indices.push(block_index);
     }
 
     pub fn jump_always(&mut self, marker_group: &mut BlockReference, pos: Pos) {
-        self.op(&(
+        let block_index = self.exit_block((
             Pax::JumpAlways(marker_group.from_block_index.unwrap_or(0)),
             pos,
         ));
-        let block_index = self.exit_block();
         marker_group.to_block_indices.push(block_index);
-    }
-
-    pub fn branch_target(&mut self, pos: Pos) {
-        self.current_block
-            .push((Pax::BranchTarget(self.blocks.len()), pos));
     }
 
     /* Forwward references */
 
     pub fn forward_branch_target(&mut self, label: &str, pos: Pos) -> BlockReference {
-        self.branch_target(pos);
-        let block_index = self.exit_block();
+        let block_index = self.exit_block((Pax::BranchTarget(self.blocks.len()), pos));
 
         BlockReference::new(label, Some(block_index))
     }
@@ -87,8 +80,7 @@ impl BlockBuilder {
     pub fn set_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         // Set this as the target of a forward reference group.
         assert!(marker_group.from_block_index.is_none());
-        self.branch_target(pos);
-        let block_index = self.exit_block();
+        let block_index = self.exit_block((Pax::BranchTarget(self.blocks.len()), pos));
         marker_group.from_block_index = Some(block_index);
 
         // Update forward references.

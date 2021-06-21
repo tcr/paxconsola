@@ -186,7 +186,7 @@ impl ForthCompiler for WasmForthCompiler {
             let mut last_command = None;
             let mut not_jumped_always = hashset![];
             for (block_index, block) in blocks.iter().enumerate() {
-                for op in block.commands() {
+                for op in block.opcodes() {
                     wat_out.push(format!(";; {:?}", &op.0));
                     match &op.0 {
                         Pax::PushLiteral(lit) => {
@@ -217,15 +217,7 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $temp_store"));
                         }
-                        Pax::Exit => {}
                         // Pax::Metadata(_) => {}
-                        Pax::Call(s) => {
-                            wat_out.push(format!("    i32.const {}", 0)); // dummy value
-                            wat_out.push(format!("    call $return_push"));
-                            wat_out.push(format!("    call $fn_{}", name_slug(s)));
-                            wat_out.push(format!("    call $return_pop"));
-                            wat_out.push(format!("    call $drop"));
-                        }
                         Pax::Load => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_load"));
@@ -246,12 +238,39 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_store_8"));
                         }
+                        Pax::Print => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $print"));
+                            wat_out.push(format!("    drop"));
+                        }
+                        Pax::Abort => {
+                            wat_out.push(format!("    unreachable"));
+                            // wat_out.push(format!("    throw 0"));
+                        }
+                        _ => unreachable!(),
+                    }
+                    wat_out.push(format!(""));
+                    // println!("  {:?}", op.0);
+
+                    last_command = Some(op.0.clone());
+                }
+                {
+                    let op = block.terminator();
+                    wat_out.push(format!(";; {:?}", &op.0));
+                    match op.0 {
+                        Pax::Call(ref s) => {
+                            wat_out.push(format!("    i32.const {}", 0)); // dummy value
+                            wat_out.push(format!("    call $return_push"));
+                            wat_out.push(format!("    call $fn_{}", name_slug(s)));
+                            wat_out.push(format!("    call $return_pop"));
+                            wat_out.push(format!("    call $drop"));
+                        }
                         Pax::BranchTarget(target_index) => {
                             let incoming = graph
-                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
+                                .directed_edges_from_node(target_index + 1, Direction::Incoming);
                             let mut is_loop = false;
                             for edge in &incoming {
-                                if edge > target_index {
+                                if *edge > target_index {
                                     is_loop = true;
                                 }
                             }
@@ -294,7 +313,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_block_stack.push(next_block);
                                 // wat_block_stack.push(next_block.clone());
                                 // wat_block_stack.push(next_block.clone());
-                            } else if *target_index > block_index {
+                            } else if target_index > block_index {
                                 // Start of an if block
                                 let parent_id = format!("$B{}", wat_block_index);
                                 wat_block_index += 1;
@@ -330,15 +349,8 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
                         }
-                        Pax::Print => {
-                            wat_out.push(format!("    call $data_pop"));
-                            wat_out.push(format!("    call $print"));
-                            wat_out.push(format!("    drop"));
-                        }
-                        Pax::Abort => {
-                            wat_out.push(format!("    unreachable"));
-                            // wat_out.push(format!("    throw 0"));
-                        }
+                        Pax::Exit => {}
+                        ref op => unreachable!("unexpected {:?}", op),
                     }
                     wat_out.push(format!(""));
                     // println!("  {:?}", op.0);
