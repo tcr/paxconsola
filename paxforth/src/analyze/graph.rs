@@ -43,8 +43,8 @@ impl FunctionGraph {
                 visited.insert(i);
 
                 // Determine what the next block target is going to be.
-                match block.commands().last() {
-                    Some((Pax::JumpIf0(target), ..)) => {
+                match block.terminator() {
+                    (Pax::JumpIf0(target), ..) => {
                         // Inject next edge (for both absolute jump OR branch)
                         let alt_target = target + 1;
                         edges.push((i as u32, alt_target as u32));
@@ -55,7 +55,7 @@ impl FunctionGraph {
                             conditions.push_front(alt_target);
                         }
                     }
-                    Some((Pax::JumpAlways(target), ..)) => {
+                    (Pax::JumpAlways(target), ..) => {
                         // Inject next edge (for both absolute jump OR branch)
                         let alt_target = target + 1;
                         edges.push((i as u32, alt_target as u32));
