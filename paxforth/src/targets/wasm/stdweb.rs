@@ -1,6 +1,6 @@
 use ::stdweb;
 
-pub fn run_wasm(binary: &[u8]) -> anyhow::Result<Vec<u8>> {
+pub fn run_wasm(binary: &[u8], _export_buffer: bool) -> anyhow::Result<Vec<u8>> {
     run_wasm_with_memory(binary, &wasm_memory_init());
     Ok(vec![])
 }

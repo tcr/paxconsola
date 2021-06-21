@@ -93,10 +93,9 @@ impl BlockBuilder {
 
         // Update forward references.
         for target in &marker_group.to_block_indices {
-            let last_op = self.blocks[*target].commands_mut().last_mut();
+            let last_op = self.blocks[*target].terminator_mut();
             match last_op {
-                Some((Pax::JumpIf0(ref mut target), _))
-                | Some((Pax::JumpAlways(ref mut target), _)) => {
+                (Pax::JumpIf0(ref mut target), _) | (Pax::JumpAlways(ref mut target), _) => {
                     *target = block_index;
                 }
                 _ => {

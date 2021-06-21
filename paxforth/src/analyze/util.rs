@@ -221,7 +221,7 @@ fn function_analyze(
             })
             .collect();
 
-        let pos_string = block.commands().iter().last().unwrap().1.to_string();
+        let pos_string = block.terminator().1.to_string();
         let state = match target.clone() {
             TargetType::Start => {
                 // There are no parents.

@@ -481,7 +481,7 @@ impl Component for App {
                 let mut mock_program = self.program.clone();
 
                 inline_into_function(&mut mock_program, &method);
-                optimize_function(&mut mock_program, &method);
+                // TODO optimize_function(&mut mock_program, &method);
 
                 self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
 

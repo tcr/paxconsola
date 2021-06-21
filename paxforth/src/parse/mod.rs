@@ -108,8 +108,8 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             Token::Word(word) => word,
         };
 
-        // Parse mode for comments (inside parentheses)
         match word.as_str() {
+            // Parse mode for comments (inside parentheses)
             "(" => {
                 parse_mode = ParseMode::CommentParens;
             }
