@@ -186,7 +186,8 @@ impl ForthCompiler for WasmForthCompiler {
             let mut last_command = None;
             let mut not_jumped_always = hashset![];
             for (block_index, block) in blocks.iter().enumerate() {
-                for op in block.commands() {
+                let (opcodes, terminator) = block.opcodes_and_terminator();
+                for op in opcodes {
                     wat_out.push(format!(";; {:?}", &op.0));
                     match &op.0 {
                         Pax::PushLiteral(lit) => {
@@ -246,17 +247,25 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    unreachable"));
                             // wat_out.push(format!("    throw 0"));
                         }
+                        _ => unreachable!(),
+                    }
+                    wat_out.push(format!(""));
+                    // println!("  {:?}", op.0);
 
-                        /* Terminators */
+                    last_command = Some(op.0.clone());
+                }
+                {
+                    wat_out.push(format!(";; {:?}", &terminator.0));
+                    match &terminator.0 {
                         Pax::Exit => {}
-                        Pax::Call(s) => {
+                        Pax::Call(ref s) => {
                             wat_out.push(format!("    i32.const {}", 0)); // dummy value
                             wat_out.push(format!("    call $return_push"));
                             wat_out.push(format!("    call $fn_{}", name_slug(s)));
                             wat_out.push(format!("    call $return_pop"));
                             wat_out.push(format!("    call $drop"));
                         }
-                        Pax::BranchTarget(target_index) => {
+                        Pax::BranchTarget(ref target_index) => {
                             let incoming = graph
                                 .directed_edges_from_node(*target_index + 1, Direction::Incoming);
                             let mut is_loop = false;
@@ -283,7 +292,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_block_stack.pop().expect("expected end of 'else' block");
                             }
                         }
-                        Pax::JumpIf0(target_index) => {
+                        Pax::JumpIf0(ref target_index) => {
                             if let Some(Pax::PushLiteral(0)) = last_command {
                                 // Jump always
                                 wat_block_stack.pop().unwrap(); // last_block
@@ -340,11 +349,12 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
                         }
+                        ref e => unreachable!("{:?}", e),
                     }
                     wat_out.push(format!(""));
                     // println!("  {:?}", op.0);
 
-                    last_command = Some(op.0.clone());
+                    last_command = Some(terminator.0.clone());
                 }
             }
 

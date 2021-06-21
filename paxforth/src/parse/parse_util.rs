@@ -40,10 +40,9 @@ impl BlockBuilder {
     }
 
     pub fn exit_block(&mut self, terminator: Located<Pax>) -> usize {
-        self.current_block.push(terminator);
-
         let index = self.blocks.len();
-        self.blocks.push(Block::new(self.current_block.clone()));
+        self.blocks
+            .push(Block::new(self.current_block.clone(), terminator));
         self.reset();
         index
     }

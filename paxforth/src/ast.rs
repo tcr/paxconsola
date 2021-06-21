@@ -53,36 +53,36 @@ pub type PaxProgram = IndexMap<String, Vec<Block>>;
 // And do validation on creation each block ends with a terminating opcode
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Block {
-    commands: PaxSpan,
+    opcodes: PaxSpan,
+    terminator: Located<Pax>,
 }
 
 impl Block {
-    pub fn new(commands: PaxSpan) -> Block {
-        Block { commands }
+    pub fn new(opcodes: PaxSpan, terminator: Located<Pax>) -> Block {
+        Block {
+            opcodes,
+            terminator,
+        }
     }
 
-    pub fn commands(&self) -> &PaxSpan {
-        &self.commands
+    pub fn opcodes(&self) -> &PaxSpan {
+        &self.opcodes
     }
 
-    pub fn commands_mut(&mut self) -> &mut PaxSpan {
-        &mut self.commands
+    pub fn opcodes_mut(&mut self) -> &mut PaxSpan {
+        &mut self.opcodes
     }
 
-    pub fn commands_and_terminator(&self) -> (&[Located<Pax>], &Located<Pax>) {
-        let len = self.commands.len();
-        (
-            &self.commands[0..(if len > 1 { len - 1 } else { 0 })],
-            &self.commands[len - 1],
-        )
+    pub fn opcodes_and_terminator(&self) -> (&[Located<Pax>], &Located<Pax>) {
+        (&self.opcodes, &self.terminator)
     }
 
     pub fn terminator(&self) -> &Located<Pax> {
-        self.commands.last().unwrap()
+        &self.terminator
     }
 
     pub fn terminator_mut(&mut self) -> &mut Located<Pax> {
-        self.commands.last_mut().unwrap()
+        &mut self.terminator
     }
 }
 

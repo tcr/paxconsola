@@ -85,30 +85,24 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             if inlined_blocks.len() == 1 {
                 // Rest of next block
                 let function_commands = inlined_blocks[0]
-                    .commands()
+                    .opcodes()
                     .to_owned()
                     .into_iter()
-                    .skip(1)
-                    .rev()
-                    .skip(1)
-                    .rev()
+                    // .skip(1)
                     .chain(return_stack_exit.into_iter());
                 // Generate enter block.
                 let enter_commands = block
-                    .commands()
+                    .opcodes()
                     .to_owned()
                     .into_iter()
-                    .rev()
-                    .skip(1)
-                    .rev()
                     .chain(return_stack_enter.into_iter())
                     .chain(function_commands);
 
-                eprintln!("-----> {:?}", enter_commands.clone().collect::<Vec<_>>());
+                // eprintln!("-----> {:?}", enter_commands.clone().collect::<Vec<_>>());
 
                 // Combine current block, fn block, and next block.
                 let mut next_block = main_mut.remove(j);
-                next_block.commands_mut().splice(0..0, enter_commands);
+                next_block.opcodes_mut().splice(0..0, enter_commands);
 
                 // Combine current block.
                 main_mut[j - 1] = next_block;
@@ -144,25 +138,19 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 // Generate enter block.
                 let mut enter_block = inlined_blocks[0].clone();
                 let enter_commands = block
-                    .commands()
+                    .opcodes()
                     .to_owned()
                     .into_iter()
-                    .rev()
-                    .skip(1)
-                    .rev()
                     .chain(return_stack_enter.into_iter());
-                enter_block.commands_mut().splice(0..1, enter_commands);
+                enter_block.opcodes_mut().splice(0..0, enter_commands);
                 // Generate exit block.
                 let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
-                    .commands()
+                    .opcodes()
                     .to_owned()
                     .into_iter()
-                    .rev()
-                    .skip(1)
-                    .rev()
                     .chain(return_stack_exit.into_iter());
                 let mut exit_block = main_mut[j].clone();
-                exit_block.commands_mut().splice(0..0, exit_commands);
+                exit_block.opcodes_mut().splice(0..0, exit_commands);
                 // Remove first + last blocks from our inline sequence.
                 let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
 

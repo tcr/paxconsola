@@ -586,10 +586,11 @@ impl Component for App {
                         .map(|(i, b)| {
                             [
                                 vec![html! { <h5 style="margin: 0">{format!("block #{}", i)}</h5> }],
-                                b.commands()
+                                b.opcodes()
                                     .into_iter()
                                     .map(|y| html! { <div>{format!("    {:?}", y.0)}</div> })
                                     .collect::<Vec<_>>(),
+                                html! { <div>{format!("    {:?}", b.terminator().0)}</div> },
                             ]
                             .concat()
                         })
