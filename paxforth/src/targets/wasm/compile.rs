@@ -217,15 +217,6 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $temp_store"));
                         }
-                        Pax::Exit => {}
-                        // Pax::Metadata(_) => {}
-                        Pax::Call(s) => {
-                            wat_out.push(format!("    i32.const {}", 0)); // dummy value
-                            wat_out.push(format!("    call $return_push"));
-                            wat_out.push(format!("    call $fn_{}", name_slug(s)));
-                            wat_out.push(format!("    call $return_pop"));
-                            wat_out.push(format!("    call $drop"));
-                        }
                         Pax::Load => {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_load"));
@@ -245,6 +236,25 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $mem_store_8"));
+                        }
+                        Pax::Print => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $print"));
+                            wat_out.push(format!("    drop"));
+                        }
+                        Pax::Abort => {
+                            wat_out.push(format!("    unreachable"));
+                            // wat_out.push(format!("    throw 0"));
+                        }
+
+                        /* Terminators */
+                        Pax::Exit => {}
+                        Pax::Call(s) => {
+                            wat_out.push(format!("    i32.const {}", 0)); // dummy value
+                            wat_out.push(format!("    call $return_push"));
+                            wat_out.push(format!("    call $fn_{}", name_slug(s)));
+                            wat_out.push(format!("    call $return_pop"));
+                            wat_out.push(format!("    call $drop"));
                         }
                         Pax::BranchTarget(target_index) => {
                             let incoming = graph
@@ -329,15 +339,6 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    end"));
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
-                        }
-                        Pax::Print => {
-                            wat_out.push(format!("    call $data_pop"));
-                            wat_out.push(format!("    call $print"));
-                            wat_out.push(format!("    drop"));
-                        }
-                        Pax::Abort => {
-                            wat_out.push(format!("    unreachable"));
-                            // wat_out.push(format!("    throw 0"));
                         }
                     }
                     wat_out.push(format!(""));
