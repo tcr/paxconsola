@@ -103,7 +103,7 @@ impl BlockBuilder {
  * Block references
  */
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BlockReference {
     pub label: String,
     pub from_block_index: Option<usize>,

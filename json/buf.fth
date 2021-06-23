@@ -35,15 +35,15 @@
 \ arrdup ( addr1 u -- addr2 u ):
 \ Create a copy of a cell array.  Like strdup but for cellbufs.
 
+variable HEAP_OFFSET
 
-1000 cells allot variable HEAP_BASE
-0 variable HEAP_OFFSET
+variable HEAP_BASE
+1000 cells allot
 
 \ Implement a simple bump allocator with no failsafe
 : allocate ( u -- a-addr wior )
-    HEAP_OFFSET dup
-    HEAP_OFFSET + !
-    HEAP_BASE +
+    HEAP_BASE HEAP_OFFSET @ + swap
+    HEAP_OFFSET @ + HEAP_OFFSET !
     0
     ;
 
@@ -56,16 +56,21 @@
 	loop
 	2drop ;
 
+\ free at the moment does nothing :()
+: free ( addr -- )
+    drop
+    ;
+
+
+\
+\ ORIGINAL FILE
+\
+
 : buf-new ( size -- buf )
     dup 0= if drop 16 then
     dup 2 cells + allocate throw \ size buf
     dup rot swap !               \ buf
     0 over cell+ ! ;
-
-\ free at the moment does nothing :()
-: free ( addr -- )
-    drop
-    ;
 
 : buf-append ( char buf -- buf )
     dup @ over cell+ @                    \ char buf size len
