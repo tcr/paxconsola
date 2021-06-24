@@ -128,7 +128,6 @@ pub enum ParseMode {
     Default,
     FunctionName,
     ConstantName(isize),
-    CommentParens,
     Variable,
 }
 

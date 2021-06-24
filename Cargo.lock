@@ -1965,6 +1965,7 @@ dependencies = [
  "rand 0.8.3",
  "regex",
  "serde",
+ "snailquote",
  "stdweb 0.4.20",
  "structopt",
  "take_mut",
@@ -2722,6 +2723,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "snailquote"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f34b729d802f52194598858ac852c3fb3b33f6e026cd03195072ccb7bf3fc810"
+dependencies = [
+ "thiserror",
+ "unicode_categories",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3001,6 +3012,12 @@ name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
+
+[[package]]
+name = "unicode_categories"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
 name = "uuid"

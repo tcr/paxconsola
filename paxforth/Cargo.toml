@@ -22,6 +22,7 @@ serde = { version = "1.0.104", features = [ "derive" ] }
 enum-utils = "0.1.2"
 derive_more = "0.99.5"
 anyhow = "1.0.28"
+snailquote = "0.3"
 take_mut = "0.2.2"
 
 # wasm target (web / native)

@@ -1,24 +1,19 @@
 //! Modern parsing logic.
 
 pub mod parse_util;
+pub mod put_back;
 pub mod tokenizer;
 
 use crate::prelude::*;
 use crate::*;
 use indexmap::IndexMap;
-use lazy_static::*;
 pub use parse_util::*;
-use regex::Regex;
 pub use tokenizer::*;
 
 /**
  * Internal parse logic for code (whether it is prelude, code, etc.)
  */
 fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filename: Option<&str>) {
-    lazy_static! {
-        static ref RE_COMMENTS: Regex = Regex::new(r"(?m)\\.*$").unwrap();
-    }
-
     // Definition maps.
     let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
     let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
@@ -27,18 +22,15 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
     // Block references.
     let mut block_refs: Vec<BlockReference> = vec![];
 
-    // Strip comments
-    let code = RE_COMMENTS.replace_all(source_code, "").to_string();
-
     // Evaluate different parsing modes.
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
-    let parser = Tokenizer::new(filename.unwrap_or("<memory>"), &code);
+    let parser = Tokenizer::new(filename.unwrap_or("<memory>"), &source_code);
 
-    let mut parser_iter = itertools::put_back_n(parser);
+    let mut parser_iter = put_back::put_back_n(parser);
 
     fn push_tokens<I: Iterator<Item = Located<Token>>>(
-        parser: &mut itertools::PutBackN<I>,
+        parser: &mut put_back::PutBackN<I>,
         tokens: &[Token],
     ) {
         for token in tokens.iter().rev() {
@@ -54,17 +46,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
         // Handle different parse modes.
         match parse_mode {
-            ParseMode::CommentParens => {
-                match token {
-                    Token::Word(ref word) => {
-                        if word == ")" {
-                            parse_mode = ParseMode::Default;
-                        }
-                    }
-                    _ => {}
-                }
-                continue;
-            }
             ParseMode::Variable => {
                 match token {
                     Token::Word(ref word) => {
@@ -121,10 +102,52 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
         };
 
         match word.as_str() {
-            // Parse mode for comments (inside parentheses)
+            // Parenthetical comments
             "(" => {
-                parse_mode = ParseMode::CommentParens;
+                parser_iter.iter.consume_until(')');
+                parser_iter.iter.move_forward(1); // Skip end paren
             }
+            // Single-line comments
+            "\\" => {
+                parser_iter.iter.consume_until('\n');
+                parser_iter.iter.move_forward(1); // Skip newline
+            }
+
+            // Strings
+            "s\"" | ".\"" => {
+                parser_iter.iter.move_forward(1); // Skip following space
+                let raw_str = parser_iter.iter.consume_until('"');
+                parser_iter.iter.move_forward(1); // Skip last quote
+
+                let str_offset = variable_offset;
+                let s = snailquote::unescape(&format!("\"{}\"", raw_str)).unwrap();
+
+                if word == ".\"" {
+                    push_tokens(&mut parser_iter, &[Token::Word("type".to_string())]);
+                }
+
+                push_tokens(
+                    &mut parser_iter,
+                    &[
+                        Token::Literal(str_offset as isize),
+                        Token::Literal(s.chars().count() as isize),
+                    ],
+                );
+
+                for c in s.chars() {
+                    push_tokens(
+                        &mut parser_iter,
+                        &[
+                            Token::Literal(c as isize),
+                            Token::Literal(variable_offset as isize),
+                            Token::Word("!".to_string()),
+                        ],
+                    );
+                    variable_offset += 1;
+                }
+                variable_offset += 1; // null byte
+            }
+
             // Parse mode for variables
             "variable" => {
                 parse_mode = ParseMode::Variable;
@@ -186,7 +209,10 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 parse_mode = ParseMode::FunctionName;
             }
             ";" => {
-                assert!(program.in_function(), "expected to be inside a function");
+                assert!(
+                    program.in_function(),
+                    "expected to find ';' inside a function"
+                );
                 assert_eq!(block_refs.len(), 1, "expected flow stack with just recurse");
 
                 block_refs.pop();
