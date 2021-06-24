@@ -305,7 +305,9 @@ pub fn program_analyze(program: &PaxProgram) -> (Graph<&str, ()>, IndexMap<Strin
         for block in blocks {
             match block.terminator() {
                 (PaxTerm::Call(target_name), _) => {
-                    let to = idx.get(target_name).unwrap();
+                    let to = idx
+                        .get(target_name)
+                        .expect(&format!("Did not find method for {:?}", target_name));
                     deps.update_edge(from.clone(), to.clone(), ());
                 }
                 _ => {}

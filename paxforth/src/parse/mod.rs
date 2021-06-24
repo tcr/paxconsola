@@ -195,6 +195,10 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
             // Loops
             "begin" | "case" => {
+                if word.as_str() == "case" {
+                    program.current().op(&(Pax::AltPush, Default::default()));
+                }
+
                 let group = BlockReference::new("<begin-leave>", None);
                 block_refs.push(group);
 
@@ -205,6 +209,14 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 );
             }
             "until" | "endcase" => {
+                if word.as_str() == "endcase" {
+                    program.current().op(&(Pax::AltPop, Default::default()));
+                    program.current().op(&(Pax::Drop, Default::default()));
+                    program
+                        .current()
+                        .op(&(Pax::PushLiteral(1), Default::default()));
+                }
+
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<begin>", "expected begin loop");
                 program.current().jump_if_0(&mut group, pos.clone());
@@ -298,7 +310,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     // "over"
                     program
                         .current()
-                        .exit_block((PaxTerm::Call("over".to_string()), pos.clone()));
+                        .exit_block((PaxTerm::Call("r@".to_string()), pos.clone()));
 
                     // "dup"
                     program
