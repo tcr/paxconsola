@@ -307,12 +307,12 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             // "if" statements
             "if" | "of" => {
                 if word.as_str() == "of" {
-                    // "over"
+                    // "r@"
                     program
                         .current()
                         .exit_block((PaxTerm::Call("r@".to_string()), pos.clone()));
 
-                    // "dup"
+                    // "="
                     program
                         .current()
                         .exit_block((PaxTerm::Call("=".to_string()), pos.clone()));
