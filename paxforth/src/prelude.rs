@@ -8,6 +8,7 @@ variable  temp \ first variable
 
 \ note: must preserve return address!
 : r@   r> r> temp! temp@ >r temp@ swap >r ;
+: r!   r> r> r> drop >r >r >r ;
 
 : 2drop   + drop ;
 : dup    temp! temp@ temp@ ;

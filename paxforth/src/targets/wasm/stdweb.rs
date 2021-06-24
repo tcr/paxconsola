@@ -29,6 +29,10 @@ pub fn run_wasm_with_memory(binary: &[u8], memory: &stdweb::Value) {
                     // console.log("[print]", arg);
                     document.querySelector("#PRINT_OUTPUT").value += arg + "\n";
                 },
+                emit: (arg) => {
+                    // console.log("[print]", arg);
+                    document.querySelector("#PRINT_OUTPUT").value += String.fromCharCode(arg);
+                },
                 extmem_load: (loc) => {
                     if (loc < 0) { // TODO shouldn't wasm do this conversion?
                         loc = 0xFFFF + loc + 1;

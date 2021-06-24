@@ -37,7 +37,10 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
     let mut parser_iter = itertools::put_back_n(parser);
 
-    fn push_tokens<I: Iterator, T>(parser: &mut itertools::PutBackN<I>, tokens: &[T]) {
+    fn push_tokens<I: Iterator<Item = Located<Token>>>(
+        parser: &mut itertools::PutBackN<I>,
+        tokens: &[Token],
+    ) {
         for token in tokens.iter().rev() {
             parser.put_back((token.to_owned(), Default::default()));
         }
@@ -227,7 +230,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 );
                 program.current().set_target(&mut leave_group, pos);
             }
-            "leave" | "endof" => {
+            "leave" => {
                 let mut queue = vec![];
                 while let Some(group) = block_refs.pop() {
                     let is_begin = group.label == "<begin-leave>";
@@ -243,40 +246,41 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 for group in queue.into_iter() {
                     block_refs.push(group);
                 }
-
-                /* copied from "then" */
-
-                if word.as_str() == "endof" {
-                    eprintln!("wtf: {:?}", block_refs);
-                    let mut else_group = block_refs
-                        .pop()
-                        .expect(&format!("did not match marker group: {:?}", block_refs));
-                    program.current().set_target(&mut else_group, pos);
-                }
             }
 
-            // case .. endcase
+            // case .. of .. endof .. endcase
             "case" => {
+                push_tokens(&mut parser_iter, &[Token::Word("begin".to_string())]);
+            }
+            "endcase" => {
                 push_tokens(
                     &mut parser_iter,
                     &[
-                        Token::Word("begin".to_string()),
-                        Token::Word(">r".to_string()),
+                        Token::Literal(1),
+                        Token::Word("until".to_string()),
+                        Token::Word("drop".to_string()),
                     ],
                 );
             }
-            "endcase" => {
-                parser_iter.put_back((Token::Word("until".to_string()), Default::default()));
-                parser_iter.put_back((Token::Literal(1), Default::default()));
-                parser_iter.put_back((Token::Word("drop".to_string()), Default::default()));
-                parser_iter.put_back((Token::Word("r>".to_string()), Default::default()));
+            "endof" => {
+                push_tokens(
+                    &mut parser_iter,
+                    &[
+                        Token::Word("leave".to_string()),
+                        Token::Word("then".to_string()),
+                    ],
+                );
             }
-            // "endcase" => {
-            //     parser_iter.put_back((Token::Word("until".to_string()), Default::default()));
-            //     parser_iter.put_back((Token::Literal(1), Default::default()));
-            //     parser_iter.put_back((Token::Word("drop".to_string()), Default::default()));
-            //     parser_iter.put_back((Token::Word("r>".to_string()), Default::default()));
-            // }
+            "of" => {
+                push_tokens(
+                    &mut parser_iter,
+                    &[
+                        Token::Word("over".to_string()),
+                        Token::Word("=".to_string()),
+                        Token::Word("if".to_string()),
+                    ],
+                );
+            }
 
             // counting loops
             "do" => {
@@ -325,19 +329,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // "if" statements
-            "if" | "of" => {
-                if word.as_str() == "of" {
-                    // "r@"
-                    program
-                        .current()
-                        .exit_block((PaxTerm::Call("r@".to_string()), pos.clone()));
-
-                    // "="
-                    program
-                        .current()
-                        .exit_block((PaxTerm::Call("=".to_string()), pos.clone()));
-                }
-
+            "if" => {
                 let mut group = BlockReference::new("<if>", None);
                 program.current().jump_if_0(&mut group, pos);
 
@@ -359,7 +351,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 program.current().set_target(&mut if_group, pos.clone());
             }
             "then" => {
-                eprintln!("wtf: {:?}", block_refs);
                 let mut else_group = block_refs
                     .pop()
                     .expect(&format!("did not match marker group: {:?}", block_refs));
@@ -374,6 +365,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "@" => program.current().op(&(Pax::Load, pos)),
             "nand" => program.current().op(&(Pax::Nand, pos)),
             "print" => program.current().op(&(Pax::Print, pos)),
+            "emit" => program.current().op(&(Pax::Emit, pos)),
             "c!" => program.current().op(&(Pax::Store8, pos)),
             "c@" => program.current().op(&(Pax::Load8, pos)),
             "drop" => program.current().op(&(Pax::Drop, pos)),

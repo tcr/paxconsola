@@ -60,6 +60,16 @@ pub fn parse_wasm(binary: &[u8], export_buffer: bool) -> anyhow::Result<WasmCont
             value
         }
     });
+    let emit_func = Func::wrap(&store, {
+        let buffer = buffer.clone();
+        move |value: i32| {
+            if export_buffer {
+                write!(&mut *buffer.lock().unwrap(), "{}", value as u8 as char).ok();
+            } else {
+                print!("{}", value as u8 as char);
+            }
+        }
+    });
     let extmem_load_func = Func::wrap(&store, {
         let memory = memory.clone();
         move |address: i32| -> i32 {
@@ -99,6 +109,7 @@ pub fn parse_wasm(binary: &[u8], export_buffer: bool) -> anyhow::Result<WasmCont
     (type $t4 (func (result i32)))
 
     (import "root" "print" (func $print (type $t2)))
+    (import "root" "emit" (func $emit (type $t3)))
     (import "root" "extmem_load" (func $extmem_load (param i32) (result i32)))
     (import "root" "extmem_load_8" (func $extmem_load_8 (param i32) (result i32)))
     (import "root" "extmem_store" (func $extmem_store (param i32) (param i32)))
@@ -106,6 +117,7 @@ pub fn parse_wasm(binary: &[u8], export_buffer: bool) -> anyhow::Result<WasmCont
     */
     let imports = [
         print_func.into(),
+        emit_func.into(),
         extmem_load_func.into(),
         extmem_load_8_func.into(),
         extmem_store_func.into(),

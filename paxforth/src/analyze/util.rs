@@ -123,7 +123,7 @@ fn block_analyze(
                 let reg = state.pop_return();
                 state.push_data(reg);
             }
-            Pax::Drop | Pax::Print => {
+            Pax::Drop | Pax::Print | Pax::Emit => {
                 state.pop_data();
             }
             Pax::Load | Pax::Load8 => {

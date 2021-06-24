@@ -91,6 +91,9 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
         Pax::Print => vec![
             // nah
         ],
+        Pax::Emit => vec![
+            // nah
+        ],
         // ( a -- )
         Pax::Drop => vec![GbIr::Pop],
         // ( a -- )

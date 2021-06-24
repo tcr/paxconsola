@@ -31,6 +31,7 @@ pub fn dump_blocks(blocks: &[Block]) {
                 Pax::LoadTemp => format!("temp@"),
                 Pax::Nand => format!("nand"),
                 Pax::Print => format!("print"),
+                Pax::Emit => format!("emit"),
                 Pax::PushLiteral(l) => format!("{}", l),
                 Pax::Store => format!("!"),
                 Pax::Store8 => format!("c!"),

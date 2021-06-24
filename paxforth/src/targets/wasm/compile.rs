@@ -21,6 +21,7 @@ const WAT_TEMPLATE: &'static str = r#"
     (type $t4 (func (result i32)))
 
     (import "root" "print" (func $print (type $t2)))
+    (import "root" "emit" (func $emit (type $t3)))
     (import "root" "extmem_load" (func $extmem_load (param i32) (result i32)))
     (import "root" "extmem_load_8" (func $extmem_load_8 (param i32) (result i32)))
     (import "root" "extmem_store" (func $extmem_store (param i32) (param i32)))
@@ -181,15 +182,16 @@ impl ForthCompiler for WasmForthCompiler {
 
             let graph = FunctionGraph::from_blocks(&blocks);
 
+            // Iterate over blocks in function.
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];
             let mut wat_loop_stack = vec![];
             let mut last_command = None;
             let mut not_jumped_always = hashset![];
-            eprintln!();
+            // eprintln!();
             for (block_index, block) in blocks.iter().enumerate() {
-                eprintln!("block[{}]: {:?}", block_index, block);
-                eprintln!();
+                // eprintln!("block[{}]: {:?}", block_index, block);
+                // eprintln!();
                 let (opcodes, terminator) = block.opcodes_and_terminator();
                 for op in opcodes {
                     wat_out.push(format!(";; {:?}", &op.0));
@@ -246,6 +248,10 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    call $print"));
                             wat_out.push(format!("    drop"));
+                        }
+                        Pax::Emit => {
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    call $emit"));
                         }
                         Pax::Abort => {
                             wat_out.push(format!("    unreachable"));

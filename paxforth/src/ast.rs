@@ -29,6 +29,7 @@ pub enum Pax {
     Store,
 
     Print,
+    Emit,
     Abort,
 }
 
