@@ -34,7 +34,16 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
     let mut parse_mode = ParseMode::Default;
     let mut previous_tokens: Vec<Token> = vec![];
     let parser = Tokenizer::new(filename.unwrap_or("<memory>"), &code);
-    for (token, mut pos) in parser {
+
+    let mut parser_iter = itertools::put_back_n(parser);
+
+    fn push_tokens<I: Iterator, T>(parser: &mut itertools::PutBackN<I>, tokens: &[T]) {
+        for token in tokens.iter().rev() {
+            parser.put_back((token.to_owned(), Default::default()));
+        }
+    }
+
+    while let Some((token, mut pos)) = parser_iter.next() {
         pos.function = program._current_function.clone();
 
         // eprintln!("[token] {:?} at {:?}", token, pos);
@@ -194,11 +203,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // Loops
-            "begin" | "case" => {
-                if word.as_str() == "case" {
-                    program.current().op(&(Pax::AltPush, Default::default()));
-                }
-
+            "begin" => {
                 let group = BlockReference::new("<begin-leave>", None);
                 block_refs.push(group);
 
@@ -208,15 +213,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         .forward_branch_target("<begin>", pos.clone()),
                 );
             }
-            "until" | "endcase" => {
-                if word.as_str() == "endcase" {
-                    program.current().op(&(Pax::AltPop, Default::default()));
-                    program.current().op(&(Pax::Drop, Default::default()));
-                    program
-                        .current()
-                        .op(&(Pax::PushLiteral(1), Default::default()));
-                }
-
+            "until" => {
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<begin>", "expected begin loop");
                 program.current().jump_if_0(&mut group, pos.clone());
@@ -257,6 +254,29 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     program.current().set_target(&mut else_group, pos);
                 }
             }
+
+            // case .. endcase
+            "case" => {
+                push_tokens(
+                    &mut parser_iter,
+                    &[
+                        Token::Word("begin".to_string()),
+                        Token::Word(">r".to_string()),
+                    ],
+                );
+            }
+            "endcase" => {
+                parser_iter.put_back((Token::Word("until".to_string()), Default::default()));
+                parser_iter.put_back((Token::Literal(1), Default::default()));
+                parser_iter.put_back((Token::Word("drop".to_string()), Default::default()));
+                parser_iter.put_back((Token::Word("r>".to_string()), Default::default()));
+            }
+            // "endcase" => {
+            //     parser_iter.put_back((Token::Word("until".to_string()), Default::default()));
+            //     parser_iter.put_back((Token::Literal(1), Default::default()));
+            //     parser_iter.put_back((Token::Word("drop".to_string()), Default::default()));
+            //     parser_iter.put_back((Token::Word("r>".to_string()), Default::default()));
+            // }
 
             // counting loops
             "do" => {

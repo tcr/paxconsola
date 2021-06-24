@@ -12,6 +12,7 @@ pub enum Token {
 pub struct Tokenizer {
     pub code: String,
     pub pos: Pos,
+    pub temp_queue: Vec<Located<Token>>,
 }
 
 impl Tokenizer {
@@ -24,6 +25,7 @@ impl Tokenizer {
                 line: 1,
                 col: 1,
             },
+            temp_queue: vec![],
         }
     }
 
@@ -39,12 +41,20 @@ impl Tokenizer {
         self.code = self.code[length..].to_string();
         self.pos.clone()
     }
+
+    pub fn push_token(&mut self, token: Located<Token>) {
+        self.temp_queue.push(token);
+    }
 }
 
 impl Iterator for Tokenizer {
     type Item = Located<Token>;
 
     fn next(&mut self) -> Option<Located<Token>> {
+        if !self.temp_queue.is_empty() {
+            return Some(self.temp_queue.remove(0));
+        }
+
         lazy_static! {
             static ref RE_INT: Regex =
                 Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
