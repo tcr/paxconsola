@@ -185,7 +185,10 @@ impl ForthCompiler for WasmForthCompiler {
             let mut wat_block_stack = vec![];
             let mut last_command = None;
             let mut not_jumped_always = hashset![];
+            eprintln!();
             for (block_index, block) in blocks.iter().enumerate() {
+                eprintln!("block[{}]: {:?}", block_index, block);
+                eprintln!();
                 let (opcodes, terminator) = block.opcodes_and_terminator();
                 for op in opcodes {
                     wat_out.push(format!(";; {:?}", &op.0));
@@ -292,40 +295,42 @@ impl ForthCompiler for WasmForthCompiler {
                             }
                         }
                         PaxTerm::JumpIf0(ref target_index) => {
-                            if let Some(Pax::PushLiteral(0)) = last_command {
-                                // Jump always
-                                wat_block_stack.pop().unwrap(); // last_block
-                                let parent_block = wat_block_stack.pop().unwrap();
-                                wat_block_stack.push(parent_block.clone());
+                            if *target_index > block_index {
+                                if let Some(Pax::PushLiteral(0)) = last_command {
+                                    // Jump always
+                                    wat_block_stack.pop().unwrap(); // last_block
+                                    let parent_block = wat_block_stack.pop().unwrap();
+                                    wat_block_stack.push(parent_block.clone());
 
-                                wat_out.push(format!(";;   (optimized as JumpAlways)"));
-                                not_jumped_always.insert(block_index + 1);
+                                    wat_out.push(format!(";;   (optimized as JumpAlways)"));
+                                    not_jumped_always.insert(block_index + 1);
 
-                                wat_out.push(format!("    call $drop"));
+                                    wat_out.push(format!("    call $drop"));
 
-                                let next_block = format!("$B{}", wat_block_index);
-                                wat_block_index += 1;
+                                    let next_block = format!("$B{}", wat_block_index);
+                                    wat_block_index += 1;
 
-                                wat_out.push(format!("    br {}", parent_block));
-                                wat_out.push(format!("    end"));
-                                wat_out.push(format!("    block {}", next_block));
-                                wat_block_stack.push(next_block);
-                                // wat_block_stack.push(next_block.clone());
-                                // wat_block_stack.push(next_block.clone());
-                            } else if *target_index > block_index {
-                                // Start of an if block
-                                let parent_id = format!("$B{}", wat_block_index);
-                                wat_block_index += 1;
-                                wat_block_stack.push(parent_id.clone());
-                                let if_id = format!("$B{}", wat_block_index);
-                                wat_block_index += 1;
-                                wat_block_stack.push(if_id.clone());
+                                    wat_out.push(format!("    br {}", parent_block));
+                                    wat_out.push(format!("    end"));
+                                    wat_out.push(format!("    block {}", next_block));
+                                    wat_block_stack.push(next_block);
+                                    // wat_block_stack.push(next_block.clone());
+                                    // wat_block_stack.push(next_block.clone());
+                                } else {
+                                    // Start of an if block
+                                    let parent_id = format!("$B{}", wat_block_index);
+                                    wat_block_index += 1;
+                                    wat_block_stack.push(parent_id.clone());
+                                    let if_id = format!("$B{}", wat_block_index);
+                                    wat_block_index += 1;
+                                    wat_block_stack.push(if_id.clone());
 
-                                wat_out.push(format!("    block {}", parent_id));
-                                wat_out.push(format!("    block {}", if_id));
-                                wat_out.push(format!("    call $data_pop"));
-                                wat_out.push(format!("    i32.eqz"));
-                                wat_out.push(format!("    br_if {}", if_id));
+                                    wat_out.push(format!("    block {}", parent_id));
+                                    wat_out.push(format!("    block {}", if_id));
+                                    wat_out.push(format!("    call $data_pop"));
+                                    wat_out.push(format!("    i32.eqz"));
+                                    wat_out.push(format!("    br_if {}", if_id));
+                                }
                             } else {
                                 // End of a loop
                                 let id = wat_block_stack.pop().unwrap();
