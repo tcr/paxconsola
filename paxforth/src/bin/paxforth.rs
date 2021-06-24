@@ -130,7 +130,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         // Run the program directly
         Command::Run { .. } => {
             let wasm = WasmForthCompiler::compile_binary(&source_program);
-            run_wasm(&wasm, false).unwrap();
+            run_wasm(&wasm, false).expect("run_wasm failed");
         }
 
         Command::Inlineup { .. } => {

@@ -1,3 +1,4 @@
+( @check 1 )
 
 7 begin
     dup 6 = if 0 print leave then

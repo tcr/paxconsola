@@ -185,7 +185,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             /* Flow control */
-
             // Recursion
             "recurse" => {
                 // Address root flow group
@@ -196,6 +195,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
             // Loops
             "begin" => {
+                let mut group = BlockReference::new("<begin-leave>", None);
+                block_refs.push(group);
+
                 block_refs.push(
                     program
                         .current()
@@ -206,17 +208,29 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<begin>", "expected begin loop");
                 program.current().jump_if_0(&mut group, pos.clone());
+
+                let mut leave_group = block_refs
+                    .pop()
+                    .expect(&format!("did not match marker group: {:?}", block_refs));
+                assert_eq!(
+                    leave_group.label, "<begin-leave>",
+                    "expected begin-leave loop"
+                );
+                program.current().set_target(&mut leave_group, pos);
             }
             "leave" => {
                 eprintln!("----> block_refs: {:?}", block_refs);
                 let mut queue = vec![];
                 while let Some(group) = block_refs.pop() {
-                    let is_begin = group.label == "<begin>";
+                    let is_begin = group.label == "<begin-leave>";
                     queue.insert(0, group);
                     if is_begin {
                         break;
                     }
                 }
+                program
+                    .current()
+                    .op(&(Pax::PushLiteral(0), Default::default()));
                 program.current().jump_if_0(&mut queue[0], pos.clone());
                 for group in queue.into_iter() {
                     block_refs.push(group);
@@ -278,7 +292,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 block_refs.push(group);
             }
             "else" => {
-                let mut if_group = block_refs.pop().expect(&format!("did not match marker group: {:?}", block_refs));
+                let mut if_group = block_refs
+                    .pop()
+                    .expect(&format!("did not match marker group: {:?}", block_refs));
                 let mut else_group = BlockReference::new("<else>", None);
 
                 program.current().op(&(Pax::PushLiteral(0), pos.clone())); // Always yes
@@ -292,14 +308,17 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
             "then" => {
                 eprintln!("wtf: {:?}", block_refs);
-                let mut else_group = block_refs.pop().expect(&format!("did not match marker group: {:?}", block_refs));
+                let mut else_group = block_refs
+                    .pop()
+                    .expect(&format!("did not match marker group: {:?}", block_refs));
                 program.current().set_target(&mut else_group, pos);
             }
 
             // "case" statements
             "case" => {
                 // "dup"
-                program.current()
+                program
+                    .current()
                     .exit_block((PaxTerm::Call("dup".to_string()), pos));
 
                 let group = BlockReference::new("<case>", None);
@@ -307,7 +326,8 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
             "of" => {
                 // "="
-                program.current()
+                program
+                    .current()
                     .exit_block((PaxTerm::Call("=".to_string()), pos.clone()));
 
                 let mut group = BlockReference::new("<of>", None);
@@ -328,9 +348,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 program.current().set_target(&mut else_group, pos);
             }
 
-
             /* Opcodes */
-
             "+" => program.current().op(&(Pax::Add, pos)),
             ">r" => program.current().op(&(Pax::AltPush, pos)),
             "r>" => program.current().op(&(Pax::AltPop, pos)),
