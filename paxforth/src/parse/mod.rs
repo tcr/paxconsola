@@ -194,8 +194,8 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // Loops
-            "begin" => {
-                let mut group = BlockReference::new("<begin-leave>", None);
+            "begin" | "case" => {
+                let group = BlockReference::new("<begin-leave>", None);
                 block_refs.push(group);
 
                 block_refs.push(
@@ -204,7 +204,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         .forward_branch_target("<begin>", pos.clone()),
                 );
             }
-            "until" => {
+            "until" | "endcase" => {
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<begin>", "expected begin loop");
                 program.current().jump_if_0(&mut group, pos.clone());
@@ -218,8 +218,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 );
                 program.current().set_target(&mut leave_group, pos);
             }
-            "leave" => {
-                eprintln!("----> block_refs: {:?}", block_refs);
+            "leave" | "endof" => {
                 let mut queue = vec![];
                 while let Some(group) = block_refs.pop() {
                     let is_begin = group.label == "<begin-leave>";
@@ -235,7 +234,16 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 for group in queue.into_iter() {
                     block_refs.push(group);
                 }
-                eprintln!("---@> block_refs: {:?}", block_refs);
+
+                /* copied from "then" */
+
+                if word.as_str() == "endof" {
+                    eprintln!("wtf: {:?}", block_refs);
+                    let mut else_group = block_refs
+                        .pop()
+                        .expect(&format!("did not match marker group: {:?}", block_refs));
+                    program.current().set_target(&mut else_group, pos);
+                }
             }
 
             // counting loops
@@ -285,7 +293,19 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // "if" statements
-            "if" => {
+            "if" | "of" => {
+                if word.as_str() == "of" {
+                    // "over"
+                    program
+                        .current()
+                        .exit_block((PaxTerm::Call("over".to_string()), pos.clone()));
+
+                    // "dup"
+                    program
+                        .current()
+                        .exit_block((PaxTerm::Call("=".to_string()), pos.clone()));
+                }
+
                 let mut group = BlockReference::new("<if>", None);
                 program.current().jump_if_0(&mut group, pos);
 
@@ -311,40 +331,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 let mut else_group = block_refs
                     .pop()
                     .expect(&format!("did not match marker group: {:?}", block_refs));
-                program.current().set_target(&mut else_group, pos);
-            }
-
-            // "case" statements
-            "case" => {
-                // "dup"
-                program
-                    .current()
-                    .exit_block((PaxTerm::Call("dup".to_string()), pos));
-
-                let group = BlockReference::new("<case>", None);
-                block_refs.push(group);
-            }
-            "of" => {
-                // "="
-                program
-                    .current()
-                    .exit_block((PaxTerm::Call("=".to_string()), pos.clone()));
-
-                let mut group = BlockReference::new("<of>", None);
-                program.current().jump_if_0(&mut group, pos);
-
-                block_refs.push(group);
-            }
-            "endof" => {
-                let mut else_group = block_refs.pop().expect("did not match marker group");
-                program.current().set_target(&mut else_group, pos.clone());
-
-                let mut case_group = block_refs.last_mut().expect("did not match marker group");
-                program.current().op(&(Pax::PushLiteral(0), pos.clone())); // Always yes
-                program.current().jump_if_0(&mut case_group, pos.clone());
-            }
-            "endcase" => {
-                let mut else_group = block_refs.pop().expect("did not match marker group");
                 program.current().set_target(&mut else_group, pos);
             }
 

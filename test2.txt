@@ -1,368 +1,134 @@
-
-(module
-    (type $t0 (func))
-    (type $t1 (func (param i32 i32)))
-    (type $t2 (func (param i32) (result i32)))
-    (type $t3 (func (param i32)))
-    (type $t4 (func (result i32)))
-
-    (import "root" "print" (func $print (type $t2)))
-    (import "root" "extmem_load" (func $extmem_load (param i32) (result i32)))
-    (import "root" "extmem_load_8" (func $extmem_load_8 (param i32) (result i32)))
-    (import "root" "extmem_store" (func $extmem_store (param i32) (param i32)))
-    (import "root" "extmem_store_8" (func $extmem_store_8 (param i32) (param i32)))
-
-    (func $__wasm_call_ctors (type $t0))
-
-    (func $mem_load (export "mem_load") (type $t2) (param $p0 i32) (result i32)
-        get_local $p0
-        call $extmem_load)
-
-    (func $mem_load_8 (export "mem_load_8") (type $t2) (param $p0 i32) (result i32)
-        get_local $p0
-        call $extmem_load_8)
-
-    (func $mem_store (export "mem_store") (type $t1) (param $p0 i32) (param $p1 i32)
-        get_local $p0
-        get_local $p1
-        call $extmem_store)
-
-    (func $mem_store_8 (export "mem_store_8") (type $t1) (param $p0 i32) (param $p1 i32)
-        get_local $p0
-        get_local $p1
-        call $extmem_store_8)
-
-    (func $data_push (export "data_push") (type $t3) (param $p0 i32)
-        (local $l0 i32)
-        i32.const 0
-        i32.const 0
-        i32.load offset=1028
-        tee_local $l0
-        i32.const 1
-        i32.add
-        i32.store offset=1028
-        get_local $l0
-        i32.const 1
-        i32.shl
-        i32.const 2048
-        i32.add
-        get_local $p0
-        i32.store16)
-
-    (func $data_pop (export "data_pop") (type $t4) (result i32)
-        (local $l0 i32)
-        i32.const 0
-        i32.const 0
-        i32.load offset=1028
-        i32.const -1
-        i32.add
-        tee_local $l0
-        i32.store offset=1028
-        get_local $l0
-        i32.const 1
-        i32.shl
-        i32.const 2048
-        i32.add
-        i32.load16_s)
-
-    (func $return_push (export "return_push") (type $t3) (param $p0 i32)
-        (local $l0 i32)
-        i32.const 0
-        i32.const 0
-        i32.load offset=1024
-        tee_local $l0
-        i32.const 1
-        i32.add
-        i32.store offset=1024
-        get_local $l0
-        i32.const 1
-        i32.shl
-        i32.const 4096
-        i32.add
-        get_local $p0
-        i32.store16)
-
-    (func $return_pop (export "return_pop") (type $t0)
-        (local $l0 i32)
-        i32.const 0
-        i32.const 0
-        i32.load offset=1024
-        i32.const -1
-        i32.add
-        tee_local $l0
-        i32.store offset=1024
-        get_local $l0
-        i32.const 1
-        i32.shl
-        i32.const 4096
-        i32.add
-        i32.load16_s
-        call $data_push)
-
-    (func $temp_store (export "temp_store") (type $t3) (param $p0 i32)
-        i32.const 0
-        get_local $p0
-        i32.store16 offset=1032)
-
-    (func $temp_load (export "temp_load") (type $t4) (result i32)
-        i32.const 0
-        i32.load16_s offset=1032)
-
-    (func $drop (export "drop") (type $t0)
-        i32.const 0
-        i32.const 0
-        i32.load offset=1028
-        i32.const -1
-        i32.add
-        i32.store offset=1028)
-
-    (func $add (export "add") (type $t0)
-        call $data_pop
-        call $data_pop
-        i32.add
-        i32.const 16
-        i32.shl
-        i32.const 16
-        i32.shr_s
-        call $data_push)
-
-    (func $multiply (export "multiply") (type $t0)
-        call $data_pop
-        call $data_pop
-        i32.mul
-        i32.const 16
-        i32.shl
-        i32.const 16
-        i32.shr_s
-        call $data_push)
-
-    (func $nand (export "nand") (type $t0)
-        call $data_pop
-        call $data_pop
-        i32.and
-        i32.const -1
-        i32.xor
-        call $data_push)
-
-    (func $fn_dup (type $t0)
-;; BranchTarget(0)
-
-;; StoreTemp
-    call $data_pop
-    call $temp_store
-
-;; LoadTemp
-    call $temp_load
-    call $data_push
-
-;; LoadTemp
-    call $temp_load
-    call $data_push
-
-;; Exit
-
-)
-
-(func $fn_invert (type $t0)
-;; BranchTarget(0)
-
-;; PushLiteral(-1)
-    i32.const -1
-    call $data_push
-
-;; Nand
-    call $nand
-
-;; Exit
-
-)
-
-(func $fn_negate (type $t0)
-;; BranchTarget(0)
-
-;; Call("invert")
-    i32.const 0
-    call $return_push
-    call $fn_invert
-    call $return_pop
-    call $drop
-
-;; PushLiteral(1)
-    i32.const 1
-    call $data_push
-
-;; Add
-    call $add
-
-;; Exit
-
-)
-
-(func $fn_$2D (type $t0)
-;; BranchTarget(0)
-
-;; Call("negate")
-    i32.const 0
-    call $return_push
-    call $fn_negate
-    call $return_pop
-    call $drop
-
-;; Add
-    call $add
-
-;; Exit
-
-)
-
-(func $fn_0$3D (type $t0)
-;; BranchTarget(0)
-
-;; JumpIf0(3)
-    block $B0
-    block $B1
-    call $data_pop
-    i32.eqz
-    br_if $B1
-
-;; PushLiteral(0)
-    i32.const 0
-    call $data_push
-
-;; PushLiteral(0)
-    i32.const 0
-    call $data_push
-
-;; JumpIf0(4)
-;;   (optimized as JumpAlways)
-    call $drop
-    br $B0
-    end
-    block $B2
-
-;; BranchTarget(3)
-
-;; PushLiteral(-1)
-    i32.const -1
-    call $data_push
-
-;; BranchTarget(4)
-    end
-    end
-
-;; Exit
-
-)
-
-(func $fn_$3D (type $t0)
-;; BranchTarget(0)
-
-;; Call("-")
-    i32.const 0
-    call $return_push
-    call $fn_$2D
-    call $return_pop
-    call $drop
-
-;; Call("0=")
-    i32.const 0
-    call $return_push
-    call $fn_0$3D
-    call $return_pop
-    call $drop
-
-;; Exit
-
-)
-
-(func $fn_main (type $t0)
-;; PushLiteral(6)
-    i32.const 6
-    call $data_push
-
-;; BranchTarget(0)
-    loop $L0
-
-;; Call("dup")
-    i32.const 0
-    call $return_push
-    call $fn_dup
-    call $return_pop
-    call $drop
-
-;; PushLiteral(6)
-    i32.const 6
-    call $data_push
-
-;; Call("=")
-    i32.const 0
-    call $return_push
-    call $fn_$3D
-    call $return_pop
-    call $drop
-
-;; JumpIf0(5)
-    block $B1
-    block $B2
-    call $data_pop
-    i32.eqz
-    br_if $B2
-
-;; PushLiteral(0)
-    i32.const 0
-    call $data_push
-
-;; Print
-    call $data_pop
-    call $print
-    drop
-
-;; PushLiteral(0)
-    i32.const 0
-    call $data_push
-
-;; JumpIf0(7)
-;;   (optimized as JumpAlways)
-    call $drop
-    br $B1
-    end
-    block $B3
-
-;; BranchTarget(5)
-
-;; PushLiteral(2)
-    i32.const 2
-    call $data_push
-
-;; Print
-    call $data_pop
-    call $print
-    drop
-
-;; PushLiteral(1)
-    i32.const 1
-    call $data_push
-
-;; JumpIf0(0)
-    call $data_pop
-    i32.eqz
-    br_if $B3
-    end
-
-;; BranchTarget(7)
-    end
-    end
-
-;; Exit
-
-)
-
-
-    (func $main (export "main") (type $t4) (result i32)
-        call $fn_main
-        i32.const 255)
-
-
-    (memory $memory (export "memory") 2))
+warning: variable does not need to be mutable
+   --> paxforth/src/parse/mod.rs:198:21
+    |
+198 |                 let mut group = BlockReference::new("<begin-leave>", None);
+    |                     ----^^^^^
+    |                     |
+    |                     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: 1 warning emitted
+
+    Finished dev [unoptimized + debuginfo] target(s) in 0.41s
+     Running `target/debug/paxforth dump paxforth/tests/check/case.fs`
+wtf: [BlockReference { label: "0=", from_block_index: Some(0), to_block_indices: [] }, BlockReference { label: "<else>", from_block_index: None, to_block_indices: [2] }]
+wtf: [BlockReference { label: "0<", from_block_index: Some(0), to_block_indices: [] }, BlockReference { label: "<else>", from_block_index: None, to_block_indices: [3] }]
+wtf: [BlockReference { label: "%", from_block_index: Some(0), to_block_indices: [] }, BlockReference { label: "<begin-leave>", from_block_index: None, to_block_indices: [] }, BlockReference { label: "<begin>", from_block_index: Some(1), to_block_indices: [] }, BlockReference { label: "<else>", from_block_index: None, to_block_indices: [8] }]
+( fn "dup" )
+    ( block 0 )
+        [target-0]                               \ src/prelude.rs:13:3 in `main`
+    ( block 1 )
+        temp!                                    \ src/prelude.rs:13:10 in `dup`
+        temp@                                    \ src/prelude.rs:13:16 in `dup`
+        temp@                                    \ src/prelude.rs:13:22 in `dup`
+        exit                                     \ src/prelude.rs:13:28 in `dup`
+
+
+( fn "invert" )
+    ( block 0 )
+        [target-0]                               \ src/prelude.rs:19:3 in `main`
+    ( block 1 )
+        -1                                       \ src/prelude.rs:19:12 in `invert`
+        nand                                     \ src/prelude.rs:19:15 in `invert`
+        exit                                     \ src/prelude.rs:19:20 in `invert`
+
+
+( fn "negate" )
+    ( block 0 )
+        [target-0]                               \ src/prelude.rs:20:3 in `main`
+    ( block 1 )
+        call "invert"                            \ src/prelude.rs:20:12 in `negate`
+    ( block 2 )
+        1                                        \ src/prelude.rs:20:19 in `negate`
+        +                                        \ src/prelude.rs:20:21 in `negate`
+        exit                                     \ src/prelude.rs:20:23 in `negate`
+
+
+( fn "-" )
+    ( block 0 )
+        [target-0]                               \ src/prelude.rs:21:3 in `main`
+    ( block 1 )
+        call "negate"                            \ src/prelude.rs:21:12 in `-`
+    ( block 2 )
+        +                                        \ src/prelude.rs:21:19 in `-`
+        exit                                     \ src/prelude.rs:21:21 in `-`
+
+
+( fn "0=" )
+    ( block 0 )
+        [target-0]                               \ src/prelude.rs:26:3 in `main`
+    ( block 1 )
+        branch0 [target-3]                       \ src/prelude.rs:26:8 in `0=`
+    ( block 2 )
+        0                                        \ src/prelude.rs:26:11 in `0=`
+        0                                        \ src/prelude.rs:26:13 in `0=`
+        branch0 [target-4]                       \ src/prelude.rs:26:13 in `0=`
+    ( block 3 )
+        [target-3]                               \ src/prelude.rs:26:13 in `0=`
+    ( block 4 )
+        -1                                       \ src/prelude.rs:26:18 in `0=`
+        [target-4]                               \ src/prelude.rs:26:21 in `0=`
+    ( block 5 )
+        exit                                     \ src/prelude.rs:26:26 in `0=`
+
+
+( fn "=" )
+    ( block 0 )
+        [target-0]                               \ src/prelude.rs:27:3 in `main`
+    ( block 1 )
+        call "-"                                 \ src/prelude.rs:27:8 in `=`
+    ( block 2 )
+        call "0="                                \ src/prelude.rs:27:10 in `=`
+    ( block 3 )
+        exit                                     \ src/prelude.rs:27:13 in `=`
+
+
+( fn "main" )
+    ( block 0 )
+        7                                        \ paxforth/tests/check/case.fs:3:1 in `main`
+        call "dup"                               \ paxforth/tests/check/case.fs:3:3 in `main`
+    ( block 1 )
+        6                                        \ paxforth/tests/check/case.fs:4:5 in `main`
+        call "="                                 \ paxforth/tests/check/case.fs:4:7 in `main`
+    ( block 2 )
+        branch0 [target-3]                       \ paxforth/tests/check/case.fs:4:7 in `main`
+    ( block 3 )
+        0                                        \ paxforth/tests/check/case.fs:4:10 in `main`
+        print                                    \ paxforth/tests/check/case.fs:4:12 in `main`
+        [target-3]                               \ paxforth/tests/check/case.fs:4:18 in `main`
+    ( block 4 )
+        0                                        \ paxforth/tests/check/case.fs:4:18 in `main`
+        branch0 [target-13]                      \ paxforth/tests/check/case.fs:4:18 in `main`
+    ( block 5 )
+        7                                        \ paxforth/tests/check/case.fs:5:5 in `main`
+        call "="                                 \ paxforth/tests/check/case.fs:5:7 in `main`
+    ( block 6 )
+        branch0 [target-7]                       \ paxforth/tests/check/case.fs:5:7 in `main`
+    ( block 7 )
+        1                                        \ paxforth/tests/check/case.fs:5:10 in `main`
+        print                                    \ paxforth/tests/check/case.fs:5:12 in `main`
+        [target-7]                               \ paxforth/tests/check/case.fs:5:18 in `main`
+    ( block 8 )
+        0                                        \ paxforth/tests/check/case.fs:5:18 in `main`
+        branch0 [target-13]                      \ paxforth/tests/check/case.fs:5:18 in `main`
+    ( block 9 )
+        8                                        \ paxforth/tests/check/case.fs:6:5 in `main`
+        call "="                                 \ paxforth/tests/check/case.fs:6:7 in `main`
+    ( block 10 )
+        branch0 [target-11]                      \ paxforth/tests/check/case.fs:6:7 in `main`
+    ( block 11 )
+        2                                        \ paxforth/tests/check/case.fs:6:10 in `main`
+        print                                    \ paxforth/tests/check/case.fs:6:12 in `main`
+        [target-11]                              \ paxforth/tests/check/case.fs:6:18 in `main`
+    ( block 12 )
+        0                                        \ paxforth/tests/check/case.fs:6:18 in `main`
+        branch0 [target-13]                      \ paxforth/tests/check/case.fs:6:18 in `main`
+    ( block 13 )
+        3                                        \ paxforth/tests/check/case.fs:7:17 in `main`
+        print                                    \ paxforth/tests/check/case.fs:7:19 in `main`
+        [target-13]                              \ paxforth/tests/check/case.fs:8:1 in `main`
+    ( block 14 )
+        exit                                     \ :0:0 in ``
 
 

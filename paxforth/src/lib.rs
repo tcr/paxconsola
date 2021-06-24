@@ -58,8 +58,8 @@ pub fn dump_blocks(blocks: &[Block]) {
 
 pub fn dump_program(source_program: &PaxProgram) {
     for (name, code) in source_program {
-        println!("( fn \"{}\" )", name);
+        eprintln!("( fn \"{}\" )", name);
         dump_blocks(&code);
-        println!();
+        eprintln!();
     }
 }
