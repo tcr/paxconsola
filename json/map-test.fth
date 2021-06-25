@@ -128,20 +128,21 @@ variable HEAP_BASE
         r@
     else
         2dup r@ map-key 2@ compare case
-            -1 of r@ map-left @ recurse r@ map-left ! r@ endof
-            1 of r@ map-right @ recurse r@ map-right ! r@ endof
+            -1 of r@ map-left @ map-set r@ map-left ! r@ endof
+            1 of r@ map-right @ map-set r@ map-right ! r@ endof
             2drop r@ map-data ! r@ swap
         endcase
     then
-    r> drop ;
+    r> drop
+    ;
 
 : map-find ( key-addr key-u map -- map )
     dup >r
     0= if 0
     else
         2dup r@ map-key 2@ compare case
-            -1 of r@ map-left @ recurse endof
-            1 of r@ map-right @ recurse endof
+            -1 of r@ map-left @ map-find endof
+            1 of r@ map-right @ map-find endof
             2drop r@ swap
         endcase
     then
@@ -157,62 +158,7 @@ variable HEAP_BASE
 \     dup map-data @ over map-key 2@ 4 pick execute
 \     map-right @ ?dup-if recurse else drop endif ;
 
+variable map_store
+32 cells allot
 
-: compare ( c-addr1 u1 c-addr2 u2 -- n )
-    begin
-        rot
-        2dup
-        or 0= if
-            drop drop drop drop 0
-            1
-        else
-            dup 0= if drop drop drop drop -1
-            1
-            else
-                over 0= if drop drop drop drop 1
-                1
-                else                    ( c-addr1 c-addr2 u2 u1 )
-                    >r >r               ( c-addr1 c-addr2 )
-                    2dup @ swap @       ( c-addr1 c-addr2 c2 c1 )
-                    -                   ( c-addr1 c-addr2 [c2 - c1] )
-                    dup 0< if
-                        \ less than 1
-                        drop
-                        r> r>
-                        drop drop drop drop
-                        1
-                        1
-                    else if
-                            \ more than 1
-                            r> r>
-                            drop drop drop drop
-                            -1
-                            1
-                        else
-                            \ loop
-                            1+ swap 1+ swap
-                            r> 1- r> 1-
-                            rot rot
-                            0
-                        then
-                    then
-                then
-            then
-        then
-    until
-    ;
-
-
-\ map% %alloc drop
-
-\ dup 5 swap map-key + !
-\ dup map-key + @ print
-
-variable mymap
-map% %alloc drop mymap !
-
-42 s" a" mymap
-\ 50 s" b" mymap @ map-set
-\ 99 s" c" mymap @ map-set
-
-\ s" a" mymap @ map-get print print
+map% %alloc drop
