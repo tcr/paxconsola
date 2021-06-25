@@ -91,7 +91,7 @@ variable HEAP_BASE
     rot over pick3 cells move \ u addr2
     swap ;
 
-4 buf-new 1 over buf-append 2 over buf-append buf-count print
+\ 4 buf-new 1 over buf-append 2 over buf-append buf-count print
 
 
 
@@ -118,10 +118,6 @@ variable HEAP_BASE
 
 : %alloc ( align size -- addr ) swap drop allocate ;
 
-map% %alloc drop
-
-dup 5 swap map-key + !
-dup map-key + @ print
 
 : map-set ( value key-addr key-u map1 -- map2 )
     dup >r
@@ -160,3 +156,63 @@ dup map-key + @ print
 \     dup map-left @ ?dup-if 2 pick swap recurse endif
 \     dup map-data @ over map-key 2@ 4 pick execute
 \     map-right @ ?dup-if recurse else drop endif ;
+
+
+: compare ( c-addr1 u1 c-addr2 u2 -- n )
+    begin
+        rot
+        2dup
+        or 0= if
+            drop drop drop drop 0
+            1
+        else
+            dup 0= if drop drop drop drop -1
+            1
+            else
+                over 0= if drop drop drop drop 1
+                1
+                else                    ( c-addr1 c-addr2 u2 u1 )
+                    >r >r               ( c-addr1 c-addr2 )
+                    2dup @ swap @       ( c-addr1 c-addr2 c2 c1 )
+                    -                   ( c-addr1 c-addr2 [c2 - c1] )
+                    dup 0< if
+                        \ less than 1
+                        drop
+                        r> r>
+                        drop drop drop drop
+                        1
+                        1
+                    else if
+                            \ more than 1
+                            r> r>
+                            drop drop drop drop
+                            -1
+                            1
+                        else
+                            \ loop
+                            1+ swap 1+ swap
+                            r> 1- r> 1-
+                            rot rot
+                            0
+                        then
+                    then
+                then
+            then
+        then
+    until
+    ;
+
+
+\ map% %alloc drop
+
+\ dup 5 swap map-key + !
+\ dup map-key + @ print
+
+variable mymap
+map% %alloc drop mymap !
+
+42 s" a" mymap
+\ 50 s" b" mymap @ map-set
+\ 99 s" c" mymap @ map-set
+
+\ s" a" mymap @ map-get print print
