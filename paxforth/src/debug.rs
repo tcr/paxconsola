@@ -1,6 +1,14 @@
 use crate::*;
 use lazy_static::*;
 use regex::Regex;
+use std::io::{stdout, Write};
+
+use crossterm::event::{read, Event};
+use crossterm::{
+    cursor, event, execute,
+    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
+    ExecutableCommand, Result,
+};
 
 use crate::targets::wasm::*;
 
@@ -28,10 +36,69 @@ impl VM {
     }
 }
 
+fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
+    let preview_size = 10;
+
+    println!("-------------------");
+    if pos.line < 2 {
+        println!()
+    } else {
+        println!(
+            "{:>5} | {}",
+            pos.line - 2,
+            code.lines().skip(pos.line - 2).next().unwrap_or("")
+        );
+    }
+    if pos.line < 1 {
+        println!();
+    } else {
+        println!(
+            "{:>5} | {}",
+            pos.line - 1,
+            code.lines().skip(pos.line - 1).next().unwrap_or("")
+        );
+    }
+    println!("{:>1$}", "^", pos.col + 8);
+    println!("{:>5} | {}", pos.line, code.lines().next().unwrap());
+    println!(
+        "{:>5} | {}",
+        pos.line + 2,
+        code.lines().skip(pos.line + 2).next().unwrap_or("")
+    );
+    println!();
+    println!("   data: {:?}", vm._data);
+    println!("    alt: {:?}", vm._alt);
+
+    loop {
+        match read()? {
+            Event::Key(event::KeyEvent {
+                code: event::KeyCode::Enter,
+                ..
+            }) => {
+                break;
+            }
+            _ => {}
+        }
+    }
+
+    execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
+    for _ in 0..preview_size {
+        eprintln!(
+            "                                                                                "
+        );
+    }
+    execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
+    execute!(stdout(), cursor::MoveToColumn(0),)?;
+
+    Ok(())
+}
+
 fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str, vm: &mut VM) {
     let blocks = source_program
         .get(method)
         .expect(&format!("Expected class {:?}", method));
+
+    println!("    fn {:?}:", method);
 
     let mut i = 0;
     while i < blocks.len() {
@@ -39,7 +106,8 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
         i += 1;
 
         for command in block.opcodes() {
-            // eprintln!("        [{}] {:?}", method, command.0);
+            println!("        . {:?}", command.0);
+            print_source(code, vm, command.1.clone());
             match &command.0 {
                 Pax::Abort => {
                     unimplemented!("abort")
@@ -99,9 +167,11 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
             }
         }
         {
-            // eprintln!("               {:?}", block.terminator().0);
-            match &block.terminator().0 {
-                PaxTerm::BranchTarget(n) => {}
+            let terminator = block.terminator();
+            println!("        ! {:?}", terminator.0);
+            print_source(code, vm, terminator.1.clone());
+            match &terminator.0 {
+                PaxTerm::BranchTarget(_n) => {}
                 PaxTerm::Call(f) => {
                     vm.alt_push(0);
                     vm.alt_push(0);
@@ -133,6 +203,12 @@ pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
         memory: vec![0; 65536],
     };
 
+    println!();
+    println!();
+    println!();
+    println!();
+    println!();
+    println!();
     debug_program_function(code, source_program, "main", &mut vm);
     true
 
