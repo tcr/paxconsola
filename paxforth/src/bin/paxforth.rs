@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 use crate::check::*;
+use crate::debug::*;
 use crate::targets::c64::*;
 use crate::targets::gb::*;
 use crate::targets::tom1::*;
@@ -48,6 +49,11 @@ enum Command {
         #[structopt(flatten)]
         file: FileOpts,
     },
+
+    Debug {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
 }
 
 #[derive(StructOpt, Debug)]
@@ -69,7 +75,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Dump { file, .. } |
         Command::Check { file, .. } |
         Command::Run { file, .. } |
-        Command::Inlineup { file, .. } => file,
+        Command::Inlineup { file, .. } |
+        Command::Debug { file, .. } => file,
     };
 
     // Extract inline
@@ -131,6 +138,12 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Run { .. } => {
             let wasm = WasmForthCompiler::compile_binary(&source_program);
             run_wasm(&wasm, false).expect("run_wasm failed");
+        }
+
+        Command::Debug { .. } => {
+            if !debug_program(&code, &source_program) {
+                std::process::exit(1);
+            }
         }
 
         Command::Inlineup { .. } => {
