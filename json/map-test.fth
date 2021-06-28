@@ -65,7 +65,8 @@ variable HEAP_BASE
     ;
 
 ( move should check that u is not negative )
-: move ( addr1 addr2 u -- : copy u words of memory from 'addr2' to 'addr1' )
+: move ( addr1 addr2 u -- : copy u words of memory from 'addr1' to 'addr2' )
+    >r swap r>
 	0 do
 		2dup i + @ swap i + !
 	loop
@@ -121,7 +122,7 @@ variable HEAP_BASE
     dup cell+ dup @ 1+ swap ! ;
 
 : pick3
-    rot dup temp! rot rot temp@
+    >r >r >r dup temp! r> r> r> temp@
     ;
 
 : strdup ( c-addr1 u -- c-addr2 u )
@@ -171,8 +172,8 @@ variable HEAP_BASE
         r@
     else
         2dup r@ map-key 2@ compare case
-            -1 of r@ map-left @ map-set r@ map-left ! r@ swap endof
-            1 of r@ map-right @ map-set r@ map-right ! r@ swap endof
+            -1 of r@ map-left @ map-set r@ map-left ! r@ endof
+            1 of r@ map-right @ map-set r@ map-right ! r@ endof
             2drop r@ map-data ! r@ swap
         endcase
     then
@@ -181,15 +182,14 @@ variable HEAP_BASE
 
 : map-find ( key-addr key-u map -- map )
     dup >r
-    0= if 0 r> drop
+    0= if 2drop 0 r> drop
     else
         2dup r@ map-key 2@ compare case
             -1 of r@ map-left @ map-find endof
             1 of r@ map-right @ map-find endof
             2drop r@ swap
         endcase
-        2drop \ TODO confirm this?
-        r>
+        r> drop
     then
     ;
 
@@ -205,6 +205,8 @@ variable HEAP_BASE
 
 variable map_loc
 
-5 s" test" map_loc @ abort map-set map_loc !
+5 s" test" map_loc @ map-set map_loc !
 44 s" a" map_loc @ map-set map_loc !
 s" test" map_loc @ map-get print print
+s" TEST" map_loc @ map-get print print
+s" a" map_loc @ map-get print print

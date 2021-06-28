@@ -63,96 +63,104 @@ pub fn read_line() -> Result<String> {
 }
 
 fn print_source(
+    mut message: Option<String>,
     code: &str,
     vm: &VM,
     pos: Pos,
     debug_state: &mut DebugMode,
 ) -> crossterm::Result<()> {
-    let preview_size = 12;
+    while let Some(msg) = message.take() {
+        println!("{}", msg);
 
-    let mut source_code = code.to_string();
-    if pos.filename == "src/prelude.rs" {
-        source_code = PRELUDE.to_string();
-    }
+        let preview_size = 12;
 
-    println!();
-    println!("-----------------------------------------------------------");
-    println!(" [{}] from {:?}", pos.function, pos.filename);
-    if pos.line < 2 {
-        println!()
-    } else {
-        println!(
-            "{:>5} | {}",
-            pos.line - 2,
-            source_code.lines().skip(pos.line - 3).next().unwrap_or("")
-        );
-    }
-    if pos.line < 1 {
+        let mut source_code = code.to_string();
+        if pos.filename == "src/prelude.rs" {
+            source_code = PRELUDE.to_string();
+        }
+
         println!();
-    } else {
+        println!("-----------------------------------------------------------");
+        println!(" [{}] from {:?}", pos.function, pos.filename);
+        if pos.line < 2 {
+            println!()
+        } else {
+            println!(
+                "{:>5} | {}",
+                pos.line - 2,
+                source_code.lines().skip(pos.line - 3).next().unwrap_or("")
+            );
+        }
+        if pos.line < 1 {
+            println!();
+        } else {
+            println!(
+                "{:>5} | {}",
+                pos.line - 1,
+                source_code.lines().skip(pos.line - 2).next().unwrap_or(""),
+            );
+        }
+
+        // Current line
+        {
+            let re = Regex::new(r#"^(."[^"]+"|\S+)"#).unwrap();
+
+            let line = source_code.lines().skip(pos.line - 1).next().unwrap_or("");
+            let prefix = line.chars().take(pos.col - 1).collect::<String>();
+            let rest = line.chars().skip(pos.col - 1).collect::<String>();
+            let highlight = re
+                .find(&rest)
+                .map(|x| x.as_str().to_string())
+                .unwrap_or_else(|| rest.chars().take(1).collect::<String>());
+            let suffix = rest.chars().skip(highlight.len()).collect::<String>();
+            println!(
+                ">{:>4} | {}{}{}",
+                pos.line,
+                prefix,
+                highlight.with(Color::White).on(Color::DarkBlue),
+                suffix,
+            );
+        }
+        // println!("{:>1$}", "^", pos.col + 8);
+
         println!(
             "{:>5} | {}",
-            pos.line - 1,
-            source_code.lines().skip(pos.line - 2).next().unwrap_or(""),
+            pos.line + 1,
+            source_code.lines().skip(pos.line + 0).next().unwrap_or("")
         );
-    }
+        println!();
+        println!("   data: {:?}", vm._data);
+        println!("    alt: {:?}", vm._alt);
+        println!();
+        print!("debugger> (c)ontinue, (s)tep, i(n)to: ");
+        stdout().flush();
 
-    // Current line
-    {
-        let re = Regex::new(r#"^(."[^"]+"|\S+)"#).unwrap();
-
-        let line = source_code.lines().skip(pos.line - 1).next().unwrap_or("");
-        let prefix = line.chars().take(pos.col - 1).collect::<String>();
-        let rest = line.chars().skip(pos.col - 1).collect::<String>();
-        let highlight = re
-            .find(&rest)
-            .map(|x| x.as_str().to_string())
-            .unwrap_or_else(|| rest.chars().take(1).collect::<String>());
-        let suffix = rest.chars().skip(highlight.len()).collect::<String>();
-        println!(
-            ">{:>4} | {}{}{}",
-            pos.line,
-            prefix,
-            highlight.with(Color::White).on(Color::DarkBlue),
-            suffix,
-        );
-    }
-    // println!("{:>1$}", "^", pos.col + 8);
-
-    println!(
-        "{:>5} | {}",
-        pos.line + 1,
-        source_code.lines().skip(pos.line + 0).next().unwrap_or("")
-    );
-    println!();
-    println!("   data: {:?}", vm._data);
-    println!("    alt: {:?}", vm._alt);
-    println!();
-    print!("debugger> (c)ontinue, (s)tep, i(n)to: ");
-    stdout().flush();
-
-    // Poll for input.
-    if *debug_state != DebugMode::Continue {
-        let input = read_line().unwrap();
-        if input == "s" {
-            *debug_state = DebugMode::Step;
+        // Poll for input.
+        if *debug_state != DebugMode::Continue {
+            let input = read_line().unwrap();
+            if input == "s" {
+                *debug_state = DebugMode::Step;
+            }
+            if input == "c" {
+                *debug_state = DebugMode::Continue;
+            }
+            if input == "n" {
+                *debug_state = DebugMode::Into;
+            }
+            if let Ok(mem) = input.parse::<usize>() {
+                message = Some(format!("[memory] {} = {}", mem, vm.memory[mem]));
+            }
         }
-        if input == "c" {
-            *debug_state = DebugMode::Continue;
-        }
-        if input == "n" {
-            *debug_state = DebugMode::Into;
-        }
-    }
 
-    execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
-    for _ in 0..preview_size {
-        eprintln!(
-            "                                                                                "
-        );
+        execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
+        for _ in 0..preview_size {
+            eprintln!(
+                "                                                                                "
+            );
+        }
+        execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
+        execute!(stdout(), cursor::MoveToColumn(0),)?;
     }
-    execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
-    execute!(stdout(), cursor::MoveToColumn(0),)?;
 
     Ok(())
 }
@@ -181,8 +189,13 @@ fn debug_program_function(
 
         for command in block.opcodes() {
             if debug {
-                println!("        . {:?}", command.0);
-                print_source(code, vm, command.1.clone(), debug_mode);
+                print_source(
+                    Some(format!("        . {:?}", command.0)),
+                    code,
+                    vm,
+                    command.1.clone(),
+                    debug_mode,
+                );
             }
             match &command.0 {
                 Pax::Abort => {
@@ -251,8 +264,13 @@ fn debug_program_function(
         {
             let terminator = block.terminator();
             if debug {
-                println!("        ! {:?}", terminator.0);
-                print_source(code, vm, terminator.1.clone(), debug_mode);
+                print_source(
+                    Some(format!("        ! {:?}", terminator.0)),
+                    code,
+                    vm,
+                    terminator.1.clone(),
+                    debug_mode,
+                );
             }
             match &terminator.0 {
                 PaxTerm::BranchTarget(_n) => {}
