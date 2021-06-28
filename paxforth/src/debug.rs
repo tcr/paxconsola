@@ -1,9 +1,11 @@
+use crate::prelude::*;
 use crate::*;
 use lazy_static::*;
 use regex::Regex;
 use std::io::{stdout, Write};
 
 use crossterm::event::{read, Event};
+use crossterm::style::{style, Attribute, Stylize};
 use crossterm::{
     cursor, event, execute,
     style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
@@ -37,16 +39,23 @@ impl VM {
 }
 
 fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
-    let preview_size = 10;
+    let preview_size = 11;
 
-    println!("-------------------");
+    let mut source_code = code.to_string();
+    if pos.filename == "src/prelude.rs" {
+        source_code = PRELUDE.to_string();
+    }
+
+    println!();
+    println!("-----------------------------------------------------------");
+    println!(" [{}] from {:?}", pos.function, pos.filename);
     if pos.line < 2 {
         println!()
     } else {
         println!(
             "{:>5} | {}",
             pos.line - 2,
-            code.lines().skip(pos.line - 2).next().unwrap_or("")
+            source_code.lines().skip(pos.line - 3).next().unwrap_or("")
         );
     }
     if pos.line < 1 {
@@ -55,15 +64,36 @@ fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
         println!(
             "{:>5} | {}",
             pos.line - 1,
-            code.lines().skip(pos.line - 1).next().unwrap_or("")
+            source_code.lines().skip(pos.line - 2).next().unwrap_or(""),
         );
     }
-    println!("{:>1$}", "^", pos.col + 8);
-    println!("{:>5} | {}", pos.line, code.lines().next().unwrap());
+
+    // Current line
+    {
+        let re = Regex::new(r#"^(\S+)("[^"]+")?"#).unwrap();
+
+        let line = source_code.lines().skip(pos.line - 1).next().unwrap_or("");
+        let prefix = line.chars().take(pos.col - 1).collect::<String>();
+        let rest = line.chars().skip(pos.col - 1).collect::<String>();
+        let highlight = re
+            .find(&rest)
+            .map(|x| x.as_str().to_string())
+            .unwrap_or_else(|| rest.chars().take(1).collect::<String>());
+        let suffix = rest.chars().skip(highlight.len()).collect::<String>();
+        println!(
+            ">{:>4} | {}{}{}",
+            pos.line,
+            prefix,
+            highlight.with(Color::White).on(Color::DarkBlue),
+            suffix,
+        );
+    }
+    // println!("{:>1$}", "^", pos.col + 8);
+
     println!(
         "{:>5} | {}",
-        pos.line + 2,
-        code.lines().skip(pos.line + 2).next().unwrap_or("")
+        pos.line + 1,
+        source_code.lines().skip(pos.line + 0).next().unwrap_or("")
     );
     println!();
     println!("   data: {:?}", vm._data);
@@ -98,7 +128,11 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
         .get(method)
         .expect(&format!("Expected class {:?}", method));
 
-    println!("    fn {:?}:", method);
+    let debug = false;
+
+    if debug {
+        println!("    fn {:?}:", method);
+    }
 
     let mut i = 0;
     while i < blocks.len() {
@@ -106,8 +140,9 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
         i += 1;
 
         for command in block.opcodes() {
-            println!("        . {:?}", command.0);
-            print_source(code, vm, command.1.clone());
+            if debug {
+                println!("        . {:?}", command.0);
+            }
             match &command.0 {
                 Pax::Abort => {
                     unimplemented!("abort")
@@ -165,18 +200,20 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
                     vm.memory[0] = vm.data_pop();
                 }
             }
+            if debug {
+                print_source(code, vm, command.1.clone());
+            }
         }
         {
             let terminator = block.terminator();
-            println!("        ! {:?}", terminator.0);
-            print_source(code, vm, terminator.1.clone());
+            if debug {
+                println!("        ! {:?}", terminator.0);
+            }
             match &terminator.0 {
                 PaxTerm::BranchTarget(_n) => {}
                 PaxTerm::Call(f) => {
                     vm.alt_push(0);
-                    vm.alt_push(0);
                     debug_program_function(code, source_program, f, vm);
-                    vm.alt_pop();
                     vm.alt_pop();
                 }
                 PaxTerm::Exit => {
@@ -191,6 +228,9 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
                         i = *n + 1;
                     }
                 }
+            }
+            if debug {
+                print_source(code, vm, terminator.1.clone());
             }
         }
     }
