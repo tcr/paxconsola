@@ -4,7 +4,7 @@ use lazy_static::*;
 use regex::Regex;
 use std::io::{stdout, Write};
 
-use crossterm::event::{read, Event};
+use crossterm::event::{read, Event, KeyCode, KeyEvent};
 use crossterm::style::{style, Attribute, Stylize};
 use crossterm::{
     cursor, event, execute,
@@ -38,8 +38,37 @@ impl VM {
     }
 }
 
-fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
-    let preview_size = 11;
+#[derive(PartialEq)]
+enum DebugMode {
+    Continue,
+    Into,
+    Step,
+}
+
+pub fn read_line() -> Result<String> {
+    let mut line = String::new();
+    while let Event::Key(KeyEvent { code, .. }) = event::read()? {
+        match code {
+            KeyCode::Enter => {
+                break;
+            }
+            KeyCode::Char(c) => {
+                line.push(c);
+            }
+            _ => {}
+        }
+    }
+
+    Ok(line)
+}
+
+fn print_source(
+    code: &str,
+    vm: &VM,
+    pos: Pos,
+    debug_state: &mut DebugMode,
+) -> crossterm::Result<()> {
+    let preview_size = 12;
 
     let mut source_code = code.to_string();
     if pos.filename == "src/prelude.rs" {
@@ -70,7 +99,7 @@ fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
 
     // Current line
     {
-        let re = Regex::new(r#"^(\S+)("[^"]+")?"#).unwrap();
+        let re = Regex::new(r#"^(."[^"]+"|\S+)"#).unwrap();
 
         let line = source_code.lines().skip(pos.line - 1).next().unwrap_or("");
         let prefix = line.chars().take(pos.col - 1).collect::<String>();
@@ -98,16 +127,21 @@ fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
     println!();
     println!("   data: {:?}", vm._data);
     println!("    alt: {:?}", vm._alt);
+    println!();
+    print!("debugger> (c)ontinue, (s)tep, i(n)to: ");
+    stdout().flush();
 
-    loop {
-        match read()? {
-            Event::Key(event::KeyEvent {
-                code: event::KeyCode::Enter,
-                ..
-            }) => {
-                break;
-            }
-            _ => {}
+    // Poll for input.
+    if *debug_state != DebugMode::Continue {
+        let input = read_line().unwrap();
+        if input == "s" {
+            *debug_state = DebugMode::Step;
+        }
+        if input == "c" {
+            *debug_state = DebugMode::Continue;
+        }
+        if input == "n" {
+            *debug_state = DebugMode::Into;
         }
     }
 
@@ -123,12 +157,18 @@ fn print_source(code: &str, vm: &VM, pos: Pos) -> crossterm::Result<()> {
     Ok(())
 }
 
-fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str, vm: &mut VM) {
+fn debug_program_function(
+    code: &str,
+    source_program: &PaxProgram,
+    method: &str,
+    vm: &mut VM,
+    debug_mode: &mut DebugMode,
+) {
     let blocks = source_program
         .get(method)
         .expect(&format!("Expected class {:?}", method));
 
-    let debug = false;
+    let debug = *debug_mode != DebugMode::Continue;
 
     if debug {
         println!("    fn {:?}:", method);
@@ -201,7 +241,7 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
                 }
             }
             if debug {
-                print_source(code, vm, command.1.clone());
+                print_source(code, vm, command.1.clone(), debug_mode);
             }
         }
         {
@@ -213,7 +253,13 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
                 PaxTerm::BranchTarget(_n) => {}
                 PaxTerm::Call(f) => {
                     vm.alt_push(0);
-                    debug_program_function(code, source_program, f, vm);
+                    if *debug_mode == DebugMode::Step {
+                        *debug_mode = DebugMode::Continue;
+                        debug_program_function(code, source_program, f, vm, debug_mode);
+                        *debug_mode = DebugMode::Step;
+                    } else {
+                        debug_program_function(code, source_program, f, vm, debug_mode);
+                    }
                     vm.alt_pop();
                 }
                 PaxTerm::Exit => {
@@ -230,7 +276,7 @@ fn debug_program_function(code: &str, source_program: &PaxProgram, method: &str,
                 }
             }
             if debug {
-                print_source(code, vm, terminator.1.clone());
+                print_source(code, vm, terminator.1.clone(), debug_mode);
             }
         }
     }
@@ -243,13 +289,15 @@ pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
         memory: vec![0; 65536],
     };
 
+    let mut debug_mode = DebugMode::Into;
+
     println!();
     println!();
     println!();
     println!();
     println!();
     println!();
-    debug_program_function(code, source_program, "main", &mut vm);
+    debug_program_function(code, source_program, "main", &mut vm, &mut debug_mode);
     true
 
     // // Parse output from "print" statements.

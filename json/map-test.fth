@@ -109,10 +109,10 @@ variable HEAP_BASE
     end-struct map%
 )
 
-0 constant map-key
-2 constant map-data
-3 constant map-left
-4 constant map-right
+: map-key 0 + ;
+: map-data 2 + ;
+: map-left 3 + ;
+: map-right 4 + ;
 
 : map% ( -- align size ) 8 5 ;
 
@@ -158,7 +158,11 @@ variable HEAP_BASE
 \     dup map-data @ over map-key 2@ 4 pick execute
 \     map-right @ ?dup-if recurse else drop endif ;
 
-variable map_store
-32 cells allot
+variable map_loc
 
 map% %alloc drop
+map_loc !
+
+5 s" test" map_loc @ map-set map_loc !
+44 s" a" map_loc @ map-set map_loc !
+s" test" map_loc @ map-get print print

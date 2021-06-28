@@ -31,10 +31,11 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
     fn push_tokens<I: Iterator<Item = Located<Token>>>(
         parser: &mut put_back::PutBackN<I>,
+        pos: &Pos,
         tokens: &[Token],
     ) {
         for token in tokens.iter().rev() {
-            parser.put_back((token.to_owned(), Default::default()));
+            parser.put_back((token.to_owned(), pos.clone()));
         }
     }
 
@@ -123,11 +124,12 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 let s = snailquote::unescape(&format!("\"{}\"", raw_str)).unwrap();
 
                 if word == ".\"" {
-                    push_tokens(&mut parser_iter, &[Token::Word("type".to_string())]);
+                    push_tokens(&mut parser_iter, &pos, &[Token::Word("type".to_string())]);
                 }
 
                 push_tokens(
                     &mut parser_iter,
+                    &pos,
                     &[
                         Token::Literal(str_offset as isize),
                         Token::Literal(s.chars().count() as isize),
@@ -137,6 +139,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 for c in s.chars() {
                     push_tokens(
                         &mut parser_iter,
+                        &pos,
                         &[
                             Token::Literal(c as isize),
                             Token::Literal(variable_offset as isize),
@@ -183,6 +186,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                             program.current().current_block.pop(); // "cells"
                             program.current().current_block.pop(); // value
                             variable_offset += (*cells as usize) * 2;
+                            program.current().op(&(Pax::Drop, pos)); // value
                         }
                     }
                 } else {
@@ -265,9 +269,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         break;
                     }
                 }
-                program
-                    .current()
-                    .op(&(Pax::PushLiteral(0), Default::default()));
+                program.current().op(&(Pax::PushLiteral(0), pos.clone()));
                 program.current().jump_if_0(&mut queue[0], pos.clone());
                 for group in queue.into_iter() {
                     block_refs.push(group);
@@ -276,11 +278,12 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
             // case .. of .. endof .. endcase
             "case" => {
-                push_tokens(&mut parser_iter, &[Token::Word("begin".to_string())]);
+                push_tokens(&mut parser_iter, &pos, &[Token::Word("begin".to_string())]);
             }
             "endcase" => {
                 push_tokens(
                     &mut parser_iter,
+                    &pos,
                     &[
                         Token::Literal(1),
                         Token::Word("until".to_string()),
@@ -291,6 +294,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "endof" => {
                 push_tokens(
                     &mut parser_iter,
+                    &pos,
                     &[
                         Token::Word("leave".to_string()),
                         Token::Word("then".to_string()),
@@ -300,6 +304,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "of" => {
                 push_tokens(
                     &mut parser_iter,
+                    &pos,
                     &[
                         Token::Word("over".to_string()),
                         Token::Word("=".to_string()),
