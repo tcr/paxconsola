@@ -182,6 +182,7 @@ fn debug_program_function(
         for command in block.opcodes() {
             if debug {
                 println!("        . {:?}", command.0);
+                print_source(code, vm, command.1.clone(), debug_mode);
             }
             match &command.0 {
                 Pax::Abort => {
@@ -246,14 +247,12 @@ fn debug_program_function(
                     vm.memory[0] = vm.data_pop();
                 }
             }
-            if debug {
-                print_source(code, vm, command.1.clone(), debug_mode);
-            }
         }
         {
             let terminator = block.terminator();
             if debug {
                 println!("        ! {:?}", terminator.0);
+                print_source(code, vm, terminator.1.clone(), debug_mode);
             }
             match &terminator.0 {
                 PaxTerm::BranchTarget(_n) => {}
@@ -280,9 +279,6 @@ fn debug_program_function(
                         i = *n + 1;
                     }
                 }
-            }
-            if debug {
-                print_source(code, vm, terminator.1.clone(), debug_mode);
             }
         }
     }
