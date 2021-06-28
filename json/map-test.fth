@@ -116,7 +116,7 @@ variable HEAP_BASE
 
 : map% ( -- align size ) 8 5 ;
 
-: %alloc ( align size -- addr ) swap drop allocate ;
+: %alloc ( align size -- addr ) swap drop allocate throw ;
 
 
 : map-set ( value key-addr key-u map1 -- map2 )
@@ -128,8 +128,8 @@ variable HEAP_BASE
         r@
     else
         2dup r@ map-key 2@ compare case
-            -1 of r@ map-left @ map-set r@ map-left ! r@ endof
-            1 of r@ map-right @ map-set r@ map-right ! r@ endof
+            -1 of r@ map-left @ map-set r@ map-left ! r@ swap endof
+            1 of r@ map-right @ map-set r@ map-right ! r@ swap endof
             2drop r@ map-data ! r@ swap
         endcase
     then
@@ -146,7 +146,8 @@ variable HEAP_BASE
             2drop r@ swap
         endcase
     then
-    r> drop ;
+    2drop r>
+    ;
 
 : map-get ( key-addr key-u map -- ?value not-found? )
     map-find
@@ -160,9 +161,9 @@ variable HEAP_BASE
 
 variable map_loc
 
-map% %alloc drop
+map% %alloc
 map_loc !
 
-5 s" test" map_loc @ map-set map_loc !
-44 s" a" map_loc @ map-set map_loc !
+5 s" test" map_loc @ abort map-set drop
+44 s" a" map_loc @ map-set drop
 s" test" map_loc @ map-get print print

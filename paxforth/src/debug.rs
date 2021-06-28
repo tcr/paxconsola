@@ -168,7 +168,7 @@ fn debug_program_function(
         .get(method)
         .expect(&format!("Expected class {:?}", method));
 
-    let debug = *debug_mode != DebugMode::Continue;
+    let mut debug = *debug_mode != DebugMode::Continue;
 
     if debug {
         println!("    fn {:?}:", method);
@@ -185,7 +185,13 @@ fn debug_program_function(
             }
             match &command.0 {
                 Pax::Abort => {
-                    unimplemented!("abort")
+                    // unimplemented!("abort")
+
+                    // TODO add "debugger" command
+                    if *debug_mode == DebugMode::Continue {
+                        *debug_mode = DebugMode::Step;
+                    }
+                    debug = true;
                 }
                 Pax::Add => {
                     let v = vm.data_pop().wrapping_add(vm.data_pop());
@@ -289,7 +295,7 @@ pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
         memory: vec![0; 65536],
     };
 
-    let mut debug_mode = DebugMode::Into;
+    let mut debug_mode = DebugMode::Step;
 
     println!();
     println!();
