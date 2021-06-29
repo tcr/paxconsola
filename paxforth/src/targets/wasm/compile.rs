@@ -289,7 +289,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_block_index += 1;
 
                                 wat_loop_stack.push(id.clone());
-                                eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
+                                // eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
                                 wat_block_stack.push(id.clone());
 
                                 wat_out.push(format!("    block {}_BLOCK", id));
@@ -314,14 +314,14 @@ impl ForthCompiler for WasmForthCompiler {
                                         *target_index + 1,
                                         Direction::Incoming,
                                     );
-                                    println!("incoming: {:?}", incoming);
+                                    // println!("incoming: {:?}", incoming);
                                     let is_leave = incoming.len() > 2;
 
                                     if is_leave {
-                                        eprintln!(
-                                            "[LOOP STACK leave] {:?} - {:?}",
-                                            wat_block_index, incoming
-                                        );
+                                        // eprintln!(
+                                        //     "[LOOP STACK leave] {:?} - {:?}",
+                                        //     wat_block_index, incoming
+                                        // );
                                         wat_out.push(format!(";;   (leave)"));
                                         wat_out.push(format!("    call $drop"));
 
@@ -365,7 +365,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 // End of a loop
                                 wat_loop_stack.pop();
 
-                                eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
+                                // eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
                                 let id = wat_block_stack.pop().unwrap();
                                 wat_out.push(format!("    call $data_pop"));
                                 wat_out.push(format!("    i32.eqz"));

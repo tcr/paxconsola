@@ -275,6 +275,22 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     block_refs.push(group);
                 }
             }
+            "while" => {
+                push_tokens(&mut parser_iter, &pos, &[Token::Word("if".to_string())]);
+            }
+            "repeat" => {
+                push_tokens(
+                    &mut parser_iter,
+                    &pos,
+                    &[
+                        Token::Literal(0),
+                        Token::Word("else".to_string()),
+                        Token::Literal(1),
+                        Token::Word("then".to_string()),
+                        Token::Word("until".to_string()),
+                    ],
+                );
+            }
 
             // case .. of .. endof .. endcase
             "case" => {

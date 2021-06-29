@@ -68,6 +68,7 @@ variable  temp \ first variable
 : u<   2dup xor 0< if nip 0< else - 0< then ;
 : >   swap < ;
 : u>   swap u> ;
+: >=   2dup > >r = r> or ;
 
 : within ( u1 u2 u3 -- flag ) over - >r - r> u< ;
 
@@ -79,6 +80,14 @@ variable  temp \ first variable
 
 -1 constant true
 0 constant false
+
+: roll ( x .. n -- .. x )
+    dup
+    begin dup 0 <> while 1- rot >r repeat \ top of alt is counter
+    drop
+    begin dup 0 <> while 1- r> -rot repeat \ top of alt is counter
+    drop
+    ;
 
 : compare ( c-addr1 u1 c-addr2 u2 -- n )
     begin
