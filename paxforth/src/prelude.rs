@@ -56,4 +56,74 @@ variable  temp \ first variable
     loop
     ;
 
+: 0>=   $8000 nand invert if 0 else -1 then ;
+: 0<= ( n -- f ) dup 0= swap 0< or ;
+: -rot ( w1 w2 w3 -- w3 w1 w2 ) swap >r swap r> ;
+: tuck ( w1 w2 -- w2 w1 w2 ) swap over ;
+: roll3 >r >r >r temp! r> r> r> temp@ ;
+: throw 0 = if else abort then ;
+
+: nip    >r temp! r> ;
+: <   2dup xor 0< if drop 0< else - 0< then ;
+: u<   2dup xor 0< if nip 0< else - 0< then ;
+: >   swap < ;
+: u>   swap u> ;
+
+: within ( u1 u2 u3 -- flag ) over - >r - r> u< ;
+
+: 2@ ( a-addr -- w1 w2 ) dup 1+ @ swap @ ;
+: 2! ( w1 w2 a-addr -- ) dup temp! ! temp@ 1+ ! ;
+: ?dup ( w -- 0 | w w ) dup 0= if else dup then ;
+
+: throw 0 = if else abort then ;
+
+-1 constant true
+0 constant false
+
+: compare ( c-addr1 u1 c-addr2 u2 -- n )
+    begin
+        rot
+        2dup
+        or 0= if
+            drop drop drop drop 0
+            1
+        else
+            dup 0= if drop drop drop drop -1
+            1
+            else
+                over 0= if drop drop drop drop 1
+                1
+                else                    ( c-addr1 c-addr2 u2 u1 )
+                    >r >r               ( c-addr1 c-addr2 )
+                    2dup @ swap @       ( c-addr1 c-addr2 c2 c1 )
+                    -                   ( c-addr1 c-addr2 [c2 - c1] )
+                    dup 0< if
+                        \ less than 1
+                        drop
+                        r> r>
+                        drop drop drop drop
+                        1
+                        1
+                    else if
+                            \ more than 1
+                            r> r>
+                            drop drop drop drop
+                            -1
+                            1
+                        else
+                            \ loop
+                            1+ swap 1+ swap
+                            r> 1- r> 1-
+                            rot rot
+                            0
+                        then
+                    then
+                then
+            then
+        then
+    until
+    ;
+
+
+
 ";
