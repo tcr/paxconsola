@@ -98,7 +98,18 @@ variable HEAP_BASE
 
 
 
+
+
+
+
+\ Start json.fth
+
+
+
+
 999 constant json-parse-error
+
+\ recursive-descent JSON parser
 
 : json-getchar ( c-addr1 u1 -- c-addr2 u2 char )
     dup 0<= if json-parse-error throw then
@@ -121,6 +132,22 @@ variable HEAP_BASE
     repeat                                   \ num c-addr u char/-1
     dup 0>= if json-ungetchar else drop then \ num c-addr u
     rot ;
+
+: json-isblank ( char -- flag )
+    case
+        0x09 of true endof
+        0x0a of true endof
+        0x0d of true endof
+        0x20 of true endof
+        false swap
+    endcase ;
+
+: json-trim ( c-addr1 u1 -- c-addr2 u2 char )
+    begin json-getchar dup json-isblank while drop repeat ;
+
+: json-eat-string ( c-addr1 u1 c-addrC uC -- c-addr2 u2 )
+    2over 2over string-prefix? 0= if json-parse-error throw endif
+    nip /string ;
 
 : json-parse-string-escape-hex ( c-addr1 u1 -- c-addr2 u2 char )
     0 4 0 do                                       \ c-addr u num
