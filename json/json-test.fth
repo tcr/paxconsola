@@ -1,10 +1,6 @@
 ( @check 0 -1 -1 0 0 )
 
 
-: true -1 ;
-: false 0 ;
-
-
 
 \ Memory
 

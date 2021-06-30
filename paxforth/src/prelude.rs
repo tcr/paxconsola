@@ -83,8 +83,8 @@ variable  temp \ first variable
 
 : throw 0 = if else abort then ;
 
--1 constant true
-0 constant false
+: true -1 ;
+: false 0 ;
 
 : roll ( x .. n -- .. x )
     dup
