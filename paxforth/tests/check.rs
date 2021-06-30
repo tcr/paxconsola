@@ -12,7 +12,7 @@ struct CheckTest {
 /// Load tests from "check" directory.
 fn get_check_tests() -> Vec<CheckTest> {
     // Load the tests from the "check" directory.
-    let check_tests = glob("tests/check/*.fs")
+    let check_tests = glob("tests/check/*.fth")
         .expect("no examples!")
         .into_iter()
         .collect::<Vec<_>>();
@@ -57,9 +57,9 @@ fn run_check_tests(inline: bool) {
 
         // Run the binary in WASM.
         if !check_program(&test.contents, &program) {
-            // Negative test in "fail.fs"
-            if test.path.file_name().unwrap() == "fail.fs" {
-                eprintln!("[forth] Skipping negative test fail.fs");
+            // Negative test in "fail.fth"
+            if test.path.file_name().unwrap() == "fail.fth" {
+                eprintln!("[forth] Skipping negative test 'fail.fth'");
             } else {
                 failed += 1;
             }
