@@ -2,4 +2,4 @@
 
 cargo doc
 
-cargo test -p paxforth
+cargo test -p paxforth --release

@@ -5,17 +5,13 @@ variable  temp \ first variable
 : swap   >r temp! r> temp@ ;
 : over   >r temp! temp@ r> temp@ ;
 : rot    >r swap r> swap ;
+: dup    temp! temp@ temp@ ;
+: 2drop   + drop ;
+: 2dup   over over ;
 
 \ note: must preserve return address!
 : r@   r> r> temp! temp@ >r temp@ swap >r ;
 : r!   r> r> drop swap >r >r ;
-
-: 2drop   + drop ;
-: dup    temp! temp@ temp@ ;
-: 2dup   over over ;
-
-: cells dup + ;
-: cell+ 1 cells + ;
 
 : invert   -1 nand ;
 : negate   invert 1 + ;
@@ -44,6 +40,9 @@ variable  temp \ first variable
 : i r> r> r> temp! temp@ >r >r >r temp@ ;
 : j r> r> r> r> r> temp! temp@ >r >r >r >r >r temp@ ;
 
+: cells dup + ;
+: cell+ 1 cells + ;
+
 : * >r 0 r> 0 do over + loop swap drop ;
 : 2* 2 * ;
 
@@ -63,8 +62,15 @@ variable  temp \ first variable
 : 0<= ( n -- f ) dup 0= swap 0< or ;
 : -rot ( w1 w2 w3 -- w3 w1 w2 ) swap >r swap r> ;
 : tuck ( w1 w2 -- w2 w1 w2 ) swap over ;
-: roll3 >r >r >r temp! r> r> r> temp@ ;
 : throw 0 = if else abort then ;
+
+: ?dup ( w -- 0 | w w ) dup 0= if else dup then ;
+: 2@ ( a-addr -- w1 w2 ) dup 1+ @ swap @ ;
+: 2! ( w1 w2 a-addr -- ) dup temp! ! temp@ 1+ ! ;
+: 2over ( w1 w2 w3 w4 -- w1 w2 w3 w4 w1 w2 )
+    rot >r rot dup r> swap >r >r -rot r@ -rot r> r> swap ;
+: 2swap ( w1 w2 w3 w4 -- w3 w4 w1 w2 )
+    rot >r rot r> ;
 
 : nip    >r temp! r> ;
 : <   2dup xor 0< if drop 0< else - 0< then ;
@@ -75,10 +81,6 @@ variable  temp \ first variable
 
 : within ( u1 u2 u3 -- flag ) over - >r - r> u< ;
 
-: 2@ ( a-addr -- w1 w2 ) dup 1+ @ swap @ ;
-: 2! ( w1 w2 a-addr -- ) dup temp! ! temp@ 1+ ! ;
-: ?dup ( w -- 0 | w w ) dup 0= if else dup then ;
-
 : throw 0 = if else abort then ;
 
 -1 constant true
@@ -88,6 +90,16 @@ variable  temp \ first variable
     dup
     begin dup 0 <> while 1- rot >r repeat \ top of alt is counter
     drop
+    begin dup 0 <> while 1- r> -rot repeat \ top of alt is counter
+    drop
+    ;
+
+: pick ( x .. n -- x .. x )
+    dup
+    begin dup 0 <> while 1- rot >r repeat \ top of alt is counter
+    drop
+    over
+    swap
     begin dup 0 <> while 1- r> -rot repeat \ top of alt is counter
     drop
     ;

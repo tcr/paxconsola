@@ -74,7 +74,7 @@ impl Iterator for Tokenizer {
     fn next(&mut self) -> Option<Located<Token>> {
         lazy_static! {
             static ref RE_INT: Regex =
-                Regex::new(r"(?s)^(\-?\$[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
+                Regex::new(r"(?s)^(\-?(?:\$|0x)[a-fA-F0-9]+|\-?\d+)(\s+.*?)?$").unwrap();
             static ref RE_WORD: Regex = Regex::new(r"(?s)^(\S*)(\s+.*?)?$").unwrap();
         }
 
@@ -94,6 +94,11 @@ impl Iterator for Tokenizer {
                 if let Some(index) = cap[1].find("$") {
                     return Some((
                         Token::Literal(isize::from_str_radix(&cap[1][index + 1..], 16).unwrap()),
+                        pos_at,
+                    ));
+                } else if let Some(index) = cap[1].find("0x") {
+                    return Some((
+                        Token::Literal(isize::from_str_radix(&cap[1][index + 2..], 16).unwrap()),
                         pos_at,
                     ));
                 } else {

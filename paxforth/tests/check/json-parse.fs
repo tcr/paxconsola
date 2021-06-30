@@ -19,7 +19,7 @@
     begin
         json-?getchar dup $30 $3a within    \ num c-addr u char/-1 flag
     while
-        $30 - roll3 10 * + -rot
+        $30 - 3 roll 10 * + -rot
     repeat                                   \ num c-addr u char/-1
     dup 0>= if json-ungetchar else drop then \ num c-addr u
     rot ;

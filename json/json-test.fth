@@ -1,6 +1,12 @@
 ( @check 0 -1 -1 0 0 )
 
 
+: true -1 ;
+: false 0 ;
+
+
+
+\ Memory
 
 variable HEAP_OFFSET
 
@@ -107,7 +113,61 @@ variable HEAP_BASE
 
 
 
+\ JSON error exceptions
+
 999 constant json-parse-error
+777 exception constant json-type-error
+
+\ JSON object type and helpers
+
+0 constant json-type-bool
+1 constant json-type-int
+2 constant json-type-float
+3 constant json-type-string
+4 constant json-type-object
+5 constant json-type-array
+
+struct
+    8 16 field json-data
+    cell% field json-type
+end-struct json%
+
+variable json-true-val
+json% %alloc
+dup json-data true swap !
+dup json-type json-type-bool swap !
+json-true-val !
+: json-true json-true-val @ ;
+
+variable json-false-val
+json% %alloc
+dup json-data false swap !
+dup json-type json-type-bool swap !
+: json-false json-false-val @ ;
+
+: json-make ( data type -- obj )
+    json% %alloc             \ data type obj
+    dup json-type rot swap ! \ data obj
+    dup json-data rot swap ! ;
+
+: json-2make ( data1 data2 type -- obj )
+    json% %alloc             \ data1 data2 type obj
+    dup json-type rot swap ! \ data1 data2 obj
+    dup json-data 2swap rot 2! ;
+
+\ : json-fmake ( type -- obj ) ( F: data -- )
+\     json% %alloc             \ type obj  /  F: data
+\     dup json-type rot swap ! \ obj  /  F: data
+\     dup json-data f! ;
+
+\ : json-negate ( value -- )
+\     dup json-type @ case
+\         json-type-int of
+\             dup json-data @ negate swap json-data ! endof
+\         json-type-float of
+\             dup json-data f@ fnegate json-data f! endof
+\         json-type-error throw
+\     endcase ;
 
 \ recursive-descent JSON parser
 
@@ -145,9 +205,30 @@ variable HEAP_BASE
 : json-trim ( c-addr1 u1 -- c-addr2 u2 char )
     begin json-getchar dup json-isblank while drop repeat ;
 
-: json-eat-string ( c-addr1 u1 c-addrC uC -- c-addr2 u2 )
-    2over 2over string-prefix? 0= if json-parse-error throw endif
-    nip /string ;
+\ TODO : json-eat-string ( c-addr1 u1 c-addrC uC -- c-addr2 u2 )
+\    2over 2over string-prefix? 0= if json-parse-error throw endif
+\    nip /string ;
+
+defer json-parse-string
+defer json-parse-number
+defer json-parse-object
+defer json-parse-array
+
+: json-parse-value ( c-addr1 u1 -- c-addr2 u2 value )
+    json-trim
+    dup 0x30 0x3a within if json-ungetchar json-parse-number
+    else
+        case
+            0x22 of json-parse-string endof
+            \ TODO 0x2d of json-parse-number json-negate endof
+            0x7b of json-parse-object endof
+            0x5b of json-parse-array endof
+            \ TODO 0x74 of s" rue" json-eat-string json-true endof
+            \ TODO 0x66 of s" alse" json-eat-string json-false endof
+            \ TODO 0x6e of s" ull" json-eat-string 0 endof
+            json-parse-error throw
+        endcase
+    then ;
 
 : json-parse-string-escape-hex ( c-addr1 u1 -- c-addr2 u2 char )
     0 4 0 do                                       \ c-addr u num
@@ -183,12 +264,6 @@ variable HEAP_BASE
         dup
     endcase ;
 
-: buf-new ( size -- buf )
-    dup 0= if drop 16 then
-    dup 2 cells + allocate throw \ size buf
-    dup rot swap !               \ buf
-    0 over cell+ ! ;
-
 : json-parse-string-body ( c-addr u1 -- c-addr2 u2 str-addr str-u )
     0 buf-new >r
     begin
@@ -199,6 +274,10 @@ variable HEAP_BASE
     r@ buf-count strdup \ c-addr2 u2 str-addr str-u
     r> free throw
     ;
+
+:noname ( c-addr1 u1 -- c-addr2 u2 string )
+    json-parse-string-body json-type-string json-2make ;
+is json-parse-string
 
 s" 420" json-parse-number-digits print
 s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print
