@@ -434,7 +434,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 block_refs.push(else_group);
                 program.current().set_target(&mut if_group, pos.clone());
             }
-            "then" => {
+            "then" | "endif" => {
                 let mut else_group = block_refs
                     .pop()
                     .expect(&format!("did not match marker group: {:?}", block_refs));
@@ -454,6 +454,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "c@" => program.current().op(&(Pax::Load8, pos)),
             "drop" => program.current().op(&(Pax::Drop, pos)),
             "abort" => program.current().op(&(Pax::Abort, pos)),
+            "debugger" => program.current().op(&(Pax::Debugger, pos)),
 
             // Temp values
             "temp@" => program.current().op(&(Pax::LoadTemp, pos)),

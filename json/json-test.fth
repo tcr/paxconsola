@@ -88,8 +88,76 @@ variable HEAP_BASE
     rot over pick3 cells move \ u addr2
     swap ;
 
-\ 4 buf-new 1 over buf-append 2 over buf-append buf-count print
 
+
+
+
+
+
+
+
+
+
+\ --------------------------------
+
+(
+    struct
+        double% field map-key
+        cell% field map-data
+        cell% field map-left
+        cell% field map-right
+    end-struct map%
+)
+
+: map-key 0 + ;
+: map-data 2 + ;
+: map-left 3 + ;
+: map-right 4 + ;
+
+: map% ( -- align size ) 8 5 ;
+
+: %alloc ( align size -- addr ) swap drop allocate throw ;
+
+
+: map-set ( value key-addr key-u map1 -- map2 )
+    dup >r
+    0= if
+        map% %alloc r!
+        strdup r@ map-key 2! r@ map-data !
+        0 r@ map-left ! 0 r@ map-right !
+        r@
+    else
+        2dup r@ map-key 2@ compare case
+            -1 of r@ map-left @ map-set r@ map-left ! r@ endof
+            1 of r@ map-right @ map-set r@ map-right ! r@ endof
+            2drop r@ map-data ! r@ swap
+        endcase
+    then
+    r> drop
+    ;
+
+: map-find ( key-addr key-u map -- map )
+    dup >r
+    0= if 2drop 0 r> drop
+    else
+        2dup r@ map-key 2@ compare case
+            -1 of r@ map-left @ map-find endof
+            1 of r@ map-right @ map-find endof
+            2drop r@ swap
+        endcase
+        r> drop
+    then
+    ;
+
+: map-get ( key-addr key-u map -- ?value not-found? )
+    map-find
+    ?dup 0= if true
+    else map-data @ false then ;
+
+\ : map-iterate ( xt map -- )
+\     dup map-left @ ?dup-if 2 pick swap recurse endif
+\     dup map-data @ over map-key 2@ 4 pick execute
+\     map-right @ ?dup-if recurse else drop endif ;
 
 
 
@@ -112,7 +180,7 @@ variable HEAP_BASE
 \ JSON error exceptions
 
 999 constant json-parse-error
-777 exception constant json-type-error
+777 constant json-type-error
 
 \ JSON object type and helpers
 
@@ -123,10 +191,19 @@ variable HEAP_BASE
 4 constant json-type-object
 5 constant json-type-array
 
+(
 struct
     8 16 field json-data
     cell% field json-type
 end-struct json%
+)
+
+: json-data 0 + ;
+: json-type 16 + ;
+
+: json% ( -- align size ) 8 24 ;
+
+: %alloc ( align size -- addr ) swap drop allocate throw ;
 
 variable json-true-val
 json% %alloc
@@ -275,5 +352,101 @@ defer json-parse-array
     json-parse-string-body json-type-string json-2make ;
 is json-parse-string
 
-s" 420" json-parse-number-digits print
-s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print
+: json-parse-object-member ( c-addr1 u1 -- c-addr2 u2 value key-addr key-u )
+    json-parse-string-body 2swap \ key-addr key-u c-addr c-u
+    json-trim 0x3a <> if json-parse-error throw endif
+    json-parse-value -rot        \ key-addr key-u value c-addr c-u
+    json-trim case
+        0x7d of 0x7d json-ungetchar endof
+        0x2c of endof            \ , is expected here
+        json-parse-error throw   \ something else
+    endcase                      \ key-addr key-u value c-addr c-u
+    rot 4 roll 4 roll ;
+
+: json-parse-number-digits ( c-addr1 u1 -- c-addr2 u2 int )
+    json-getchar 0x30 -                       \ c-addr u num
+    dup 0 10 within 0= if json-parse-error throw endif
+    -rot                                      \ num c-addr u
+    begin
+        json-?getchar dup 0x30 0x3a within    \ num c-addr u char/-1 flag
+    while
+            0x30 - 3 roll 10 * + -rot
+    repeat                                    \ num c-addr u char/-1
+    dup 0>= if json-ungetchar else drop endif \ num c-addr u
+    rot ;
+
+\ : json-parse-number-exp ( c-addr1 u1 -- c-addr2 u2 number ) ( F: mantissa -- )
+\     10e0                     \ c-addr u  /  F: mantissa 10e0
+\     json-getchar case
+\         0x2b of 1e0 endof
+\         0x2d of -1e0 endof
+\         json-ungetchar 1e0 0
+\     endcase                  \ c-addr u  /  F: mantissa 10e0 exp-sign
+\     json-parse-number-digits \ c-addr u exp-value  /  F: mantissa 10e0 exp-sign
+\     0 d>f f* f** f*          \ c-addr u  /  F: number
+\     json-type-float json-fmake ;
+
+\ : json-parse-number-fraction ( int-part c-addr1 u1 -- c-addr2 u2 number )
+\     tuck                     \ int-part u1 c-addr u
+\     json-parse-number-digits \ int-part u1 c-addr u frac-part
+\     -rot dup 4 roll swap -   \ int-part frac-part c-addr u frac-len
+\     10e0 0 d>f fnegate f**   \ int-part frac-part c-addr u  /  F: multiplier
+\     rot 0 d>f f*             \ int-part c-addr u  /  F: frac-part
+\     rot 0 d>f f+             \ c-addr u  /  F: number
+\     json-?getchar
+\     dup 0x45 = over 0x65 = or if drop json-parse-number-exp exit endif
+\     dup 0>= if json-ungetchar else drop endif
+\     json-type-float json-fmake ;
+
+:noname ( c-addr1 u1 -- c-addr2 u2 number )
+    json-parse-number-digits \ -rot
+    \ json-?getchar dup case
+    \     0x2e of drop json-parse-number-fraction exit endof
+    \     0x45 of drop rot 0 d>f json-parse-number-exp exit endof
+    \     0x65 of drop rot 0 d>f json-parse-number-exp exit endof
+    \ endcase
+    \ dup 0>= if json-ungetchar else drop endif
+    \ rot
+    json-type-int json-make ;
+is json-parse-number
+
+:noname ( c-addr1 u1 -- c-addr2 u2 object )
+    0 >r
+    begin json-trim dup 0x7d <>
+    while
+            0x22 <> if json-parse-error throw endif
+            json-parse-object-member  \ c-addr u value key-addr key-u
+            over 3 roll 3 roll 3 roll \ c-addr u key-addr value key-addr key-u
+            r@ debugger map-set r!        \ c-addr u key-addr
+            free throw
+    repeat
+    drop r> json-type-object json-make ;
+is json-parse-object
+
+\ :noname ( c-addr1 u1 -- c-addr2 u2 array )
+\     0 cellbuf-new { buf }
+\     begin json-trim dup 0x5d <>
+\     while
+\             json-ungetchar json-parse-value \ c-addr u value
+\             buf cellbuf-append to buf       \ c-addr u
+\             json-trim case
+\                 0x5d of 0x5d json-ungetchar endof
+\                 0x2c of endof
+\                 json-parse-error throw
+\             endcase
+\     repeat
+\     drop
+\     buf buf-count arrdup json-type-array json-2make
+\     buf free throw ;
+\ is json-parse-array
+
+
+
+\ New test taht stuff
+
+\ s" 420" json-parse-number-digits print
+\ s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print
+
+s" \"a\": 55}" json-parse-object @ json-data \ print print print
+
+s" a" rot map-get throw json-data @ print

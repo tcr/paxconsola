@@ -31,6 +31,7 @@ pub enum Pax {
     Print,
     Emit,
     Abort,
+    Debugger,
 }
 
 // Pax opcodes for terminating a block.

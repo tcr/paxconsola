@@ -23,6 +23,7 @@ pub fn dump_blocks(blocks: &[Block]) {
         for command in opcodes {
             let opcode = match &command.0 {
                 Pax::Abort => format!("abort"),
+                Pax::Debugger => format!("debugger"),
                 Pax::Add => format!("+"),
                 Pax::AltPop => format!("r<"),
                 Pax::AltPush => format!("r>"),

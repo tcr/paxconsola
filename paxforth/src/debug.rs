@@ -148,7 +148,10 @@ fn print_source(
                 *debug_state = DebugMode::Into;
             }
             if let Ok(mem) = input.parse::<usize>() {
-                message = Some(format!("[memory] {} = {}", mem, vm.memory[mem]));
+                message = Some(format!(
+                    "[memory] {} = {}    ; '{}'",
+                    mem, vm.memory[mem], vm.memory[mem] as u8 as char
+                ));
             }
         }
 
@@ -198,7 +201,7 @@ fn debug_program_function(
                 );
             }
             match &command.0 {
-                Pax::Abort => {
+                Pax::Debugger | Pax::Abort => {
                     // unimplemented!("abort")
 
                     // TODO add "debugger" command

@@ -147,6 +147,7 @@ fn block_analyze(
                 let reg = state.pop_data();
                 state.push_temp(reg);
             }
+            Pax::Debugger => {}
             Pax::Abort => {
                 eprintln!("Encountered abort in block_analyze, not sure what to do");
             }

@@ -97,7 +97,7 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
         // ( a -- )
         Pax::Drop => vec![GbIr::Pop],
         // ( a -- )
-        Pax::Abort => panic!("gb backend doesn't support abort"),
+        Pax::Debugger | Pax::Abort => panic!("gb backend doesn't support 'abort' or 'debugger'"),
         // ( -- t )
         Pax::LoadTemp => vec![
             GbIr::Dup,
