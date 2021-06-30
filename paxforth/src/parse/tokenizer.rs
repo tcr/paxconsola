@@ -58,6 +58,14 @@ impl Tokenizer {
         self.code = self.code[len..].to_string();
         prefix
     }
+
+    pub fn consume_string_end(&mut self) -> String {
+        let re = Regex::new(r##"^(?:[^"\\]|\\.)*""##).unwrap();
+        let prefix = re.find(&self.code).unwrap().as_str().to_string();
+        self.pos.col += prefix.len();
+        self.code = self.code[prefix.len()..].to_string();
+        prefix
+    }
 }
 
 impl Iterator for Tokenizer {

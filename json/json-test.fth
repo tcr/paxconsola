@@ -23,9 +23,75 @@ variable HEAP_BASE
 	2drop ;
 
 \ free at the moment does nothing :(
-: free ( addr -- )
+: free ( addr -- wior )
     drop
+    0
     ;
+
+
+\
+\ ORIGINAL FILE
+\
+
+: buf-new ( size -- buf )
+    dup 0= if drop 16 then
+    dup 2 cells + allocate throw \ size buf
+    dup rot swap !               \ buf
+    0 over cell+ ! ;
+
+: buf-append ( char buf -- buf )
+    dup @ over cell+ @                    \ char buf size len
+    = if                                  \ char buf
+        dup @ 2* 2 cells + allocate throw \ char buf new-buf
+        2dup over @ 2 cells + move
+        over @ 2* over !
+        swap free throw                   \ char new-buf
+    then                                 \ char buf
+    dup dup cell+ @ 2 cells + +           \ char buf new-pos
+    rot swap c!                           \ buf
+    dup cell+ dup @ 1+ swap ! ;
+
+: buf-count ( buf -- c-addr u )
+    cell+ dup cell+ swap @ ;
+
+: cellbuf-new ( size -- buf )
+    dup 0= if drop 16 then
+    dup cells 2 cells + allocate throw
+    dup rot swap !
+    0 over cell+ ! ;
+
+: cellbuf-append ( cell buf -- buf )
+    dup @ over cell+ @
+    = if
+        dup @ cells 2* 2 cells + allocate throw
+        2dup over @ cells 2 cells + move
+        over @ 2* over !
+        swap free throw
+    then
+    dup dup cell+ @ cells 2 cells + +
+    rot swap !
+    dup cell+ dup @ 1+ swap ! ;
+
+: pick3
+    >r >r >r dup temp! r> r> r> temp@
+    ;
+
+: strdup ( c-addr1 u -- c-addr2 u )
+    dup allocate throw   \ c-addr1 u c-addr2
+    rot over pick3 move \ u c-addr2
+    swap ;
+
+: arrdup ( addr1 u -- addr2 u )
+    dup cells allocate throw   \ addr1 u addr2
+    rot over pick3 cells move \ u addr2
+    swap ;
+
+\ 4 buf-new 1 over buf-append 2 over buf-append buf-count print
+
+
+
+
+
 
 
 
@@ -97,17 +163,15 @@ variable HEAP_BASE
     0 over cell+ ! ;
 
 : json-parse-string-body ( c-addr u1 -- c-addr2 u2 str-addr str-u )
-    0 buf-new { buf }
+    0 buf-new >r
     begin
         json-parse-string-char
         dup 0>=
-    while buf buf-append to buf repeat
+    while r@ buf-append r! repeat
     drop                 \ c-addr2 u2
-    buf buf-count strdup \ c-addr2 u2 str-addr str-u
-    buf free throw ;
-
-: json-type-string ( c-addr1 u1 -- c-addr2 u2 string )
-    json-parse-string-body json-type-string json-2make ;
+    r@ buf-count strdup \ c-addr2 u2 str-addr str-u
+    r> free throw
+    ;
 
 s" 420" json-parse-number-digits print
-s" \"applebees\"" json-type-string
+s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print

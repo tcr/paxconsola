@@ -54,7 +54,10 @@ variable  temp \ first variable
     0 do
         dup i + @ emit
     loop
+    drop
     ;
+
+: cr $0D emit $0A emit ;
 
 : 0>=   $8000 nand invert if 0 else -1 then ;
 : 0<= ( n -- f ) dup 0= swap 0< or ;

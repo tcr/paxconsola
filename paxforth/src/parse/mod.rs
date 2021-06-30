@@ -117,7 +117,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             // Strings
             "s\"" | ".\"" => {
                 parser_iter.iter.move_forward(1); // Skip following space
-                let raw_str = parser_iter.iter.consume_until('"');
+                let raw_str = parser_iter.iter.consume_string_end();
                 parser_iter.iter.move_forward(1); // Skip last quote
 
                 let str_offset = variable_offset;
