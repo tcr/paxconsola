@@ -175,6 +175,17 @@ impl PaxProgramBuilder {
         self._current_function != MAIN_FUNCTION
     }
 
+    pub fn defer_function(&mut self, name: String) {
+        self.program.insert(name, BlockBuilder::new());
+    }
+
+    pub fn rename_function(&mut self, name: String) {
+        let previous_name = self._current_function.clone();
+        self._current_function = name.to_string();
+        let fun = self.program.remove(&previous_name).unwrap();
+        self.program.insert(name, fun);
+    }
+
     /* BlockBuilder methods */
 
     pub fn current(&'_ mut self) -> &'_ mut BlockBuilder {

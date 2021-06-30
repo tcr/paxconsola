@@ -156,6 +156,26 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 parse_mode = ParseMode::Variable;
             }
 
+            // Parse mode for defer
+            "defer" => match parser_iter.next() {
+                Some((Token::Word(word), defer_pos)) => {
+                    program.defer_function(word.to_string());
+                }
+                _ => {
+                    panic!("Expected word following 'defer'");
+                }
+            },
+            ":noname" => {
+                // We just call anon functions ":noname"
+                program.enter_function(":noname".to_string());
+
+                // Flow control for recurse
+                let group = program
+                    .current()
+                    .forward_branch_target(":noname", pos.clone());
+                block_refs.push(group);
+            }
+
             // Constants (shadows all terms)
             word if constants.contains_key(word) => {
                 program
@@ -221,6 +241,22 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
                 block_refs.pop();
                 program.current().exit_block((PaxTerm::Exit, pos.clone()));
+
+                // Parse following IS token.
+                match parser_iter.next() {
+                    Some((Token::Word(word), defer_pos)) if word == "is" => {
+                        match parser_iter.next() {
+                            Some((Token::Word(word), defer_pos)) => {
+                                program.rename_function(word);
+                            }
+                            _ => {
+                                panic!("Expected word to follow 'is'")
+                            }
+                        }
+                    }
+                    Some(token) => parser_iter.put_back(token),
+                    _ => {}
+                }
 
                 // Extract function into its own body.
                 program.exit_function();
@@ -412,7 +448,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "!" => program.current().op(&(Pax::Store, pos)),
             "@" => program.current().op(&(Pax::Load, pos)),
             "nand" => program.current().op(&(Pax::Nand, pos)),
-            "print" => program.current().op(&(Pax::Print, pos)),
+            "print" | "." => program.current().op(&(Pax::Print, pos)),
             "emit" => program.current().op(&(Pax::Emit, pos)),
             "c!" => program.current().op(&(Pax::Store8, pos)),
             "c@" => program.current().op(&(Pax::Load8, pos)),
