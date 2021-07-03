@@ -158,7 +158,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
             // Parse mode for defer
             "defer" => match parser_iter.next() {
-                Some((Token::Word(word), defer_pos)) => {
+                Some((Token::Word(word), _defer_pos)) => {
                     program.defer_function(word.to_string());
                 }
                 _ => {
@@ -244,9 +244,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
                 // Parse following IS token.
                 match parser_iter.next() {
-                    Some((Token::Word(word), defer_pos)) if word == "is" => {
+                    Some((Token::Word(word), _defer_pos)) if word == "is" => {
                         match parser_iter.next() {
-                            Some((Token::Word(word), defer_pos)) => {
+                            Some((Token::Word(word), _defer_pos)) => {
                                 program.rename_function(word);
                             }
                             _ => {

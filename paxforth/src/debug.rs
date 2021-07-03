@@ -1,18 +1,11 @@
 use crate::prelude::*;
 use crate::*;
-use lazy_static::*;
 use regex::Regex;
 use std::io::{stdout, Write};
 
-use crossterm::event::{read, Event, KeyCode, KeyEvent};
-use crossterm::style::{style, Attribute, Stylize};
-use crossterm::{
-    cursor, event, execute,
-    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
-    ExecutableCommand, Result,
-};
-
-use crate::targets::wasm::*;
+use crossterm::event::{Event, KeyCode, KeyEvent};
+use crossterm::style::{Color, Stylize};
+use crossterm::{cursor, event, execute, Result};
 
 struct VM {
     _data: Vec<i16>,
@@ -133,7 +126,7 @@ fn print_source(
         println!("    alt: {:?}", vm._alt);
         println!();
         print!("debugger> (c)ontinue, (s)tep, i(n)to: ");
-        stdout().flush();
+        stdout().flush().unwrap();
 
         // Poll for input.
         if *debug_state != DebugMode::Continue {
@@ -175,6 +168,9 @@ fn debug_program_function(
     vm: &mut VM,
     debug_mode: &mut DebugMode,
 ) {
+    let (_, arity) = ProgramFacts::new(source_program).function_analyze(method);
+    println!("    ; ( {:?} )", arity);
+
     let blocks = source_program
         .get(method)
         .expect(&format!("Expected class {:?}", method));
@@ -198,7 +194,8 @@ fn debug_program_function(
                     vm,
                     command.1.clone(),
                     debug_mode,
-                );
+                )
+                .unwrap();
             }
             match &command.0 {
                 Pax::Debugger | Pax::Abort => {
@@ -273,7 +270,8 @@ fn debug_program_function(
                     vm,
                     terminator.1.clone(),
                     debug_mode,
-                );
+                )
+                .unwrap();
             }
             match &terminator.0 {
                 PaxTerm::BranchTarget(_n) => {}

@@ -46,7 +46,7 @@ pub fn strip_branches(program: &mut PaxProgram, method: &str) {
 /// Removes unused functions.
 pub fn strip_functions(program: &mut PaxProgram) {
     let program_readonly = program.clone();
-    let (deps, idx) = program_analyze(&program_readonly);
+    let (deps, idx) = program_graph(&program_readonly);
 
     // Trim all functions unaccessible from "main".
     let main = idx.get("main").unwrap().clone();

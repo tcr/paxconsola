@@ -20,9 +20,6 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 _ => continue,
             };
 
-            // eprintln!("call to {:?}", target);
-            // eprintln!();
-
             // Flag that this pass succeeded.
             continue_pass = true;
 
@@ -160,25 +157,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 main_mut[j] = exit_block;
                 // Splice in new chunk.
                 main_mut.splice(j..j, inline_seq.clone());
-
-                // Now rewrite all targets before this.
-                // for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
-                //     match main_block.commands_mut().last_mut() {
-                //         Some((Pax::BranchTarget(ref mut target), ..))
-                //         | Some((Pax::JumpIf0(ref mut target), ..))
-                //         | Some((Pax::JumpAlways(ref mut target), ..)) => {
-                //             if *target >= j {
-                //                 *target += inline_seq.len();
-                //             }
-                //         }
-                //         _ => {}
-                //     }
-                // }
             }
 
-            // Arbitrarily stop after this, though we could keep going,
-            // instead just perform another pass
-            // let j = inlined_blocks_len + 1;
+            // Restart inlining into this function.
             continue 'pass_loop;
         }
     }

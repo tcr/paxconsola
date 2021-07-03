@@ -3,8 +3,8 @@ use indexmap::{IndexMap, IndexSet};
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
 
-#[derive(Debug)]
-pub struct FunctionGraph {
+#[derive(Debug, Clone)]
+pub struct BlockGraph {
     pub graph: Graph<(), i32>,
 }
 
@@ -17,9 +17,9 @@ pub enum TargetType {
     AfterLoop(usize),
 }
 
-impl FunctionGraph {
+impl BlockGraph {
     /// Composes blocks together into a graph.
-    pub fn from_blocks(stack_blocks: &[Block]) -> FunctionGraph {
+    pub fn from_blocks(stack_blocks: &[Block]) -> BlockGraph {
         // List of blocks we've already seen.
         let mut visited = IndexSet::new();
 
@@ -75,7 +75,7 @@ impl FunctionGraph {
             }
         }
 
-        FunctionGraph {
+        BlockGraph {
             graph: Graph::<(), i32>::from_edges(&edges),
         }
     }
@@ -160,4 +160,34 @@ impl FunctionGraph {
 
         seen
     }
+}
+
+/**
+ * Walk the call graph of the program.
+ */
+pub fn program_graph(program: &PaxProgram) -> (Graph<&str, ()>, IndexMap<String, NodeIndex>) {
+    let mut deps = Graph::<&str, ()>::new();
+
+    let mut idx = IndexMap::new();
+    for (name, _block) in program {
+        idx.insert(name.clone(), deps.add_node(name));
+    }
+
+    // Create call tree for all methods.
+    for (name, blocks) in program {
+        let from = idx.get(name).unwrap();
+        for block in blocks {
+            match block.terminator() {
+                (PaxTerm::Call(target_name), _) => {
+                    let to = idx
+                        .get(target_name)
+                        .expect(&format!("Did not find method for {:?}", target_name));
+                    deps.update_edge(from.clone(), to.clone(), ());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    (deps, idx)
 }

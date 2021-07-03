@@ -13,8 +13,8 @@ use petgraph::Direction;
 // or,
 // recursively solve call ependencies to correct local stacks
 
-pub type Reg = String;
-pub type RegList = Vec<Reg>;
+pub type StackValue = String;
+pub type RegList = Vec<StackValue>;
 
 #[derive(Debug, Clone)]
 pub struct RegMeta {
@@ -24,8 +24,8 @@ pub struct RegMeta {
 #[derive(Debug, Clone)]
 pub struct RegFile {
     pub index: usize,
-    pub registers: IndexMap<Reg, RegMeta>,
-    pub aliases: Vec<(Reg, Reg)>, // list of associations
+    pub registers: IndexMap<StackValue, RegMeta>,
+    pub aliases: Vec<(StackValue, StackValue)>, // list of associations
 }
 
 impl RegFile {
@@ -37,7 +37,7 @@ impl RegFile {
         }
     }
 
-    pub fn allocate(&mut self, prefix: &str, literal: Option<isize>) -> Reg {
+    pub fn allocate(&mut self, prefix: &str, literal: Option<isize>) -> StackValue {
         let reg = format!("{}{}", prefix, self.index);
         self.index += 1;
         self.registers.insert(reg.clone(), RegMeta { literal });
@@ -49,7 +49,7 @@ impl RegFile {
 pub struct StackState {
     pub data: RegList,
     pub ret: RegList,
-    pub temp: Option<Reg>,
+    pub temp: Option<StackValue>,
 }
 
 impl StackState {
@@ -69,15 +69,15 @@ pub struct FunctionAnalysis {
 }
 
 impl FunctionAnalysis {
-    fn push_data(&mut self, block: &mut BlockAnalysis, reg: Reg) {
+    fn push_data(&mut self, block: &mut BlockAnalysis, reg: StackValue) {
         block.state.data.push(reg);
     }
 
-    fn push_return(&mut self, block: &mut BlockAnalysis, reg: Reg) {
+    fn push_return(&mut self, block: &mut BlockAnalysis, reg: StackValue) {
         block.state.ret.push(reg);
     }
 
-    fn pop_data(&mut self, block: &mut BlockAnalysis) -> Reg {
+    fn pop_data(&mut self, block: &mut BlockAnalysis) -> StackValue {
         block
             .state
             .data
@@ -85,7 +85,7 @@ impl FunctionAnalysis {
             .unwrap_or_else(|| self.require_data(block))
     }
 
-    fn pop_return(&mut self, block: &mut BlockAnalysis) -> Reg {
+    fn pop_return(&mut self, block: &mut BlockAnalysis) -> StackValue {
         block
             .state
             .ret
@@ -93,11 +93,11 @@ impl FunctionAnalysis {
             .unwrap_or_else(|| self.require_ret(block))
     }
 
-    fn temp_store(&mut self, block: &mut BlockAnalysis, reg: Reg) {
+    fn temp_store(&mut self, block: &mut BlockAnalysis, reg: StackValue) {
         block.state.temp = Some(reg);
     }
 
-    fn temp_load(&mut self, block: &mut BlockAnalysis) -> Reg {
+    fn temp_load(&mut self, block: &mut BlockAnalysis) -> StackValue {
         let reg = block.state.temp.clone().expect("no temp var to load!");
         let literal = self
             .registers
@@ -110,7 +110,7 @@ impl FunctionAnalysis {
 
     // Register constructors.
 
-    fn require_data(&mut self, block: &mut BlockAnalysis) -> Reg {
+    fn require_data(&mut self, block: &mut BlockAnalysis) -> StackValue {
         let reg = self.registers.allocate("D", None);
         // propagate backward
         for prev_state in &mut block.record {
@@ -125,7 +125,7 @@ impl FunctionAnalysis {
         reg
     }
 
-    fn require_ret(&mut self, block: &mut BlockAnalysis) -> Reg {
+    fn require_ret(&mut self, block: &mut BlockAnalysis) -> StackValue {
         let reg = self.registers.allocate("R", None);
         // propagate backward
         for prev_state in &mut block.record {
@@ -140,15 +140,15 @@ impl FunctionAnalysis {
         reg
     }
 
-    fn new_literal(&mut self, _block: &mut BlockAnalysis, value: isize) -> Reg {
+    fn new_literal(&mut self, _block: &mut BlockAnalysis, value: isize) -> StackValue {
         self.registers.allocate("L", Some(value))
     }
 
-    fn new_temp(&mut self, _block: &mut BlockAnalysis, value: Option<isize>) -> Reg {
+    fn new_temp(&mut self, _block: &mut BlockAnalysis, value: Option<isize>) -> StackValue {
         self.registers.allocate("T", value)
     }
 
-    fn new_var(&mut self, _block: &mut BlockAnalysis) -> Reg {
+    fn new_var(&mut self, _block: &mut BlockAnalysis) -> StackValue {
         self.registers.allocate("V", None)
     }
 }
@@ -328,7 +328,7 @@ fn analyze_block(
 
 /// Iterate all blocks in descending topological order and produce a FunctionAnalysis
 /// of register use. Dead code elimination can happen in reverse.
-pub fn analyze_blocks(blocks: &[Block], graph: &FunctionGraph) -> FunctionAnalysis {
+pub fn analyze_blocks(blocks: &[Block], graph: &BlockGraph) -> FunctionAnalysis {
     // First we want to analyze the whole program and identify basic blocks.
     // let mut exit_stacks = IndexMap::<_, DataRegs>::new();
     let seq = graph.bfs_sequence();
@@ -473,7 +473,7 @@ pub fn function_arity(program: &PaxProgram, method: &str) -> (usize, usize, usiz
     let mut program = program.to_owned();
     inline_into_function(&mut program, method);
     let blocks = program.get(method).unwrap();
-    let graph = FunctionGraph::from_blocks(blocks);
+    let graph = BlockGraph::from_blocks(blocks);
     let analysis = analyze_blocks(blocks, &graph);
     eprintln!(
         "analysis\n  {:?}\n  {:?}",
