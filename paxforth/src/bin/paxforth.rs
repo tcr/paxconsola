@@ -64,6 +64,10 @@ struct FileOpts {
     /// Inline all functions into main.
     #[structopt(long)]
     inline: bool,
+
+    /// Optimize all functions.
+    #[structopt(long)]
+    optimize: bool,
 }
 
 #[paw::main]
@@ -82,6 +86,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     // Extract inline
     let arg_file = file_opts.file.to_owned();
     let arg_inline = file_opts.inline;
+    let arg_optimize = file_opts.optimize;
 
     // Read the file into a Vec<u8>
     let code = std::fs::read_to_string(&arg_file).expect("could not read file");
@@ -91,6 +96,9 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     // Inline arguments.
     if arg_inline {
         inline_into_function(&mut source_program, "main");
+    }
+    if arg_optimize {
+        let _ = ProgramFacts::new(&source_program).function_analyze("main");
     }
 
     // Strip unneeded values from source_program.

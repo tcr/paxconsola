@@ -53,7 +53,6 @@ pub type PaxProgram = IndexMap<String, Vec<Block>>;
  */
 
 // TODO make blocks read-only
-// And do validation on creation each block ends with a terminating opcode
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Block {
     opcodes: PaxSpan,
@@ -76,6 +75,7 @@ impl Block {
         &mut self.opcodes
     }
 
+    #[deprecated]
     pub fn opcodes_and_terminator(&self) -> (&[Located<Pax>], &Located<PaxTerm>) {
         (&self.opcodes, &self.terminator)
     }

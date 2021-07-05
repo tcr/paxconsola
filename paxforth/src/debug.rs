@@ -168,8 +168,8 @@ fn debug_program_function(
     vm: &mut VM,
     debug_mode: &mut DebugMode,
 ) {
-    let (_, arity) = ProgramFacts::new(source_program).function_analyze(method);
-    println!("    ; ( {:?} )", arity);
+    // let (_, arity) = ProgramFacts::new(source_program).function_analyze(method);
+    // println!("    ; ( {:?} )", arity);
 
     let blocks = source_program
         .get(method)

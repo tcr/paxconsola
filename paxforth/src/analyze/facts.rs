@@ -28,6 +28,8 @@ pub struct StackState {
     temp: Option<StackValue>,
 }
 
+type Analyzed<T> = (T, StackState);
+
 impl StackState {
     pub fn new() -> StackState {
         StackState {
@@ -102,6 +104,15 @@ impl StackState {
 }
 
 /**
+ * Copy of the Block struct that contains stack analysis.
+ */
+#[derive(Debug, Clone)]
+pub struct AnalyzedBlock {
+    opcodes: Vec<Analyzed<Located<Pax>>>,
+    terminator: Analyzed<Located<PaxTerm>>,
+}
+
+/**
  * ProgramFacts describes the analysis of the program.
  */
 pub struct ProgramFacts {
@@ -122,16 +133,20 @@ impl ProgramFacts {
      * optionally building off of a previous StackState.
      */
     fn block_analyze(&mut self, block: &Block, prev_state: Option<StackState>) -> StackState {
-        let mut state = StackState::new();
+        // If a previous state was provided, apply the new arity to that
+        // instead of returning a new one.
+        let mut state = prev_state.unwrap_or(StackState::new());
 
         let (commands, terminator) = block.opcodes_and_terminator();
 
+        let mut opcodes_analyzed = vec![];
+
         // Iterate opcodes
-        for (opcode, _pos) in commands {
-            match opcode {
+        for opcode in commands {
+            match opcode.0 {
                 //Metadata(_) => {}
                 Pax::PushLiteral(value) => {
-                    state.push_data(StackValue::Literal(*value));
+                    state.push_data(StackValue::Literal(value));
                 }
                 Pax::AltPush => {
                     let reg = state.pop_data();
@@ -170,6 +185,11 @@ impl ProgramFacts {
                     eprintln!("Encountered abort in block_analyze, not sure what to do");
                 }
             }
+            eprintln!("[facts] {:?}", opcode.0);
+            eprintln!("        data: {:?}", state.data);
+            eprintln!("         alt: {:?}", state.alt);
+            eprintln!("        temp: {:?}", state.temp);
+            opcodes_analyzed.push((opcode.clone(), state.clone()));
         }
 
         // Terminating opcode
@@ -189,12 +209,17 @@ impl ProgramFacts {
             }
         }
 
-        // If a previous state was provided, apply the new arity to that
-        // instead of returning a new one.
-        if let Some(prev_state) = prev_state {
-            state.apply(&prev_state.arity());
-        }
-        state
+        let terminator_analyzed = (terminator.clone(), state.clone());
+        eprintln!("[terminator] {:?}", terminator.0);
+        eprintln!("             data: {:?}", state.data);
+        eprintln!("             alt: {:?}", state.alt);
+        eprintln!("             temp: {:?}", state.temp);
+        let analyzed_block = AnalyzedBlock {
+            opcodes: opcodes_analyzed,
+            terminator: terminator_analyzed,
+        };
+
+        analyzed_block.terminator.1.clone()
     }
 
     /**
@@ -213,6 +238,7 @@ impl ProgramFacts {
             .expect(&format!("Expect a function by the name of {}", name))
             .clone();
         let graph = BlockGraph::from_blocks(&blocks);
+        // TODO cache FunctionGraph separately
 
         // TODO  ensure that this isn't a circular reference of this graph, affecting arity
 
@@ -305,9 +331,9 @@ impl ProgramFacts {
                 }
             };
 
-            eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
-            eprintln!("    data: {:?}", state.data());
-            eprintln!("     alt: {:?}", state.alt());
+            // eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
+            // eprintln!("    data: {:?}", state.data());
+            // eprintln!("     alt: {:?}", state.alt());
             last_states.insert(block_index, state.clone());
         }
 
