@@ -9,8 +9,8 @@ use indexmap::IndexMap;
 pub enum StackValue {
     DataParam(usize),
     AltParam(usize),
-    Literal(PaxLiteral),
-    Var,
+    IntValue(usize, PaxLiteral),
+    Value(usize),
 }
 
 pub type Arity = (usize, usize, usize, usize);
@@ -26,6 +26,7 @@ pub struct StackState {
     alt: Vec<StackValue>,
     alt_pos: usize,
     temp: Option<StackValue>,
+    value_pos: usize,
 }
 
 type Analyzed<T> = (T, StackState);
@@ -38,6 +39,7 @@ impl StackState {
             alt: vec![],
             alt_pos: 0,
             temp: None,
+            value_pos: 0,
         }
     }
 
@@ -87,6 +89,16 @@ impl StackState {
         (self.data_pos, self.alt_pos, self.data.len(), self.alt.len())
     }
 
+    pub fn new_value(&mut self) -> StackValue {
+        self.value_pos += 1;
+        StackValue::Value(self.value_pos)
+    }
+
+    pub fn new_int_value(&mut self, literal: PaxLiteral) -> StackValue {
+        self.value_pos += 1;
+        StackValue::IntValue(self.value_pos, literal)
+    }
+
     fn apply(&mut self, arity: &Arity) {
         for _ in 0..arity.0 {
             self.pop_data();
@@ -95,10 +107,12 @@ impl StackState {
             self.pop_return();
         }
         for _ in 0..arity.2 {
-            self.push_data(StackValue::Var);
+            let value = self.new_value();
+            self.push_data(value);
         }
         for _ in 0..arity.3 {
-            self.push_return(StackValue::Var);
+            let value = self.new_value();
+            self.push_return(value);
         }
     }
 }
@@ -117,7 +131,7 @@ pub struct AnalyzedBlock {
  */
 pub struct ProgramFacts {
     program: PaxProgram,
-    function_analysis: IndexMap<String, (BlockGraph, Arity)>,
+    function_analysis: IndexMap<String, (BlockGraph, IndexMap<usize, AnalyzedBlock>)>,
 }
 
 impl ProgramFacts {
@@ -132,10 +146,16 @@ impl ProgramFacts {
      * Internal function to compute the StackState for a single block,
      * optionally building off of a previous StackState.
      */
-    fn block_analyze(&mut self, block: &Block, prev_state: Option<StackState>) -> StackState {
+    fn block_analyze(
+        &mut self,
+        block: &Block,
+        prev_state: Option<&AnalyzedBlock>,
+    ) -> AnalyzedBlock {
         // If a previous state was provided, apply the new arity to that
         // instead of returning a new one.
-        let mut state = prev_state.unwrap_or(StackState::new());
+        let mut state = prev_state
+            .map(|x| x.terminator.1.clone())
+            .unwrap_or(StackState::new());
 
         let (commands, terminator) = block.opcodes_and_terminator();
 
@@ -146,7 +166,8 @@ impl ProgramFacts {
             match opcode.0 {
                 //Metadata(_) => {}
                 Pax::PushLiteral(value) => {
-                    state.push_data(StackValue::Literal(value));
+                    let reg = state.new_int_value(value);
+                    state.push_data(reg);
                 }
                 Pax::AltPush => {
                     let reg = state.pop_data();
@@ -161,12 +182,14 @@ impl ProgramFacts {
                 }
                 Pax::Load | Pax::Load8 => {
                     state.pop_data();
-                    state.push_data(StackValue::Var);
+                    let reg = state.new_value();
+                    state.push_data(reg);
                 }
                 Pax::Add | Pax::Nand => {
                     state.pop_data();
                     state.pop_data();
-                    state.push_data(StackValue::Var);
+                    let reg = state.new_value();
+                    state.push_data(reg);
                 }
                 Pax::Store | Pax::Store8 => {
                     state.pop_data();
@@ -214,12 +237,12 @@ impl ProgramFacts {
         eprintln!("             data: {:?}", state.data);
         eprintln!("             alt: {:?}", state.alt);
         eprintln!("             temp: {:?}", state.temp);
-        let analyzed_block = AnalyzedBlock {
+        eprintln!();
+
+        AnalyzedBlock {
             opcodes: opcodes_analyzed,
             terminator: terminator_analyzed,
-        };
-
-        analyzed_block.terminator.1.clone()
+        }
     }
 
     /**
@@ -227,8 +250,11 @@ impl ProgramFacts {
      * computed about it.
      */
     pub fn function_analyze(&mut self, name: &str) -> (BlockGraph, Arity) {
-        if let Some(result) = self.function_analysis.get(name) {
-            return result.clone();
+        if let Some((graph, last_states)) = self.function_analysis.get(name) {
+            return (
+                graph.clone(),
+                last_states.last().unwrap().1.terminator.1.arity(),
+            );
         }
 
         // Createa BlockGraph from this function's blocks.
@@ -249,7 +275,7 @@ impl ProgramFacts {
         eprintln!("[compile.rs] block analyze");
         dump_blocks(&blocks);
 
-        let mut last_states = IndexMap::<usize, StackState>::new();
+        let mut last_states = IndexMap::<usize, AnalyzedBlock>::new();
         let mut conditions: Vec<(usize, StackState)> = vec![];
         for (block_index, target) in graph.target_sequence() {
             let block = &blocks[block_index];
@@ -272,14 +298,14 @@ impl ProgramFacts {
 
             // Match the block terminator.
             let pos_string = block.terminator().1.to_string();
-            let state = match target.clone() {
+            let analyzed_block = match target.clone() {
                 TargetType::Start => {
                     // There are no parents.
                     self.block_analyze(&block, None)
                 }
                 TargetType::Block(target) | TargetType::AfterLoop(target) => {
                     // There is only one parent.
-                    self.block_analyze(&block, last_states.get(&target).map(|x| x.clone()))
+                    self.block_analyze(&block, last_states.get(&target))
                 }
                 TargetType::Begin(targets) => {
                     // There are two parents.
@@ -297,15 +323,12 @@ impl ProgramFacts {
 
                     for target in &targets {
                         if target != base_states[0].0 {
-                            conditions.push((*target, base_states[0].1.clone()));
+                            conditions.push((*target, base_states[0].1.terminator.1.clone()));
                         }
                     }
 
                     // Inherit only from the first branch.
-                    self.block_analyze(
-                        &block,
-                        last_states.get(&*base_states[0].0).map(|x| x.clone()),
-                    )
+                    self.block_analyze(&block, last_states.get(&*base_states[0].0))
                 }
                 TargetType::Then(targets) => {
                     // There are two parents.
@@ -324,28 +347,25 @@ impl ProgramFacts {
                     );
 
                     // As an optimization we only nherit from the first branch.
-                    self.block_analyze(
-                        &block,
-                        last_states.get(&*base_states[0].0).map(|x| x.clone()),
-                    )
+                    self.block_analyze(&block, last_states.get(&*base_states[0].0))
                 }
             };
 
             // eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
             // eprintln!("    data: {:?}", state.data());
             // eprintln!("     alt: {:?}", state.alt());
-            last_states.insert(block_index, state.clone());
+            last_states.insert(block_index, analyzed_block.clone());
         }
 
         // Read the function arity.
-        let arity = last_states.last().unwrap().1.arity();
+        let arity = last_states.last().unwrap().1.terminator.1.arity();
         eprintln!("----> final arity: {:?}", arity);
         eprintln!();
 
         // Cache this graph analysis in the ProgramFacts struct so
         // we never have to re-compute it.
         self.function_analysis
-            .insert(name.to_string(), (graph.clone(), arity.clone()));
+            .insert(name.to_string(), (graph.clone(), last_states.clone()));
 
         (graph, arity)
     }
