@@ -4,8 +4,8 @@ use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
 
 #[derive(Debug, Clone)]
-pub struct BlockGraph {
-    pub graph: Graph<(), i32>,
+pub struct BlockGraph<T> {
+    pub graph: Graph<T, i32>,
 }
 
 #[derive(Debug, Clone)]

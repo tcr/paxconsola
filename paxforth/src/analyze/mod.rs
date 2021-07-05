@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 pub use self::facts::*;
 pub use self::graph::*;
 pub use self::inline::*;
