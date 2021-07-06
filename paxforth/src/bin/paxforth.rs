@@ -98,7 +98,10 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         inline_into_function(&mut source_program, "main");
     }
     if arg_optimize {
-        let _ = ProgramFacts::new(&source_program).function_analyze("main");
+        let main_opt = propagate_registers(&source_program, "main");
+        source_program.remove("main");
+        source_program.insert("main".to_string(), main_opt);
+        strip_branches(&mut source_program, "main");
     }
 
     // Strip unneeded values from source_program.

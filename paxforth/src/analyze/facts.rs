@@ -5,7 +5,7 @@ use indexmap::IndexMap;
  * Describes an entry on the stack, whether it originated (locally) as
  * a value on the data stack, alt stack, a computed value, or an integer.
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum StackValue {
     DataParam(usize),
     AltParam(usize),
@@ -70,7 +70,17 @@ impl StackState {
     }
 
     pub fn pop_temp(&mut self) -> StackValue {
-        self.temp.clone().expect("No temp value in block to load")
+        let value = self.temp.clone().expect("No temp value in block to load");
+        // Replace the temp value with a new register.
+        match self.temp {
+            Some(StackValue::IntValue(_, literal)) => {
+                self.temp = Some(self.new_int_value(literal));
+            }
+            _ => {
+                self.temp = Some(self.new_value());
+            }
+        }
+        value
     }
 
     pub fn push_temp(&mut self, reg: StackValue) {
@@ -83,6 +93,10 @@ impl StackState {
 
     pub fn alt(&self) -> &[StackValue] {
         &self.alt
+    }
+
+    pub fn temp(&self) -> &Option<StackValue> {
+        &self.temp
     }
 
     pub fn arity(&self) -> Arity {
@@ -122,8 +136,9 @@ impl StackState {
  */
 #[derive(Debug, Clone)]
 pub struct AnalyzedBlock {
-    opcodes: Vec<Analyzed<Located<Pax>>>,
-    terminator: Analyzed<Located<PaxTerm>>,
+    pub opcodes: Vec<Analyzed<Located<Pax>>>,
+    pub terminator: Analyzed<Located<PaxTerm>>,
+    pub final_state: StackState,
 }
 
 /**
@@ -131,7 +146,7 @@ pub struct AnalyzedBlock {
  */
 pub struct ProgramFacts {
     program: PaxProgram,
-    function_analysis: IndexMap<String, (BlockGraph, IndexMap<usize, AnalyzedBlock>)>,
+    function_analysis: IndexMap<String, (BlockGraph<()>, IndexMap<usize, AnalyzedBlock>)>,
 }
 
 impl ProgramFacts {
@@ -163,8 +178,13 @@ impl ProgramFacts {
 
         // Iterate opcodes
         for opcode in commands {
+            eprintln!("        data: {:?}", state.data);
+            eprintln!("         alt: {:?}", state.alt);
+            eprintln!("        temp: {:?}", state.temp);
+            eprintln!("[facts] {:?}", opcode.0);
+            opcodes_analyzed.push((opcode.clone(), state.clone()));
+
             match opcode.0 {
-                //Metadata(_) => {}
                 Pax::PushLiteral(value) => {
                     let reg = state.new_int_value(value);
                     state.push_data(reg);
@@ -208,12 +228,13 @@ impl ProgramFacts {
                     eprintln!("Encountered abort in block_analyze, not sure what to do");
                 }
             }
-            eprintln!("[facts] {:?}", opcode.0);
-            eprintln!("        data: {:?}", state.data);
-            eprintln!("         alt: {:?}", state.alt);
-            eprintln!("        temp: {:?}", state.temp);
-            opcodes_analyzed.push((opcode.clone(), state.clone()));
         }
+
+        let terminator_analyzed = (terminator.clone(), state.clone());
+        eprintln!("        data: {:?}", state.data);
+        eprintln!("         alt: {:?}", state.alt);
+        eprintln!("        temp: {:?}", state.temp);
+        eprintln!("[terminator] {:?}", terminator.0);
 
         // Terminating opcode
         let (opcode, _pos) = terminator;
@@ -227,13 +248,19 @@ impl ProgramFacts {
 
             // Reference another function's arity to complete this analysis.
             PaxTerm::Call(name) => {
-                let arity = self.function_analyze(name).1;
+                let arity = self
+                    .function_analyze(name)
+                    .1
+                    .last()
+                    .unwrap()
+                    .1
+                    .terminator
+                    .1
+                    .arity();
                 state.apply(&arity);
             }
         }
 
-        let terminator_analyzed = (terminator.clone(), state.clone());
-        eprintln!("[terminator] {:?}", terminator.0);
         eprintln!("             data: {:?}", state.data);
         eprintln!("             alt: {:?}", state.alt);
         eprintln!("             temp: {:?}", state.temp);
@@ -242,6 +269,7 @@ impl ProgramFacts {
         AnalyzedBlock {
             opcodes: opcodes_analyzed,
             terminator: terminator_analyzed,
+            final_state: state.clone(),
         }
     }
 
@@ -249,125 +277,122 @@ impl ProgramFacts {
      * Analyze a function in this program and cache the BlockGraph and Arity
      * computed about it.
      */
-    pub fn function_analyze(&mut self, name: &str) -> (BlockGraph, Arity) {
-        if let Some((graph, last_states)) = self.function_analysis.get(name) {
-            return (
-                graph.clone(),
-                last_states.last().unwrap().1.terminator.1.arity(),
-            );
-        }
+    pub fn function_analyze(
+        &'_ mut self,
+        name: &str,
+    ) -> &'_ (BlockGraph<()>, IndexMap<usize, AnalyzedBlock>) {
+        if let None = self.function_analysis.get(name) {
+            // Create a BlockGraph from this function's blocks.
+            let blocks = self
+                .program
+                .get(name)
+                .expect(&format!("Expect a function by the name of {}", name))
+                .clone();
+            let graph = BlockGraph::<()>::from_blocks(&blocks);
 
-        // Createa BlockGraph from this function's blocks.
-        let blocks = self
-            .program
-            .get(name)
-            .expect(&format!("Expect a function by the name of {}", name))
-            .clone();
-        let graph = BlockGraph::from_blocks(&blocks);
-        // TODO cache FunctionGraph separately
+            // TODO  ensure that this isn't a circular reference of this graph, affecting arity
+            eprintln!("[compile.rs] graph {:?}", graph);
+            eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
+            eprintln!("[compile.rs] graph {:?}", graph.target_sequence());
+            eprintln!();
+            eprintln!("[compile.rs] block analyze");
+            dump_blocks(&blocks);
 
-        // TODO  ensure that this isn't a circular reference of this graph, affecting arity
+            let mut last_states = IndexMap::<usize, AnalyzedBlock>::new();
+            let mut conditions: Vec<(usize, StackState)> = vec![];
+            for (block_index, target) in graph.target_sequence() {
+                let block = &blocks[block_index];
 
-        eprintln!("[compile.rs] graph {:?}", graph);
-        eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
-        eprintln!("[compile.rs] graph {:?}", graph.target_sequence());
-        eprintln!();
-        eprintln!("[compile.rs] block analyze");
-        dump_blocks(&blocks);
-
-        let mut last_states = IndexMap::<usize, AnalyzedBlock>::new();
-        let mut conditions: Vec<(usize, StackState)> = vec![];
-        for (block_index, target) in graph.target_sequence() {
-            let block = &blocks[block_index];
-
-            // Evaluate conditions
-            conditions = conditions
-                .into_iter()
-                .filter(|(index, condition)| {
-                    if *index == block_index {
-                        // TODO
-                        eprintln!();
-                        eprintln!("[compile.rs] TESTING CONDITION: {:?}", condition);
-                        eprintln!();
-                        false
-                    } else {
-                        true
-                    }
-                })
-                .collect();
-
-            // Match the block terminator.
-            let pos_string = block.terminator().1.to_string();
-            let analyzed_block = match target.clone() {
-                TargetType::Start => {
-                    // There are no parents.
-                    self.block_analyze(&block, None)
-                }
-                TargetType::Block(target) | TargetType::AfterLoop(target) => {
-                    // There is only one parent.
-                    self.block_analyze(&block, last_states.get(&target))
-                }
-                TargetType::Begin(targets) => {
-                    // There are two parents.
-                    let base_states = last_states
-                        .iter()
-                        .filter(|(key, _value)| targets.contains(key))
-                        .collect::<Vec<_>>();
-                    // TODO compare base_States?
-                    assert_eq!(
-                        base_states.len(),
-                        1,
-                        "expected only one iterated branch {:?}",
-                        target
-                    );
-
-                    for target in &targets {
-                        if target != base_states[0].0 {
-                            conditions.push((*target, base_states[0].1.terminator.1.clone()));
+                // Evaluate conditions
+                conditions = conditions
+                    .into_iter()
+                    .filter(|(index, condition)| {
+                        if *index == block_index {
+                            // TODO
+                            eprintln!();
+                            eprintln!("[compile.rs] TESTING CONDITION: {:?}", condition);
+                            eprintln!();
+                            false
+                        } else {
+                            true
                         }
+                    })
+                    .collect();
+
+                // Match the block terminator.
+                let analyzed_block = match target.clone() {
+                    TargetType::Start => {
+                        // There are no parents.
+                        self.block_analyze(&block, None)
                     }
+                    TargetType::Block(target) | TargetType::AfterLoop(target) => {
+                        // There is only one parent.
+                        self.block_analyze(&block, last_states.get(&target))
+                    }
+                    TargetType::Begin(targets) => {
+                        // There are two parents.
+                        let base_states = last_states
+                            .iter()
+                            .filter(|(key, _value)| targets.contains(key))
+                            .collect::<Vec<_>>();
+                        // TODO compare base_states?
+                        assert_eq!(
+                            base_states.len(),
+                            1,
+                            "expected only one iterated branch {:?}",
+                            target
+                        );
 
-                    // Inherit only from the first branch.
-                    self.block_analyze(&block, last_states.get(&*base_states[0].0))
-                }
-                TargetType::Then(targets) => {
-                    // There are two parents.
-                    let base_states = last_states
-                        .iter()
-                        .filter(|(key, _value)| targets.contains(key))
-                        .collect::<Vec<_>>();
+                        // Add conditions that the forward reference should obey.
+                        for target in &targets {
+                            if target != base_states[0].0 {
+                                conditions.push((*target, base_states[0].1.terminator.1.clone()));
+                            }
+                        }
 
-                    // TODO compare base_States?
-                    // Generate a result?
-                    assert_eq!(
-                        base_states.len(),
-                        2,
-                        "expected tp have two iterated branch {:?}",
-                        target
-                    );
+                        // Inherit only from the first branch.
+                        self.block_analyze(&block, last_states.get(&*base_states[0].0))
+                    }
+                    TargetType::Then(targets) => {
+                        // There are two parents.
+                        let base_states = last_states
+                            .iter()
+                            .filter(|(key, _value)| targets.contains(key))
+                            .collect::<Vec<_>>();
 
-                    // As an optimization we only nherit from the first branch.
-                    self.block_analyze(&block, last_states.get(&*base_states[0].0))
-                }
-            };
+                        // TODO compare base_States?
+                        // Generate a result?
+                        assert_eq!(
+                            base_states.len(),
+                            2,
+                            "expected tp have two iterated branch {:?}",
+                            target
+                        );
 
-            // eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
-            // eprintln!("    data: {:?}", state.data());
-            // eprintln!("     alt: {:?}", state.alt());
-            last_states.insert(block_index, analyzed_block.clone());
+                        // As an optimization, we only inherit from the first branch.
+                        let first_block_index = *base_states[0].0;
+                        self.block_analyze(&block, last_states.get(&first_block_index))
+                    }
+                };
+
+                // eprintln!("[arity] {:?} for {}", state.arity(), pos_string);
+                // eprintln!("    data: {:?}", state.data());
+                // eprintln!("     alt: {:?}", state.alt());
+                last_states.insert(block_index, analyzed_block.clone());
+            }
+
+            // Read the function arity.
+            let arity = last_states.last().unwrap().1.terminator.1.arity();
+            eprintln!("----> final arity: {:?}", arity);
+            eprintln!();
+
+            // Cache this graph analysis in the ProgramFacts struct so
+            // we never have to re-compute it.
+            self.function_analysis
+                .insert(name.to_string(), (graph.clone(), last_states.clone()));
         }
 
-        // Read the function arity.
-        let arity = last_states.last().unwrap().1.terminator.1.arity();
-        eprintln!("----> final arity: {:?}", arity);
-        eprintln!();
-
-        // Cache this graph analysis in the ProgramFacts struct so
-        // we never have to re-compute it.
-        self.function_analysis
-            .insert(name.to_string(), (graph.clone(), last_states.clone()));
-
-        (graph, arity)
+        self.function_analysis.get(name).unwrap()
     }
 }
 

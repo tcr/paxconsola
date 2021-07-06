@@ -180,7 +180,7 @@ impl ForthCompiler for WasmForthCompiler {
         for (name, blocks) in program {
             wat_out.push(format!("(func $fn_{} (type $t0)", name_slug(name)));
 
-            let graph = BlockGraph::from_blocks(&blocks);
+            let graph = BlockGraph::<()>::from_blocks(&blocks);
 
             // Iterate over blocks in function.
             let mut wat_block_index = 0;

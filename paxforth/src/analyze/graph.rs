@@ -17,9 +17,9 @@ pub enum TargetType {
     AfterLoop(usize),
 }
 
-impl BlockGraph {
+impl<T> BlockGraph<T> {
     /// Composes blocks together into a graph.
-    pub fn from_blocks(stack_blocks: &[Block]) -> BlockGraph {
+    pub fn from_blocks(stack_blocks: &[Block]) -> BlockGraph<()> {
         // List of blocks we've already seen.
         let mut visited = IndexSet::new();
 
