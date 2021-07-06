@@ -26,7 +26,7 @@ fn propagate_literals_in_block(
     eprintln!("    [terminator] {:?}", analyzed_block.terminator.0 .0);
 
     // Iterate backward over opcodes.
-    for (i, (opcode, stack)) in analyzed_block.opcodes.iter().enumerate().rev() {
+    for (_i, (opcode, stack)) in analyzed_block.opcodes.iter().enumerate().rev() {
         // eprintln!("{:?}\n-- {:?}", command, reg_blacklist);
         // let stack: StackState = analysis.result()[i].clone();
 
@@ -46,7 +46,7 @@ fn propagate_literals_in_block(
                     eprintln!("        [alt-pop] Skipping {:?}", reg);
                     skip_entry = true;
                 } else {
-                    if let StackValue::IntValue(n, literal) = reg {
+                    if let StackValue::IntValue(_n, literal) = reg {
                         result_opcodes.insert(0, (Pax::PushLiteral(*literal), opcode.1.clone()));
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
@@ -97,7 +97,7 @@ fn propagate_literals_in_block(
                     eprintln!("      [load-temp] Skipping {:?}", reg);
                     skip_entry = true;
                 } else {
-                    if let StackValue::IntValue(n, literal) = reg {
+                    if let StackValue::IntValue(_n, literal) = reg {
                         result_opcodes.insert(0, (Pax::PushLiteral(*literal), opcode.1.clone()));
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
@@ -106,31 +106,30 @@ fn propagate_literals_in_block(
             }
 
             // // Blacklist is viral.
-            // Pax::Add | Pax::Nand => {
-            //     let reg = stack.data().last().unwrap();
+            Pax::Add | Pax::Nand => {
+                let reg = next_stack.data().last().unwrap();
 
-            //     // If the computed register is discarded, discard both inputs.
-            //     if reg_blacklist.contains(&*reg) {
-            //         // TODO want an easy way to specify last_two
-            //         let input_regs = stack.data().iter().rev().take(2).rev().collect::<Vec<_>>();
-            //         for reg in input_regs {
-            //             reg_blacklist.insert(reg.to_owned());
-            //             // REVIEW need a better detection mechanism
-            //             if let StackValue::DataParam(_) = reg {
-            //                 result_opcodes.insert(0, (Pax::Drop, opcode.1.clone()));
-            //             }
-            //         }
-            //     } else {
-            //         result_opcodes.insert(0, opcode.clone());
-            //     }
-            // }
+                // If the computed register is discarded, discard both inputs.
+                if reg_blacklist.contains(&*reg) {
+                    // TODO want an easy way to specify last_two
+                    let input_regs = stack.data().iter().rev().take(2).rev().collect::<Vec<_>>();
+                    for reg in input_regs {
+                        reg_blacklist.insert(reg.to_owned());
+                        // REVIEW need a better detection mechanism
+                        if let StackValue::DataParam(_) = reg {
+                            result_opcodes.insert(0, (Pax::Drop, opcode.1.clone()));
+                        }
+                    }
+                    skip_entry = true;
+                }
+            }
 
             // Drop command can ignore their values entirely.
             Pax::Drop => {
                 let reg = stack.data().last().unwrap();
                 match reg {
                     StackValue::Value(_) | StackValue::IntValue(_, _) => {
-                        eprintln!("           [drop] Skipping register {:?}", reg.clone());
+                        eprintln!("           [drop] Skipping {:?}", reg.clone());
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
                     }

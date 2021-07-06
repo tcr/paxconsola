@@ -350,8 +350,16 @@ impl ProgramFacts {
                             }
                         }
 
+                        // Make a combined branch.
+                        eprintln!("###TIM### first: {:?}", base_states[0].1.terminator.1);
+
                         // Inherit only from the first branch.
-                        self.block_analyze(&block, last_states.get(&*base_states[0].0))
+                        let next_block =
+                            self.block_analyze(&block, last_states.get(&*base_states[0].0));
+
+                        eprintln!("###TIM###   two: {:?}", next_block.final_state);
+
+                        next_block
                     }
                     TargetType::Then(targets) => {
                         // There are two parents.

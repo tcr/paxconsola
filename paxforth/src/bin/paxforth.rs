@@ -101,7 +101,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         let main_opt = propagate_registers(&source_program, "main");
         source_program.remove("main");
         source_program.insert("main".to_string(), main_opt);
-        strip_branches(&mut source_program, "main");
+        // strip_branches(&mut source_program, "main");
     }
 
     // Strip unneeded values from source_program.

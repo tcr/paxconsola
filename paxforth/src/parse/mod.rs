@@ -476,7 +476,7 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
     let mut stack = PaxProgramBuilder::new();
 
     // Parse PRELUDE.
-    parse_forth_inner(&mut stack, PRELUDE, Some("src/prelude.rs"));
+    parse_forth_inner(&mut stack, PRELUDE, Some("src/prelude.fth"));
     // Parse contents.
     parse_forth_inner(&mut stack, contents, filename);
 

@@ -68,7 +68,7 @@ fn print_source(
         let preview_size = 12;
 
         let mut source_code = code.to_string();
-        if pos.filename == "src/prelude.rs" {
+        if pos.filename == "src/prelude.fth" {
             source_code = PRELUDE.to_string();
         }
 
