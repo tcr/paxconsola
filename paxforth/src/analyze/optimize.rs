@@ -46,6 +46,7 @@ fn propagate_literals_in_block(
                     skip_entry = true;
                 } else {
                     if let StackValue::IntValue(_n, literal) = reg {
+                        eprintln!("        [alt-pop] Replacing with {:?}", literal);
                         result_opcodes.insert(0, (Pax::PushLiteral(*literal), opcode.1.clone()));
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
@@ -97,6 +98,7 @@ fn propagate_literals_in_block(
                     skip_entry = true;
                 } else {
                     if let StackValue::IntValue(_n, literal) = reg {
+                        eprintln!("      [load-temp] Replacing with {:?}", literal);
                         result_opcodes.insert(0, (Pax::PushLiteral(*literal), opcode.1.clone()));
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
