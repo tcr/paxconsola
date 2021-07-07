@@ -367,48 +367,51 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
             // counting loops
             "do" => {
-                program.current().op(&(Pax::AltPush, pos.clone()));
-                program.current().op(&(Pax::AltPush, pos.clone()));
-                block_refs.push(program.current().forward_branch_target("<do>", pos.clone()));
+                push_tokens(
+                    &mut parser_iter,
+                    &pos,
+                    &[
+                        Token::Word(">r".to_string()),
+                        Token::Word(">r".to_string()),
+                        Token::Word("begin".to_string()),
+                    ],
+                );
             }
             "loop" => {
-                // TODO just inline loopimpl here?
                 let name = "loopimpl";
                 if !program.program.contains_key(name) {
                     panic!("no loopimpl defn found");
                 }
-                program
-                    .current()
-                    .exit_block((PaxTerm::Call(name.to_string()), pos.clone()));
-
-                let mut group = block_refs.pop().expect("did not match marker group");
-                assert_eq!(group.label, "<do>", "expected do loop");
-                program.current().jump_if_0(&mut group, pos.clone());
-
-                // TODO need a concat method
-                program.current().op(&(Pax::AltPop, pos.clone()));
-                program.current().op(&(Pax::Drop, pos.clone()));
-                program.current().op(&(Pax::AltPop, pos.clone()));
-                program.current().op(&(Pax::Drop, pos.clone()));
+                push_tokens(
+                    &mut parser_iter,
+                    &pos,
+                    &[
+                        Token::Word(name.to_string()),
+                        Token::Word("until".to_string()),
+                        Token::Word("r>".to_string()),
+                        Token::Word("drop".to_string()),
+                        Token::Word("r>".to_string()),
+                        Token::Word("drop".to_string()),
+                    ],
+                );
             }
             "-loop" => {
                 let name = "-loopimpl";
                 if !program.program.contains_key(name) {
                     panic!("no -loopimpl defn found");
                 }
-                program
-                    .current()
-                    .exit_block((PaxTerm::Call(name.to_string()), pos.clone()));
-
-                let mut group = block_refs.pop().expect("did not match marker group");
-                assert_eq!(group.label, "<do>", "expected do loop");
-                program.current().jump_if_0(&mut group, pos.clone());
-
-                // TODO need a concat method
-                program.current().op(&(Pax::AltPop, pos.clone()));
-                program.current().op(&(Pax::Drop, pos.clone()));
-                program.current().op(&(Pax::AltPop, pos.clone()));
-                program.current().op(&(Pax::Drop, pos.clone()));
+                push_tokens(
+                    &mut parser_iter,
+                    &pos,
+                    &[
+                        Token::Word(name.to_string()),
+                        Token::Word("until".to_string()),
+                        Token::Word("r>".to_string()),
+                        Token::Word("drop".to_string()),
+                        Token::Word("r>".to_string()),
+                        Token::Word("drop".to_string()),
+                    ],
+                );
             }
 
             // "if" statements
