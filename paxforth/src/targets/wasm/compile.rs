@@ -192,8 +192,7 @@ impl ForthCompiler for WasmForthCompiler {
             for (block_index, block) in blocks.iter().enumerate() {
                 // eprintln!("block[{}]: {:?}", block_index, block);
                 // eprintln!();
-                let (opcodes, terminator) = block.opcodes_and_terminator();
-                for op in opcodes {
+                for op in block.opcodes() {
                     wat_out.push(format!(";; {:?}", &op.0));
                     match &op.0 {
                         Pax::PushLiteral(lit) => {
@@ -267,6 +266,7 @@ impl ForthCompiler for WasmForthCompiler {
                     last_command = Some(op.0.clone());
                 }
                 {
+                    let terminator = block.terminator();
                     wat_out.push(format!(";; {:?}", &terminator.0));
                     match &terminator.0 {
                         PaxTerm::Exit => {}

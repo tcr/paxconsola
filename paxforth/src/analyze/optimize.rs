@@ -5,7 +5,6 @@ use indexmap::IndexSet;
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
 fn propagate_literals_in_block(
-    block: &Block,
     analyzed_block: &AnalyzedBlock,
     // registers: RegFile,
     reg_blacklist: &mut IndexSet<StackValue>,
@@ -353,7 +352,6 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
         // Perform dead register elimination and update block.
         *block = propagate_literals_in_block(
-            &block,
             analyzed_block,
             // analysis.registers.clone(),
             &mut reg_blacklist,

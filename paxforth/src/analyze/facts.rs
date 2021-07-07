@@ -172,12 +172,10 @@ impl ProgramFacts {
             .map(|x| x.terminator.1.clone())
             .unwrap_or(StackState::new());
 
-        let (commands, terminator) = block.opcodes_and_terminator();
-
         let mut opcodes_analyzed = vec![];
 
         // Iterate opcodes
-        for opcode in commands {
+        for opcode in block.opcodes() {
             eprintln!("        data: {:?}", state.data);
             eprintln!("         alt: {:?}", state.alt);
             eprintln!("        temp: {:?}", state.temp);
@@ -230,6 +228,7 @@ impl ProgramFacts {
             }
         }
 
+        let terminator = block.terminator();
         let terminator_analyzed = (terminator.clone(), state.clone());
         eprintln!("        data: {:?}", state.data);
         eprintln!("         alt: {:?}", state.alt);
@@ -351,13 +350,13 @@ impl ProgramFacts {
                         }
 
                         // Make a combined branch.
-                        eprintln!("###TIM### first: {:?}", base_states[0].1.terminator.1);
+                        eprintln!("###TIM### first: {:?}", base_states[0].1.final_state);
 
-                        // Inherit only from the first branch.
+                        eprintln!("###TIM###   two: {:?}", targets[1]);
+
+                        // Compute the analysis for this current block. Inherit only from the first branch.
                         let next_block =
                             self.block_analyze(&block, last_states.get(&*base_states[0].0));
-
-                        eprintln!("###TIM###   two: {:?}", next_block.final_state);
 
                         next_block
                     }
