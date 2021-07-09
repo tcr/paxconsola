@@ -277,7 +277,8 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $return_pop"));
                             wat_out.push(format!("    call $drop"));
                         }
-                        PaxTerm::BranchTarget(ref target_index) => {
+                        PaxTerm::LoopTarget(ref target_index)
+                        | PaxTerm::BranchTarget(ref target_index) => {
                             let incoming = graph
                                 .directed_edges_from_node(*target_index + 1, Direction::Incoming);
                             let mut is_loop = false;
@@ -310,72 +311,71 @@ impl ForthCompiler for WasmForthCompiler {
                             }
                         }
                         PaxTerm::JumpIf0(ref target_index) => {
-                            if *target_index > block_index {
-                                if let Some(Pax::PushLiteral(0)) = last_command {
-                                    // Determine if branch end is the target of multiple targets
-                                    let incoming = graph.directed_edges_from_node(
-                                        *target_index + 1,
-                                        Direction::Incoming,
-                                    );
-                                    // println!("incoming: {:?}", incoming);
-                                    let is_leave = incoming.len() > 2;
+                            if let Some(Pax::PushLiteral(0)) = last_command {
+                                // Determine if branch end is the target of multiple targets
+                                let incoming = graph.directed_edges_from_node(
+                                    *target_index + 1,
+                                    Direction::Incoming,
+                                );
+                                // println!("incoming: {:?}", incoming);
+                                let is_leave = incoming.len() > 2;
 
-                                    if is_leave {
-                                        // eprintln!(
-                                        //     "[LOOP STACK leave] {:?} - {:?}",
-                                        //     wat_block_index, incoming
-                                        // );
-                                        wat_out.push(format!(";;   (leave)"));
-                                        wat_out.push(format!("    call $drop"));
+                                if is_leave {
+                                    // eprintln!(
+                                    //     "[LOOP STACK leave] {:?} - {:?}",
+                                    //     wat_block_index, incoming
+                                    // );
+                                    wat_out.push(format!(";;   (leave)"));
+                                    wat_out.push(format!("    call $drop"));
 
-                                        let parent_block = wat_loop_stack.last().unwrap().clone();
-                                        wat_out.push(format!("    br {}_BLOCK", parent_block));
-                                    } else {
-                                        // End of an if block
-                                        wat_block_stack.pop().unwrap(); // last_block
-                                        let parent_block = wat_block_stack.pop().unwrap();
-                                        wat_block_stack.push(parent_block.clone());
-
-                                        wat_out.push(format!(";;   (optimized as JumpAlways)"));
-                                        not_jumped_always.insert(block_index + 1);
-
-                                        wat_out.push(format!("    call $drop"));
-
-                                        let next_block = format!("$B{}", wat_block_index);
-                                        wat_block_index += 1;
-
-                                        wat_out.push(format!("    br {}", parent_block));
-                                        wat_out.push(format!("    end"));
-                                        wat_out.push(format!("    block {}", next_block));
-                                        wat_block_stack.push(next_block);
-                                    }
+                                    let parent_block = wat_loop_stack.last().unwrap().clone();
+                                    wat_out.push(format!("    br {}_BLOCK", parent_block));
                                 } else {
-                                    // Start of an if block
-                                    let parent_id = format!("$B{}", wat_block_index);
-                                    wat_block_index += 1;
-                                    wat_block_stack.push(parent_id.clone());
-                                    let if_id = format!("$B{}", wat_block_index);
-                                    wat_block_index += 1;
-                                    wat_block_stack.push(if_id.clone());
+                                    // End of an if block
+                                    wat_block_stack.pop().unwrap(); // last_block
+                                    let parent_block = wat_block_stack.pop().unwrap();
+                                    wat_block_stack.push(parent_block.clone());
 
-                                    wat_out.push(format!("    block {}", parent_id));
-                                    wat_out.push(format!("    block {}", if_id));
-                                    wat_out.push(format!("    call $data_pop"));
-                                    wat_out.push(format!("    i32.eqz"));
-                                    wat_out.push(format!("    br_if {}", if_id));
+                                    wat_out.push(format!(";;   (optimized as JumpAlways)"));
+                                    not_jumped_always.insert(block_index + 1);
+
+                                    wat_out.push(format!("    call $drop"));
+
+                                    let next_block = format!("$B{}", wat_block_index);
+                                    wat_block_index += 1;
+
+                                    wat_out.push(format!("    br {}", parent_block));
+                                    wat_out.push(format!("    end"));
+                                    wat_out.push(format!("    block {}", next_block));
+                                    wat_block_stack.push(next_block);
                                 }
                             } else {
-                                // End of a loop
-                                wat_loop_stack.pop();
+                                // Start of an if block
+                                let parent_id = format!("$B{}", wat_block_index);
+                                wat_block_index += 1;
+                                wat_block_stack.push(parent_id.clone());
+                                let if_id = format!("$B{}", wat_block_index);
+                                wat_block_index += 1;
+                                wat_block_stack.push(if_id.clone());
 
-                                // eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
-                                let id = wat_block_stack.pop().unwrap();
+                                wat_out.push(format!("    block {}", parent_id));
+                                wat_out.push(format!("    block {}", if_id));
                                 wat_out.push(format!("    call $data_pop"));
                                 wat_out.push(format!("    i32.eqz"));
-                                wat_out.push(format!("    br_if {}", id));
-                                wat_out.push(format!("    end"));
-                                wat_out.push(format!("    end"));
+                                wat_out.push(format!("    br_if {}", if_id));
                             }
+                        }
+                        PaxTerm::LoopIf0(ref target_index) => {
+                            // End of a loop
+                            wat_loop_stack.pop();
+
+                            // eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
+                            let id = wat_block_stack.pop().unwrap();
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    i32.eqz"));
+                            wat_out.push(format!("    br_if {}", id));
+                            wat_out.push(format!("    end"));
+                            wat_out.push(format!("    end"));
                         }
                         PaxTerm::JumpAlways(_) => {
                             // Recurse

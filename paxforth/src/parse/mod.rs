@@ -248,9 +248,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                             Some((Token::Word(word), _defer_pos)) => {
                                 program.rename_function(word);
                             }
-                            _ => {
-                                panic!("Expected word to follow 'is'")
-                            }
+                            _ => panic!("Expected word to follow 'is'"),
                         }
                     }
                     Some(token) => parser_iter.put_back(token),
@@ -275,16 +273,12 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 let group = BlockReference::new("<begin-leave>", None);
                 block_refs.push(group);
 
-                block_refs.push(
-                    program
-                        .current()
-                        .forward_branch_target("<begin>", pos.clone()),
-                );
+                block_refs.push(program.current().loop_target("<begin>", pos.clone()));
             }
             "until" => {
                 let mut group = block_refs.pop().expect("did not match marker group");
                 assert_eq!(group.label, "<begin>", "expected begin loop");
-                program.current().jump_if_0(&mut group, pos.clone());
+                program.current().loop_if_0(&mut group, pos.clone());
 
                 let mut leave_group = block_refs
                     .pop()

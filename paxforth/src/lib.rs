@@ -44,10 +44,12 @@ pub fn dump_blocks(blocks: &[Block]) {
         {
             let terminator = block.terminator();
             let opcode = match &terminator.0 {
+                PaxTerm::LoopTarget(n) => format!("begin [target-{}]", n),
                 PaxTerm::BranchTarget(n) => format!("[target-{}]", n),
                 PaxTerm::Call(f) => format!("call {:?}", f),
                 PaxTerm::Exit => format!("exit"),
                 PaxTerm::JumpAlways(n) => format!("0 branch0 [target-{}]", n),
+                PaxTerm::LoopIf0(n) => format!("until [target-{}]", n),
                 PaxTerm::JumpIf0(n) => format!("branch0 [target-{}]", n),
             };
             println!(

@@ -273,7 +273,7 @@ fn debug_program_function(
                 .unwrap();
             }
             match &terminator.0 {
-                PaxTerm::BranchTarget(_n) => {}
+                PaxTerm::LoopTarget(_n) | PaxTerm::BranchTarget(_n) => {}
                 PaxTerm::Call(f) => {
                     vm.alt_push(0);
                     if *debug_mode == DebugMode::Step {
@@ -291,7 +291,7 @@ fn debug_program_function(
                 PaxTerm::JumpAlways(n) => {
                     i = *n + 1;
                 }
-                PaxTerm::JumpIf0(n) => {
+                PaxTerm::LoopIf0(n) | PaxTerm::JumpIf0(n) => {
                     let v = vm.data_pop();
                     if v == 0 {
                         i = *n + 1;

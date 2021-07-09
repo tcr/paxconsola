@@ -72,9 +72,13 @@ pub fn cross_compile_ir_term_tom(_i: usize, op: PaxTerm) -> String {
 jump_if_0(target_{})",
             target
         ),
-        PaxTerm::JumpIf0(target) => tom_output!(out, "jump_if_0(target_{})", target),
+        PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => {
+            tom_output!(out, "jump_if_0(target_{})", target)
+        }
 
-        PaxTerm::BranchTarget(n) => tom_output!(out, "target_{} = loc()", n),
+        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) => {
+            tom_output!(out, "target_{} = loc()", n)
+        }
 
         // Pax::Metadata(_s) => tom_output!(out, "start()"),
         PaxTerm::Exit => {

@@ -239,10 +239,10 @@ impl ProgramFacts {
         let (opcode, _pos) = terminator;
         match opcode {
             PaxTerm::JumpAlways(_) => {}
-            PaxTerm::JumpIf0(_) => {
+            PaxTerm::LoopIf0(_) | PaxTerm::JumpIf0(_) => {
                 state.pop_data();
             }
-            PaxTerm::BranchTarget(_) => {}
+            PaxTerm::LoopTarget(_) | PaxTerm::BranchTarget(_) => {}
             PaxTerm::Exit => {}
 
             // Reference another function's arity to complete this analysis.

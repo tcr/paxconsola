@@ -61,6 +61,14 @@ impl BlockBuilder {
         marker_group.to_block_indices.push(block_index);
     }
 
+    pub fn loop_if_0(&mut self, marker_group: &mut BlockReference, pos: Pos) {
+        let block_index = self.exit_block((
+            PaxTerm::LoopIf0(marker_group.from_block_index.unwrap_or(0)),
+            pos,
+        ));
+        marker_group.to_block_indices.push(block_index);
+    }
+
     pub fn jump_always(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         let block_index = self.exit_block((
             PaxTerm::JumpAlways(marker_group.from_block_index.unwrap_or(0)),
@@ -70,6 +78,12 @@ impl BlockBuilder {
     }
 
     /* Forwward references */
+
+    pub fn loop_target(&mut self, label: &str, pos: Pos) -> BlockReference {
+        let block_index = self.exit_block((PaxTerm::LoopTarget(self.blocks.len()), pos));
+
+        BlockReference::new(label, Some(block_index))
+    }
 
     pub fn forward_branch_target(&mut self, label: &str, pos: Pos) -> BlockReference {
         let block_index = self.exit_block((PaxTerm::BranchTarget(self.blocks.len()), pos));
@@ -87,7 +101,8 @@ impl BlockBuilder {
         for target in &marker_group.to_block_indices {
             let last_op = self.blocks[*target].terminator_mut();
             match last_op {
-                (PaxTerm::JumpIf0(ref mut target), _)
+                (PaxTerm::LoopIf0(ref mut target), _)
+                | (PaxTerm::JumpIf0(ref mut target), _)
                 | (PaxTerm::JumpAlways(ref mut target), _) => {
                     *target = block_index;
                 }

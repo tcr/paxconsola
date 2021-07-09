@@ -39,6 +39,8 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
                 match inline_block.terminator_mut() {
                     (PaxTerm::BranchTarget(ref mut target), ..)
+                    | (PaxTerm::LoopIf0(ref mut target), ..)
+                    | (PaxTerm::LoopTarget(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
                     | (PaxTerm::JumpAlways(ref mut target), ..) => {
                         *target += j - 1;
@@ -53,6 +55,8 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             for (_i, main_block) in main_mut.iter_mut().enumerate() {
                 match main_block.terminator_mut() {
                     (PaxTerm::BranchTarget(ref mut target), ..)
+                    | (PaxTerm::LoopIf0(ref mut target), ..)
+                    | (PaxTerm::LoopTarget(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
                     | (PaxTerm::JumpAlways(ref mut target), ..) => {
                         if *target >= j {

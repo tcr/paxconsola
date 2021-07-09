@@ -198,7 +198,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
         ",
             target
         ),
-        PaxTerm::JumpIf0(target) => gb_output!(
+        PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => gb_output!(
             out,
             "
     sta TEMP
@@ -219,7 +219,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
             target
         ),
 
-        PaxTerm::BranchTarget(n) => gb_output!(
+        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) => gb_output!(
             out,
             "
 @target_{}:
