@@ -239,7 +239,6 @@ impl ProgramFacts {
         let (opcode, _pos) = terminator;
         match opcode {
             PaxTerm::JumpElse(_) => {}
-            PaxTerm::JumpAlways(_) => {}
             PaxTerm::LoopLeave(_) | PaxTerm::LoopIf0(_) | PaxTerm::JumpIf0(_) => {
                 state.pop_data();
             }

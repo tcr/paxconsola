@@ -48,7 +48,6 @@ pub fn dump_blocks(blocks: &[Block]) {
                 PaxTerm::BranchTarget(n) => format!("[target-{}]", n),
                 PaxTerm::Call(f) => format!("call {:?}", f),
                 PaxTerm::Exit => format!("exit"),
-                PaxTerm::JumpAlways(n) => format!("0 branch0 [target-{}]", n),
                 PaxTerm::JumpElse(n) => format!("0 branch0 [target-{}]", n),
                 PaxTerm::LoopIf0(n) => format!("until [target-{}]", n),
                 PaxTerm::LoopLeave(_n) => format!("leave"),

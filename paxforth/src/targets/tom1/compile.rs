@@ -66,7 +66,7 @@ store()"
 pub fn cross_compile_ir_term_tom(_i: usize, op: PaxTerm) -> String {
     let mut out = String::new();
     match op {
-        PaxTerm::JumpElse(target) | PaxTerm::JumpAlways(target) => tom_output!(
+        PaxTerm::JumpElse(target) => tom_output!(
             out,
             "push_literal(0x0)
 jump_if_0(target_{})",

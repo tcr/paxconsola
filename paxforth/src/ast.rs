@@ -41,7 +41,6 @@ pub enum PaxTerm {
     Exit,
     Call(String),
     JumpIf0(usize),
-    JumpAlways(usize),
 
     LoopTarget(usize),
     LoopLeave(usize),

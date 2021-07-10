@@ -297,7 +297,7 @@ fn debug_program_function(
                 PaxTerm::Exit => {
                     return;
                 }
-                PaxTerm::JumpElse(n) | PaxTerm::JumpAlways(n) => {
+                PaxTerm::JumpElse(n) => {
                     i = *n + 1;
                 }
                 PaxTerm::LoopLeave(n) | PaxTerm::LoopIf0(n) | PaxTerm::JumpIf0(n) => {

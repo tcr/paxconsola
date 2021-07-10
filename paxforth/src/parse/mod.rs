@@ -66,7 +66,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         //     .current()
                         //     .op(&(Pax::Metadata(word.to_string()), pos.clone()));
 
-                        // Flow control for recurse
+                        // Construct "recurse" target
                         let group = program.current().forward_branch_target(word, pos.clone());
                         block_refs.push(group);
                     }
@@ -168,7 +168,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 // We just call anon functions ":noname"
                 program.enter_function(":noname".to_string());
 
-                // Flow control for recurse
+                // Construct "recurse" target
                 let group = program
                     .current()
                     .forward_branch_target(":noname", pos.clone());
@@ -236,7 +236,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     program.in_function(),
                     "expected to find ';' inside a function"
                 );
-                assert_eq!(block_refs.len(), 1, "expected flow stack with just recurse");
 
                 block_refs.pop();
                 program.current().exit_block((PaxTerm::Exit, pos.clone()));
@@ -260,14 +259,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             /* Flow control */
-            // Recursion
-            "recurse" => {
-                // Address root flow group
-                program
-                    .current()
-                    .jump_always(&mut block_refs[0], pos.clone());
-            }
-
             // Loops
             "begin" => {
                 let group = BlockReference::new("<begin-leave>", None);
@@ -421,8 +412,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     .expect(&format!("did not match marker group: {:?}", block_refs));
                 let mut else_group = BlockReference::new("<else>", None);
 
-                program.current().op(&(Pax::PushLiteral(0), pos.clone())); // Always yes
-                program.current().jump_if_0(&mut else_group, pos.clone());
+                program.current().jump_else(&mut else_group, pos.clone());
 
                 // TODO
                 // else_group.x(current(&mut stack), pos.clone());

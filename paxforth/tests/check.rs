@@ -73,16 +73,21 @@ fn run_check_tests(check_mode: CheckMode, inline: bool) {
 }
 
 #[test]
-fn test_all_in_check_directory() {
+fn test_all_in_check_directory_wasm() {
     run_check_tests(CheckMode::Wasm, false);
 }
 
 #[test]
-fn test_all_in_check_directory_inlined() {
+fn test_all_in_check_directory_wasm_inlined() {
     run_check_tests(CheckMode::Wasm, true);
 }
 
 #[test]
 fn test_all_in_check_directory_interpreter() {
+    run_check_tests(CheckMode::Interpreter, false);
+}
+
+#[test]
+fn test_all_in_check_directory_interpreter_inlined() {
     run_check_tests(CheckMode::Interpreter, true);
 }

@@ -69,14 +69,6 @@ impl BlockBuilder {
         marker_group.to_block_indices.push(block_index);
     }
 
-    pub fn jump_always(&mut self, marker_group: &mut BlockReference, pos: Pos) {
-        let block_index = self.exit_block((
-            PaxTerm::JumpAlways(marker_group.from_block_index.unwrap_or(0)),
-            pos,
-        ));
-        marker_group.to_block_indices.push(block_index);
-    }
-
     pub fn jump_else(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         let block_index = self.exit_block((
             PaxTerm::JumpElse(marker_group.from_block_index.unwrap_or(0)),
@@ -111,8 +103,7 @@ impl BlockBuilder {
             match last_op {
                 (PaxTerm::LoopIf0(ref mut target), _)
                 | (PaxTerm::JumpIf0(ref mut target), _)
-                | (PaxTerm::JumpElse(ref mut target), ..)
-                | (PaxTerm::JumpAlways(ref mut target), _) => {
+                | (PaxTerm::JumpElse(ref mut target), ..) => {
                     *target = block_index;
                 }
                 _ => {

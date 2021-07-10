@@ -191,7 +191,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
         op
     );
     match op {
-        PaxTerm::JumpElse(target) | PaxTerm::JumpAlways(target) => gb_output!(
+        PaxTerm::JumpElse(target) => gb_output!(
             out,
             "
     jmp @target_{}

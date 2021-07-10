@@ -126,9 +126,7 @@ fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
             GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
         // ( cond -- )
-        PaxTerm::JumpElse(offset) | PaxTerm::JumpAlways(offset) => {
-            vec![GbIr::JumpAlways(format!(".target_{}", offset))]
-        }
+        PaxTerm::JumpElse(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
         // ( address -- )
         PaxTerm::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
         // ( -- )
