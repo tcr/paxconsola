@@ -101,20 +101,37 @@ impl BlockBuilder {
         BlockReference::new(label, Some(block_index))
     }
 
-    pub fn set_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
+    pub fn set_loop_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         // Set this as the target of a forward reference group.
         assert!(marker_group.from_block_index.is_none());
-        let block_index = self.exit_block((PaxTerm::BranchTarget(self.blocks.len()), pos));
+        let block_index = self.exit_block((PaxTerm::LoopTarget(self.blocks.len()), pos));
         marker_group.from_block_index = Some(block_index);
 
         // Update forward references.
         for target in &marker_group.to_block_indices {
             let last_op = self.blocks[*target].terminator_mut();
             match last_op {
-                (PaxTerm::LoopIf0(ref mut target), _)
-                | (PaxTerm::JumpIf0(ref mut target), _)
-                | (PaxTerm::LoopLeave(ref mut target), _)
-                | (PaxTerm::JumpElse(ref mut target), ..) => {
+                (PaxTerm::JumpIf0(ref mut target), _) | (PaxTerm::JumpElse(ref mut target), ..) => {
+                    *target = block_index;
+                }
+                _ => {
+                    unreachable!();
+                }
+            }
+        }
+    }
+
+    pub fn set_jump_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
+        // Set this as the target of a forward reference group.
+        assert!(marker_group.from_block_index.is_none());
+        let block_index = self.exit_block((PaxTerm::JumpTarget(self.blocks.len()), pos));
+        marker_group.from_block_index = Some(block_index);
+
+        // Update forward references.
+        for target in &marker_group.to_block_indices {
+            let last_op = self.blocks[*target].terminator_mut();
+            match last_op {
+                (PaxTerm::JumpIf0(ref mut target), _) | (PaxTerm::JumpElse(ref mut target), ..) => {
                     *target = block_index;
                 }
                 _ => {

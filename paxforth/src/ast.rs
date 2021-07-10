@@ -47,7 +47,7 @@ pub enum PaxTerm {
     LoopIf0(usize),
     // JumpIf0(usize),
     JumpElse(usize),
-    // JumpTarget(usize),
+    JumpTarget(usize),
 }
 
 pub type PaxSpan = Vec<Located<Pax>>;

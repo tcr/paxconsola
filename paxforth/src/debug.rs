@@ -282,7 +282,7 @@ fn debug_program_function(
                 .unwrap();
             }
             match &terminator.0 {
-                PaxTerm::LoopTarget(_n) | PaxTerm::BranchTarget(_n) => {}
+                PaxTerm::LoopTarget(_n) | PaxTerm::BranchTarget(_n) | PaxTerm::JumpTarget(_n) => {}
                 PaxTerm::Call(f) => {
                     vm.alt_push(0);
                     if *debug_mode == DebugMode::Step {

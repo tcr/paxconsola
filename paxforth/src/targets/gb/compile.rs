@@ -132,7 +132,7 @@ fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
         // ( -- )
         PaxTerm::Exit => vec![GbIr::Ret],
         // ( -- )
-        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) => {
+        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) | PaxTerm::JumpTarget(n) => {
             vec![GbIr::Label(format!(".target_{}", n))]
         }
     }

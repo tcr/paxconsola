@@ -184,7 +184,7 @@ impl ForthCompiler for WasmForthCompiler {
             // Iterate over blocks in function.
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];
-            let mut wat_loop_stack = vec![];
+            let mut wat_loop_stack: Vec<String> = vec![];
             let mut last_command = None;
             // eprintln!();
             for (_block_index, block) in blocks.iter().enumerate() {
@@ -275,46 +275,11 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $return_pop"));
                             wat_out.push(format!("    call $drop"));
                         }
-                        PaxTerm::LoopTarget(_) => {
-                            // Loop start.
-                            let id = format!("$L{}", wat_block_index);
-                            wat_block_index += 1;
-
-                            wat_loop_stack.push(id.clone());
-                            // eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
-                            wat_block_stack.push(id.clone());
-
-                            wat_out.push(format!("    block {}_BLOCK", id));
-                            wat_out.push(format!("    loop {}", id));
-                        }
                         PaxTerm::BranchTarget(ref target_index) => {
-                            let incoming = graph
-                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
-                            let mut is_loop = false;
-                            for edge in &incoming {
-                                if edge > target_index {
-                                    is_loop = true;
-                                }
-                            }
-                            if is_loop {
-                                // Loop start.
-                                let id = format!("$L{}", wat_block_index);
-                                wat_block_index += 1;
-
-                                wat_loop_stack.push(id.clone());
-                                // eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
-                                wat_block_stack.push(id.clone());
-
-                                wat_out.push(format!("    block {}_BLOCK", id));
-                                wat_out.push(format!("    loop {}", id));
-                            } else if incoming.len() == 2 {
-                                // End of an if block.
-                                wat_out.push(format!("    end"));
-                                wat_block_stack.pop().expect("expected end of 'if' block");
-                                wat_out.push(format!("    end"));
-                                wat_block_stack.pop().expect("expected end of 'else' block");
-                            }
+                            // TODO what is this
                         }
+
+                        /* branches */
                         PaxTerm::JumpIf0(_target_index) => {
                             if let Some(Pax::PushLiteral(0)) = last_command {
                                 wat_out.push(format!(";;   (leave)"));
@@ -352,6 +317,19 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
                         }
+                        PaxTerm::JumpTarget(ref target_index) => {
+                            let incoming = graph
+                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
+                            if incoming.len() == 2 {
+                                // End of an if block.
+                                wat_out.push(format!("    end"));
+                                wat_block_stack.pop().expect("expected end of 'if' block");
+                                wat_out.push(format!("    end"));
+                                wat_block_stack.pop().expect("expected end of 'else' block");
+                            }
+                        }
+
+                        /* loops */
                         PaxTerm::LoopIf0(_) => {
                             // End of a loop
                             wat_loop_stack.pop();
@@ -378,6 +356,28 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $data_pop"));
                             wat_out.push(format!("    i32.eqz"));
                             wat_out.push(format!("    br_if {}", if_id));
+                        }
+                        PaxTerm::LoopTarget(ref target_index) => {
+                            let incoming = graph
+                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
+                            let mut is_loop = false;
+                            for edge in &incoming {
+                                if edge > target_index {
+                                    is_loop = true;
+                                }
+                            }
+                            if is_loop {
+                                // Loop start.
+                                let id = format!("$L{}", wat_block_index);
+                                wat_block_index += 1;
+
+                                wat_loop_stack.push(id.clone());
+                                // eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
+                                wat_block_stack.push(id.clone());
+
+                                wat_out.push(format!("    block {}_BLOCK", id));
+                                wat_out.push(format!("    loop {}", id));
+                            }
                         }
                     }
                     wat_out.push(format!(""));

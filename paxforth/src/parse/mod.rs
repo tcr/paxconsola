@@ -278,7 +278,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     leave_group.label, "<begin-leave>",
                     "expected begin-leave loop"
                 );
-                program.current().set_target(&mut leave_group, pos);
+                program.current().set_loop_target(&mut leave_group, pos);
             }
             "leave" => {
                 let mut queue = vec![];
@@ -418,13 +418,15 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 // else_group.x(current(&mut stack), pos.clone());
 
                 block_refs.push(else_group);
-                program.current().set_target(&mut if_group, pos.clone());
+                program
+                    .current()
+                    .set_jump_target(&mut if_group, pos.clone());
             }
             "then" | "endif" => {
                 let mut else_group = block_refs
                     .pop()
                     .expect(&format!("did not match marker group: {:?}", block_refs));
-                program.current().set_target(&mut else_group, pos);
+                program.current().set_jump_target(&mut else_group, pos);
             }
 
             /* Opcodes */

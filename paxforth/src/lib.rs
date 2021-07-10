@@ -46,6 +46,7 @@ pub fn dump_blocks(blocks: &[Block]) {
             let opcode = match &terminator.0 {
                 PaxTerm::LoopTarget(n) => format!("begin [target-{}]", n),
                 PaxTerm::BranchTarget(n) => format!("[target-{}]", n),
+                PaxTerm::JumpTarget(n) => format!("[target-{}]", n),
                 PaxTerm::Call(f) => format!("call {:?}", f),
                 PaxTerm::Exit => format!("exit"),
                 PaxTerm::JumpElse(n) => format!("0 branch0 [target-{}]", n),

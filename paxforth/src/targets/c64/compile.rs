@@ -221,7 +221,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
             )
         }
 
-        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) => gb_output!(
+        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) | PaxTerm::JumpTarget(n) => gb_output!(
             out,
             "
 @target_{}:
