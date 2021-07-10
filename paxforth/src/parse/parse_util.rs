@@ -51,19 +51,11 @@ impl BlockBuilder {
         self.current_block = vec![];
     }
 
-    /* Marker methods */
+    /* Jump references */
 
     pub fn jump_if_0(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         let block_index = self.exit_block((
             PaxTerm::JumpIf0(marker_group.from_block_index.unwrap_or(0)),
-            pos,
-        ));
-        marker_group.to_block_indices.push(block_index);
-    }
-
-    pub fn loop_if_0(&mut self, marker_group: &mut BlockReference, pos: Pos) {
-        let block_index = self.exit_block((
-            PaxTerm::LoopIf0(marker_group.from_block_index.unwrap_or(0)),
             pos,
         ));
         marker_group.to_block_indices.push(block_index);
@@ -77,13 +69,31 @@ impl BlockBuilder {
         marker_group.to_block_indices.push(block_index);
     }
 
-    /* Forwward references */
+    /* Loop references */
+
+    pub fn loop_if_0(&mut self, marker_group: &mut BlockReference, pos: Pos) {
+        let block_index = self.exit_block((
+            PaxTerm::LoopIf0(marker_group.from_block_index.unwrap_or(0)),
+            pos,
+        ));
+        marker_group.to_block_indices.push(block_index);
+    }
+
+    pub fn loop_leave(&mut self, marker_group: &mut BlockReference, pos: Pos) {
+        let block_index = self.exit_block((
+            PaxTerm::LoopLeave(marker_group.from_block_index.unwrap_or(0)),
+            pos,
+        ));
+        marker_group.to_block_indices.push(block_index);
+    }
 
     pub fn loop_target(&mut self, label: &str, pos: Pos) -> BlockReference {
         let block_index = self.exit_block((PaxTerm::LoopTarget(self.blocks.len()), pos));
 
         BlockReference::new(label, Some(block_index))
     }
+
+    /* Forward references */
 
     pub fn forward_branch_target(&mut self, label: &str, pos: Pos) -> BlockReference {
         let block_index = self.exit_block((PaxTerm::BranchTarget(self.blocks.len()), pos));
@@ -103,6 +113,7 @@ impl BlockBuilder {
             match last_op {
                 (PaxTerm::LoopIf0(ref mut target), _)
                 | (PaxTerm::JumpIf0(ref mut target), _)
+                | (PaxTerm::LoopLeave(ref mut target), _)
                 | (PaxTerm::JumpElse(ref mut target), ..) => {
                     *target = block_index;
                 }
