@@ -120,13 +120,15 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
 fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
     match op {
         // ( cond -- )
-        PaxTerm::LoopIf0(offset) | PaxTerm::JumpIf0(offset) => vec![
+        PaxTerm::LoopLeave(offset) | PaxTerm::LoopIf0(offset) | PaxTerm::JumpIf0(offset) => vec![
             GbIr::CopyToDE,
             GbIr::Pop,
             GbIr::JumpIfDEIs0(format!(".target_{}", offset)),
         ],
         // ( cond -- )
-        PaxTerm::JumpAlways(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
+        PaxTerm::JumpElse(offset) | PaxTerm::JumpAlways(offset) => {
+            vec![GbIr::JumpAlways(format!(".target_{}", offset))]
+        }
         // ( address -- )
         PaxTerm::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
         // ( -- )

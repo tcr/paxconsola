@@ -44,9 +44,10 @@ pub enum PaxTerm {
     JumpAlways(usize),
 
     LoopTarget(usize),
+    LoopLeave(usize),
     LoopIf0(usize),
     // JumpIf0(usize),
-    // JumpElse(usize),
+    JumpElse(usize),
     // JumpTarget(usize),
 }
 

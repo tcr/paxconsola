@@ -140,7 +140,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Check the program output
         Command::Check { .. } => {
-            if !check_program(&code, &source_program) {
+            if !check_program(&code, &source_program, CheckMode::Wasm) {
                 std::process::exit(1);
             }
         }

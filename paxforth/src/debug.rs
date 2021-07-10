@@ -166,6 +166,7 @@ fn debug_program_function(
     method: &str,
     vm: &mut VM,
     debug_mode: &mut DebugMode,
+    buffer: &mut Option<Vec<u8>>,
 ) {
     // let (_, arity) = ProgramFacts::new(source_program).function_analyze(method);
     // println!("    ; ( {:?} )", arity);
@@ -226,10 +227,18 @@ fn debug_program_function(
                     vm.data_pop();
                 }
                 Pax::Print => {
-                    println!("{}", vm.data_pop());
+                    if let Some(buffer) = buffer {
+                        writeln!(buffer, "{}", vm.data_pop()).ok();
+                    } else {
+                        println!("{}", vm.data_pop());
+                    }
                 }
                 Pax::Emit => {
-                    print!("{}", vm.data_pop() as u8 as char);
+                    if let Some(buffer) = buffer {
+                        write!(buffer, "{}", vm.data_pop() as u8 as char).ok();
+                    } else {
+                        print!("{}", vm.data_pop() as u8 as char);
+                    }
                 }
                 Pax::PushLiteral(l) => {
                     vm.data_push(*l as i16);
@@ -278,20 +287,20 @@ fn debug_program_function(
                     vm.alt_push(0);
                     if *debug_mode == DebugMode::Step {
                         *debug_mode = DebugMode::Continue;
-                        debug_program_function(code, source_program, f, vm, debug_mode);
+                        debug_program_function(code, source_program, f, vm, debug_mode, buffer);
                         *debug_mode = DebugMode::Step;
                     } else {
-                        debug_program_function(code, source_program, f, vm, debug_mode);
+                        debug_program_function(code, source_program, f, vm, debug_mode, buffer);
                     }
                     vm.alt_pop();
                 }
                 PaxTerm::Exit => {
                     return;
                 }
-                PaxTerm::JumpAlways(n) => {
+                PaxTerm::JumpElse(n) | PaxTerm::JumpAlways(n) => {
                     i = *n + 1;
                 }
-                PaxTerm::LoopIf0(n) | PaxTerm::JumpIf0(n) => {
+                PaxTerm::LoopLeave(n) | PaxTerm::LoopIf0(n) | PaxTerm::JumpIf0(n) => {
                     let v = vm.data_pop();
                     if v == 0 {
                         i = *n + 1;
@@ -302,6 +311,34 @@ fn debug_program_function(
     }
 }
 
+/**
+ * Interactive debugigng for a test
+ */
+pub fn debug_program_test(code: &str, source_program: &PaxProgram) -> Vec<u8> {
+    let mut vm = VM {
+        _data: vec![],
+        _alt: vec![],
+        memory: vec![0; 65536],
+    };
+
+    let mut debug_mode = DebugMode::Continue;
+
+    let mut buffer: Option<Vec<u8>> = Some(Vec::new());
+    debug_program_function(
+        code,
+        source_program,
+        "main",
+        &mut vm,
+        &mut debug_mode,
+        &mut buffer,
+    );
+
+    buffer.unwrap()
+}
+
+/**
+ * Debug program interactively
+ */
 pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
     let mut vm = VM {
         _data: vec![],
@@ -317,7 +354,17 @@ pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
     println!();
     println!();
     println!();
-    debug_program_function(code, source_program, "main", &mut vm, &mut debug_mode);
+
+    let mut buffer: Option<Vec<u8>> = Some(Vec::new());
+    debug_program_function(
+        code,
+        source_program,
+        "main",
+        &mut vm,
+        &mut debug_mode,
+        &mut buffer,
+    );
+
     true
 
     // // Parse output from "print" statements.

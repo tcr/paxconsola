@@ -66,13 +66,13 @@ store()"
 pub fn cross_compile_ir_term_tom(_i: usize, op: PaxTerm) -> String {
     let mut out = String::new();
     match op {
-        PaxTerm::JumpAlways(target) => tom_output!(
+        PaxTerm::JumpElse(target) | PaxTerm::JumpAlways(target) => tom_output!(
             out,
             "push_literal(0x0)
 jump_if_0(target_{})",
             target
         ),
-        PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => {
+        PaxTerm::LoopLeave(target) | PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => {
             tom_output!(out, "jump_if_0(target_{})", target)
         }
 

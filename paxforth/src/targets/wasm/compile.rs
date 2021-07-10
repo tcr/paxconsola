@@ -317,10 +317,9 @@ impl ForthCompiler for WasmForthCompiler {
                                     *target_index + 1,
                                     Direction::Incoming,
                                 );
-                                // println!("incoming: {:?}", incoming);
-                                let is_leave = incoming.len() > 2;
 
-                                if is_leave {
+                                // TODO: What is this distinction
+                                if incoming.len() > 2 {
                                     // eprintln!(
                                     //     "[LOOP STACK leave] {:?} - {:?}",
                                     //     wat_block_index, incoming
@@ -365,19 +364,7 @@ impl ForthCompiler for WasmForthCompiler {
                                 wat_out.push(format!("    br_if {}", if_id));
                             }
                         }
-                        PaxTerm::LoopIf0(ref target_index) => {
-                            // End of a loop
-                            wat_loop_stack.pop();
-
-                            // eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
-                            let id = wat_block_stack.pop().unwrap();
-                            wat_out.push(format!("    call $data_pop"));
-                            wat_out.push(format!("    i32.eqz"));
-                            wat_out.push(format!("    br_if {}", id));
-                            wat_out.push(format!("    end"));
-                            wat_out.push(format!("    end"));
-                        }
-                        PaxTerm::JumpAlways(_) => {
+                        PaxTerm::JumpElse(_) | PaxTerm::JumpAlways(_) => {
                             // Recurse
                             wat_block_stack.pop().unwrap(); // last_block
                             let parent_block = wat_block_stack.pop().unwrap();
@@ -391,6 +378,33 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
                         }
+                        PaxTerm::LoopIf0(_) => {
+                            // End of a loop
+                            wat_loop_stack.pop();
+
+                            // eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
+                            let id = wat_block_stack.pop().unwrap();
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    i32.eqz"));
+                            wat_out.push(format!("    br_if {}", id));
+                            wat_out.push(format!("    end"));
+                            wat_out.push(format!("    end"));
+                        }
+                        PaxTerm::LoopLeave(_) => {
+                            // Start of an if block
+                            let parent_id = format!("$B{}", wat_block_index);
+                            wat_block_index += 1;
+                            wat_block_stack.push(parent_id.clone());
+                            let if_id = format!("$B{}", wat_block_index);
+                            wat_block_index += 1;
+                            wat_block_stack.push(if_id.clone());
+
+                            wat_out.push(format!("    block {}", parent_id));
+                            wat_out.push(format!("    block {}", if_id));
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    i32.eqz"));
+                            wat_out.push(format!("    br_if {}", if_id));
+                        }
                     }
                     wat_out.push(format!(""));
 
@@ -403,12 +417,19 @@ impl ForthCompiler for WasmForthCompiler {
         }
 
         let wat_output = WAT_TEMPLATE
+            // 4 byte variable definition (return pointer)
             .replace("{{return_ptr}}", "1024")
+            // 4 byte variable definition (data pointer)
             .replace("{{data_ptr}}", "1028")
+            // 4 byte variable definition (temp pointer)
             .replace("{{temp}}", "1032")
+            // Data stack
             .replace("{{data}}", "2048")
+            // Alt stack
             .replace("{{return}}", "4096")
+            // RAM space
             .replace("{{mem}}", "10000")
+            // Functions declared in WASM
             .replace("{{functions}}", &wat_out.join("\n"));
 
         // eprintln!("\n\n[WAT]:\n{}\n\n\n", wat_output);

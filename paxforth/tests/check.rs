@@ -28,7 +28,7 @@ fn get_check_tests() -> Vec<CheckTest> {
         .collect::<Vec<_>>()
 }
 
-fn run_check_tests(inline: bool) {
+fn run_check_tests(check_mode: CheckMode, inline: bool) {
     let check_tests = get_check_tests();
     if check_tests.is_empty() {
         panic!("error: found 0 tests!");
@@ -56,7 +56,7 @@ fn run_check_tests(inline: bool) {
         // }
 
         // Run the binary in WASM.
-        if !check_program(&test.contents, &program) {
+        if !check_program(&test.contents, &program, check_mode.clone()) {
             // Negative test in "fail.fth"
             if test.path.file_name().unwrap() == "fail.fth" {
                 eprintln!("[forth] Skipping negative test 'fail.fth'");
@@ -74,10 +74,15 @@ fn run_check_tests(inline: bool) {
 
 #[test]
 fn test_all_in_check_directory() {
-    run_check_tests(false);
+    run_check_tests(CheckMode::Wasm, false);
 }
 
 #[test]
 fn test_all_in_check_directory_inlined() {
-    run_check_tests(true);
+    run_check_tests(CheckMode::Wasm, true);
+}
+
+#[test]
+fn test_all_in_check_directory_interpreter() {
+    run_check_tests(CheckMode::Interpreter, true);
 }

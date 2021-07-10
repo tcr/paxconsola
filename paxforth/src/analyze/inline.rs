@@ -42,6 +42,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                     | (PaxTerm::LoopIf0(ref mut target), ..)
                     | (PaxTerm::LoopTarget(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
+                    | (PaxTerm::JumpElse(ref mut target), ..)
                     | (PaxTerm::JumpAlways(ref mut target), ..) => {
                         *target += j - 1;
                     }
@@ -58,6 +59,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                     | (PaxTerm::LoopIf0(ref mut target), ..)
                     | (PaxTerm::LoopTarget(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
+                    | (PaxTerm::JumpElse(ref mut target), ..)
                     | (PaxTerm::JumpAlways(ref mut target), ..) => {
                         if *target >= j {
                             *target += inlined_blocks_len;
@@ -113,6 +115,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                     match main_block.terminator_mut() {
                         (PaxTerm::BranchTarget(ref mut target), ..)
                         | (PaxTerm::JumpIf0(ref mut target), ..)
+                        | (PaxTerm::JumpElse(ref mut target), ..)
                         | (PaxTerm::JumpAlways(ref mut target), ..) => {
                             if *target >= j {
                                 *target -= 1;
@@ -127,6 +130,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                     match main_block.terminator_mut() {
                         (PaxTerm::BranchTarget(ref mut target), ..)
                         | (PaxTerm::JumpIf0(ref mut target), ..)
+                        | (PaxTerm::JumpElse(ref mut target), ..)
                         | (PaxTerm::JumpAlways(ref mut target), ..) => {
                             if *target >= j {
                                 *target -= 1;

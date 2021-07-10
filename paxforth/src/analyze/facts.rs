@@ -238,8 +238,9 @@ impl ProgramFacts {
         // Terminating opcode
         let (opcode, _pos) = terminator;
         match opcode {
+            PaxTerm::JumpElse(_) => {}
             PaxTerm::JumpAlways(_) => {}
-            PaxTerm::LoopIf0(_) | PaxTerm::JumpIf0(_) => {
+            PaxTerm::LoopLeave(_) | PaxTerm::LoopIf0(_) | PaxTerm::JumpIf0(_) => {
                 state.pop_data();
             }
             PaxTerm::LoopTarget(_) | PaxTerm::BranchTarget(_) => {}

@@ -44,7 +44,9 @@ impl<T> BlockGraph<T> {
 
                 // Determine what the next block target is going to be.
                 match block.terminator() {
-                    (PaxTerm::LoopIf0(target), ..) | (PaxTerm::JumpIf0(target), ..) => {
+                    (PaxTerm::LoopIf0(target), ..)
+                    | (PaxTerm::LoopLeave(target), ..)
+                    | (PaxTerm::JumpIf0(target), ..) => {
                         // Inject next edge (for both absolute jump OR branch)
                         let alt_target = target + 1;
                         edges.push((i as u32, alt_target as u32));
@@ -55,7 +57,7 @@ impl<T> BlockGraph<T> {
                             conditions.push_front(alt_target);
                         }
                     }
-                    (PaxTerm::JumpAlways(target), ..) => {
+                    (PaxTerm::JumpElse(target), ..) | (PaxTerm::JumpAlways(target), ..) => {
                         // Inject next edge (for both absolute jump OR branch)
                         let alt_target = target + 1;
                         edges.push((i as u32, alt_target as u32));

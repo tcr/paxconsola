@@ -1,16 +1,27 @@
+use crate::debug::*;
+use crate::targets::wasm::*;
 use crate::*;
 use lazy_static::*;
 use regex::Regex;
 
-use crate::targets::wasm::*;
+#[derive(Copy, Clone)]
+pub enum CheckMode {
+    Wasm,
+    Interpreter,
+}
 
-pub fn check_program(code: &str, source_program: &PaxProgram) -> bool {
+pub fn check_program(code: &str, source_program: &PaxProgram, check_mode: CheckMode) -> bool {
     lazy_static! {
         static ref RE_CHECK: Regex = Regex::new(r"\(\s*@check\s+([^)]+?)\s*\)").unwrap();
     }
 
-    let wasm = WasmForthCompiler::compile_binary(&source_program);
-    let buffer = run_wasm(&wasm, true).expect("failed execution");
+    let buffer = match check_mode {
+        CheckMode::Wasm => {
+            let wasm = WasmForthCompiler::compile_binary(&source_program);
+            run_wasm(&wasm, true).expect("failed execution")
+        }
+        CheckMode::Interpreter => debug_program_test(code, source_program),
+    };
 
     // Parse output from "print" statements.
     let buffer_string = String::from_utf8_lossy(&buffer).to_string();

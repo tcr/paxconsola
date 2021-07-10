@@ -191,16 +191,17 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
         op
     );
     match op {
-        PaxTerm::JumpAlways(target) => gb_output!(
+        PaxTerm::JumpElse(target) | PaxTerm::JumpAlways(target) => gb_output!(
             out,
             "
     jmp @target_{}
         ",
             target
         ),
-        PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => gb_output!(
-            out,
-            "
+        PaxTerm::LoopLeave(target) | PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => {
+            gb_output!(
+                out,
+                "
     sta TEMP
 
     pla
@@ -216,8 +217,9 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
 
     lda TEMP2
         ",
-            target
-        ),
+                target
+            )
+        }
 
         PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) => gb_output!(
             out,
