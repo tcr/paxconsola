@@ -242,7 +242,7 @@ impl ProgramFacts {
             PaxTerm::LoopLeave(_) | PaxTerm::LoopIf0(_) | PaxTerm::JumpIf0(_) => {
                 state.pop_data();
             }
-            PaxTerm::LoopTarget(_) | PaxTerm::BranchTarget(_) | PaxTerm::JumpTarget(_) => {}
+            PaxTerm::LoopTarget(_) | PaxTerm::JumpTarget(_) => {}
             PaxTerm::Exit => {}
 
             // Reference another function's arity to complete this analysis.

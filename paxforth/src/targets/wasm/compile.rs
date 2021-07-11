@@ -272,9 +272,6 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $return_pop"));
                             wat_out.push(format!("    call $drop"));
                         }
-                        PaxTerm::BranchTarget(_) => {
-                            // TODO what is this
-                        }
 
                         /* branches */
                         PaxTerm::JumpIf0(_target_index) => {

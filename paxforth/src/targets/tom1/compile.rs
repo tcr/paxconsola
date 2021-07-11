@@ -76,7 +76,7 @@ jump_if_0(target_{})",
             tom_output!(out, "jump_if_0(target_{})", target)
         }
 
-        PaxTerm::LoopTarget(n) | PaxTerm::BranchTarget(n) | PaxTerm::JumpTarget(n) => {
+        PaxTerm::LoopTarget(n) | PaxTerm::JumpTarget(n) => {
             tom_output!(out, "target_{} = loc()", n)
         }
 

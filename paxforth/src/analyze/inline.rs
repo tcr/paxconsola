@@ -38,8 +38,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             // Rewrite the sequence we're inlining.
             for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
                 match inline_block.terminator_mut() {
-                    (PaxTerm::BranchTarget(ref mut target), ..)
-                    | (PaxTerm::LoopIf0(ref mut target), ..)
+                    (PaxTerm::LoopIf0(ref mut target), ..)
                     | (PaxTerm::LoopTarget(ref mut target), ..)
                     | (PaxTerm::LoopLeave(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
@@ -56,8 +55,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             // Now rewrite all targets inside this block.
             for (_i, main_block) in main_mut.iter_mut().enumerate() {
                 match main_block.terminator_mut() {
-                    (PaxTerm::BranchTarget(ref mut target), ..)
-                    | (PaxTerm::LoopIf0(ref mut target), ..)
+                    (PaxTerm::LoopIf0(ref mut target), ..)
                     | (PaxTerm::LoopTarget(ref mut target), ..)
                     | (PaxTerm::LoopLeave(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
@@ -115,8 +113,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 // Rewrite all targets after this.
                 for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
                     match main_block.terminator_mut() {
-                        (PaxTerm::BranchTarget(ref mut target), ..)
-                        | (PaxTerm::LoopIf0(ref mut target), ..)
+                        (PaxTerm::LoopIf0(ref mut target), ..)
                         | (PaxTerm::LoopTarget(ref mut target), ..)
                         | (PaxTerm::LoopLeave(ref mut target), ..)
                         | (PaxTerm::JumpIf0(ref mut target), ..)
@@ -133,8 +130,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 // Now rewrite all targets before this.
                 for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
                     match main_block.terminator_mut() {
-                        (PaxTerm::BranchTarget(ref mut target), ..)
-                        | (PaxTerm::LoopIf0(ref mut target), ..)
+                        (PaxTerm::LoopIf0(ref mut target), ..)
                         | (PaxTerm::LoopTarget(ref mut target), ..)
                         | (PaxTerm::LoopLeave(ref mut target), ..)
                         | (PaxTerm::JumpIf0(ref mut target), ..)

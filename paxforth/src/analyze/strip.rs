@@ -21,20 +21,21 @@ pub fn strip_branches(program: &mut PaxProgram, method: &str) {
         let mut i = 0;
         while i < blocks.len() {
             match blocks[i].terminator() {
-                (PaxTerm::BranchTarget(target), ..) => {
-                    if !used_blocks.contains(target) {
-                        let block = blocks.remove(i);
-                        let commands = block.opcodes().into_iter().cloned();
+                // TODO what does this do now
+                // (PaxTerm::BranchTarget(target), ..) => {
+                //     if !used_blocks.contains(target) {
+                //         let block = blocks.remove(i);
+                //         let commands = block.opcodes().into_iter().cloned();
 
-                        blocks
-                            .get_mut(i)
-                            .unwrap()
-                            .opcodes_mut()
-                            .splice(0..0, commands);
-                        i = 0;
-                        continue;
-                    }
-                }
+                //         blocks
+                //             .get_mut(i)
+                //             .unwrap()
+                //             .opcodes_mut()
+                //             .splice(0..0, commands);
+                //         i = 0;
+                //         continue;
+                //     }
+                // }
                 _ => {}
             }
 

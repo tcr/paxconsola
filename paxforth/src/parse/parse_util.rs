@@ -98,7 +98,7 @@ impl BlockBuilder {
     pub fn set_branch_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         // Set this as the target of a forward reference group.
         assert!(marker_group.from_block_index.is_none());
-        let block_index = self.exit_block((PaxTerm::BranchTarget(self.blocks.len()), pos));
+        let block_index = self.blocks.len();
         marker_group.from_block_index = Some(block_index);
 
         // Update forward references.

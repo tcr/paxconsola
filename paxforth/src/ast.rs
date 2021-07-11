@@ -37,7 +37,6 @@ pub enum Pax {
 // Pax opcodes for terminating a block.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PaxTerm {
-    BranchTarget(usize),
     Exit,
     Call(String),
 
