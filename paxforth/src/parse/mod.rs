@@ -281,7 +281,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 block_refs.push(else_group);
                 program
                     .current()
-                    .set_jump_target(&mut if_group, pos.clone());
+                    .set_else_target(&mut if_group, pos.clone());
             }
             "then" | "endif" => {
                 let mut else_group = block_refs

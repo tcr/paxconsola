@@ -303,16 +303,12 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    block {}", next_block));
                             wat_block_stack.push(next_block);
                         }
-                        PaxTerm::JumpTarget(ref target_index) => {
-                            let incoming = graph
-                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
-                            if incoming.len() == 2 {
-                                // End of an if block.
-                                wat_out.push(format!("    end"));
-                                wat_block_stack.pop().expect("expected end of 'if' block");
-                                wat_out.push(format!("    end"));
-                                wat_block_stack.pop().expect("expected end of 'else' block");
-                            }
+                        PaxTerm::JumpTarget(_) => {
+                            // End of an "if" or "else" block
+                            wat_out.push(format!("    end"));
+                            wat_block_stack.pop().expect("expected end of 'if' block");
+                            wat_out.push(format!("    end"));
+                            wat_block_stack.pop().expect("expected end of 'else' block");
                         }
 
                         /* loops */

@@ -124,6 +124,28 @@ impl BlockBuilder {
         marker_group.from_block_index = Some(block_index);
     }
 
+    pub fn set_else_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
+        // Set this as the target of a forward reference group.
+        assert!(marker_group.from_block_index.is_none());
+        let block_index = self.blocks.len();
+        marker_group.from_block_index = Some(block_index);
+
+        // Update forward references.
+        for target in &marker_group.to_block_indices {
+            let last_op = self.blocks[*target].terminator_mut();
+            match last_op {
+                (PaxTerm::JumpIf0(ref mut target), _)
+                | (PaxTerm::JumpElse(ref mut target), ..)
+                | (PaxTerm::LoopLeave(ref mut target), ..) => {
+                    *target = block_index;
+                }
+                _ => {
+                    unreachable!();
+                }
+            }
+        }
+    }
+
     pub fn set_jump_target(&mut self, marker_group: &mut BlockReference, pos: Pos) {
         // Set this as the target of a forward reference group.
         assert!(marker_group.from_block_index.is_none());
