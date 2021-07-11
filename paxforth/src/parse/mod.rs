@@ -320,8 +320,8 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         break;
                     }
                 }
-                program.current().op(&(Pax::PushLiteral(0), pos.clone()));
-                program.current().jump_if_0(&mut queue[0], pos.clone());
+                // program.current().op(&(Pax::PushLiteral(0), pos.clone()));
+                program.current().loop_leave(&mut queue[0], pos.clone());
                 for group in queue.into_iter() {
                     block_refs.push(group);
                 }

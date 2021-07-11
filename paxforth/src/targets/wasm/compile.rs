@@ -185,7 +185,6 @@ impl ForthCompiler for WasmForthCompiler {
             let mut wat_block_index = 0;
             let mut wat_block_stack = vec![];
             let mut wat_loop_stack: Vec<String> = vec![];
-            let mut last_command = None;
             // eprintln!();
             for (_block_index, block) in blocks.iter().enumerate() {
                 // eprintln!("block[{}]: {:?}", block_index, block);
@@ -260,8 +259,6 @@ impl ForthCompiler for WasmForthCompiler {
                     }
                     wat_out.push(format!(""));
                     // println!("  {:?}", op.0);
-
-                    last_command = Some(op.0.clone());
                 }
                 {
                     let terminator = block.terminator();
@@ -281,30 +278,22 @@ impl ForthCompiler for WasmForthCompiler {
 
                         /* branches */
                         PaxTerm::JumpIf0(_target_index) => {
-                            if let Some(Pax::PushLiteral(0)) = last_command {
-                                wat_out.push(format!(";;   (leave)"));
-                                wat_out.push(format!("    call $drop"));
+                            // Start of an "if" block
+                            let parent_id = format!("$B{}", wat_block_index);
+                            wat_block_index += 1;
+                            wat_block_stack.push(parent_id.clone());
+                            let if_id = format!("$B{}", wat_block_index);
+                            wat_block_index += 1;
+                            wat_block_stack.push(if_id.clone());
 
-                                let parent_block = wat_loop_stack.last().unwrap().clone();
-                                wat_out.push(format!("    br {}_BLOCK", parent_block));
-                            } else {
-                                // Start of an if block
-                                let parent_id = format!("$B{}", wat_block_index);
-                                wat_block_index += 1;
-                                wat_block_stack.push(parent_id.clone());
-                                let if_id = format!("$B{}", wat_block_index);
-                                wat_block_index += 1;
-                                wat_block_stack.push(if_id.clone());
-
-                                wat_out.push(format!("    block {}", parent_id));
-                                wat_out.push(format!("    block {}", if_id));
-                                wat_out.push(format!("    call $data_pop"));
-                                wat_out.push(format!("    i32.eqz"));
-                                wat_out.push(format!("    br_if {}", if_id));
-                            }
+                            wat_out.push(format!("    block {}", parent_id));
+                            wat_out.push(format!("    block {}", if_id));
+                            wat_out.push(format!("    call $data_pop"));
+                            wat_out.push(format!("    i32.eqz"));
+                            wat_out.push(format!("    br_if {}", if_id));
                         }
                         PaxTerm::JumpElse(_) => {
-                            // Deconstruct "recurse" target
+                            // Start of an "else" block
                             wat_block_stack.pop().unwrap(); // last_block
                             let parent_block = wat_block_stack.pop().unwrap();
                             wat_block_stack.push(parent_block.clone());
@@ -343,19 +332,11 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    end"));
                         }
                         PaxTerm::LoopLeave(_) => {
-                            // Start of an if block
-                            let parent_id = format!("$B{}", wat_block_index);
-                            wat_block_index += 1;
-                            wat_block_stack.push(parent_id.clone());
-                            let if_id = format!("$B{}", wat_block_index);
-                            wat_block_index += 1;
-                            wat_block_stack.push(if_id.clone());
+                            wat_out.push(format!(";;   (leave)"));
+                            // wat_out.push(format!("    call $drop"));
 
-                            wat_out.push(format!("    block {}", parent_id));
-                            wat_out.push(format!("    block {}", if_id));
-                            wat_out.push(format!("    call $data_pop"));
-                            wat_out.push(format!("    i32.eqz"));
-                            wat_out.push(format!("    br_if {}", if_id));
+                            let parent_block = wat_loop_stack.last().unwrap().clone();
+                            wat_out.push(format!("    br {}_BLOCK", parent_block));
                         }
                         PaxTerm::LoopTarget(_) => {
                             // Loop start.
@@ -371,8 +352,6 @@ impl ForthCompiler for WasmForthCompiler {
                         }
                     }
                     wat_out.push(format!(""));
-
-                    last_command = None;
                 }
             }
 

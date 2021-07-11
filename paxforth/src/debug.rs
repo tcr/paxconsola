@@ -297,10 +297,10 @@ fn debug_program_function(
                 PaxTerm::Exit => {
                     return;
                 }
-                PaxTerm::JumpElse(n) => {
+                PaxTerm::LoopLeave(n) | PaxTerm::JumpElse(n) => {
                     i = *n + 1;
                 }
-                PaxTerm::LoopLeave(n) | PaxTerm::LoopIf0(n) | PaxTerm::JumpIf0(n) => {
+                PaxTerm::LoopIf0(n) | PaxTerm::JumpIf0(n) => {
                     let v = vm.data_pop();
                     if v == 0 {
                         i = *n + 1;
