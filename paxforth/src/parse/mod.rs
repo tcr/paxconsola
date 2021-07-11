@@ -61,14 +61,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 match token {
                     Token::Word(ref word) => {
                         program.enter_function(word.to_string());
-
-                        // program
-                        //     .current()
-                        //     .op(&(Pax::Metadata(word.to_string()), pos.clone()));
-
-                        // Construct "recurse" target
-                        let group = program.current().forward_branch_target(word, pos.clone());
-                        block_refs.push(group);
                     }
                     _ => panic!("expected function name"),
                 }
@@ -167,12 +159,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             ":noname" => {
                 // We just call anon functions ":noname"
                 program.enter_function(":noname".to_string());
-
-                // Construct "recurse" target
-                let group = program
-                    .current()
-                    .forward_branch_target(":noname", pos.clone());
-                block_refs.push(group);
             }
 
             // Constants (shadows all terms)
@@ -224,6 +210,25 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 }
             }
 
+            /* Opcodes */
+            "+" => program.current().op(&(Pax::Add, pos)),
+            ">r" => program.current().op(&(Pax::AltPush, pos)),
+            "r>" => program.current().op(&(Pax::AltPop, pos)),
+            "!" => program.current().op(&(Pax::Store, pos)),
+            "@" => program.current().op(&(Pax::Load, pos)),
+            "nand" => program.current().op(&(Pax::Nand, pos)),
+            "print" | "." => program.current().op(&(Pax::Print, pos)),
+            "emit" => program.current().op(&(Pax::Emit, pos)),
+            "c!" => program.current().op(&(Pax::Store8, pos)),
+            "c@" => program.current().op(&(Pax::Load8, pos)),
+            "drop" => program.current().op(&(Pax::Drop, pos)),
+            "abort" => program.current().op(&(Pax::Abort, pos)),
+            "debugger" => program.current().op(&(Pax::Debugger, pos)),
+
+            // Temp values
+            "temp@" => program.current().op(&(Pax::LoadTemp, pos)),
+            "temp!" => program.current().op(&(Pax::StoreTemp, pos)),
+
             // Function delimiters
             ":" => {
                 assert!(!program.in_function(), "cannot nest functions");
@@ -258,8 +263,34 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 program.exit_function();
             }
 
-            /* Flow control */
-            // Loops
+            /* if .. else .. then */
+            "if" => {
+                let mut group = BlockReference::new("<if>", None);
+                program.current().jump_if_0(&mut group, pos);
+
+                block_refs.push(group);
+            }
+            "else" => {
+                let mut if_group = block_refs
+                    .pop()
+                    .expect(&format!("did not match marker group: {:?}", block_refs));
+                let mut else_group = BlockReference::new("<else>", None);
+
+                program.current().jump_else(&mut else_group, pos.clone());
+
+                block_refs.push(else_group);
+                program
+                    .current()
+                    .set_jump_target(&mut if_group, pos.clone());
+            }
+            "then" | "endif" => {
+                let mut else_group = block_refs
+                    .pop()
+                    .expect(&format!("did not match marker group: {:?}", block_refs));
+                program.current().set_jump_target(&mut else_group, pos);
+            }
+
+            /* begin .. until */
             "begin" => {
                 let group = BlockReference::new("<begin-leave>", None);
                 block_refs.push(group);
@@ -278,7 +309,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     leave_group.label, "<begin-leave>",
                     "expected begin-leave loop"
                 );
-                program.current().set_loop_target(&mut leave_group, pos);
+                program.current().set_branch_target(&mut leave_group, pos);
             }
             "leave" => {
                 let mut queue = vec![];
@@ -295,6 +326,8 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     block_refs.push(group);
                 }
             }
+
+            /* while .. repeat (constructed) */
             "while" => {
                 push_tokens(&mut parser_iter, &pos, &[Token::Word("if".to_string())]);
             }
@@ -312,7 +345,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 );
             }
 
-            // case .. of .. endof .. endcase
+            /* case .. of .. endof .. endcase (constructed) */
             "case" => {
                 push_tokens(&mut parser_iter, &pos, &[Token::Word("begin".to_string())]);
             }
@@ -350,7 +383,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 );
             }
 
-            // counting loops
+            /* do .. loop/-loop (constructed) */
             "do" => {
                 push_tokens(
                     &mut parser_iter,
@@ -398,55 +431,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     ],
                 );
             }
-
-            // "if" statements
-            "if" => {
-                let mut group = BlockReference::new("<if>", None);
-                program.current().jump_if_0(&mut group, pos);
-
-                block_refs.push(group);
-            }
-            "else" => {
-                let mut if_group = block_refs
-                    .pop()
-                    .expect(&format!("did not match marker group: {:?}", block_refs));
-                let mut else_group = BlockReference::new("<else>", None);
-
-                program.current().jump_else(&mut else_group, pos.clone());
-
-                // TODO
-                // else_group.x(current(&mut stack), pos.clone());
-
-                block_refs.push(else_group);
-                program
-                    .current()
-                    .set_jump_target(&mut if_group, pos.clone());
-            }
-            "then" | "endif" => {
-                let mut else_group = block_refs
-                    .pop()
-                    .expect(&format!("did not match marker group: {:?}", block_refs));
-                program.current().set_jump_target(&mut else_group, pos);
-            }
-
-            /* Opcodes */
-            "+" => program.current().op(&(Pax::Add, pos)),
-            ">r" => program.current().op(&(Pax::AltPush, pos)),
-            "r>" => program.current().op(&(Pax::AltPop, pos)),
-            "!" => program.current().op(&(Pax::Store, pos)),
-            "@" => program.current().op(&(Pax::Load, pos)),
-            "nand" => program.current().op(&(Pax::Nand, pos)),
-            "print" | "." => program.current().op(&(Pax::Print, pos)),
-            "emit" => program.current().op(&(Pax::Emit, pos)),
-            "c!" => program.current().op(&(Pax::Store8, pos)),
-            "c@" => program.current().op(&(Pax::Load8, pos)),
-            "drop" => program.current().op(&(Pax::Drop, pos)),
-            "abort" => program.current().op(&(Pax::Abort, pos)),
-            "debugger" => program.current().op(&(Pax::Debugger, pos)),
-
-            // Temp values
-            "temp@" => program.current().op(&(Pax::LoadTemp, pos)),
-            "temp!" => program.current().op(&(Pax::StoreTemp, pos)),
 
             // Unknown word
             word => {

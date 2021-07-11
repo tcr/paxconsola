@@ -1,5 +1,7 @@
 #!/bin/bash
 
-cargo doc
+set -e
 
 cargo test -p paxforth --release
+
+cargo doc

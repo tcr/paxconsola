@@ -40,12 +40,12 @@ pub enum PaxTerm {
     BranchTarget(usize),
     Exit,
     Call(String),
-    JumpIf0(usize),
 
     LoopTarget(usize),
     LoopLeave(usize),
     LoopIf0(usize),
-    // JumpIf0(usize),
+
+    JumpIf0(usize),
     JumpElse(usize),
     JumpTarget(usize),
 }

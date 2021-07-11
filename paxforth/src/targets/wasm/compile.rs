@@ -275,7 +275,7 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    call $return_pop"));
                             wat_out.push(format!("    call $drop"));
                         }
-                        PaxTerm::BranchTarget(ref target_index) => {
+                        PaxTerm::BranchTarget(_) => {
                             // TODO what is this
                         }
 
@@ -357,27 +357,17 @@ impl ForthCompiler for WasmForthCompiler {
                             wat_out.push(format!("    i32.eqz"));
                             wat_out.push(format!("    br_if {}", if_id));
                         }
-                        PaxTerm::LoopTarget(ref target_index) => {
-                            let incoming = graph
-                                .directed_edges_from_node(*target_index + 1, Direction::Incoming);
-                            let mut is_loop = false;
-                            for edge in &incoming {
-                                if edge > target_index {
-                                    is_loop = true;
-                                }
-                            }
-                            if is_loop {
-                                // Loop start.
-                                let id = format!("$L{}", wat_block_index);
-                                wat_block_index += 1;
+                        PaxTerm::LoopTarget(_) => {
+                            // Loop start.
+                            let id = format!("$L{}", wat_block_index);
+                            wat_block_index += 1;
 
-                                wat_loop_stack.push(id.clone());
-                                // eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
-                                wat_block_stack.push(id.clone());
+                            wat_loop_stack.push(id.clone());
+                            // eprintln!("[LOOP STACK add] {:?}", wat_loop_stack);
+                            wat_block_stack.push(id.clone());
 
-                                wat_out.push(format!("    block {}_BLOCK", id));
-                                wat_out.push(format!("    loop {}", id));
-                            }
+                            wat_out.push(format!("    block {}_BLOCK", id));
+                            wat_out.push(format!("    loop {}", id));
                         }
                     }
                     wat_out.push(format!(""));

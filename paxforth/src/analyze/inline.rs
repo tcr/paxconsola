@@ -29,7 +29,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             // dump_blocks(&inlined_blocks);
 
             // Inline code length (trim off start and end block).
-            let inlined_blocks_len = if inlined_blocks.len() > 1 {
+            let inlined_blocks_len = if inlined_blocks.len() >= 2 {
                 inlined_blocks.len() - 2
             } else {
                 0
@@ -41,6 +41,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                     (PaxTerm::BranchTarget(ref mut target), ..)
                     | (PaxTerm::LoopIf0(ref mut target), ..)
                     | (PaxTerm::LoopTarget(ref mut target), ..)
+                    | (PaxTerm::LoopLeave(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
                     | (PaxTerm::JumpElse(ref mut target), ..)
                     | (PaxTerm::JumpTarget(ref mut target), ..) => {
@@ -58,6 +59,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                     (PaxTerm::BranchTarget(ref mut target), ..)
                     | (PaxTerm::LoopIf0(ref mut target), ..)
                     | (PaxTerm::LoopTarget(ref mut target), ..)
+                    | (PaxTerm::LoopLeave(ref mut target), ..)
                     | (PaxTerm::JumpIf0(ref mut target), ..)
                     | (PaxTerm::JumpElse(ref mut target), ..)
                     | (PaxTerm::JumpTarget(ref mut target), ..) => {
@@ -114,6 +116,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
                     match main_block.terminator_mut() {
                         (PaxTerm::BranchTarget(ref mut target), ..)
+                        | (PaxTerm::LoopIf0(ref mut target), ..)
+                        | (PaxTerm::LoopTarget(ref mut target), ..)
+                        | (PaxTerm::LoopLeave(ref mut target), ..)
                         | (PaxTerm::JumpIf0(ref mut target), ..)
                         | (PaxTerm::JumpElse(ref mut target), ..)
                         | (PaxTerm::JumpTarget(ref mut target), ..) => {
@@ -129,6 +134,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
                     match main_block.terminator_mut() {
                         (PaxTerm::BranchTarget(ref mut target), ..)
+                        | (PaxTerm::LoopIf0(ref mut target), ..)
+                        | (PaxTerm::LoopTarget(ref mut target), ..)
+                        | (PaxTerm::LoopLeave(ref mut target), ..)
                         | (PaxTerm::JumpIf0(ref mut target), ..)
                         | (PaxTerm::JumpElse(ref mut target), ..)
                         | (PaxTerm::JumpTarget(ref mut target), ..) => {
