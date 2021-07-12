@@ -145,6 +145,8 @@ fn print_source(
                     mem, vm.memory[mem], vm.memory[mem] as u8 as char
                 ));
             }
+        } else {
+            println!();
         }
 
         execute!(stdout(), cursor::MoveToPreviousLine(preview_size),)?;
