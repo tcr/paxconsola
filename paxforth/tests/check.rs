@@ -28,7 +28,7 @@ fn get_check_tests() -> Vec<CheckTest> {
         .collect::<Vec<_>>()
 }
 
-fn run_check_tests(check_mode: CheckMode, inline: bool) {
+fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, optimize: bool) {
     let check_tests = get_check_tests();
     if check_tests.is_empty() {
         panic!("error: found 0 tests!");
@@ -37,10 +37,24 @@ fn run_check_tests(check_mode: CheckMode, inline: bool) {
     // Iterate through each test.
     let mut failed = 0;
     for test in check_tests {
+        if ignore_list.contains(
+            &test
+                .path
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_string()
+                .as_str(),
+        ) {
+            eprintln!("[forth] IGNORING '{}'", test.path.display());
+            continue;
+        }
+
         eprintln!(
-            "[forth] evaluating '{}' (inline: {})",
+            "[forth] evaluating '{}' (inline: {}, optimize: {})",
             test.path.display(),
-            inline
+            inline,
+            optimize,
         );
 
         // Parse the program.
@@ -49,11 +63,14 @@ fn run_check_tests(check_mode: CheckMode, inline: bool) {
         if inline {
             inline_into_function(&mut program, "main");
         }
+        if optimize {
+            let main_opt = propagate_registers(&program, "main");
+            program.remove("main");
+            program.insert("main".to_string(), main_opt);
+            // strip_branches(&mut source_program, "main");
+        }
 
-        // TODO
-        // if optimize {
-        //     optimize_function(&mut program, "main");
-        // }
+        eprintln!("[forth] running '{}'", test.path.display());
 
         // Run the binary in WASM.
         if !check_program(&test.contents, &program, check_mode.clone()) {
@@ -72,22 +89,52 @@ fn run_check_tests(check_mode: CheckMode, inline: bool) {
     assert_eq!(failed, 0, "failed more than 0 tests");
 }
 
+static EMPTY_IGNORE_LIST: &[&str] = &[];
+
+static OPT_IGNORE_LIST: &[&str] = &[
+    // crashing tests
+    "invert.fth",
+    "json-parse.fth",
+    "loop.fth",
+    "modulus.fth",
+    "type-simple.fth",
+    // failing tests
+    "within.fth",
+    "type.fth",
+    "roll.fth",
+    "multiply.fth",
+    "loopimpl2.fth",
+    "loopimpl.fth",
+    "loop-simple.fth",
+    "compare.fth",
+    "case.fth",
+    "case-begin.fth",
+    "case-a.fth",
+];
+
 #[test]
 fn test_all_in_check_directory_wasm() {
-    run_check_tests(CheckMode::Wasm, false);
+    run_check_tests(EMPTY_IGNORE_LIST, CheckMode::Wasm, false, false);
 }
 
 #[test]
 fn test_all_in_check_directory_wasm_inlined() {
-    run_check_tests(CheckMode::Wasm, true);
+    run_check_tests(EMPTY_IGNORE_LIST, CheckMode::Wasm, true, false);
 }
 
 #[test]
 fn test_all_in_check_directory_interpreter() {
-    run_check_tests(CheckMode::Interpreter, false);
+    run_check_tests(EMPTY_IGNORE_LIST, CheckMode::Interpreter, false, false);
 }
 
 #[test]
 fn test_all_in_check_directory_interpreter_inlined() {
-    run_check_tests(CheckMode::Interpreter, true);
+    run_check_tests(EMPTY_IGNORE_LIST, CheckMode::Interpreter, true, false);
+}
+
+#[ignore]
+#[test]
+fn test_all_in_check_directory_optimize() {
+    run_check_tests(OPT_IGNORE_LIST, CheckMode::Wasm, true, true);
+    run_check_tests(OPT_IGNORE_LIST, CheckMode::Interpreter, true, true);
 }

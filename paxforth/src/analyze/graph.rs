@@ -48,7 +48,7 @@ impl<T> BlockGraph<T> {
                     | (PaxTerm::LoopLeave(target), ..)
                     | (PaxTerm::JumpIf0(target), ..) => {
                         // Inject next edge (for both absolute jump OR branch)
-                        let alt_target = target + 1;
+                        let alt_target = *target;
                         edges.push((i as u32, alt_target as u32));
 
                         // Invoke branch as though we jumped (nonzero).
@@ -59,7 +59,7 @@ impl<T> BlockGraph<T> {
                     }
                     (PaxTerm::JumpElse(target), ..) => {
                         // Inject next edge (for both absolute jump OR branch)
-                        let alt_target = target + 1;
+                        let alt_target = *target;
                         edges.push((i as u32, alt_target as u32));
 
                         // Invoke branch as though we jumped (nonzero).
