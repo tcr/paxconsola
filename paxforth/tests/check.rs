@@ -105,7 +105,6 @@ static OPT_IGNORE_LIST: &[&str] = &[
     "multiply.fth",
     "loopimpl2.fth",
     "loopimpl.fth",
-    "loop-simple.fth",
     "compare.fth",
     "case.fth",
     "case-begin.fth",

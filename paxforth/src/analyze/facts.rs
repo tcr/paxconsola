@@ -130,6 +130,25 @@ impl StackState {
             self.push_return(value);
         }
     }
+
+    /**
+     * Function for the "facts.rs" computation that will, before
+     * a branch or a look, replace all stack values with anonymized
+     * versions, aka StackValue::Value
+     */
+    pub fn anonymize(&mut self) {
+        let mut data = vec![];
+        for _ in 0..self.data.len() {
+            data.push(self.new_value());
+        }
+        self.data = data;
+
+        let mut alt = vec![];
+        for _ in 0..self.alt.len() {
+            alt.push(self.new_value());
+        }
+        self.alt = alt;
+    }
 }
 
 /**
@@ -166,12 +185,16 @@ impl ProgramFacts {
         &mut self,
         block: &Block,
         prev_state: Option<&AnalyzedBlock>,
+        anonymize: bool,
     ) -> AnalyzedBlock {
         // If a previous state was provided, apply the new arity to that
         // instead of returning a new one.
         let mut state = prev_state
             .map(|x| x.terminator.1.clone())
             .unwrap_or(StackState::new());
+        if anonymize {
+            state.anonymize()
+        }
 
         let mut opcodes_analyzed = vec![];
 
@@ -295,39 +318,37 @@ impl ProgramFacts {
             info!("[compile.rs] graph {:?}", graph.bfs_sequence());
             info!("[compile.rs] graph {:?}", graph.target_sequence());
             info!("");
-            info!("[compile.rs] block analyze");
-            // dump_blocks(&blocks);
 
             let mut last_states = IndexMap::<usize, AnalyzedBlock>::new();
-            let mut conditions: Vec<(usize, StackState)> = vec![];
+            // let mut conditions: Vec<(usize, StackState)> = vec![];
             for (block_index, target) in graph.target_sequence() {
                 let block = &blocks[block_index];
 
                 // Evaluate conditions
-                conditions = conditions
-                    .into_iter()
-                    .filter(|(index, condition)| {
-                        if *index == block_index {
-                            // TODO
-                            info!("");
-                            info!("[compile.rs] TESTING CONDITION: {:?}", condition);
-                            info!("");
-                            false
-                        } else {
-                            true
-                        }
-                    })
-                    .collect();
+                // conditions = conditions
+                //     .into_iter()
+                //     .filter(|(index, condition)| {
+                //         if *index == block_index {
+                //             // TODO
+                //             info!("");
+                //             info!("[compile.rs] TESTING CONDITION: {:?}", condition);
+                //             info!("");
+                //             false
+                //         } else {
+                //             true
+                //         }
+                //     })
+                //     .collect();
 
                 // Match the block terminator.
                 let analyzed_block = match target.clone() {
                     TargetType::Start => {
                         // There are no parents.
-                        self.block_analyze(&block, None)
+                        self.block_analyze(&block, None, false)
                     }
                     TargetType::Block(target) | TargetType::AfterLoop(target) => {
                         // There is only one parent.
-                        self.block_analyze(&block, last_states.get(&target))
+                        self.block_analyze(&block, last_states.get(&target), false)
                     }
                     TargetType::Begin(targets) => {
                         // There are two parents.
@@ -344,20 +365,24 @@ impl ProgramFacts {
                         );
 
                         // Add conditions that the forward reference should obey.
-                        for target in &targets {
-                            if target != base_states[0].0 {
-                                conditions.push((*target, base_states[0].1.terminator.1.clone()));
-                            }
-                        }
+                        // for target in &targets {
+                        //     if target != base_states[0].0 {
+                        //         conditions.push((*target, base_states[0].1.terminator.1.clone()));
+                        //     }
+                        // }
 
                         // Make a combined branch.
-                        warn!("###TIM### first: {:?}", base_states[0].1.final_state);
+                        // warn!("###TIM### first: {:?}", base_states[0].1.final_state);
 
-                        warn!("###TIM###   two: {:?}", targets[1]);
+                        // warn!("###TIM###   two: {:?}", targets[1]);
 
-                        // Compute the analysis for this current block. Inherit only from the first branch.
+                        // Compute the analysis for this current block. Inherit only from the first
+                        // branch.
+                        // TODO should compare Start and End of loop to make sure stack hasn't
+                        // changed
+                        // TODO should compare Start and End to de-anonymize shared states
                         let next_block =
-                            self.block_analyze(&block, last_states.get(&*base_states[0].0));
+                            self.block_analyze(&block, last_states.get(&*base_states[0].0), true);
 
                         next_block
                     }
@@ -379,7 +404,7 @@ impl ProgramFacts {
 
                         // As an optimization, we only inherit from the first branch.
                         let first_block_index = *base_states[0].0;
-                        self.block_analyze(&block, last_states.get(&first_block_index))
+                        self.block_analyze(&block, last_states.get(&first_block_index), true)
                     }
                 };
 

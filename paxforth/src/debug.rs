@@ -357,7 +357,7 @@ pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
     println!();
     println!();
 
-    let mut buffer: Option<Vec<u8>> = Some(Vec::new());
+    let mut buffer: Option<Vec<u8>> = None;
     debug_program_function(
         code,
         source_program,

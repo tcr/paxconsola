@@ -6,9 +6,13 @@ use crate::check::*;
 use crate::debug::*;
 use crate::targets::c64::*;
 use crate::targets::gb::*;
+use crate::targets::parse_target;
 use crate::targets::tom1::*;
 use crate::targets::wasm::*;
-use crate::targets::*;
+use crate::targets::Target;
+use log::*;
+
+use env_logger::{Builder, Env};
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "paxforth")]
@@ -72,7 +76,13 @@ struct FileOpts {
 
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
-    env_logger::init();
+    let env = Env::default();
+
+    let mut builder = Builder::from_env(env);
+
+    builder.format_timestamp(None);
+
+    builder.init();
 
     // Extract file
     let file_opts = match &args.cmd {
@@ -133,9 +143,6 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             }
         },
 
-        // Command::Optimize { .. } => {
-        //     optimize_forth(source_program);
-        // }
         Command::Dump { .. } => {
             dump_program(&source_program);
         }
