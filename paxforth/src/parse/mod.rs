@@ -279,9 +279,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 program.current().jump_else(&mut else_group, pos.clone());
 
                 block_refs.push(else_group);
-                program
-                    .current()
-                    .set_else_target(&mut if_group, pos.clone());
+                program.current().set_else_target(&mut if_group);
             }
             "then" | "endif" => {
                 let mut else_group = block_refs
@@ -309,7 +307,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     leave_group.label, "<begin-leave>",
                     "expected begin-leave loop"
                 );
-                program.current().set_branch_target(&mut leave_group, pos);
+                program.current().set_branch_target(&mut leave_group);
             }
             "leave" => {
                 let mut queue = vec![];

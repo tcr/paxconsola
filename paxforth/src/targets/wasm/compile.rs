@@ -1,6 +1,5 @@
 use crate::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
-use petgraph::Direction;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -178,8 +177,6 @@ impl ForthCompiler for WasmForthCompiler {
 
         for (name, blocks) in program {
             wat_out.push(format!("(func $fn_{} (type $t0)", name_slug(name)));
-
-            let graph = BlockGraph::<()>::from_blocks(&blocks);
 
             // Iterate over blocks in function.
             let mut wat_block_index = 0;
