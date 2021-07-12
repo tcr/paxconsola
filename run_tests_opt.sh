@@ -2,4 +2,4 @@
 
 set -e
 
-cargo test -p paxforth --release -- --ignored
+cargo test -p paxforth --release -- --ignored --nocapture

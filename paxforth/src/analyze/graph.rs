@@ -1,5 +1,6 @@
 use crate::*;
 use indexmap::{IndexMap, IndexSet};
+use log::*;
 use petgraph::graph::{Graph, NodeIndex};
 use petgraph::Direction;
 
@@ -150,7 +151,7 @@ impl<T> BlockGraph<T> {
             };
 
             // Generate the next block analysis.
-            eprintln!(
+            info!(
                 "[graph.rs] [block#{}] target {:?}",
                 block_index, target_type
             );
@@ -158,7 +159,7 @@ impl<T> BlockGraph<T> {
             seen.insert(block_index, target_type);
         }
 
-        eprintln!();
+        info!("");
 
         seen
     }

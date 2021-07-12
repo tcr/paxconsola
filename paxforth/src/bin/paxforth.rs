@@ -72,6 +72,8 @@ struct FileOpts {
 
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
+    env_logger::init();
+
     // Extract file
     let file_opts = match &args.cmd {
         Command::Compile { file, .. } |

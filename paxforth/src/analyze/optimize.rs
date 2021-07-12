@@ -1,6 +1,7 @@
 use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
+use log::*;
 
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
@@ -22,7 +23,7 @@ fn propagate_literals_in_block(
         }
         (_, stack) => stack.clone(),
     };
-    eprintln!("    [terminator] {:?}", analyzed_block.terminator.0 .0);
+    info!("    [terminator] {:?}", analyzed_block.terminator.0 .0);
 
     // Iterate backward over opcodes.
     for (_i, (opcode, stack)) in analyzed_block.opcodes.iter().enumerate().rev() {
@@ -35,18 +36,18 @@ fn propagate_literals_in_block(
             Pax::PushLiteral(_) => {
                 let reg = next_stack.data().last().unwrap();
                 if reg_blacklist.contains(&*reg) {
-                    eprintln!("   [push-literal] Skipping {:?}", reg);
+                    info!("   [push-literal] Skipping {:?}", reg);
                     skip_entry = true;
                 }
             }
             Pax::AltPop => {
                 let reg = next_stack.data().last().unwrap();
                 if reg_blacklist.contains(&*reg) {
-                    eprintln!("        [alt-pop] Skipping {:?}", reg);
+                    info!("        [alt-pop] Skipping {:?}", reg);
                     skip_entry = true;
                 } else {
                     if let StackValue::IntValue(_n, literal) = reg {
-                        eprintln!("        [alt-pop] Replacing with {:?}", literal);
+                        info!("        [alt-pop] Replacing with {:?}", literal);
                         result_opcodes.insert(0, (Pax::PushLiteral(*literal), opcode.1.clone()));
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
@@ -56,7 +57,7 @@ fn propagate_literals_in_block(
             Pax::AltPush => {
                 let reg = next_stack.alt().last().unwrap();
                 if reg_blacklist.contains(&*reg) {
-                    eprintln!("       [alt-push] Skipping {:?}", reg);
+                    info!("       [alt-push] Skipping {:?}", reg);
                     skip_entry = true;
                     // } else {
                     // result_opcodes.insert(0, opcode.clone());
@@ -70,7 +71,7 @@ fn propagate_literals_in_block(
 
                 let reg = next_stack.temp().as_ref().unwrap();
                 if reg_blacklist.contains(&*reg) {
-                    eprintln!("     [store-temp] Skipping {:?}", reg);
+                    info!("     [store-temp] Skipping {:?}", reg);
                     skip_entry = true;
                     // } else {
                     //     result_opcodes.insert(0, opcode.clone());
@@ -81,11 +82,11 @@ fn propagate_literals_in_block(
                 let reg = next_stack.data().last().unwrap();
 
                 if reg_blacklist.contains(&*reg) {
-                    eprintln!("      [load-temp] Skipping {:?}", reg);
+                    info!("      [load-temp] Skipping {:?}", reg);
                     skip_entry = true;
                 } else {
                     if let StackValue::IntValue(_n, literal) = reg {
-                        eprintln!("      [load-temp] Replacing with {:?}", literal);
+                        info!("      [load-temp] Replacing with {:?}", literal);
                         result_opcodes.insert(0, (Pax::PushLiteral(*literal), opcode.1.clone()));
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
@@ -117,7 +118,7 @@ fn propagate_literals_in_block(
                 let reg = stack.data().last().unwrap();
                 match reg {
                     StackValue::Value(_) | StackValue::IntValue(_, _) => {
-                        eprintln!("           [drop] Skipping {:?}", reg.clone());
+                        info!("           [drop] Skipping {:?}", reg.clone());
                         reg_blacklist.insert(reg.clone());
                         skip_entry = true;
                     }
@@ -136,7 +137,7 @@ fn propagate_literals_in_block(
         // Cache this stack for the next iteration.
         next_stack = stack.clone();
     }
-    eprintln!();
+    info!("");
 
     // Expand aliases.
     // TODO can this happen instantaneously?
@@ -165,7 +166,7 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
     // Propagate dependencies backward in reverse topological order.
     let mut blocks = blocks.to_owned();
     let mut reg_blacklist = IndexSet::new();
-    eprintln!("[analyze_graph] propagate dependencies backward.");
+    info!("[analyze_graph] propagate dependencies backward.");
     for block_index in graph.target_sequence().keys().rev() {
         let block = &mut blocks[*block_index];
         let analyzed_block = analysis

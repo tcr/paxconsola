@@ -1,5 +1,6 @@
 use crate::*;
 use indexmap::IndexMap;
+use log::*;
 
 /**
  * Describes an entry on the stack, whether it originated (locally) as
@@ -176,10 +177,10 @@ impl ProgramFacts {
 
         // Iterate opcodes
         for opcode in block.opcodes() {
-            eprintln!("        data: {:?}", state.data);
-            eprintln!("         alt: {:?}", state.alt);
-            eprintln!("        temp: {:?}", state.temp);
-            eprintln!("[facts] {:?}", opcode.0);
+            info!("        data: {:?}", state.data);
+            info!("         alt: {:?}", state.alt);
+            info!("        temp: {:?}", state.temp);
+            info!("[facts] {:?}", opcode.0);
             opcodes_analyzed.push((opcode.clone(), state.clone()));
 
             match opcode.0 {
@@ -223,17 +224,17 @@ impl ProgramFacts {
                 }
                 Pax::Debugger => {}
                 Pax::Abort => {
-                    eprintln!("Encountered abort in block_analyze, not sure what to do");
+                    info!("Encountered abort in block_analyze, not sure what to do");
                 }
             }
         }
 
         let terminator = block.terminator();
         let terminator_analyzed = (terminator.clone(), state.clone());
-        eprintln!("        data: {:?}", state.data);
-        eprintln!("         alt: {:?}", state.alt);
-        eprintln!("        temp: {:?}", state.temp);
-        eprintln!("[terminator] {:?}", terminator.0);
+        info!("        data: {:?}", state.data);
+        info!("         alt: {:?}", state.alt);
+        info!("        temp: {:?}", state.temp);
+        info!("[terminator] {:?}", terminator.0);
 
         // Terminating opcode
         let (opcode, _pos) = terminator;
@@ -260,10 +261,10 @@ impl ProgramFacts {
             }
         }
 
-        eprintln!("             data: {:?}", state.data);
-        eprintln!("             alt: {:?}", state.alt);
-        eprintln!("             temp: {:?}", state.temp);
-        eprintln!();
+        info!("             data: {:?}", state.data);
+        info!("             alt: {:?}", state.alt);
+        info!("             temp: {:?}", state.temp);
+        info!("");
 
         AnalyzedBlock {
             opcodes: opcodes_analyzed,
@@ -290,12 +291,12 @@ impl ProgramFacts {
             let graph = BlockGraph::<()>::from_blocks(&blocks);
 
             // TODO  ensure that this isn't a circular reference of this graph, affecting arity
-            eprintln!("[compile.rs] graph {:?}", graph);
-            eprintln!("[compile.rs] graph {:?}", graph.bfs_sequence());
-            eprintln!("[compile.rs] graph {:?}", graph.target_sequence());
-            eprintln!();
-            eprintln!("[compile.rs] block analyze");
-            dump_blocks(&blocks);
+            info!("[compile.rs] graph {:?}", graph);
+            info!("[compile.rs] graph {:?}", graph.bfs_sequence());
+            info!("[compile.rs] graph {:?}", graph.target_sequence());
+            info!("");
+            info!("[compile.rs] block analyze");
+            // dump_blocks(&blocks);
 
             let mut last_states = IndexMap::<usize, AnalyzedBlock>::new();
             let mut conditions: Vec<(usize, StackState)> = vec![];
@@ -308,9 +309,9 @@ impl ProgramFacts {
                     .filter(|(index, condition)| {
                         if *index == block_index {
                             // TODO
-                            eprintln!();
-                            eprintln!("[compile.rs] TESTING CONDITION: {:?}", condition);
-                            eprintln!();
+                            info!("");
+                            info!("[compile.rs] TESTING CONDITION: {:?}", condition);
+                            info!("");
                             false
                         } else {
                             true
@@ -350,9 +351,9 @@ impl ProgramFacts {
                         }
 
                         // Make a combined branch.
-                        eprintln!("###TIM### first: {:?}", base_states[0].1.final_state);
+                        warn!("###TIM### first: {:?}", base_states[0].1.final_state);
 
-                        eprintln!("###TIM###   two: {:?}", targets[1]);
+                        warn!("###TIM###   two: {:?}", targets[1]);
 
                         // Compute the analysis for this current block. Inherit only from the first branch.
                         let next_block =
@@ -390,8 +391,8 @@ impl ProgramFacts {
 
             // Read the function arity.
             let arity = last_states.last().unwrap().1.terminator.1.arity();
-            eprintln!("----> final arity: {:?}", arity);
-            eprintln!();
+            info!("----> final arity: {:?}", arity);
+            info!("");
 
             // Cache this graph analysis in the ProgramFacts struct so
             // we never have to re-compute it.
