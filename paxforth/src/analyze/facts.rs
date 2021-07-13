@@ -10,6 +10,7 @@ use log::*;
 pub enum StackValue {
     DataParam(usize),
     AltParam(usize),
+    Param(usize),
     IntValue(usize, PaxLiteral),
     Value(usize),
 }
@@ -114,6 +115,11 @@ impl StackState {
         StackValue::IntValue(self.value_pos, literal)
     }
 
+    pub fn new_param(&mut self) -> StackValue {
+        self.value_pos += 1;
+        StackValue::Param(self.value_pos)
+    }
+
     fn apply(&mut self, arity: &Arity) {
         for _ in 0..arity.0 {
             self.pop_data();
@@ -139,15 +145,21 @@ impl StackState {
     pub fn anonymize(&mut self) {
         let mut data = vec![];
         for _ in 0..self.data.len() {
-            data.push(self.new_value());
+            // TODO forward along params
+            data.push(self.new_param());
         }
         self.data = data;
 
         let mut alt = vec![];
         for _ in 0..self.alt.len() {
-            alt.push(self.new_value());
+            // TODO forward along params
+            alt.push(self.new_param());
         }
         self.alt = alt;
+
+        if self.temp.is_some() {
+            self.temp = Some(self.new_param());
+        }
     }
 }
 
@@ -185,16 +197,14 @@ impl ProgramFacts {
         &mut self,
         block: &Block,
         prev_state: Option<&AnalyzedBlock>,
-        anonymize: bool,
+        _anonymize: bool,
     ) -> AnalyzedBlock {
         // If a previous state was provided, apply the new arity to that
         // instead of returning a new one.
         let mut state = prev_state
-            .map(|x| x.terminator.1.clone())
+            .map(|x| x.final_state.clone())
             .unwrap_or(StackState::new());
-        if anonymize {
-            state.anonymize()
-        }
+        eprintln!("-----> startingg state: {:?}", state);
 
         let mut opcodes_analyzed = vec![];
 
@@ -203,7 +213,7 @@ impl ProgramFacts {
             info!("        data: {:?}", state.data);
             info!("         alt: {:?}", state.alt);
             info!("        temp: {:?}", state.temp);
-            info!("[facts] {:?}", opcode.0);
+            info!("[facts] {:?} ({})", opcode.0, opcode.1);
             opcodes_analyzed.push((opcode.clone(), state.clone()));
 
             match opcode.0 {
@@ -257,18 +267,11 @@ impl ProgramFacts {
         info!("        data: {:?}", state.data);
         info!("         alt: {:?}", state.alt);
         info!("        temp: {:?}", state.temp);
-        info!("[terminator] {:?}", terminator.0);
+        info!("[facts] {:?}", terminator.0);
 
         // Terminating opcode
         let (opcode, _pos) = terminator;
         match opcode {
-            PaxTerm::JumpElse(_) => {}
-            PaxTerm::LoopLeave(_) | PaxTerm::LoopIf0(_) | PaxTerm::JumpIf0(_) => {
-                state.pop_data();
-            }
-            PaxTerm::LoopTarget(_) | PaxTerm::JumpTarget(_) => {}
-            PaxTerm::Exit => {}
-
             // Reference another function's arity to complete this analysis.
             PaxTerm::Call(name) => {
                 let arity = self
@@ -282,11 +285,28 @@ impl ProgramFacts {
                     .arity();
                 state.apply(&arity);
             }
+
+            // Anonymize before continuing.
+            PaxTerm::LoopTarget(_) => {
+                state.anonymize();
+            }
+            PaxTerm::JumpIf0(_) => {
+                state.pop_data();
+                state.anonymize();
+            }
+
+            // etc.
+            PaxTerm::JumpElse(_) => {}
+            PaxTerm::LoopIf0(_) | PaxTerm::LoopLeave(_) => {
+                state.pop_data();
+            }
+            PaxTerm::JumpTarget(_) => {}
+            PaxTerm::Exit => {}
         }
 
-        info!("             data: {:?}", state.data);
-        info!("             alt: {:?}", state.alt);
-        info!("             temp: {:?}", state.temp);
+        info!("        data: {:?}", state.data);
+        info!("        alt: {:?}", state.alt);
+        info!("        temp: {:?}", state.temp);
         info!("");
 
         AnalyzedBlock {
@@ -339,6 +359,8 @@ impl ProgramFacts {
                 //         }
                 //     })
                 //     .collect();
+
+                info!("[block] Block #{}", block_index);
 
                 // Match the block terminator.
                 let analyzed_block = match target.clone() {
@@ -403,8 +425,8 @@ impl ProgramFacts {
                         );
 
                         // As an optimization, we only inherit from the first branch.
-                        let first_block_index = *base_states[0].0;
-                        self.block_analyze(&block, last_states.get(&first_block_index), true)
+                        let first_block_index = *base_states[1].0;
+                        self.block_analyze(&block, last_states.get(&first_block_index), false)
                     }
                 };
 

@@ -10,7 +10,6 @@ use crate::targets::parse_target;
 use crate::targets::tom1::*;
 use crate::targets::wasm::*;
 use crate::targets::Target;
-use log::*;
 
 use env_logger::{Builder, Env};
 

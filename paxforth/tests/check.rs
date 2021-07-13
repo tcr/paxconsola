@@ -93,22 +93,16 @@ static EMPTY_IGNORE_LIST: &[&str] = &[];
 
 static OPT_IGNORE_LIST: &[&str] = &[
     // crashing tests
-    "invert.fth",
     "json-parse.fth",
-    "loop.fth",
-    "modulus.fth",
-    "type-simple.fth",
     // failing tests
-    "within.fth",
+    "invert.fth",
+    "loop.fth",
+    "type-simple.fth",
     "type.fth",
-    "roll.fth",
     "multiply.fth",
     "loopimpl2.fth",
     "loopimpl.fth",
-    "compare.fth",
-    "case.fth",
-    "case-begin.fth",
-    "case-a.fth",
+    "loop-do.fth",
 ];
 
 #[test]
