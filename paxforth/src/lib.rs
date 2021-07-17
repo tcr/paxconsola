@@ -12,6 +12,8 @@ pub use analyze::*;
 pub use ast::*;
 pub use parse::*;
 
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
+
 pub const PRELUDE: &str = include_str!("prelude.fth");
 
 pub trait ForthCompiler {
@@ -46,4 +48,13 @@ pub fn dump_program(source_program: &PaxProgram) {
         dump_blocks(&code);
         println!();
     }
+}
+
+pub fn name_slug(name: &str) -> String {
+    const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
+    utf8_percent_encode(name, &NON_ALPHA)
+        .to_string()
+        .replace("$", "$$")
+        .replace("%", "$")
+        .to_string()
 }

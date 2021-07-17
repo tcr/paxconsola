@@ -1,21 +1,11 @@
 use crate::analyze::walker::*;
 use crate::*;
-use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
-
-fn name_slug(name: &str) -> String {
-    const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
-    utf8_percent_encode(name, &NON_ALPHA)
-        .to_string()
-        .replace("$", "$$")
-        .replace("%", "$")
-        .to_string()
-}
 
 const WAT_TEMPLATE: &'static str = include_str!("wasm_template.wat");
 
 /**
- * Crate a struct that implements PaxWalker and can return
- * a WAT-compiled version of our Forth code.
+ * A struct that implements PaxWalker and can return
+ * a WAT-compiled version of our Forth code with its field `buffer`.
  */
 pub struct WasmForthCompilerWalker {
     buffer: String,
@@ -34,6 +24,9 @@ impl WasmForthCompilerWalker {
     }
 }
 
+/**
+ * Implements `opcode()` and `terminator()` for PaxWalker.
+ */
 impl PaxWalker for WasmForthCompilerWalker {
     fn opcode(&mut self, op: &Located<Pax>) {
         self.push(&format!(";; {:?}", &op.0));
@@ -184,6 +177,9 @@ impl PaxWalker for WasmForthCompilerWalker {
     }
 }
 
+/**
+ * Struct that compiles PaxProgram to WAT format.
+ */
 pub struct WasmForthCompiler {}
 
 impl ForthCompiler for WasmForthCompiler {
