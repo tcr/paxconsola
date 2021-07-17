@@ -9,3 +9,4 @@ pub mod graph;
 pub mod inline;
 pub mod optimize;
 pub mod strip;
+pub mod walker;

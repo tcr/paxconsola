@@ -2065,6 +2065,7 @@ dependencies = [
  "anyhow",
  "ggez",
  "paxforth",
+ "wat",
 ]
 
 [[package]]

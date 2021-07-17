@@ -1,4 +1,5 @@
 use crate::debug::*;
+use crate::runner::wasm::*;
 use crate::targets::wasm::*;
 use crate::*;
 use lazy_static::*;
@@ -10,15 +11,23 @@ pub enum CheckMode {
     Interpreter,
 }
 
-pub fn check_program(code: &str, source_program: &PaxProgram, check_mode: CheckMode) -> bool {
+pub fn check_program(
+    path: &str,
+    code: &str,
+    source_program: &PaxProgram,
+    check_mode: CheckMode,
+) -> bool {
     lazy_static! {
         static ref RE_CHECK: Regex = Regex::new(r"\(\s*@check\s+([^)]+?)\s*\)").unwrap();
     }
 
     let buffer = match check_mode {
         CheckMode::Wasm => {
-            let wasm = WasmForthCompiler::compile_binary(&source_program);
-            run_wasm(&wasm, true).expect("failed execution")
+            let wat = WasmForthCompiler::compile(&source_program);
+
+            // Run as WASM.
+            let wasm = wat::parse_str(&wat).unwrap();
+            run_wasm(&wasm, true).expect(&format!("failed execution in {}", path))
         }
         CheckMode::Interpreter => debug_program_test(code, source_program),
     };

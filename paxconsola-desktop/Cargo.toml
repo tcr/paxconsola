@@ -8,3 +8,4 @@ edition = "2018"
 ggez = "*"
 paxforth = { path = "../paxforth" }
 anyhow = "1.0.28"
+wat = "1"

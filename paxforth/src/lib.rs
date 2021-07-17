@@ -5,6 +5,7 @@ pub mod ast;
 pub mod check;
 pub mod debug;
 pub mod parse;
+pub mod runner;
 pub mod targets;
 
 pub use analyze::*;

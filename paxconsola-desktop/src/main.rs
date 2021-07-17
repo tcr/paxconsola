@@ -5,7 +5,7 @@ use ggez::input;
 use ggez::nalgebra as na;
 use ggez::timer;
 use ggez::{Context, GameResult};
-use paxforth::targets::wasm::wasmtime::*;
+use paxforth::runner::wasm::wasmtime::*;
 use paxforth::targets::wasm::*;
 use paxforth::*;
 
@@ -25,8 +25,10 @@ impl MainState {
         let mut program = source_program.clone();
         inline_into_function(&mut program, "main");
         // optimize_function(&mut program, "main");
-        let wasm = WasmForthCompiler::compile_binary(&program);
+        let wat = WasmForthCompiler::compile(&program);
 
+        // Run as WASM.
+        let wasm = wat::parse_str(&wat).unwrap();
         let runner = parse_wasm(wasm.as_slice(), true).unwrap();
 
         let s = MainState { pos_x: 0.0, runner };

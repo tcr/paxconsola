@@ -37,18 +37,15 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
     // Iterate through each test.
     let mut failed = 0;
     for test in check_tests {
-        if ignore_list.contains(
-            &test
-                .path
-                .file_name()
-                .unwrap()
-                .to_string_lossy()
-                .to_string()
-                .as_str(),
-        ) {
+        let test_filename = test.path.file_name().unwrap().to_string_lossy().to_string();
+        if ignore_list.contains(&test_filename.as_str()) {
             eprintln!("[forth] IGNORING '{}'", test.path.display());
             continue;
         }
+
+        // if test_filename != "type-simple.fth" {
+        //     continue;
+        // }
 
         eprintln!(
             "[forth] evaluating '{}' (inline: {}, optimize: {})",
@@ -73,7 +70,12 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
         eprintln!("[forth] running '{}'", test.path.display());
 
         // Run the binary in WASM.
-        if !check_program(&test.contents, &program, check_mode.clone()) {
+        if !check_program(
+            &test.path.display().to_string(),
+            &test.contents,
+            &program,
+            check_mode.clone(),
+        ) {
             // Negative test in "fail.fth"
             if test.path.file_name().unwrap() == "fail.fth" {
                 eprintln!("[forth] Skipping negative test 'fail.fth'");

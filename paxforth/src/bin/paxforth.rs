@@ -4,6 +4,7 @@ use structopt::StructOpt;
 
 use crate::check::*;
 use crate::debug::*;
+use crate::runner::wasm::run_wasm;
 use crate::targets::c64::*;
 use crate::targets::gb::*;
 use crate::targets::parse_target;
@@ -148,14 +149,22 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Check the program output
         Command::Check { .. } => {
-            if !check_program(&code, &source_program, CheckMode::Wasm) {
+            if !check_program(
+                &arg_file.display().to_string(),
+                &code,
+                &source_program,
+                CheckMode::Wasm,
+            ) {
                 std::process::exit(1);
             }
         }
 
         // Run the program directly
         Command::Run { .. } => {
-            let wasm = WasmForthCompiler::compile_binary(&source_program);
+            let wat = WasmForthCompiler::compile(&source_program);
+
+            // Run as WASM.
+            let wasm = wat::parse_str(&wat).unwrap();
             run_wasm(&wasm, false).expect("run_wasm failed");
         }
 
@@ -190,7 +199,10 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 // FIXME allow optimization in main after independent optimization!
                 // optimize_function(&mut program, "main");
 
-                let wasm = WasmForthCompiler::compile_binary(&program);
+                let wat = WasmForthCompiler::compile(&program);
+
+                // Run as WASM.
+                let wasm = wat::parse_str(&wat).unwrap();
                 run_wasm(&wasm, false).unwrap();
                 // break;
                 println!();
