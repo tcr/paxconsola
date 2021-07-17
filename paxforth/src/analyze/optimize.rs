@@ -290,11 +290,9 @@ impl PaxWalker for PaxAnalyzerWalker {
                 // ignore
             }
         }
-        self.push(&format!(""));
     }
 
     fn terminator(&mut self, terminator: &Located<PaxTerm>, current: &WalkerLevel) {
-        self.push(&format!(";; {:?}", &terminator.0));
         match &terminator.0 {
             PaxTerm::Exit => {}
             PaxTerm::Call(ref s) => {
@@ -367,7 +365,6 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.push(&format!("    br {}", parent_id));
             }
         }
-        self.push(&format!(""));
     }
 }
 
