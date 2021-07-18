@@ -5,7 +5,7 @@ use serde::*;
  * Opcodes
  */
 
-pub type PaxLiteral = isize;
+pub type PaxLiteral = i16;
 
 // Pax opcodes for execution.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

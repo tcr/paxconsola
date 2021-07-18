@@ -77,7 +77,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             };
 
             let return_stack_enter = vec![
-                (Pax::PushLiteral(0xFFFF), inline_pos.clone()),
+                (Pax::PushLiteral(-1), inline_pos.clone()),
                 (Pax::AltPush, inline_pos.clone()),
             ];
             let return_stack_exit = vec![

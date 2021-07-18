@@ -86,7 +86,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
         let word = match token {
             // Literals (e.g. numbers)
             Token::Literal(lit) => {
-                program.current().op(&(Pax::PushLiteral(lit as isize), pos));
+                program
+                    .current()
+                    .op(&(Pax::PushLiteral(lit as PaxLiteral), pos));
                 continue;
             }
 
@@ -165,7 +167,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             word if constants.contains_key(word) => {
                 program
                     .current()
-                    .op(&(Pax::PushLiteral(constants[word] as isize), pos));
+                    .op(&(Pax::PushLiteral(constants[word] as PaxLiteral), pos));
             }
             // Functions (shadows all terms)
             word if program.program.contains_key(word) => {
@@ -177,7 +179,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             word if variables.contains_key(word) => {
                 program
                     .current()
-                    .op(&(Pax::PushLiteral(variables[word] as isize), pos));
+                    .op(&(Pax::PushLiteral(variables[word] as PaxLiteral), pos));
             }
 
             // Compiler keywords

@@ -250,7 +250,7 @@ impl PaxAnalyzerWalker {
         pos
     }
 
-    fn data_push_literal(&mut self, literal: isize) {
+    fn data_push_literal(&mut self, literal: PaxLiteral) {
         let reg = self.data_push();
 
         self.reg_info.get_mut(&reg).unwrap().literal = Some(literal);
@@ -449,6 +449,8 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
     let mut walker = PaxAnalyzerWalker::new();
     structured_walk(&mut walker, blocks);
+
+    // eprintln!("reg_info: {:?}", walker.reg_info);
 
     blocks.to_owned()
 }
