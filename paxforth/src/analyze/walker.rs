@@ -1,5 +1,6 @@
 use crate::*;
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum WalkerLevel {
     Root,
     Loop(usize),

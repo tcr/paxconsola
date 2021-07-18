@@ -94,6 +94,7 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
 static EMPTY_IGNORE_LIST: &[&str] = &[];
 
 static OPT_IGNORE_LIST: &[&str] = &[
+    /*
     // crashing tests
     "json-parse.fth",
     // failing tests
@@ -105,6 +106,7 @@ static OPT_IGNORE_LIST: &[&str] = &[
     "loopimpl2.fth",
     "loopimpl.fth",
     "loop-do.fth",
+    */
 ];
 
 #[test]

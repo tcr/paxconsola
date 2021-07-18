@@ -3,6 +3,7 @@ use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
 use log::*;
+use std::collections::{HashMap, HashSet};
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -171,23 +172,41 @@ struct RegState {
     index: RegIndex,
     data: Vec<RegIndex>,
     ret: Vec<RegIndex>,
-    temp: Option<RegIndex>,
+    temp: RegIndex,
 }
 
 impl RegState {
     fn new() -> RegState {
         RegState {
-            index: 0,
+            index: 1,
             data: vec![],
             ret: vec![],
-            temp: None,
+            temp: 0,
         }
     }
+}
+
+impl RegState {
+    fn size(&self) -> (usize, usize) {
+        (self.data.len(), self.ret.len())
+    }
+}
+
+#[derive(Debug, Clone)]
+struct RegInfo {
+    data_param: bool,
+    alt_param: bool,
+    literal: Option<PaxLiteral>,
+    phi: HashSet<RegIndex>,
 }
 
 pub struct PaxAnalyzerWalker {
     buffer: String,
     reg_state: RegState,
+    reg_info: HashMap<RegIndex, RegInfo>,
+
+    entry_cache: HashMap<WalkerLevel, RegState>,
+    result_cache: HashMap<WalkerLevel, Vec<RegState>>,
 }
 
 impl PaxAnalyzerWalker {
@@ -195,6 +214,9 @@ impl PaxAnalyzerWalker {
         PaxAnalyzerWalker {
             buffer: String::new(),
             reg_state: RegState::new(),
+            reg_info: HashMap::new(),
+            entry_cache: HashMap::new(),
+            result_cache: HashMap::new(),
         }
     }
 
@@ -208,6 +230,17 @@ impl PaxAnalyzerWalker {
     fn new_reg(&mut self) -> RegIndex {
         let pos = self.reg_state.index;
         self.reg_state.index += 1;
+
+        self.reg_info.insert(
+            pos,
+            RegInfo {
+                data_param: false,
+                alt_param: false,
+                literal: None,
+                phi: HashSet::new(),
+            },
+        );
+
         pos
     }
 
@@ -218,8 +251,9 @@ impl PaxAnalyzerWalker {
     }
 
     fn data_push_literal(&mut self, literal: isize) {
-        self.data_push();
-        // TODO use literal
+        let reg = self.data_push();
+
+        self.reg_info.get_mut(&reg).unwrap().literal = Some(literal);
     }
 
     fn data_pop(&mut self) -> RegIndex {
@@ -237,13 +271,34 @@ impl PaxAnalyzerWalker {
     }
 
     fn data_push_temp(&mut self, reg: RegIndex) {
-        self.reg_state.temp = Some(reg)
+        self.reg_state.temp = reg;
     }
 
     fn data_pop_temp(&mut self) {
         let reg = self.data_pop();
-        self.reg_state.temp = Some(reg);
+        self.reg_state.temp = reg;
     }
+
+    fn fork(&mut self) {
+        let mut data: Vec<RegIndex> = self.reg_state.data.drain(0..).collect();
+        data = data.into_iter().map(|_| self.new_reg()).collect();
+        self.reg_state.data = data;
+
+        let mut ret: Vec<RegIndex> = self.reg_state.ret.drain(0..).collect();
+        ret = ret.into_iter().map(|_| self.new_reg()).collect();
+        self.reg_state.data = ret;
+
+        self.reg_state.temp = self.new_reg();
+    }
+}
+
+type WithRegState<T> = (T, RegState);
+
+#[derive(Debug, Clone)]
+pub struct RegStateBlock {
+    initial_state: RegState,
+    opcodes: WithRegState<Located<Pax>>,
+    terminator: WithRegState<Located<PaxTerm>>,
 }
 
 /**
@@ -296,73 +351,91 @@ impl PaxWalker for PaxAnalyzerWalker {
         match &terminator.0 {
             PaxTerm::Exit => {}
             PaxTerm::Call(ref s) => {
-                self.push(&format!("    i32.const {}", 0)); // dummy value
-                self.push(&format!("    call $return_push"));
-                self.push(&format!("    call $fn_{}", name_slug(s)));
-                self.push(&format!("    call $return_pop"));
-                self.push(&format!("    call $drop"));
+                // self.push(&format!("    i32.const {}", 0)); // dummy value
+                // self.push(&format!("    call $return_push"));
+                // self.push(&format!("    call $fn_{}", name_slug(s)));
+                // self.push(&format!("    call $return_pop"));
+                // self.push(&format!("    call $drop"));
             }
 
             /* branches */
-            PaxTerm::JumpIf0(_target_index) => {
-                let index = current.to_block();
-                // Start of an "if" block
-                let parent_id = format!("$B{}_outer", index);
-                let if_id = format!("$B{}_if", index);
+            PaxTerm::JumpIf0(_) => {
+                // Enter if branch.
+                self.data_pop();
 
-                self.push(&format!("    block {}", parent_id));
-                self.push(&format!("    block {}", if_id));
-                self.push(&format!("    call $data_pop"));
-                self.push(&format!("    i32.eqz"));
-                self.push(&format!("    br_if {}", if_id));
+                // Save entry state.
+                self.entry_cache
+                    .insert(current.to_owned(), self.reg_state.clone());
+
+                // Load entry state.
+                self.reg_state = self.entry_cache[current].clone();
             }
             PaxTerm::JumpElse(_) => {
-                let index = current.to_block();
+                // Enter else branch.
 
-                // Start of an "else" block
-                let parent_block = format!("$B{}_outer", index);
-                let next_block = format!("$B{}", index);
+                // Save result state.
+                self.result_cache
+                    .entry(current.to_owned())
+                    .or_insert(vec![])
+                    .push(self.reg_state.clone());
 
-                self.push(&format!("    br {}", parent_block));
-                self.push(&format!("    end"));
-                self.push(&format!("    block {}", next_block));
+                // Load entry state.
+                self.reg_state = self.entry_cache[current].clone();
             }
             PaxTerm::JumpTarget(_) => {
                 // End of an "if" or "else" block
-                self.push(&format!("    end"));
-                self.push(&format!("    end"));
+
+                // Save result state.
+                self.result_cache
+                    .entry(current.to_owned())
+                    .or_insert(vec![])
+                    .push(self.reg_state.clone());
+
+                // TODO merge output state
+                eprintln!(
+                    "JumpTarget: {:?}",
+                    self.result_cache[current]
+                        .iter()
+                        .map(|x| x.size())
+                        .collect::<Vec<_>>()
+                );
+
+                self.fork();
             }
 
             /* loops */
             PaxTerm::LoopTarget(_) => {
-                let index = current.to_loop();
-
-                // Loop start.
-                let parent_id = format!("$L{}_outer", index);
-                let loop_id = format!("$L{}", index);
-
-                self.push(&format!("    block {}", parent_id));
-                self.push(&format!("    loop {}", loop_id));
-            }
-            PaxTerm::LoopIf0(_) => {
-                let index = current.to_loop();
-
-                let loop_id = format!("$L{}", index);
-
-                // eprintln!("[LOOP STACK bye] {:?}", wat_loop_stack);
-                self.push(&format!("    call $data_pop"));
-                self.push(&format!("    i32.eqz"));
-                self.push(&format!("    br_if {}", loop_id));
-                self.push(&format!("    end"));
-                self.push(&format!("    end"));
+                // Enter loop.
+                self.fork();
             }
             PaxTerm::LoopLeave(_) => {
-                let index = current.to_loop();
+                // Leave loop.
 
-                let parent_id = format!("$L{}_outer", index);
+                // Save result state.
+                self.result_cache
+                    .entry(current.to_owned())
+                    .or_insert(vec![])
+                    .push(self.reg_state.clone());
+            }
+            PaxTerm::LoopIf0(_) => {
+                // Exit loop.
+                self.data_pop();
 
-                self.push(&format!(";;   (leave)"));
-                self.push(&format!("    br {}", parent_id));
+                // Save result state.
+                self.result_cache
+                    .entry(current.to_owned())
+                    .or_insert(vec![])
+                    .push(self.reg_state.clone());
+
+                // TODO merge output state
+                eprintln!(
+                    "LoopIf0: {:?}",
+                    self.result_cache[current]
+                        .iter()
+                        .map(|x| x.size())
+                        .collect::<Vec<_>>()
+                );
+                self.fork();
             }
         }
     }
