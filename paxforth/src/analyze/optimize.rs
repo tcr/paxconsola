@@ -250,6 +250,11 @@ impl PaxAnalyzerWalker {
         pos
     }
 
+    fn data_push_reg(&mut self, reg: RegIndex) -> RegIndex {
+        self.reg_state.data.push(reg);
+        reg
+    }
+
     fn data_push_literal(&mut self, literal: PaxLiteral) {
         let reg = self.data_push();
 
@@ -260,18 +265,18 @@ impl PaxAnalyzerWalker {
         self.reg_state.data.pop().unwrap_or_else(|| self.new_reg())
     }
 
-    fn ret_push(&mut self) -> RegIndex {
-        let pos = self.new_reg();
-        self.reg_state.ret.push(pos);
-        pos
+    fn ret_push(&mut self, reg: RegIndex) -> RegIndex {
+        self.reg_state.ret.push(reg);
+        reg
     }
 
-    fn ret_pop(&mut self) {
-        self.reg_state.ret.pop();
+    fn ret_pop(&mut self) -> RegIndex {
+        self.reg_state.ret.pop().unwrap()
     }
 
-    fn data_push_temp(&mut self, reg: RegIndex) {
-        self.reg_state.temp = reg;
+    fn data_push_temp(&mut self) {
+        self.reg_state.data.push(self.reg_state.temp);
+        self.reg_state.temp = self.new_reg();
     }
 
     fn data_pop_temp(&mut self) {
@@ -286,9 +291,19 @@ impl PaxAnalyzerWalker {
 
         let mut ret: Vec<RegIndex> = self.reg_state.ret.drain(0..).collect();
         ret = ret.into_iter().map(|_| self.new_reg()).collect();
-        self.reg_state.data = ret;
+        self.reg_state.ret = ret;
 
         self.reg_state.temp = self.new_reg();
+    }
+
+    fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
+        if source.size() != apply.size() {
+            eprintln!(
+                "error: Phi applied to mismatched source: {:?} apply: {:?}",
+                source.size(),
+                apply.size()
+            );
+        }
     }
 }
 
@@ -320,22 +335,24 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.data_pop();
             }
             Pax::AltPop => {
-                self.ret_pop();
+                let reg = self.ret_pop();
+                self.data_push_reg(reg);
             }
             Pax::AltPush => {
-                self.ret_push();
-            }
-            Pax::LoadTemp => {
                 let reg = self.data_pop();
-                self.data_push_temp(reg);
+                self.ret_push(reg);
             }
             Pax::StoreTemp => {
                 self.data_pop_temp();
+            }
+            Pax::LoadTemp => {
+                self.data_push_temp();
             }
             Pax::Load | Pax::Load8 => {
                 self.data_push();
             }
             Pax::Store | Pax::Store8 => {
+                self.data_pop();
                 self.data_pop();
             }
             Pax::Print | Pax::Emit => {
@@ -345,6 +362,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                 // ignore
             }
         }
+        // eprintln!("------- {:?} ({:?})", op.0, self.reg_state.size());
     }
 
     fn terminator(&mut self, terminator: &Located<PaxTerm>, current: &WalkerLevel) {
@@ -386,27 +404,52 @@ impl PaxWalker for PaxAnalyzerWalker {
                 // End of an "if" or "else" block
 
                 // Save result state.
-                self.result_cache
+                let results_reg = self
+                    .result_cache
                     .entry(current.to_owned())
-                    .or_insert(vec![])
-                    .push(self.reg_state.clone());
+                    .or_insert(vec![]);
+                results_reg.push(self.reg_state.clone());
+
+                // Insert entry state if we didn't have an else
+                // block.
+                if results_reg.len() == 1 {
+                    results_reg.push(self.entry_cache[current].clone());
+                }
+
+                // Phi as result of if...then.
+                self.fork();
+                let forked_state = self.reg_state.clone();
+                let results = self.result_cache[current].clone();
+                eprintln!("Applying jump result as phi...");
+                for apply in &results {
+                    self.apply_phi_to_info(&forked_state, apply);
+                }
 
                 // TODO merge output state
-                eprintln!(
-                    "JumpTarget: {:?}",
-                    self.result_cache[current]
-                        .iter()
-                        .map(|x| x.size())
-                        .collect::<Vec<_>>()
-                );
-
-                self.fork();
+                // eprintln!(
+                //     "JumpTarget: {:?}",
+                //     self.result_cache[current]
+                //         .iter()
+                //         .map(|x| x.size())
+                //         .collect::<Vec<_>>()
+                // );
             }
 
             /* loops */
             PaxTerm::LoopTarget(_) => {
                 // Enter loop.
+
+                // Save entry state.
+                let previous_state = self.reg_state.clone();
+
+                // Start loop with a clean state.
                 self.fork();
+                self.entry_cache
+                    .insert(current.to_owned(), self.reg_state.clone());
+
+                // Apply state entering loop as a phi state.
+                eprintln!("Applying loop pre-entry as phi...");
+                self.apply_phi_to_info(&self.reg_state.clone(), &previous_state);
             }
             PaxTerm::LoopLeave(_) => {
                 // Leave loop.
@@ -422,22 +465,39 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.data_pop();
 
                 // Save result state.
+                let result_state = self.reg_state.clone();
                 self.result_cache
                     .entry(current.to_owned())
                     .or_insert(vec![])
-                    .push(self.reg_state.clone());
+                    .push(result_state.clone());
 
-                // TODO merge output state
+                // Apply state exiting loop as a phi state.
+                let entry_state = self.entry_cache[current].clone();
                 eprintln!(
-                    "LoopIf0: {:?}",
-                    self.result_cache[current]
-                        .iter()
-                        .map(|x| x.size())
-                        .collect::<Vec<_>>()
+                    "Applying loop entry as phi... ({:?}, {})",
+                    terminator.0, terminator.1
                 );
+                self.apply_phi_to_info(&entry_state, &result_state);
+
+                // Exit loop with a clean state.
+                // eprintln!(
+                //     "LoopIf0: {:?}",
+                //     self.result_cache[current]
+                //         .iter()
+                //         .map(|x| x.size())
+                //         .collect::<Vec<_>>()
+                // );
                 self.fork();
+
+                // Apply states exiting loop as a phi state.
+                let source = &self.reg_state.clone();
+                eprintln!("Applying loop exit as phi...");
+                for apply in &self.result_cache[current].clone() {
+                    self.apply_phi_to_info(source, apply);
+                }
             }
         }
+        // eprintln!("------> {:?} ({:?})", terminator.0, self.reg_state.size());
     }
 }
 
