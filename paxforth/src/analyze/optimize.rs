@@ -198,6 +198,7 @@ pub struct PaxAnalyzerWalker {
 
     entry_cache: HashMap<WalkerLevel, RegState>,
     result_cache: HashMap<WalkerLevel, Vec<RegState>>,
+    has_leave: HashSet<WalkerLevel>,
 }
 
 impl PaxAnalyzerWalker {
@@ -208,6 +209,7 @@ impl PaxAnalyzerWalker {
             reg_info: HashMap::new(),
             entry_cache: HashMap::new(),
             result_cache: HashMap::new(),
+            has_leave: HashSet::new(),
         }
     }
 
@@ -361,7 +363,7 @@ impl PaxWalker for PaxAnalyzerWalker {
         &mut self,
         terminator: &Located<PaxTerm>,
         current: &WalkerLevel,
-        _stack: &[WalkerLevel],
+        stack: &[WalkerLevel],
     ) {
         match &terminator.0 {
             PaxTerm::Exit => {}
@@ -382,13 +384,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.entry_cache
                     .insert(current.to_owned(), self.reg_state.clone());
 
-                // Load entry state.
-                self.reg_state = self.entry_cache[current].clone();
-            }
-            PaxTerm::JumpElse(_) => {
-                // Enter else branch.
-
-                // Save result state.
+                // Also save as first result state.
                 self.result_cache
                     .entry(current.to_owned())
                     .or_insert(vec![])
@@ -397,24 +393,57 @@ impl PaxWalker for PaxAnalyzerWalker {
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
             }
+            PaxTerm::JumpElse(_) => {
+                // Enter else branch.
+
+                // Remove entry state since we have an else block.
+                self.result_cache.get_mut(&current).unwrap().remove(0);
+
+                if self.has_leave.contains(&current) {
+                    // skip if with "leave" in it
+                    // but remove this has_leave
+                    self.has_leave.remove(&current);
+                    self.result_cache.get_mut(&current).unwrap().pop();
+                } else {
+                    // Save "if" block result state.
+                    self.result_cache
+                        .get_mut(&current)
+                        .unwrap()
+                        .push(self.reg_state.clone());
+                }
+
+                // Load entry state.
+                self.reg_state = self.entry_cache[current].clone();
+            }
             PaxTerm::JumpTarget(_) => {
                 // End of an "if" or "else" block
 
-                // Save result state.
-                let results_reg = self
-                    .result_cache
-                    .entry(current.to_owned())
-                    .or_insert(vec![]);
-                results_reg.push(self.reg_state.clone());
-
-                // Insert entry state if we didn't have an else
-                // block.
-                if results_reg.len() == 1 {
-                    results_reg.push(self.entry_cache[current].clone());
+                if self.has_leave.contains(&current) {
+                    // Remove last branch from result_cache.
+                    self.result_cache.get_mut(&current).unwrap().pop();
+                } else {
+                    // Save "else" block result state.
+                    let results_reg = self.result_cache.get_mut(&current).unwrap();
+                    results_reg.push(self.reg_state.clone());
                 }
 
-                // Phi as result of if...then.
-                self.fork();
+                // Grab reference to result_cache.
+                let results_reg = self.result_cache.get_mut(&current).unwrap();
+                // eprintln!("[leave] {:?} vs {:?}", self.has_leave, current);
+                // eprintln!("here are results1 {:?}", results_reg);
+                // eprintln!("here are results2 {:?}", self.reg_state);
+
+                // Calculate next RegState.
+                if results_reg.is_empty() {
+                    // Phi as result of an "if" with "leave" so the only
+                    // result is the entry result.
+                    self.reg_state = self.entry_cache[current].clone();
+                } else {
+                    // Phi will be equal in size to state of if...else...then.
+                    self.fork();
+                }
+
+                // Apply branches as phi..
                 let forked_state = self.reg_state.clone();
                 let results = self.result_cache[current].clone();
                 warn!(
@@ -462,6 +491,9 @@ impl PaxWalker for PaxAnalyzerWalker {
                     .entry(current.to_owned())
                     .or_insert(vec![])
                     .push(self.reg_state.clone());
+
+                // Add to hashset.
+                self.has_leave.insert(stack.last().unwrap().to_owned());
             }
             PaxTerm::LoopIf0(_) => {
                 // Exit loop.
