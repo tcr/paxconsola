@@ -107,14 +107,13 @@ variable  temp \ first variable
         rot
         2dup
         or 0= if
-            drop drop drop drop 0
-            1
+            drop 0 1
         else
-            dup 0= if drop drop drop drop -1
-            1
+            dup 0= if
+                drop -1 1
             else
-                over 0= if drop drop drop drop 1
-                1
+                over 0= if
+                    drop 1 1
                 else                    ( c-addr1 c-addr2 u2 u1 )
                     >r >r               ( c-addr1 c-addr2 )
                     2dup @ swap @       ( c-addr1 c-addr2 c2 c1 )
@@ -123,25 +122,24 @@ variable  temp \ first variable
                         \ less than 1
                         drop
                         r> r>
-                        drop drop drop drop
-                        1
-                        1
+                        drop 1 1
                     else if
                             \ more than 1
                             r> r>
-                            drop drop drop drop
-                            -1
-                            1
+                            drop -1 1
                         else
                             \ loop
                             1+ swap 1+ swap
                             r> 1- r> 1-
                             rot rot
-                            0
+                            0           ( continue )
                         then
                     then
                 then
             then
         then
     until
+    swap drop
+    swap drop
+    swap drop
     ;

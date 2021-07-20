@@ -5,13 +5,13 @@
         rot
         2dup
         or 0= if
-            drop drop drop drop 0
+            drop 0
             1
         else
-            dup 0= if drop drop drop drop -1
+            dup 0= if drop -1
             1
             else
-                over 0= if drop drop drop drop 1
+                over 0= if drop 1
                 1
                 else                    ( c-addr1 c-addr2 u2 u1 )
                     >r >r               ( c-addr1 c-addr2 )
@@ -21,13 +21,13 @@
                         \ less than 1
                         drop
                         r> r>
-                        drop drop drop drop
+                        drop
                         1
                         1
                     else if
                             \ more than 1
                             r> r>
-                            drop drop drop drop
+                            drop
                             -1
                             1
                         else
@@ -42,6 +42,9 @@
             then
         then
     until
+    swap drop
+    swap drop
+    swap drop
     ;
 
 s" " s" " compare print
