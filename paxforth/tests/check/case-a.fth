@@ -3,12 +3,12 @@
 99
 
 7 begin
-    6 over = if drop 0 print leave then
-    7 over = if drop 1 print leave then
-    8 over = if drop 2 print leave then
+    6 over = if 0 print leave then
+    7 over = if 1 print leave then
+    8 over = if 2 print leave then
     ( default ) 3 print
-    drop
     1
 until
+drop
 
 print
