@@ -3,7 +3,7 @@ use crate::analyze::*;
 use crate::*;
 use indexmap::IndexSet;
 use log::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
@@ -189,12 +189,14 @@ struct RegInfo {
     alt_param: bool,
     literal: Option<PaxLiteral>,
     phi: HashSet<RegIndex>,
+    dropped: bool,
+    consumed: bool,
 }
 
 pub struct PaxAnalyzerWalker {
     buffer: String,
     reg_state: RegState,
-    reg_info: HashMap<RegIndex, RegInfo>,
+    reg_info: BTreeMap<RegIndex, RegInfo>,
 
     entry_cache: HashMap<WalkerLevel, RegState>,
     result_cache: HashMap<WalkerLevel, Vec<RegState>>,
@@ -206,7 +208,7 @@ impl PaxAnalyzerWalker {
         PaxAnalyzerWalker {
             buffer: String::new(),
             reg_state: RegState::new(),
-            reg_info: HashMap::new(),
+            reg_info: BTreeMap::new(),
             entry_cache: HashMap::new(),
             result_cache: HashMap::new(),
             has_leave: HashSet::new(),
@@ -231,6 +233,8 @@ impl PaxAnalyzerWalker {
                 alt_param: false,
                 literal: None,
                 phi: HashSet::new(),
+                dropped: false,
+                consumed: false,
             },
         );
 
@@ -256,6 +260,18 @@ impl PaxAnalyzerWalker {
 
     fn data_pop(&mut self) -> RegIndex {
         self.reg_state.data.pop().unwrap_or_else(|| self.new_reg())
+    }
+
+    fn data_consume(&mut self) {
+        let reg = self.reg_state.data.pop().unwrap_or_else(|| self.new_reg());
+
+        self.reg_info.get_mut(&reg).unwrap().consumed = true;
+    }
+
+    fn data_drop(&mut self) {
+        let reg = self.reg_state.data.pop().unwrap_or_else(|| self.new_reg());
+
+        self.reg_info.get_mut(&reg).unwrap().dropped = true;
     }
 
     fn ret_push(&mut self, reg: RegIndex) -> RegIndex {
@@ -297,6 +313,8 @@ impl PaxAnalyzerWalker {
                 apply.size()
             );
         }
+
+        // TODO populate register lists
     }
 }
 
@@ -319,14 +337,6 @@ impl PaxWalker for PaxAnalyzerWalker {
             Pax::PushLiteral(lit) => {
                 self.data_push_literal(*lit);
             }
-            Pax::Add | Pax::Nand => {
-                self.data_pop();
-                self.data_pop();
-                self.data_push();
-            }
-            Pax::Drop => {
-                self.data_pop();
-            }
             Pax::AltPop => {
                 let reg = self.ret_pop();
                 self.data_push_reg(reg);
@@ -341,16 +351,25 @@ impl PaxWalker for PaxAnalyzerWalker {
             Pax::LoadTemp => {
                 self.data_push_temp();
             }
+
+            Pax::Add | Pax::Nand => {
+                self.data_consume();
+                self.data_consume();
+                self.data_push();
+            }
+            Pax::Drop => {
+                self.data_drop();
+            }
             Pax::Load | Pax::Load8 => {
-                self.data_pop();
+                self.data_consume();
                 self.data_push();
             }
             Pax::Store | Pax::Store8 => {
-                self.data_pop();
-                self.data_pop();
+                self.data_consume();
+                self.data_consume();
             }
             Pax::Print | Pax::Emit => {
-                self.data_pop();
+                self.data_consume();
             }
             Pax::Abort | Pax::Debugger => {
                 // ignore
@@ -447,7 +466,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                 // Apply branches as phi..
                 let forked_state = self.reg_state.clone();
                 let results = self.result_cache[current].clone();
-                warn!(
+                info!(
                     "Applying jump result as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
@@ -478,7 +497,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                     .insert(current.to_owned(), self.reg_state.clone());
 
                 // Apply state entering loop as a phi state.
-                warn!(
+                info!(
                     "Applying loop pre-entry as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
@@ -509,7 +528,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Apply state exiting loop as a phi state.
                 let entry_state = self.entry_cache[current].clone();
-                warn!(
+                info!(
                     "Applying loop entry as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
@@ -527,7 +546,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Apply states exiting loop as a phi state.
                 let source = &self.reg_state.clone();
-                warn!(
+                info!(
                     "Applying loop exit as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
@@ -548,6 +567,11 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
     let mut walker = PaxAnalyzerWalker::new();
     structured_walk(&mut walker, blocks);
+
+    info!("[register info]");
+    for (key, reg) in &walker.reg_info {
+        info!("  {:>4} = {:?}", key, reg);
+    }
 
     // eprintln!("reg_info: {:?}", walker.reg_info);
 
