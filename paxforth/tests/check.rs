@@ -3,6 +3,12 @@ use paxforth::check::*;
 use paxforth::*;
 use std::path::PathBuf;
 
+#[ctor::ctor]
+#[cfg(test)]
+fn init() {
+    env_logger::init();
+}
+
 #[derive(Clone)]
 struct CheckTest {
     path: PathBuf,

@@ -5,15 +5,6 @@ use indexmap::IndexSet;
 use log::*;
 use std::collections::{HashMap, HashSet};
 
-fn name_slug(name: &str) -> String {
-    const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
-    utf8_percent_encode(name, &NON_ALPHA)
-        .to_string()
-        .replace("$", "$$")
-        .replace("%", "$")
-        .to_string()
-}
-
 /// Given a block and analysis, propagate the literal values loaded in this function
 /// if detected and then blacklist their containing registers. Iterates backward.
 fn propagate_literals_in_block(
@@ -298,8 +289,8 @@ impl PaxAnalyzerWalker {
 
     fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
         if source.size() != apply.size() {
-            eprintln!(
-                "error: Phi applied to mismatched source: {:?} apply: {:?}",
+            error!(
+                "!!! error: Phi applied to mismatched source: {:?} apply: {:?}",
                 source.size(),
                 apply.size()
             );
@@ -349,6 +340,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.data_push_temp();
             }
             Pax::Load | Pax::Load8 => {
+                self.data_pop();
                 self.data_push();
             }
             Pax::Store | Pax::Store8 => {
@@ -368,7 +360,7 @@ impl PaxWalker for PaxAnalyzerWalker {
     fn terminator(&mut self, terminator: &Located<PaxTerm>, current: &WalkerLevel) {
         match &terminator.0 {
             PaxTerm::Exit => {}
-            PaxTerm::Call(ref s) => {
+            PaxTerm::Call(ref _s) => {
                 // self.push(&format!("    i32.const {}", 0)); // dummy value
                 // self.push(&format!("    call $return_push"));
                 // self.push(&format!("    call $fn_{}", name_slug(s)));
@@ -420,7 +412,10 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.fork();
                 let forked_state = self.reg_state.clone();
                 let results = self.result_cache[current].clone();
-                eprintln!("Applying jump result as phi...");
+                warn!(
+                    "Applying jump result as phi... ({:?}, {})",
+                    terminator.0, terminator.1
+                );
                 for apply in &results {
                     self.apply_phi_to_info(&forked_state, apply);
                 }
@@ -448,7 +443,10 @@ impl PaxWalker for PaxAnalyzerWalker {
                     .insert(current.to_owned(), self.reg_state.clone());
 
                 // Apply state entering loop as a phi state.
-                eprintln!("Applying loop pre-entry as phi...");
+                warn!(
+                    "Applying loop pre-entry as phi... ({:?}, {})",
+                    terminator.0, terminator.1
+                );
                 self.apply_phi_to_info(&self.reg_state.clone(), &previous_state);
             }
             PaxTerm::LoopLeave(_) => {
@@ -473,7 +471,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Apply state exiting loop as a phi state.
                 let entry_state = self.entry_cache[current].clone();
-                eprintln!(
+                warn!(
                     "Applying loop entry as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
@@ -491,7 +489,10 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Apply states exiting loop as a phi state.
                 let source = &self.reg_state.clone();
-                eprintln!("Applying loop exit as phi...");
+                warn!(
+                    "Applying loop exit as phi... ({:?}, {})",
+                    terminator.0, terminator.1
+                );
                 for apply in &self.result_cache[current].clone() {
                     self.apply_phi_to_info(source, apply);
                 }

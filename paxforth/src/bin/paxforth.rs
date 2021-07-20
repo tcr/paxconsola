@@ -12,8 +12,6 @@ use crate::targets::tom1::*;
 use crate::targets::wasm::*;
 use crate::targets::Target;
 
-use env_logger::{Builder, Env};
-
 #[derive(StructOpt, Debug)]
 #[structopt(name = "paxforth")]
 struct Args {
@@ -76,13 +74,7 @@ struct FileOpts {
 
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
-    let env = Env::default();
-
-    let mut builder = Builder::from_env(env);
-
-    builder.format_timestamp(None);
-
-    builder.init();
+    env_logger::init();
 
     // Extract file
     let file_opts = match &args.cmd {
