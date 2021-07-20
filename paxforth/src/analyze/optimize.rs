@@ -292,7 +292,7 @@ impl PaxAnalyzerWalker {
     fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
         if source.size() != apply.size() {
             error!(
-                "!!! error: Phi applied to mismatched source: {:?} apply: {:?}",
+                "Phi applied to mismatched source: {:?} apply: {:?}",
                 source.size(),
                 apply.size()
             );
@@ -367,7 +367,8 @@ impl PaxWalker for PaxAnalyzerWalker {
     ) {
         match &terminator.0 {
             PaxTerm::Exit => {}
-            PaxTerm::Call(ref _s) => {
+            PaxTerm::Call(ref s) => {
+                panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
                 // self.push(&format!("    i32.const {}", 0)); // dummy value
                 // self.push(&format!("    call $return_push"));
                 // self.push(&format!("    call $fn_{}", name_slug(s)));
