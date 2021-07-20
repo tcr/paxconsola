@@ -28,7 +28,7 @@ impl WasmForthCompilerWalker {
  * Implements `opcode()` and `terminator()` for PaxWalker.
  */
 impl PaxWalker for WasmForthCompilerWalker {
-    fn opcode(&mut self, op: &Located<Pax>) {
+    fn opcode(&mut self, op: &Located<Pax>, _stack: &[WalkerLevel]) {
         self.push(&format!(";; {:?}", &op.0));
         match &op.0 {
             Pax::PushLiteral(lit) => {
@@ -99,7 +99,12 @@ impl PaxWalker for WasmForthCompilerWalker {
         self.push(&format!(""));
     }
 
-    fn terminator(&mut self, terminator: &Located<PaxTerm>, current: &WalkerLevel) {
+    fn terminator(
+        &mut self,
+        terminator: &Located<PaxTerm>,
+        current: &WalkerLevel,
+        _stack: &[WalkerLevel],
+    ) {
         self.push(&format!(";; {:?}", &terminator.0));
         match &terminator.0 {
             PaxTerm::Exit => {}

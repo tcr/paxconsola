@@ -100,19 +100,19 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
 static EMPTY_IGNORE_LIST: &[&str] = &[];
 
 static OPT_IGNORE_LIST: &[&str] = &[
-    /*
-    // crashing tests
-    "json-parse.fth",
-    // failing tests
-    "invert.fth",
-    "loop.fth",
-    "type-simple.fth",
-    "type.fth",
-    "multiply.fth",
-    "loopimpl2.fth",
-    "loopimpl.fth",
-    "loop-do.fth",
-    */
+    // roll cannot be optimized unless inlined yet
+    "roll.fth",
+    // // crashing tests
+    // "json-parse.fth",
+    // // failing tests
+    // "invert.fth",
+    // "loop.fth",
+    // "type-simple.fth",
+    // "type.fth",
+    // "multiply.fth",
+    // "loopimpl2.fth",
+    // "loopimpl.fth",
+    // "loop-do.fth",
 ];
 
 #[test]

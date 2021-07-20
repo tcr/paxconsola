@@ -102,6 +102,18 @@ variable  temp \ first variable
     drop
     ;
 
+\ hardcoded *roll and *pick variants that are optimizable w/o inline
+
+: 3roll
+    >r >r
+    swap r> swap r> swap
+    ;
+
+: 4roll
+    >r >r >r
+    swap r> swap r> swap r> swap
+    ;
+
 : compare ( c-addr1 u1 c-addr2 u2 -- n )
     begin
         rot

@@ -42,7 +42,7 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
     for block in blocks.iter() {
         // Iterate over opcodes.
         for op in block.opcodes() {
-            walker.opcode(op)
+            walker.opcode(op, &block_stack)
         }
 
         // Iterate the terminator opcode.
@@ -53,13 +53,13 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
 
                 // Assert root.
                 block.to_root();
-                walker.terminator(&terminator, block);
+                walker.terminator(&terminator, block, &block_stack);
             }
             PaxTerm::Call(_) => {
                 let block = block_stack.last().unwrap();
 
                 // Don't assert any block level.
-                walker.terminator(&terminator, block);
+                walker.terminator(&terminator, block, &block_stack);
             }
 
             /* branches */
@@ -71,21 +71,21 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
 
                 // Assert block.
                 block.to_block();
-                walker.terminator(&terminator, block);
+                walker.terminator(&terminator, block, &block_stack);
             }
             PaxTerm::JumpElse(_) => {
                 let block = block_stack.last().unwrap();
 
                 // Assert block.
                 block.to_block();
-                walker.terminator(&terminator, block);
+                walker.terminator(&terminator, block, &block_stack);
             }
             PaxTerm::JumpTarget(_) => {
                 let block = block_stack.pop().unwrap();
 
                 // Assert block.
                 block.to_block();
-                walker.terminator(&terminator, &block);
+                walker.terminator(&terminator, &block, &block_stack);
             }
 
             /* loops */
@@ -97,7 +97,7 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
 
                 // Assert loop.
                 block.to_loop();
-                walker.terminator(&terminator, block);
+                walker.terminator(&terminator, block, &block_stack);
             }
             PaxTerm::LoopLeave(_) => {
                 // Find the highest level index.
@@ -115,14 +115,14 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
 
                 // Assert loop.
                 block.to_loop();
-                walker.terminator(&terminator, block);
+                walker.terminator(&terminator, block, &block_stack);
             }
             PaxTerm::LoopIf0(_) => {
                 let block = block_stack.pop().unwrap();
 
                 // Assert loop.
                 block.to_loop();
-                walker.terminator(&terminator, &block);
+                walker.terminator(&terminator, &block, &block_stack);
             }
         }
     }
@@ -131,7 +131,12 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
 }
 
 pub trait PaxWalker {
-    fn opcode(&mut self, opcode: &Located<Pax>);
+    fn opcode(&mut self, opcode: &Located<Pax>, stack: &[WalkerLevel]);
 
-    fn terminator(&mut self, terminator: &Located<PaxTerm>, current: &WalkerLevel);
+    fn terminator(
+        &mut self,
+        terminator: &Located<PaxTerm>,
+        current: &WalkerLevel,
+        stack: &[WalkerLevel],
+    );
 }

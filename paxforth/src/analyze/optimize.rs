@@ -311,7 +311,7 @@ pub struct RegStateBlock {
  * Implements `opcode()` and `terminator()` for PaxAnalyzerWalker.
  */
 impl PaxWalker for PaxAnalyzerWalker {
-    fn opcode(&mut self, op: &Located<Pax>) {
+    fn opcode(&mut self, op: &Located<Pax>, _stack: &[WalkerLevel]) {
         self.push(&format!(";; {:?}", &op.0));
         match &op.0 {
             Pax::PushLiteral(lit) => {
@@ -357,7 +357,12 @@ impl PaxWalker for PaxAnalyzerWalker {
         // eprintln!("------- {:?} ({:?})", op.0, self.reg_state.size());
     }
 
-    fn terminator(&mut self, terminator: &Located<PaxTerm>, current: &WalkerLevel) {
+    fn terminator(
+        &mut self,
+        terminator: &Located<PaxTerm>,
+        current: &WalkerLevel,
+        _stack: &[WalkerLevel],
+    ) {
         match &terminator.0 {
             PaxTerm::Exit => {}
             PaxTerm::Call(ref _s) => {
