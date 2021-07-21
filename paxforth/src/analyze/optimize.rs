@@ -1,6 +1,7 @@
 use crate::analyze::walker::*;
 use crate::*;
 use log::*;
+use maplit::btreemap;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 // Register index.
@@ -41,31 +42,45 @@ struct RegInfo {
     consumed: bool,
 }
 
+impl RegInfo {
+    fn new() -> RegInfo {
+        RegInfo {
+            data_param: false,
+            alt_param: false,
+            literal: None,
+            phi: HashSet::new(),
+            dropped: false,
+            consumed: false,
+        }
+    }
+}
+
 pub struct PaxAnalyzerWalker {
-    buffer: String,
     reg_state: RegState,
     reg_info: BTreeMap<RegIndex, RegInfo>,
 
     entry_cache: HashMap<WalkerLevel, RegState>,
     result_cache: HashMap<WalkerLevel, Vec<RegState>>,
     has_leave: HashSet<WalkerLevel>,
+
+    block_initial_state: Option<RegState>,
+    block_opcodes: Vec<WithRegState<Located<Pax>>>,
+    blocks: Vec<RegStateBlock>,
 }
 
 impl PaxAnalyzerWalker {
     fn new() -> PaxAnalyzerWalker {
         PaxAnalyzerWalker {
-            buffer: String::new(),
             reg_state: RegState::new(),
-            reg_info: BTreeMap::new(),
+            reg_info: btreemap![0 => RegInfo::new()], // temp register at "0"
             entry_cache: HashMap::new(),
             result_cache: HashMap::new(),
             has_leave: HashSet::new(),
-        }
-    }
 
-    fn push(&mut self, string: &str) {
-        self.buffer.push_str(string);
-        self.buffer.push_str("\n");
+            block_initial_state: None,
+            block_opcodes: vec![],
+            blocks: vec![],
+        }
     }
 
     // Data Stack
@@ -74,17 +89,7 @@ impl PaxAnalyzerWalker {
         let pos = self.reg_state.index;
         self.reg_state.index += 1;
 
-        self.reg_info.insert(
-            pos,
-            RegInfo {
-                data_param: false,
-                alt_param: false,
-                literal: None,
-                phi: HashSet::new(),
-                dropped: false,
-                consumed: false,
-            },
-        );
+        self.reg_info.insert(pos, RegInfo::new());
 
         pos
     }
@@ -162,7 +167,26 @@ impl PaxAnalyzerWalker {
             );
         }
 
-        // TODO populate register lists
+        // Populate phi.
+        for (source_reg, apply_reg) in itertools::zip(&source.data, &apply.data) {
+            self.reg_info
+                .get_mut(source_reg)
+                .unwrap()
+                .phi
+                .insert(*apply_reg);
+        }
+        for (source_reg, apply_reg) in itertools::zip(&source.ret, &apply.ret) {
+            self.reg_info
+                .get_mut(source_reg)
+                .unwrap()
+                .phi
+                .insert(*apply_reg);
+        }
+        self.reg_info
+            .get_mut(&self.reg_state.temp)
+            .unwrap()
+            .phi
+            .insert(apply.temp);
     }
 }
 
@@ -171,7 +195,7 @@ type WithRegState<T> = (T, RegState);
 #[derive(Debug, Clone)]
 pub struct RegStateBlock {
     initial_state: RegState,
-    opcodes: WithRegState<Located<Pax>>,
+    opcodes: Vec<WithRegState<Located<Pax>>>,
     terminator: WithRegState<Located<PaxTerm>>,
 }
 
@@ -180,7 +204,10 @@ pub struct RegStateBlock {
  */
 impl PaxWalker for PaxAnalyzerWalker {
     fn opcode(&mut self, op: &Located<Pax>, _stack: &[WalkerLevel]) {
-        self.push(&format!(";; {:?}", &op.0));
+        if self.block_initial_state.is_none() {
+            self.block_initial_state = Some(self.reg_state.clone());
+        }
+
         match &op.0 {
             Pax::PushLiteral(lit) => {
                 self.data_push_literal(*lit);
@@ -223,7 +250,11 @@ impl PaxWalker for PaxAnalyzerWalker {
                 // ignore
             }
         }
+
         // eprintln!("------- {:?} ({:?})", op.0, self.reg_state.size());
+        // Record this entry.
+        self.block_opcodes
+            .push((op.clone(), self.reg_state.clone()));
     }
 
     fn terminator(
@@ -232,6 +263,10 @@ impl PaxWalker for PaxAnalyzerWalker {
         current: &WalkerLevel,
         stack: &[WalkerLevel],
     ) {
+        if self.block_initial_state.is_none() {
+            self.block_initial_state = Some(self.reg_state.clone());
+        }
+
         match &terminator.0 {
             PaxTerm::Exit => {}
             PaxTerm::Call(ref s) => {
@@ -403,8 +438,35 @@ impl PaxWalker for PaxAnalyzerWalker {
                 }
             }
         }
+
         // eprintln!("------> {:?} ({:?})", terminator.0, self.reg_state.size());
+        // Record this block.
+        let initial_state = self.block_initial_state.take().unwrap();
+        let opcodes = self.block_opcodes.drain(0..).collect::<Vec<_>>();
+        self.blocks.push(RegStateBlock {
+            initial_state,
+            opcodes,
+            terminator: (terminator.clone(), self.reg_state.clone()),
+        });
     }
+}
+
+pub fn dump_reg_state_blocks(blocks: &[RegStateBlock]) {
+    info!("[reg_state blocks]");
+    for (i, block) in blocks.iter().enumerate() {
+        info!("Block({})", i);
+        info!("     ↳ {:?}", block.initial_state);
+        for command in &block.opcodes {
+            info!("    {:<30}", format!("{:?}", command.0 .0),);
+            info!("     ↳ {:<30}", format!("{:?}", command.1));
+        }
+        {
+            let terminator = &block.terminator;
+            info!("  * {:<30}", format!("{:?}", terminator.0 .0),);
+            info!("     ↳ {:<30}", format!("{:?}", terminator.1));
+        }
+    }
+    info!("");
 }
 
 /**
@@ -415,6 +477,8 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
     let mut walker = PaxAnalyzerWalker::new();
     structured_walk(&mut walker, blocks);
+
+    dump_reg_state_blocks(&walker.blocks);
 
     info!("[register info]");
     for (key, reg) in &walker.reg_info {
