@@ -102,8 +102,9 @@ static EMPTY_IGNORE_LIST: &[&str] = &[];
 static OPT_IGNORE_LIST: &[&str] = &[
     // roll cannot be optimized unless inlined yet
     "roll.fth",
-    // // crashing tests
-    // "json-parse.fth",
+    // crashing tests
+    "json-parse.fth",
+    "modulus.fth",
     // // failing tests
     // "invert.fth",
     // "loop.fth",

@@ -1,5 +1,7 @@
 use crate::*;
 
+const INLINED_FN_PTR: PaxLiteral = 13579;
+
 pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
     let mut continue_pass = true;
     'pass_loop: while continue_pass {
@@ -77,7 +79,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
             };
 
             let return_stack_enter = vec![
-                (Pax::PushLiteral(-1), inline_pos.clone()),
+                (Pax::PushLiteral(INLINED_FN_PTR), inline_pos.clone()),
                 (Pax::AltPush, inline_pos.clone()),
             ];
             let return_stack_exit = vec![
