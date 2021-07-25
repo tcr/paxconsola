@@ -554,5 +554,51 @@ pub fn function_analyze(program: &PaxProgram, name: &str) -> PaxAnalyzerWalker {
         .unwrap()
         .fate = RegFate::Dropped;
 
+    // Walk reg_info, identify all entries that can be folded in via phi.
+    let optimize_single_phi_groups = true;
+    if optimize_single_phi_groups {
+        info!("[simplify reg info]");
+        'outer_loop: loop {
+            let cached_reg_info = walker.reg_info.clone();
+            for (key, reg) in &cached_reg_info {
+                if reg.phi.len() == 1 {
+                    info!(
+                        "Simplify phi {:?} folding into {:?}",
+                        key,
+                        reg.phi.iter().next().unwrap(),
+                    );
+
+                    // Rewrite original register in all blocks as the destination block.
+                    let reg_from = *key;
+                    let reg_to = *reg.phi.iter().next().unwrap();
+                    // eprintln!("purging {:?} replacing with {:?}", reg_from, reg_to);
+                    for block in &mut walker.blocks {
+                        block.initial_state.replace_reg(reg_from, reg_to);
+                        for (_, opcode) in &mut block.opcodes {
+                            opcode.replace_reg(reg_from, reg_to);
+                        }
+                        block.terminator.1.replace_reg(reg_from, reg_to);
+                    }
+
+                    // Remove entry from reg_info.
+                    walker.reg_info.remove(&reg_from);
+                    // Remove from all phi entries.
+                    for (target_reg, reg_info) in &mut walker.reg_info {
+                        if reg_info.phi.contains(&reg_from) {
+                            reg_info.phi.remove(&reg_from);
+                            if *target_reg != reg_to {
+                                reg_info.phi.insert(reg_to);
+                            }
+                        }
+                    }
+
+                    // Restart loop.
+                    continue 'outer_loop;
+                }
+            }
+            break;
+        }
+    }
+
     walker
 }
