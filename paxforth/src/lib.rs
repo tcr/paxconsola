@@ -1,14 +1,13 @@
 #![recursion_limit = "1024"]
 
-pub mod analyze;
 pub mod ast;
 pub mod check;
 pub mod debug;
 pub mod parse;
+pub mod program;
 pub mod runner;
 pub mod targets;
 
-pub use analyze::*;
 pub use ast::*;
 pub use parse::*;
 

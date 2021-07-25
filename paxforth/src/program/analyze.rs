@@ -1,4 +1,4 @@
-use crate::analyze::walker::*;
+use crate::program::walker::*;
 use crate::*;
 use log::*;
 use maplit::{btreemap, hashset};
@@ -9,13 +9,13 @@ use std::collections::{BTreeMap, HashMap, HashSet};
  */
 
 // Register index.
-type RegIndex = usize;
+pub type RegIndex = usize;
 
 #[derive(Debug, Clone)]
-struct RegState {
-    data: Vec<RegIndex>,
-    ret: Vec<RegIndex>,
-    temp: RegIndex,
+pub struct RegState {
+    pub data: Vec<RegIndex>,
+    pub ret: Vec<RegIndex>,
+    pub temp: RegIndex,
 }
 
 impl RegState {
@@ -27,7 +27,7 @@ impl RegState {
         }
     }
 
-    fn replace_reg(&mut self, reg_from: RegIndex, reg_to: RegIndex) {
+    pub fn replace_reg(&mut self, reg_from: RegIndex, reg_to: RegIndex) {
         self.data.iter_mut().for_each(|x| {
             if *x == reg_from {
                 *x = reg_to;
@@ -55,7 +55,7 @@ impl RegState {
  */
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum RegOrigin {
+pub enum RegOrigin {
     Unknown,
     DataParam,
     RetParam,
@@ -63,18 +63,18 @@ enum RegOrigin {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
-enum RegFate {
+pub enum RegFate {
     Unknown,
     Dropped,
     Consumed,
 }
 
 #[derive(Debug, Clone)]
-struct RegInfo {
-    phi: HashSet<RegIndex>,
-    origin: RegOrigin,
-    fate: RegFate,
-    literal: Option<PaxLiteral>,
+pub struct RegInfo {
+    pub phi: HashSet<RegIndex>,
+    pub origin: RegOrigin,
+    pub fate: RegFate,
+    pub literal: Option<PaxLiteral>,
 }
 
 impl RegInfo {
@@ -90,7 +90,7 @@ impl RegInfo {
 
 pub struct PaxAnalyzerWalker {
     reg_state: RegState,
-    reg_info: BTreeMap<RegIndex, RegInfo>,
+    pub reg_info: BTreeMap<RegIndex, RegInfo>,
 
     entry_cache: HashMap<WalkerLevel, RegState>,
     result_cache: HashMap<WalkerLevel, Vec<RegState>>,
@@ -98,7 +98,7 @@ pub struct PaxAnalyzerWalker {
 
     block_initial_state: Option<RegState>,
     block_opcodes: Vec<WithRegState<Located<Pax>>>,
-    blocks: Vec<RegStateBlock>,
+    pub blocks: Vec<RegStateBlock>,
 }
 
 impl PaxAnalyzerWalker {
@@ -247,13 +247,13 @@ impl PaxAnalyzerWalker {
     }
 }
 
-type WithRegState<T> = (T, RegState);
+pub type WithRegState<T> = (T, RegState);
 
 #[derive(Debug, Clone)]
 pub struct RegStateBlock {
-    initial_state: RegState,
-    opcodes: Vec<WithRegState<Located<Pax>>>,
-    terminator: WithRegState<Located<PaxTerm>>,
+    pub initial_state: RegState,
+    pub opcodes: Vec<WithRegState<Located<Pax>>>,
+    pub terminator: WithRegState<Located<PaxTerm>>,
 }
 
 /**
@@ -514,7 +514,7 @@ impl PaxWalker for PaxAnalyzerWalker {
  * Dump the vector of RegStateBlock for an analyzed function.
  */
 
-fn dump_reg_state_blocks(blocks: &[RegStateBlock]) {
+pub fn dump_reg_state_blocks(blocks: &[RegStateBlock]) {
     info!("[reg_state blocks]");
     for (i, block) in blocks.iter().enumerate() {
         info!("Block({})", i);
@@ -534,7 +534,7 @@ fn dump_reg_state_blocks(blocks: &[RegStateBlock]) {
     info!("");
 }
 
-fn dump_reg_info(reg_info: &BTreeMap<RegIndex, RegInfo>) {
+pub fn dump_reg_info(reg_info: &BTreeMap<RegIndex, RegInfo>) {
     info!("[register info]");
     for (key, reg) in reg_info {
         info!("  {:>4} = {:?}", key, reg);
@@ -542,96 +542,7 @@ fn dump_reg_info(reg_info: &BTreeMap<RegIndex, RegInfo>) {
     info!("");
 }
 
-/**
- * Simple rewriter function.
- */
-
-fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
-    let mut out_blocks = vec![];
-    for (i, block) in walker.blocks.iter().enumerate() {
-        let mut state = block.initial_state.clone();
-        let mut out_opcodes = vec![];
-        for opcode in &block.opcodes {
-            // info!("    {:<30}", format!("{:?}", command.0 .0),);
-            // info!("     ↳ {:<30}", format!("{:?}", command.1));
-
-            let mut skip_entry = false;
-            match &opcode.0 .0 {
-                Pax::PushLiteral(_) | Pax::AltPop | Pax::LoadTemp => {
-                    let reg: RegIndex = *opcode.1.data.iter().last().unwrap();
-                    if walker.reg_info[&reg].phi.is_empty()
-                        && walker.reg_info[&reg].fate == RegFate::Dropped
-                    {
-                        info!("   [push-literal|alt-pop|load-temp] Skipping {:?}", reg);
-                        skip_entry = true;
-                    }
-                }
-                Pax::AltPush => {
-                    let reg: RegIndex = *state.data.iter().last().unwrap();
-                    if walker.reg_info[&reg].phi.is_empty()
-                        && walker.reg_info[&reg].fate == RegFate::Dropped
-                    {
-                        info!("   [alt-push] Skipping {:?}", reg);
-                        skip_entry = true;
-                    }
-                }
-                // TODO replace with drop?
-                Pax::StoreTemp => {
-                    let reg: RegIndex = *state.data.iter().last().unwrap();
-                    if walker.reg_info[&reg].phi.is_empty()
-                        && walker.reg_info[&reg].fate == RegFate::Dropped
-                    {
-                        info!("     [store-temp] Skipping {:?}", reg);
-                        skip_entry = true;
-                        // out_opcodes.push((Pax::Drop, opcode.0 .1.clone()));
-                    }
-                }
-                Pax::Add | Pax::Nand => {
-                    let reg: RegIndex = *opcode.1.data.iter().last().unwrap();
-                    // eprintln!("dropping {:?}", reg);
-                    if walker.reg_info[&reg].phi.is_empty()
-                        && walker.reg_info[&reg].fate == RegFate::Dropped
-                    {
-                        info!("   [add|nand] Skipping {:?}", reg);
-                        skip_entry = true;
-                    }
-                }
-                // Drop command can ignore their values entirely.
-                Pax::Drop => {
-                    let reg: RegIndex = *state.data.iter().last().unwrap();
-                    // eprintln!("dropping {:?}", reg);
-                    if walker.reg_info[&reg].phi.is_empty()
-                        && walker.reg_info[&reg].fate == RegFate::Dropped
-                    {
-                        info!("   [drop] Skipping {:?}", reg);
-                        skip_entry = true;
-                    }
-                }
-                _ => {}
-            }
-
-            state = opcode.1.clone();
-            if !skip_entry {
-                out_opcodes.push(opcode.0.clone());
-            }
-        }
-        let out_terminator = {
-            // let terminator = &block.terminator;
-            // info!("  * {:<30}", format!("{:?}", terminator.0 .0),);
-            // info!("     ↳ {:<30}", format!("{:?}", terminator.1));
-
-            state = block.terminator.1.clone();
-            block.terminator.0.clone()
-        };
-        out_blocks.push(Block::new(out_opcodes, out_terminator));
-    }
-    out_blocks
-}
-
-/**
- * Analysis function.
- */
-pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
+pub fn function_analyze(program: &PaxProgram, name: &str) -> PaxAnalyzerWalker {
     let blocks = program.get(name).unwrap();
 
     // Perform walk of the function, then drop last "temp" value.
@@ -643,60 +554,5 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
         .unwrap()
         .fate = RegFate::Dropped;
 
-    // Walk reg_info, identify all entries that can be folded in via phi.
-    let optimize_single_phi_groups = true;
-    if optimize_single_phi_groups {
-        info!("[simplify reg info]");
-        'outer_loop: loop {
-            let cached_reg_info = walker.reg_info.clone();
-            for (key, reg) in &cached_reg_info {
-                if reg.phi.len() == 1 {
-                    info!(
-                        "Simplify phi {:?} folding into {:?}",
-                        key,
-                        reg.phi.iter().next().unwrap(),
-                    );
-
-                    // Rewrite original register in all blocks as the destination block.
-                    let reg_from = *key;
-                    let reg_to = *reg.phi.iter().next().unwrap();
-                    // eprintln!("purging {:?} replacing with {:?}", reg_from, reg_to);
-                    for block in &mut walker.blocks {
-                        block.initial_state.replace_reg(reg_from, reg_to);
-                        for (_, opcode) in &mut block.opcodes {
-                            opcode.replace_reg(reg_from, reg_to);
-                        }
-                        block.terminator.1.replace_reg(reg_from, reg_to);
-                    }
-
-                    // Remove entry from reg_info.
-                    walker.reg_info.remove(&reg_from);
-                    // Remove from all phi entries.
-                    for (target_reg, reg_info) in &mut walker.reg_info {
-                        if reg_info.phi.contains(&reg_from) {
-                            reg_info.phi.remove(&reg_from);
-                            if *target_reg != reg_to {
-                                reg_info.phi.insert(reg_to);
-                            }
-                        }
-                    }
-                    // walker.reg_info.get_mut(key).unwrap().phi.remove(&reg_to);
-
-                    // Restart loop.
-                    continue 'outer_loop;
-                }
-            }
-            break;
-        }
-    }
-
-    // Dump results.
-    dump_reg_state_blocks(&walker.blocks);
-    dump_reg_info(&walker.reg_info);
-
-    // Drop them all.
-    remove_dropped_regs(&walker)
-
-    // // Return original blocks.
-    // blocks.to_owned()
+    walker
 }

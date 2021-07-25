@@ -1,4 +1,4 @@
-use crate::analyze::walker::*;
+use crate::program::walker::*;
 use crate::*;
 
 const WAT_TEMPLATE: &'static str = include_str!("wasm_template.wat");

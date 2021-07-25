@@ -4,6 +4,8 @@ use structopt::StructOpt;
 
 use crate::check::*;
 use crate::debug::*;
+use crate::program::optimize::*;
+use crate::program::*;
 use crate::runner::wasm::run_wasm;
 use crate::targets::c64::*;
 use crate::targets::gb::*;
