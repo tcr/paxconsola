@@ -188,9 +188,13 @@ impl PaxAnalyzerWalker {
     }
 
     fn data_pop_temp(&mut self) {
-        self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Dropped;
+        // self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Dropped;
         let reg = self.data_pop();
-        self.reg_state.temp = reg;
+        self.reg_state.temp = self.new_reg();
+
+        // TODO should the temp value consume its parent?
+        // self.reg_info.get_mut(&self.reg_state.temp).unwrap().origin =
+        //     RegOrigin::Consumes(hashset![reg]);
     }
 
     fn fork(&mut self) {
