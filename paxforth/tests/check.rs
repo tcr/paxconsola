@@ -42,7 +42,7 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
 
     // Iterate through each test.
     let mut failed = 0;
-    for test in check_tests {
+    for test in &check_tests {
         let test_filename = test.path.file_name().unwrap().to_string_lossy().to_string();
         if ignore_list.contains(&test_filename.as_str()) {
             eprintln!("[forth] IGNORING '{}'", test.path.display());
@@ -92,7 +92,9 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
     }
 
     if failed != 0 {
-        eprintln!("[forth] failed {} tests.", failed);
+        eprintln!();
+        eprintln!("[forth] failed {} / {} tests.", failed, check_tests.len());
+        eprintln!();
     }
     assert_eq!(failed, 0, "failed more than 0 tests");
 }
@@ -103,8 +105,8 @@ static OPT_IGNORE_LIST: &[&str] = &[
     // roll cannot be optimized unless inlined yet
     "roll.fth",
     // crashing tests
-    "json-parse.fth",
-    "modulus.fth",
+    // "json-parse.fth",
+    // "modulus.fth",
     // // failing tests
     // "invert.fth",
     // "loop.fth",

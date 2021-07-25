@@ -1,7 +1,7 @@
 use crate::analyze::walker::*;
 use crate::*;
 use log::*;
-use maplit::btreemap;
+use maplit::{btreemap, hashset};
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 /**
@@ -54,11 +54,12 @@ impl RegState {
  * Information about an individual register.
  */
 
-#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum RegOrigin {
     Unknown,
     DataParam,
     RetParam,
+    Consumes(HashSet<RegIndex>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
@@ -146,12 +147,13 @@ impl PaxAnalyzerWalker {
         self.reg_state.data.pop().unwrap_or_else(|| self.new_reg())
     }
 
-    fn data_consume(&mut self) {
+    fn data_consume(&mut self) -> RegIndex {
         let reg = self.reg_state.data.pop().unwrap_or_else(|| self.new_reg());
 
         // TODO
         // assert_eq!(self.reg_info.get_mut(&reg).unwrap().fate, RegFate::Unknown);
         self.reg_info.get_mut(&reg).unwrap().fate = RegFate::Consumed;
+        reg
     }
 
     fn data_drop(&mut self) {
@@ -160,6 +162,15 @@ impl PaxAnalyzerWalker {
         // TODO
         // assert_eq!(self.reg_info.get_mut(&reg).unwrap().fate, RegFate::Unknown);
         self.reg_info.get_mut(&reg).unwrap().fate = RegFate::Dropped;
+
+        // Cycle through consumed registers.
+        let mut consume = vec![reg];
+        while let Some(reg) = consume.pop() {
+            self.reg_info.get_mut(&reg).unwrap().fate = RegFate::Dropped;
+            if let &RegOrigin::Consumes(ref parents) = &self.reg_info.get(&reg).unwrap().origin {
+                consume.extend(parents.clone());
+            }
+        }
     }
 
     fn ret_push(&mut self, reg: RegIndex) -> RegIndex {
@@ -270,9 +281,11 @@ impl PaxWalker for PaxAnalyzerWalker {
             }
 
             Pax::Add | Pax::Nand => {
-                let _a = self.data_consume();
-                let _b = self.data_consume();
-                self.data_push();
+                let a = self.data_consume();
+                let b = self.data_consume();
+                let new_reg = self.data_push();
+                self.reg_info.get_mut(&new_reg).unwrap().origin =
+                    RegOrigin::Consumes(hashset![a, b]);
             }
             Pax::Drop => {
                 self.data_drop();
@@ -505,11 +518,13 @@ fn dump_reg_state_blocks(blocks: &[RegStateBlock]) {
         for command in &block.opcodes {
             info!("    {:<30}", format!("{:?}", command.0 .0),);
             info!("     ↳ {:<30}", format!("{:?}", command.1));
+            info!("       {}", command.0 .1);
         }
         {
             let terminator = &block.terminator;
             info!("  * {:<30}", format!("{:?}", terminator.0 .0),);
             info!("     ↳ {:<30}", format!("{:?}", terminator.1));
+            info!("       {}", terminator.0 .1);
         }
     }
     info!("");
@@ -558,17 +573,24 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                 }
                 // TODO replace with drop?
                 Pax::StoreTemp => {
-                    let reg: RegIndex = state.temp;
+                    let reg: RegIndex = *state.data.iter().last().unwrap();
                     if walker.reg_info[&reg].phi.is_empty()
                         && walker.reg_info[&reg].fate == RegFate::Dropped
                     {
                         info!("     [store-temp] Skipping {:?}", reg);
                         skip_entry = true;
-                        out_opcodes.push((Pax::Drop, opcode.0 .1.clone()));
+                        // out_opcodes.push((Pax::Drop, opcode.0 .1.clone()));
                     }
                 }
                 Pax::Add | Pax::Nand => {
-                    // TODO
+                    let reg: RegIndex = *opcode.1.data.iter().last().unwrap();
+                    // eprintln!("dropping {:?}", reg);
+                    if walker.reg_info[&reg].phi.is_empty()
+                        && walker.reg_info[&reg].fate == RegFate::Dropped
+                    {
+                        info!("   [add|nand] Skipping {:?}", reg);
+                        skip_entry = true;
+                    }
                 }
                 // Drop command can ignore their values entirely.
                 Pax::Drop => {
@@ -577,7 +599,7 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                     if walker.reg_info[&reg].phi.is_empty()
                         && walker.reg_info[&reg].fate == RegFate::Dropped
                     {
-                        info!("   [push-literal] Skipping {:?}", reg);
+                        info!("   [drop] Skipping {:?}", reg);
                         skip_entry = true;
                     }
                 }

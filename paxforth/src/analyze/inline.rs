@@ -1,6 +1,6 @@
 use crate::*;
 
-const INLINED_FN_PTR: PaxLiteral = 13579;
+const INLINED_FN_PTR: PaxLiteral = 7777;
 
 pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
     let mut continue_pass = true;

@@ -1,0 +1,35 @@
+( fn "main" )
+    Block(0)
+        PushLiteral(1)                 // paxforth/tests/check/rot.fth:3:1 in `main`
+        PushLiteral(2)                 // paxforth/tests/check/rot.fth:3:3 in `main`
+        PushLiteral(3)                 // paxforth/tests/check/rot.fth:3:5 in `main`
+        PushLiteral(4)                 // paxforth/tests/check/rot.fth:3:7 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:5:10 in `rot`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        LoadTemp                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // src/prelude.fth:5:18 in `rot`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        LoadTemp                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Print                          // paxforth/tests/check/rot.fth:5:1 in `main`
+        Print                          // paxforth/tests/check/rot.fth:5:3 in `main`
+        Print                          // paxforth/tests/check/rot.fth:5:5 in `main`
+        Print                          // paxforth/tests/check/rot.fth:5:7 in `main`
+        Exit                           // :0:0 in ``
+
+
