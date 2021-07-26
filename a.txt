@@ -1,255 +1,83 @@
 ( fn "main" )
     Block(0)
-        PushLiteral(32)                // paxforth/tests/check/type-simple.fth:4:1 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        StoreTemp                      // src/prelude.fth:6:10 in `dup`
-        LoadTemp                       // src/prelude.fth:6:16 in `dup`
-        LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:41:13 in `cells`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // paxforth/tests/check/type-simple.fth:4:10 in `main`
-        PushLiteral(10000)             // paxforth/tests/check/type-simple.fth:6:1 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        StoreTemp                      // src/prelude.fth:6:10 in `dup`
-        LoadTemp                       // src/prelude.fth:6:16 in `dup`
-        LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(72)                // paxforth/tests/check/type-simple.fth:7:5 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(1)                 // paxforth/tests/check/2over.fth:3:1 in `main`
+        PushLiteral(2)                 // paxforth/tests/check/2over.fth:3:3 in `main`
+        PushLiteral(3)                 // paxforth/tests/check/2over.fth:3:5 in `main`
+        PushLiteral(4)                 // paxforth/tests/check/2over.fth:3:7 in `main`
+        AltPush                        // src/prelude.fth:5:10 in `rot`
         AltPush                        // src/prelude.fth:3:10 in `swap`
         StoreTemp                      // src/prelude.fth:3:13 in `swap`
         AltPop                         // src/prelude.fth:3:19 in `swap`
         LoadTemp                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Store                          // paxforth/tests/check/type-simple.fth:7:14 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        StoreTemp                      // src/prelude.fth:6:10 in `dup`
-        LoadTemp                       // src/prelude.fth:6:16 in `dup`
-        LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(105)               // paxforth/tests/check/type-simple.fth:8:5 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
+        AltPop                         // src/prelude.fth:5:18 in `rot`
         AltPush                        // src/prelude.fth:3:10 in `swap`
         StoreTemp                      // src/prelude.fth:3:13 in `swap`
         AltPop                         // src/prelude.fth:3:19 in `swap`
         LoadTemp                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Store                          // paxforth/tests/check/type-simple.fth:8:14 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        StoreTemp                      // src/prelude.fth:6:10 in `dup`
-        LoadTemp                       // src/prelude.fth:6:16 in `dup`
-        LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(13)                // paxforth/tests/check/type-simple.fth:9:5 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:69:9 in `2over`
+        AltPush                        // src/prelude.fth:5:10 in `rot`
         AltPush                        // src/prelude.fth:3:10 in `swap`
         StoreTemp                      // src/prelude.fth:3:13 in `swap`
         AltPop                         // src/prelude.fth:3:19 in `swap`
         LoadTemp                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Store                          // paxforth/tests/check/type-simple.fth:9:14 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        StoreTemp                      // src/prelude.fth:6:10 in `dup`
-        LoadTemp                       // src/prelude.fth:6:16 in `dup`
-        LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(10)                // paxforth/tests/check/type-simple.fth:10:5 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
+        AltPop                         // src/prelude.fth:5:18 in `rot`
         AltPush                        // src/prelude.fth:3:10 in `swap`
         StoreTemp                      // src/prelude.fth:3:13 in `swap`
         AltPop                         // src/prelude.fth:3:19 in `swap`
         LoadTemp                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Store                          // paxforth/tests/check/type-simple.fth:10:14 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
         StoreTemp                      // src/prelude.fth:6:10 in `dup`
         LoadTemp                       // src/prelude.fth:6:16 in `dup`
         LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(0)                 // paxforth/tests/check/type-simple.fth:11:5 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
+        AltPop                         // src/prelude.fth:69:20 in `2over`
         AltPush                        // src/prelude.fth:3:10 in `swap`
         StoreTemp                      // src/prelude.fth:3:13 in `swap`
         AltPop                         // src/prelude.fth:3:19 in `swap`
         LoadTemp                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Store                          // paxforth/tests/check/type-simple.fth:11:14 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // paxforth/tests/check/type-simple.fth:12:1 in `main`
-        PushLiteral(10000)             // paxforth/tests/check/type-simple.fth:21:1 in `main`
-        PushLiteral(4)                 // paxforth/tests/check/type-simple.fth:21:8 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(0)                 // paxforth/tests/check/type-simple.fth:15:5 in `mytype`
-        AltPush                        // paxforth/tests/check/type-simple.fth:16:5 in `mytype`
-        AltPush                        // paxforth/tests/check/type-simple.fth:16:5 in `mytype`
-        LoopTarget(0)                  // paxforth/tests/check/type-simple.fth:16:5 in `mytype`
-    Block(1)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        StoreTemp                      // src/prelude.fth:6:10 in `dup`
-        LoadTemp                       // src/prelude.fth:6:16 in `dup`
-        LoadTemp                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:38:5 in `i`
-        AltPop                         // src/prelude.fth:38:8 in `i`
-        AltPop                         // src/prelude.fth:38:11 in `i`
-        StoreTemp                      // src/prelude.fth:38:14 in `i`
-        LoadTemp                       // src/prelude.fth:38:20 in `i`
-        AltPush                        // src/prelude.fth:38:26 in `i`
-        AltPush                        // src/prelude.fth:38:29 in `i`
-        AltPush                        // src/prelude.fth:38:32 in `i`
-        LoadTemp                       // src/prelude.fth:38:35 in `i`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // paxforth/tests/check/type-simple.fth:17:15 in `mytype`
-        Load                           // paxforth/tests/check/type-simple.fth:17:17 in `mytype`
-        Emit                           // paxforth/tests/check/type-simple.fth:17:19 in `mytype`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        StoreTemp                      // src/prelude.fth:4:13 in `over`
-        LoadTemp                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        LoadTemp                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        StoreTemp                      // src/prelude.fth:4:13 in `over`
-        LoadTemp                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        LoadTemp                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(3)                     // src/prelude.fth:21:8 in `0=`
-    Block(2)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(4)                    // src/prelude.fth:21:13 in `0=`
-    Block(3)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(3)                  // src/prelude.fth:21:21 in `0=`
-    Block(4)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:69:28 in `2over`
+        AltPush                        // src/prelude.fth:69:31 in `2over`
         AltPush                        // src/prelude.fth:3:10 in `swap`
         StoreTemp                      // src/prelude.fth:3:13 in `swap`
         AltPop                         // src/prelude.fth:3:19 in `swap`
         LoadTemp                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(1)                     // paxforth/tests/check/type-simple.fth:18:5 in `mytype`
-    Block(5)
-        AltPop                         // paxforth/tests/check/type-simple.fth:18:5 in `mytype`
-        Drop                           // paxforth/tests/check/type-simple.fth:18:5 in `mytype`
-        AltPop                         // paxforth/tests/check/type-simple.fth:18:5 in `mytype`
-        Drop                           // paxforth/tests/check/type-simple.fth:18:5 in `mytype`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:61:38 in `-rot`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        LoadTemp                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // src/prelude.fth:61:46 in `-rot`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPop                         // src/prelude.fth:11:8 in `r@`
+        AltPop                         // src/prelude.fth:11:11 in `r@`
+        StoreTemp                      // src/prelude.fth:11:14 in `r@`
+        LoadTemp                       // src/prelude.fth:11:20 in `r@`
+        AltPush                        // src/prelude.fth:11:26 in `r@`
+        LoadTemp                       // src/prelude.fth:11:29 in `r@`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        LoadTemp                       // src/prelude.fth:3:22 in `swap`
+        AltPush                        // src/prelude.fth:61:38 in `-rot`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        LoadTemp                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // src/prelude.fth:61:46 in `-rot`
+        AltPop                         // src/prelude.fth:69:47 in `2over`
+        AltPop                         // src/prelude.fth:69:50 in `2over`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        StoreTemp                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        LoadTemp                       // src/prelude.fth:3:22 in `swap`
+        Print                          // paxforth/tests/check/2over.fth:5:1 in `main`
+        Print                          // paxforth/tests/check/2over.fth:5:3 in `main`
+        Print                          // paxforth/tests/check/2over.fth:5:5 in `main`
+        Print                          // paxforth/tests/check/2over.fth:5:7 in `main`
+        Print                          // paxforth/tests/check/2over.fth:5:9 in `main`
+        Print                          // paxforth/tests/check/2over.fth:5:11 in `main`
         Exit                           // :0:0 in ``
 
 

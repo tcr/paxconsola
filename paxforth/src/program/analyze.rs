@@ -67,6 +67,7 @@ pub enum RegFate {
     Unknown,
     Dropped,
     Consumed,
+    Copied,
 }
 
 #[derive(Debug, Clone)]
@@ -182,19 +183,34 @@ impl PaxAnalyzerWalker {
         self.reg_state.ret.pop().unwrap()
     }
 
-    fn data_push_temp(&mut self) {
-        self.reg_state.data.push(self.reg_state.temp);
-        self.reg_state.temp = self.new_reg();
+    fn load_temp(&mut self) {
+        // self.reg_state.data.push(self.reg_state.temp);
+
+        let new_temp = self.new_reg();
+        self.reg_state.data.push(new_temp);
+        let literal = self
+            .reg_info
+            .get(&self.reg_state.temp)
+            .unwrap()
+            .literal
+            .clone();
+        self.reg_info.get_mut(&new_temp).unwrap().literal = literal;
+
+        self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Copied;
     }
 
-    fn data_pop_temp(&mut self) {
+    fn store_temp(&mut self) {
         // self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Dropped;
         let reg = self.data_pop();
-        self.reg_state.temp = self.new_reg();
+        self.reg_state.temp = reg;
 
         // TODO should the temp value consume its parent?
         // self.reg_info.get_mut(&self.reg_state.temp).unwrap().origin =
         //     RegOrigin::Consumes(hashset![reg]);
+        // let literal = self.reg_info.get(&reg).unwrap().literal.clone();
+
+        // Assume dropped until it's loaded.
+        self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Dropped;
     }
 
     fn fork(&mut self) {
@@ -278,10 +294,10 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.ret_push(reg);
             }
             Pax::StoreTemp => {
-                self.data_pop_temp();
+                self.store_temp();
             }
             Pax::LoadTemp => {
-                self.data_push_temp();
+                self.load_temp();
             }
 
             Pax::Add | Pax::Nand => {
@@ -542,17 +558,15 @@ pub fn dump_reg_info(reg_info: &BTreeMap<RegIndex, RegInfo>) {
     info!("");
 }
 
-pub fn function_analyze(program: &PaxProgram, name: &str) -> PaxAnalyzerWalker {
-    let blocks = program.get(name).unwrap();
-
+pub fn function_analyze(blocks: &[Block]) -> PaxAnalyzerWalker {
     // Perform walk of the function, then drop last "temp" value.
     let mut walker = PaxAnalyzerWalker::new();
     structured_walk(&mut walker, blocks);
-    walker
-        .reg_info
-        .get_mut(&walker.reg_state.temp)
-        .unwrap()
-        .fate = RegFate::Dropped;
+    // walker
+    //     .reg_info
+    //     .get_mut(&walker.reg_state.temp)
+    //     .unwrap()
+    //     .fate = RegFate::Dropped;
 
     // Walk reg_info, identify all entries that can be folded in via phi.
     let optimize_single_phi_groups = true;
