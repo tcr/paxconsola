@@ -195,29 +195,27 @@ fn propagate_literals(walker: &PaxAnalyzerWalker) -> Vec<Block> {
  */
 pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
     // Analyze the function.
-    let blocks = program.get(name).unwrap();
+    let blocks = program.get(name).unwrap().clone();
 
-    let walker = function_analyze(blocks);
+    let blocks = {
+        let walker = function_analyze(&blocks);
+
+        propagate_literals_forward(&walker)
+    };
+
+    let blocks = {
+        let walker = function_analyze(&blocks);
+
+        // Dump results.
+        dump_reg_state_blocks(&walker.blocks);
+        dump_reg_info(&walker.reg_info);
+
+        remove_dropped_regs(&walker)
+    };
 
     // Dump results.
     // dump_reg_state_blocks(&walker.blocks);
     // dump_reg_info(&walker.reg_info);
 
-    // Perform transform.
-    let blocks2 = propagate_literals_forward(&walker);
-
-    // Analyze the function.
-    let walker = function_analyze(&blocks2);
-
-    // // Dump results.
-    dump_reg_state_blocks(&walker.blocks);
-    dump_reg_info(&walker.reg_info);
-
-    // // Perform transform.
-    remove_dropped_regs(&walker)
-
-    // blocks2
-
-    // // Return original blocks.
-    // blocks.to_owned()
+    blocks
 }

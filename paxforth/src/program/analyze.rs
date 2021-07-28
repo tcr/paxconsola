@@ -160,9 +160,11 @@ impl PaxAnalyzerWalker {
     fn data_drop(&mut self) {
         let reg = self.reg_state.data.pop().unwrap_or_else(|| self.new_reg());
 
+        // warn!("dropping reg------> {}", reg);
+
         // TODO
         // assert_eq!(self.reg_info.get_mut(&reg).unwrap().fate, RegFate::Unknown);
-        self.reg_info.get_mut(&reg).unwrap().fate = RegFate::Dropped;
+        // self.reg_info.get_mut(&reg).unwrap().fate = RegFate::Dropped;
 
         // Cycle through consumed registers.
         let mut consume = vec![reg];
@@ -428,7 +430,9 @@ impl PaxWalker for PaxAnalyzerWalker {
                     "Applying jump result as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
+                info!(" ↳ {:?}", forked_state);
                 for apply in &results {
+                    info!("   ↳ {:?}", apply);
                     self.apply_phi_to_info(&forked_state, apply);
                 }
 
@@ -569,6 +573,7 @@ pub fn function_analyze(blocks: &[Block]) -> PaxAnalyzerWalker {
     //     .fate = RegFate::Dropped;
 
     // Walk reg_info, identify all entries that can be folded in via phi.
+    // TODO can this happen inline?
     let optimize_single_phi_groups = true;
     if optimize_single_phi_groups {
         info!("[simplify reg info]");
@@ -595,7 +600,12 @@ pub fn function_analyze(blocks: &[Block]) -> PaxAnalyzerWalker {
                     }
 
                     // Remove entry from reg_info.
-                    walker.reg_info.remove(&reg_from);
+                    let last_reg_info = walker.reg_info.remove(&reg_from).unwrap();
+
+                    // TODO is correct or should this happen inline
+                    // so there's no need for a dedicated group?
+                    // walker.reg_info.get_mut(&reg_to).unwrap().fate = last_reg_info.fate;
+
                     // Remove from all phi entries.
                     for (target_reg, reg_info) in &mut walker.reg_info {
                         if reg_info.phi.contains(&reg_from) {
