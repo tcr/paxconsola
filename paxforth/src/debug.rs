@@ -388,7 +388,7 @@ pub fn debug_program(code: &str, source_program: &PaxProgram) -> bool {
     //         true
     //     }
     // } else {
-    //     eprintln!("[forth] no ( @checks _ ) comment to check against.");
+    //     eprintln!("[forth] no ( @check _ ) comment to check against.");
     //     false
     // }
 }

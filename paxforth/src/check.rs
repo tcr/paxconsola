@@ -51,7 +51,7 @@ pub fn check_program(
             true
         }
     } else {
-        eprintln!("[forth] no ( @checks _ ) comment to check against.");
+        eprintln!("[forth] no ( @check _ ) comment to check against.");
         false
     }
 }
