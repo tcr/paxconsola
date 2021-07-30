@@ -227,6 +227,10 @@ impl PaxAnalyzerWalker {
         self.reg_state.temp = self.new_reg();
     }
 
+    fn merge_redundant_phi_blocks(&mut self, source: &RegState) {
+        // TODO
+    }
+
     fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
         if source.size() != apply.size() {
             error!(
@@ -435,6 +439,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                     info!("   ↳ {:?}", apply);
                     self.apply_phi_to_info(&forked_state, apply);
                 }
+                self.merge_redundant_phi_blocks(&forked_state);
 
                 // TODO merge output state
                 // eprintln!(
@@ -495,6 +500,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                     terminator.0, terminator.1
                 );
                 self.apply_phi_to_info(&entry_state, &result_state);
+                self.merge_redundant_phi_blocks(&entry_state);
 
                 // Exit loop with a clean state.
                 // eprintln!(
@@ -515,6 +521,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                 for apply in &self.result_cache[current].clone() {
                     self.apply_phi_to_info(source, apply);
                 }
+                self.merge_redundant_phi_blocks(&source);
             }
         }
 
