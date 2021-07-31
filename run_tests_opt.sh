@@ -2,4 +2,4 @@
 
 set -e
 
-cargo test -p paxforth --release -- --ignored --nocapture
+RUST_LOG=paxforth=warn cargo test -p paxforth --release -- --ignored --nocapture

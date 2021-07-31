@@ -257,7 +257,7 @@ impl PaxAnalyzerWalker {
         data = data
             .into_iter()
             .map(|x| {
-                // self.reg_info.get_mut(&x).unwrap().fate = fate.clone();
+                self.reg_info.get_mut(&x).unwrap().fate = fate.clone();
                 self.new_reg_with_origin(origin)
             })
             .collect();
@@ -267,13 +267,13 @@ impl PaxAnalyzerWalker {
         ret = ret
             .into_iter()
             .map(|x| {
-                // self.reg_info.get_mut(&x).unwrap().fate = fate.clone();
+                self.reg_info.get_mut(&x).unwrap().fate = fate.clone();
                 self.new_reg_with_origin(origin)
             })
             .collect();
         self.reg_state.ret = ret;
 
-        // self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = fate.clone();
+        // Temp shouldn't be shared over a phi or fork boundary so don't change its "fate".
         self.reg_state.temp = self.new_reg_with_origin(origin);
     }
 
@@ -407,7 +407,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
-                // self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
+                // TODO self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
             }
             PaxTerm::JumpElse(_) => {
                 // Enter else branch.
@@ -431,7 +431,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
-                // self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
+                // TODO self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
             }
             PaxTerm::JumpTarget(_) => {
                 // End of an "if" or "else" block
