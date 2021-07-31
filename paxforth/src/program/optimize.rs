@@ -10,12 +10,12 @@ use std::collections::{HashMap, HashSet};
 fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
     // List all droppable vectors.
     let reg_is_droppable = walker
-        .reg_info
+        .reg_info_map
         .iter()
         .map(|(k, v)| {
             (
                 *k,
-                !matches!(v.origin, RegOrigin::Phi { .. }) && v.fate == RegFate::Dropped,
+                !matches!(v.origin, RegOrigin::Phi(..)) && v.fate == RegFate::Dropped,
             )
         })
         .collect::<HashMap<RegIndex, bool>>();
@@ -86,7 +86,7 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             match &opcode.0 {
                 Pax::LoadTemp => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                    if let Some(literal) = walker.reg_info.get(&reg).unwrap().literal {
+                    if let Some(literal) = walker.get_reg_info(&reg).literal {
                         info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
                         out_opcodes.push((Pax::PushLiteral(literal), opcode.1.clone()));
                         // reg_is_droppable.insert(reg);
@@ -95,7 +95,7 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                 }
                 Pax::AltPop => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                    if let Some(literal) = walker.reg_info.get(&reg).unwrap().literal {
+                    if let Some(literal) = walker.get_reg_info(&reg).literal {
                         info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
                         out_opcodes.push((Pax::AltPop, opcode.1.clone()));
                         out_opcodes.push((Pax::Drop, opcode.1.clone()));
@@ -173,7 +173,7 @@ fn propagate_literals(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                 match &opcode.0 {
                     Pax::LoadTemp | Pax::AltPop => {
                         let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                        if let Some(literal) = walker.reg_info.get(&reg).unwrap().literal {
+                        if let Some(literal) = walker.get_reg_info(&reg).literal {
                             info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
                             out_opcodes.insert(0, (Pax::PushLiteral(literal), opcode.1.clone()));
                             reg_is_droppable.insert(reg);
@@ -214,7 +214,7 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
         // Dump results.
         dump_reg_state_blocks(&walker.blocks);
-        dump_reg_info(&walker.reg_info);
+        dump_reg_info(&walker.reg_info_map);
 
         remove_dropped_regs(&walker)
     };
@@ -227,7 +227,7 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
     // Dump results.
     // dump_reg_state_blocks(&walker.blocks);
-    // dump_reg_info(&walker.reg_info);
+    // dump_reg_info(&walker.reg_info_map);
 
     blocks
 }
