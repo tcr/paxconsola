@@ -400,7 +400,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
-                // TODO self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
+                self.split_reg_state(&RegOrigin::Forked(hashset! {}), &RegFate::Forked);
             }
             PaxTerm::JumpElse(_) => {
                 // Enter else branch.
@@ -424,7 +424,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
-                // TODO self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
+                self.split_reg_state(&RegOrigin::Forked(hashset! {}), &RegFate::Forked);
             }
             PaxTerm::JumpTarget(_) => {
                 // End of an "if" or "else" block

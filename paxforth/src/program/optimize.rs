@@ -15,7 +15,10 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
         .map(|(k, v)| {
             (
                 *k,
-                !matches!(v.origin, RegOrigin::Phi(..)) && v.fate == RegFate::Dropped,
+                // TODO remove these restrictions
+                !matches!(v.origin, RegOrigin::Phi(..))
+                    && !matches!(v.origin, RegOrigin::Forked(..))
+                    && v.fate == RegFate::Dropped,
             )
         })
         .collect::<HashMap<RegIndex, bool>>();
@@ -74,7 +77,7 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
 fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
     let mut out_blocks = vec![];
     for (_i, block) in walker.blocks.iter().enumerate() {
-        let mut before_state = block.initial_state.clone();
+        // let mut before_state = block.initial_state.clone();
         let mut out_opcodes = vec![];
         for analyzed_opcode in &block.opcodes {
             // info!("    {:<30}", format!("{:?}", command.0 .0),);
@@ -112,7 +115,7 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             }
 
             // Update before_state.
-            before_state = after_state.clone();
+            // before_state = after_state.clone();
         }
         let out_terminator = {
             // let terminator = &block.terminator;
@@ -120,7 +123,7 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             // info!("     ↳ {:<30}", format!("{:?}", terminator.1));
 
             // Update before_state.
-            before_state = block.terminator.1.clone();
+            // before_state = block.terminator.1.clone();
 
             block.terminator.0.clone()
         };
