@@ -407,7 +407,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
-                self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
+                // self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
             }
             PaxTerm::JumpElse(_) => {
                 // Enter else branch.
