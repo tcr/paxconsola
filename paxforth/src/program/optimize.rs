@@ -201,6 +201,7 @@ fn propagate_literals(walker: &PaxAnalyzerWalker) -> Vec<Block> {
 pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
     // Analyze the function.
     let blocks = program.get(name).unwrap().clone();
+    let insr_count_before = instruction_count(&blocks);
 
     let blocks = {
         let walker = function_analyze(&blocks);
@@ -217,6 +218,12 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
 
         remove_dropped_regs(&walker)
     };
+
+    let insr_count_after = instruction_count(&blocks);
+    warn!(
+        "Instruction count before: {} after: {}",
+        insr_count_before, insr_count_after
+    );
 
     // Dump results.
     // dump_reg_state_blocks(&walker.blocks);

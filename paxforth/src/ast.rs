@@ -94,6 +94,10 @@ impl Block {
     }
 }
 
+pub fn instruction_count(blocks: &[Block]) -> usize {
+    blocks.iter().map(|x| 1 + x.opcodes.len()).sum()
+}
+
 /**
  * Position in source code
  */
