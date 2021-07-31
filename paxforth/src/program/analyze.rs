@@ -59,7 +59,24 @@ pub enum RegOrigin {
     Unknown,
     DataParam,
     RetParam,
+    TempParam,
     Consumes(HashSet<RegIndex>),
+    Phi(HashSet<RegIndex>),
+    Forked(HashSet<RegIndex>),
+}
+
+impl RegOrigin {
+    fn empty_consumes() -> RegOrigin {
+        RegOrigin::Consumes(hashset! {})
+    }
+
+    fn empty_phi() -> RegOrigin {
+        RegOrigin::Phi(hashset! {})
+    }
+
+    fn empty_forked() -> RegOrigin {
+        RegOrigin::Forked(hashset! {})
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
@@ -68,11 +85,12 @@ pub enum RegFate {
     Dropped,
     Consumed,
     Copied,
+    Forked,
+    JoinedPhi,
 }
 
 #[derive(Debug, Clone)]
 pub struct RegInfo {
-    pub phi: HashSet<RegIndex>,
     pub origin: RegOrigin,
     pub fate: RegFate,
     pub literal: Option<PaxLiteral>,
@@ -81,9 +99,24 @@ pub struct RegInfo {
 impl RegInfo {
     fn new() -> RegInfo {
         RegInfo {
-            phi: HashSet::new(),
             literal: None,
             origin: RegOrigin::Unknown,
+            fate: RegFate::Unknown,
+        }
+    }
+
+    fn new_dropped() -> RegInfo {
+        RegInfo {
+            literal: None,
+            origin: RegOrigin::Unknown,
+            fate: RegFate::Dropped,
+        }
+    }
+
+    fn with_origin(origin: RegOrigin) -> RegInfo {
+        RegInfo {
+            literal: None,
+            origin,
             fate: RegFate::Unknown,
         }
     }
@@ -106,7 +139,7 @@ impl PaxAnalyzerWalker {
     fn new() -> PaxAnalyzerWalker {
         PaxAnalyzerWalker {
             reg_state: RegState::new(),
-            reg_info: btreemap![0 => RegInfo::new()], // temp register at "0"
+            reg_info: btreemap![0 => RegInfo::new_dropped()], // temp register at "0"
             entry_cache: HashMap::new(),
             result_cache: HashMap::new(),
             has_leave: HashSet::new(),
@@ -123,6 +156,15 @@ impl PaxAnalyzerWalker {
         let mut pos = *self.reg_info.keys().next_back().unwrap() as RegIndex;
         pos += 1;
         self.reg_info.insert(pos, RegInfo::new());
+
+        pos
+    }
+
+    fn new_reg_with_origin(&mut self, origin: &RegOrigin) -> RegIndex {
+        let mut pos = *self.reg_info.keys().next_back().unwrap() as RegIndex;
+        pos += 1;
+        self.reg_info
+            .insert(pos, RegInfo::with_origin(origin.clone()));
 
         pos
     }
@@ -186,8 +228,6 @@ impl PaxAnalyzerWalker {
     }
 
     fn load_temp(&mut self) {
-        // self.reg_state.data.push(self.reg_state.temp);
-
         let new_temp = self.new_reg();
         self.reg_state.data.push(new_temp);
         let literal = self
@@ -202,33 +242,39 @@ impl PaxAnalyzerWalker {
     }
 
     fn store_temp(&mut self) {
-        // self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Dropped;
         let reg = self.data_pop();
         self.reg_state.temp = reg;
-
-        // TODO should the temp value consume its parent?
-        // self.reg_info.get_mut(&self.reg_state.temp).unwrap().origin =
-        //     RegOrigin::Consumes(hashset![reg]);
-        // let literal = self.reg_info.get(&reg).unwrap().literal.clone();
 
         // Assume dropped until it's loaded.
         self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = RegFate::Dropped;
     }
 
-    fn fork(&mut self) {
+    /**
+     * Clone the existing reg state with all new registers.
+     */
+    fn split_reg_state(&mut self, origin: &RegOrigin, fate: &RegFate) {
         let mut data: Vec<RegIndex> = self.reg_state.data.drain(0..).collect();
-        data = data.into_iter().map(|_| self.new_reg()).collect();
+        data = data
+            .into_iter()
+            .map(|x| {
+                self.reg_info.get_mut(&x).unwrap().fate = fate.clone();
+                self.new_reg_with_origin(origin)
+            })
+            .collect();
         self.reg_state.data = data;
 
         let mut ret: Vec<RegIndex> = self.reg_state.ret.drain(0..).collect();
-        ret = ret.into_iter().map(|_| self.new_reg()).collect();
+        ret = ret
+            .into_iter()
+            .map(|x| {
+                self.reg_info.get_mut(&x).unwrap().fate = fate.clone();
+                self.new_reg_with_origin(origin)
+            })
+            .collect();
         self.reg_state.ret = ret;
 
-        self.reg_state.temp = self.new_reg();
-    }
-
-    fn merge_redundant_phi_blocks(&mut self, source: &RegState) {
-        // TODO
+        self.reg_info.get_mut(&self.reg_state.temp).unwrap().fate = fate.clone();
+        self.reg_state.temp = self.new_reg_with_origin(origin);
     }
 
     fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
@@ -241,30 +287,19 @@ impl PaxAnalyzerWalker {
         }
 
         // Populate phi.
-        for (source_reg, apply_reg) in itertools::zip(&source.data, &apply.data) {
+        for (source_reg, apply_reg) in itertools::concat(vec![
+            itertools::zip(&source.data, &apply.data).collect::<Vec<_>>(),
+            itertools::zip(&source.ret, &apply.ret).collect::<Vec<_>>(),
+            std::iter::once((&source.temp, &apply.temp)).collect::<Vec<_>>(),
+        ]) {
             if source_reg != apply_reg {
-                self.reg_info
-                    .get_mut(source_reg)
-                    .unwrap()
-                    .phi
-                    .insert(*apply_reg);
+                let reg_info = self.reg_info.get_mut(source_reg).unwrap();
+                if let RegOrigin::Phi(ref mut phi) = reg_info.origin {
+                    phi.insert(*apply_reg);
+                } else {
+                    unreachable!();
+                }
             }
-        }
-        for (source_reg, apply_reg) in itertools::zip(&source.ret, &apply.ret) {
-            if source_reg != apply_reg {
-                self.reg_info
-                    .get_mut(source_reg)
-                    .unwrap()
-                    .phi
-                    .insert(*apply_reg);
-            }
-        }
-        if source.temp != apply.temp {
-            self.reg_info
-                .get_mut(&source.temp)
-                .unwrap()
-                .phi
-                .insert(apply.temp);
         }
     }
 }
@@ -350,13 +385,9 @@ impl PaxWalker for PaxAnalyzerWalker {
 
         match &terminator.0 {
             PaxTerm::Exit => {}
+
             PaxTerm::Call(ref s) => {
                 panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
-                // self.push(&format!("    i32.const {}", 0)); // dummy value
-                // self.push(&format!("    call $return_push"));
-                // self.push(&format!("    call $fn_{}", name_slug(s)));
-                // self.push(&format!("    call $return_pop"));
-                // self.push(&format!("    call $drop"));
             }
 
             /* branches */
@@ -376,6 +407,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
+                self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
             }
             PaxTerm::JumpElse(_) => {
                 // Enter else branch.
@@ -384,10 +416,11 @@ impl PaxWalker for PaxAnalyzerWalker {
                 self.result_cache.get_mut(&current).unwrap().remove(0);
 
                 if self.has_leave.contains(&current) {
-                    // skip if with "leave" in it
-                    // but remove this has_leave
-                    self.has_leave.remove(&current);
+                    // skip "if" result if it contained "leave".
                     self.result_cache.get_mut(&current).unwrap().pop();
+
+                    // but remove this entry from "has_leave" so we can detect the "else" clause too
+                    self.has_leave.remove(&current);
                 } else {
                     // Save "if" block result state.
                     self.result_cache
@@ -398,6 +431,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
                 // Load entry state.
                 self.reg_state = self.entry_cache[current].clone();
+                self.split_reg_state(&RegOrigin::empty_forked(), &RegFate::Forked);
             }
             PaxTerm::JumpTarget(_) => {
                 // End of an "if" or "else" block
@@ -406,49 +440,32 @@ impl PaxWalker for PaxAnalyzerWalker {
                     // Remove last branch from result_cache.
                     self.result_cache.get_mut(&current).unwrap().pop();
                 } else {
-                    // Save "else" block result state.
+                    // Save "if" or "else" block result state.
                     let results_reg = self.result_cache.get_mut(&current).unwrap();
                     results_reg.push(self.reg_state.clone());
                 }
 
-                // Grab reference to result_cache.
-                let results_reg = self.result_cache.get_mut(&current).unwrap();
-                // eprintln!("[leave] {:?} vs {:?}", self.has_leave, current);
-                // eprintln!("here are results1 {:?}", results_reg);
-                // eprintln!("here are results2 {:?}", self.reg_state);
-
                 // Calculate next RegState.
+                let results_reg = self.result_cache[current].clone();
                 if results_reg.is_empty() {
-                    // Phi as result of an "if" with "leave" so the only
-                    // result is the entry result.
+                    // "if" with "leave" creates no divergence, so we can re-use the entry state.
                     self.reg_state = self.entry_cache[current].clone();
                 } else {
-                    // Phi will be equal in size to state of if...else...then.
-                    self.fork();
-                }
+                    // Add a phi node to handle results of if...else...then.
+                    self.split_reg_state(&RegOrigin::empty_phi(), &RegFate::JoinedPhi);
 
-                // Apply branches as phi..
-                let forked_state = self.reg_state.clone();
-                let results = self.result_cache[current].clone();
-                info!(
-                    "Applying jump result as phi... ({:?}, {})",
-                    terminator.0, terminator.1
-                );
-                info!(" ↳ {:?}", forked_state);
-                for apply in &results {
-                    info!("   ↳ {:?}", apply);
-                    self.apply_phi_to_info(&forked_state, apply);
+                    // Apply branches as phi..
+                    let exit_state = self.reg_state.clone();
+                    info!(
+                        "Applying jump result as phi... ({:?}, {})",
+                        terminator.0, terminator.1
+                    );
+                    info!(" ↳ {:?}", exit_state);
+                    for apply in &results_reg {
+                        info!("   ↳ {:?}", apply);
+                        self.apply_phi_to_info(&exit_state, apply);
+                    }
                 }
-                self.merge_redundant_phi_blocks(&forked_state);
-
-                // TODO merge output state
-                // eprintln!(
-                //     "JumpTarget: {:?}",
-                //     self.result_cache[current]
-                //         .iter()
-                //         .map(|x| x.size())
-                //         .collect::<Vec<_>>()
-                // );
             }
 
             /* loops */
@@ -459,7 +476,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                 let previous_state = self.reg_state.clone();
 
                 // Start loop with a clean state.
-                self.fork();
+                self.split_reg_state(&RegOrigin::empty_phi(), &RegFate::JoinedPhi);
                 self.entry_cache
                     .insert(current.to_owned(), self.reg_state.clone());
 
@@ -493,35 +510,28 @@ impl PaxWalker for PaxAnalyzerWalker {
                     .or_insert(vec![])
                     .push(result_state.clone());
 
-                // Apply state exiting loop as a phi state.
+                // When we loop around, we must add the current state to the entry phi node.
                 let entry_state = self.entry_cache[current].clone();
                 info!(
                     "Applying loop entry as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
                 self.apply_phi_to_info(&entry_state, &result_state);
-                self.merge_redundant_phi_blocks(&entry_state);
 
-                // Exit loop with a clean state.
-                // eprintln!(
-                //     "LoopIf0: {:?}",
-                //     self.result_cache[current]
-                //         .iter()
-                //         .map(|x| x.size())
-                //         .collect::<Vec<_>>()
-                // );
-                self.fork();
+                // If loop has any "leave" statement, we also inject a phi node after the loop.
+                if self.result_cache[current].len() > 1 {
+                    self.split_reg_state(&RegOrigin::empty_phi(), &RegFate::JoinedPhi);
 
-                // Apply states exiting loop as a phi state.
-                let source = &self.reg_state.clone();
-                info!(
-                    "Applying loop exit as phi... ({:?}, {})",
-                    terminator.0, terminator.1
-                );
-                for apply in &self.result_cache[current].clone() {
-                    self.apply_phi_to_info(source, apply);
+                    // Apply states exiting loop as a phi state.
+                    let source = &self.reg_state.clone();
+                    info!(
+                        "Applying loop exit as phi... ({:?}, {})",
+                        terminator.0, terminator.1
+                    );
+                    for apply in &self.result_cache[current].clone() {
+                        self.apply_phi_to_info(source, apply);
+                    }
                 }
-                self.merge_redundant_phi_blocks(&source);
             }
         }
 
@@ -573,15 +583,13 @@ pub fn function_analyze(blocks: &[Block]) -> PaxAnalyzerWalker {
     // Perform walk of the function, then drop last "temp" value.
     let mut walker = PaxAnalyzerWalker::new();
     structured_walk(&mut walker, blocks);
-    // walker
-    //     .reg_info
-    //     .get_mut(&walker.reg_state.temp)
-    //     .unwrap()
-    //     .fate = RegFate::Dropped;
+    walker
+}
 
+/*
+pub fn simplify_phi(walker: &mut PaxAnalyzerWalker) -> {
     // Walk reg_info, identify all entries that can be folded in via phi.
-    // TODO can this happen inline?
-    let optimize_single_phi_groups = true;
+    let optimize_single_phi_groups = false;
     if optimize_single_phi_groups {
         info!("[simplify reg info]");
         'outer_loop: loop {
@@ -630,6 +638,5 @@ pub fn function_analyze(blocks: &[Block]) -> PaxAnalyzerWalker {
             break;
         }
     }
-
-    walker
 }
+*/

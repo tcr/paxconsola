@@ -12,7 +12,12 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
     let reg_is_droppable = walker
         .reg_info
         .iter()
-        .map(|(k, v)| (*k, v.phi.is_empty() && v.fate == RegFate::Dropped))
+        .map(|(k, v)| {
+            (
+                *k,
+                !matches!(v.origin, RegOrigin::Phi { .. }) && v.fate == RegFate::Dropped,
+            )
+        })
         .collect::<HashMap<RegIndex, bool>>();
 
     let mut out_blocks = vec![];

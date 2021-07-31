@@ -15,7 +15,7 @@ paw = "1.0"
 lazy_static = "1.4.0"
 indexmap = { version = "*", features = [ "serde-1" ] }
 percent-encoding = "*"
-itertools = "0.8.2"
+itertools = "0.10"
 petgraph = "0.5.0"
 wat = "1"
 serde = { version = "1.0.104", features = [ "derive" ] }
