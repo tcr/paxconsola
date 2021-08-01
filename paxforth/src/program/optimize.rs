@@ -156,15 +156,15 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
     let blocks = {
         let walker = function_analyze(&blocks);
 
+        // Dump results.
+        dump_reg_state_blocks(&walker.blocks);
+        dump_reg_info(&walker.reg_info_map);
+
         propagate_literals_forward(&walker)
     };
 
     let blocks = {
         let walker = function_analyze(&blocks);
-
-        // Dump results.
-        dump_reg_state_blocks(&walker.blocks);
-        dump_reg_info(&walker.reg_info_map);
 
         remove_dropped_regs(&walker)
     };
