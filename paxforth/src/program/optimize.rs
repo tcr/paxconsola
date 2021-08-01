@@ -75,6 +75,19 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
 }
 
 fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
+    // List all droppable vectors.
+    let reg_literal = walker
+        .reg_info_map
+        .iter()
+        .filter_map(|(k, v)| {
+            if let RegOrigin::PushLiteral(lit) = &v.origin {
+                Some((*k, *lit))
+            } else {
+                None
+            }
+        })
+        .collect::<HashMap<RegIndex, PaxLiteral>>();
+
     let mut out_blocks = vec![];
     for (_i, block) in walker.blocks.iter().enumerate() {
         // let mut before_state = block.initial_state.clone();
@@ -89,20 +102,20 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             match &opcode.0 {
                 Pax::LoadTemp => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                    if let Some(literal) = walker.get_reg_info(&reg).literal {
+                    if let Some(literal) = reg_literal.get(&reg) {
                         info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
-                        out_opcodes.push((Pax::PushLiteral(literal), opcode.1.clone()));
+                        out_opcodes.push((Pax::PushLiteral(*literal), opcode.1.clone()));
                         // reg_is_droppable.insert(reg);
                         skip_entry = true;
                     }
                 }
                 Pax::AltPop => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                    if let Some(literal) = walker.get_reg_info(&reg).literal {
+                    if let Some(literal) = reg_literal.get(&reg) {
                         info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
                         out_opcodes.push((Pax::AltPop, opcode.1.clone()));
                         out_opcodes.push((Pax::Drop, opcode.1.clone()));
-                        out_opcodes.push((Pax::PushLiteral(literal), opcode.1.clone()));
+                        out_opcodes.push((Pax::PushLiteral(*literal), opcode.1.clone()));
                         // reg_is_droppable.insert(reg);
                         skip_entry = true;
                     }
@@ -127,72 +140,6 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
 
             block.terminator.0.clone()
         };
-        out_blocks.push(Block::new(out_opcodes, out_terminator));
-    }
-    out_blocks
-}
-
-fn propagate_literals(walker: &PaxAnalyzerWalker) -> Vec<Block> {
-    // List all droppable vectors.
-    let mut reg_is_droppable: HashSet<RegIndex> = hashset![];
-
-    let mut out_blocks = vec![];
-    for block in walker.blocks.iter().rev() {
-        let out_terminator = block.terminator.0.clone();
-        let mut out_opcodes = vec![];
-        let mut opcodes_iter = block.opcodes.iter().rev().peekable();
-        while let Some(analyzed_opcode) = opcodes_iter.next() {
-            // info!("    {:<30}", format!("{:?}", command.0 .0),);
-            // info!("     ↳ {:<30}", format!("{:?}", command.1));
-
-            let mut skip_entry = false;
-            let opcode = &analyzed_opcode.0;
-            let after_state = &analyzed_opcode.1;
-            let before_state = opcodes_iter
-                .peek()
-                .map(|x| x.1.clone())
-                .unwrap_or_else(|| block.initial_state.clone());
-
-            match &opcode.0 {
-                Pax::AltPush | Pax::Drop | Pax::StoreTemp => {
-                    let reg: RegIndex = *before_state.data.iter().last().unwrap();
-                    if reg_is_droppable.contains(&reg) {
-                        info!("   [{:?}] Skipping {:?}", opcode.0, reg);
-                        skip_entry = true;
-                    }
-                }
-                Pax::PushLiteral(_) | Pax::AltPop | Pax::LoadTemp | Pax::Add | Pax::Nand => {
-                    let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                    if reg_is_droppable.contains(&reg) {
-                        info!("   [{:?}] Skipping {:?}", opcode.0, reg);
-                        skip_entry = true;
-                    }
-                }
-                _ => {}
-            }
-
-            // See to push literal.
-            if !skip_entry {
-                match &opcode.0 {
-                    Pax::LoadTemp | Pax::AltPop => {
-                        let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                        if let Some(literal) = walker.get_reg_info(&reg).literal {
-                            info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
-                            out_opcodes.insert(0, (Pax::PushLiteral(literal), opcode.1.clone()));
-                            reg_is_droppable.insert(reg);
-                            skip_entry = true;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-
-            if !skip_entry {
-                out_opcodes.insert(0, opcode.clone());
-            }
-        }
-
-        // Construct the new block.
         out_blocks.push(Block::new(out_opcodes, out_terminator));
     }
     out_blocks

@@ -190,7 +190,6 @@ impl PaxAnalyzerWalker {
     fn data_push_literal(&mut self, literal: PaxLiteral) {
         let reg = self.data_push();
 
-        self.get_reg_info_mut(&reg).literal = Some(literal);
         self.get_reg_info_mut(&reg).origin = RegOrigin::PushLiteral(literal);
     }
 
@@ -258,15 +257,22 @@ impl PaxAnalyzerWalker {
     }
 
     fn load_temp(&mut self) {
+        // Copy the temp register and push it onto data stack.
         let new_temp = self.new_reg();
-        self.reg_state.data.push(new_temp);
-        let literal = self.get_reg_info(&self.reg_state.temp).literal.clone();
-        self.get_reg_info_mut(&new_temp).literal = literal;
-        self.get_reg_info_mut(&new_temp).origin = RegOrigin::Copy(self.reg_state.temp);
-
         let temp_reg = self.reg_state.temp;
         self.get_reg_info_mut(&temp_reg).fate = RegFate::Copied;
         self.get_reg_info_mut(&temp_reg).discard = false;
+
+        // TODO may not need this in optimization step
+        self.get_reg_info_mut(&new_temp).origin =
+            if let RegOrigin::PushLiteral(lit) = &self.get_reg_info(&self.reg_state.temp).origin {
+                RegOrigin::PushLiteral(*lit)
+            } else {
+                RegOrigin::Copy(self.reg_state.temp)
+            };
+
+        // Push temp copy to the data stack.
+        self.reg_state.data.push(new_temp);
     }
 
     fn store_temp(&mut self) {
@@ -324,7 +330,7 @@ impl PaxAnalyzerWalker {
             .collect();
 
         // Temp shouldn't be shared over a phi or fork boundary so don't change its "fate".
-        self.reg_state.temp = self.new_reg_with_origin(RegOrigin::Fork(self.reg_state.temp));
+        // self.reg_state.temp = self.new_reg_with_origin(RegOrigin::Fork(self.reg_state.temp));
     }
 
     /**
@@ -350,9 +356,9 @@ impl PaxAnalyzerWalker {
             .collect();
 
         // Temp shouldn't be shared over a phi or fork boundary so don't change its "fate".
-        let new_temp = self.new_reg_with_origin(RegOrigin::Phi(hashset! {}));
-        self.reg_state.temp = new_temp;
-        self.get_reg_info_mut(&new_temp).fate = RegFate::Dropped;
+        // let new_temp = self.new_reg_with_origin(RegOrigin::Phi(hashset! {}));
+        // self.reg_state.temp = new_temp;
+        // self.get_reg_info_mut(&new_temp).fate = RegFate::Dropped;
     }
 
     fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
@@ -368,7 +374,7 @@ impl PaxAnalyzerWalker {
         for (source_reg, apply_reg) in itertools::concat(vec![
             itertools::zip(&source.data, &apply.data).collect::<Vec<_>>(),
             itertools::zip(&source.ret, &apply.ret).collect::<Vec<_>>(),
-            std::iter::once((&source.temp, &apply.temp)).collect::<Vec<_>>(),
+            // std::iter::once((&source.temp, &apply.temp)).collect::<Vec<_>>(),
         ]) {
             self.get_reg_info_mut(&apply_reg).fate = RegFate::JoinedPhi;
             if source_reg != apply_reg {
