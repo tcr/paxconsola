@@ -17,8 +17,8 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                 *k,
                 // TODO remove these restrictions
                 !matches!(v.origin, RegOrigin::Phi(..))
-                    && !matches!(v.origin, RegOrigin::Forked(..))
-                    && v.fate == RegFate::Dropped,
+                    && !matches!(v.origin, RegOrigin::Fork(..))
+                    && v.discard,
             )
         })
         .collect::<HashMap<RegIndex, bool>>();
@@ -65,7 +65,7 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             // info!("     ↳ {:<30}", format!("{:?}", terminator.1));
 
             // Update before_state.
-            before_state = block.terminator.1.clone();
+            // before_state = block.terminator.1.clone();
 
             block.terminator.0.clone()
         };

@@ -1,0 +1,115 @@
+( fn "main" )
+    Block(0)
+        PushLiteral(99)                // paxforth/tests/check/case-a.fth:3:1 in `main`
+        PushLiteral(7)                 // paxforth/tests/check/case-a.fth:5:1 in `main`
+        LoopTarget(0)                  // paxforth/tests/check/case-a.fth:5:3 in `main`
+    Block(1)
+        StoreTemp                      // src/prelude.fth:4:13 in `over`
+        LoadTemp                       // src/prelude.fth:4:19 in `over`
+        PushLiteral(6)                 // src/prelude.fth:4:25 in `over`
+        LoadTemp                       // src/prelude.fth:4:28 in `over`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        Add                            // src/prelude.fth:16:19 in `-`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(3)                     // src/prelude.fth:21:8 in `0=`
+    Block(2)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(4)                    // src/prelude.fth:21:13 in `0=`
+    Block(3)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(3)                  // src/prelude.fth:21:21 in `0=`
+    Block(4)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(7)                     // paxforth/tests/check/case-a.fth:6:14 in `main`
+    Block(5)
+        PushLiteral(0)                 // paxforth/tests/check/case-a.fth:6:17 in `main`
+        Print                          // paxforth/tests/check/case-a.fth:6:19 in `main`
+        LoopLeave(20)                  // paxforth/tests/check/case-a.fth:6:25 in `main`
+    Block(6)
+        JumpTarget(6)                  // paxforth/tests/check/case-a.fth:6:31 in `main`
+    Block(7)
+        StoreTemp                      // src/prelude.fth:4:13 in `over`
+        LoadTemp                       // src/prelude.fth:4:19 in `over`
+        PushLiteral(7)                 // src/prelude.fth:4:25 in `over`
+        LoadTemp                       // src/prelude.fth:4:28 in `over`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        Add                            // src/prelude.fth:16:19 in `-`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(9)                     // src/prelude.fth:21:8 in `0=`
+    Block(8)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(10)                   // src/prelude.fth:21:13 in `0=`
+    Block(9)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(9)                  // src/prelude.fth:21:21 in `0=`
+    Block(10)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(13)                    // paxforth/tests/check/case-a.fth:7:14 in `main`
+    Block(11)
+        PushLiteral(1)                 // paxforth/tests/check/case-a.fth:7:17 in `main`
+        Print                          // paxforth/tests/check/case-a.fth:7:19 in `main`
+        LoopLeave(20)                  // paxforth/tests/check/case-a.fth:7:25 in `main`
+    Block(12)
+        JumpTarget(12)                 // paxforth/tests/check/case-a.fth:7:31 in `main`
+    Block(13)
+        StoreTemp                      // src/prelude.fth:4:13 in `over`
+        LoadTemp                       // src/prelude.fth:4:19 in `over`
+        PushLiteral(8)                 // src/prelude.fth:4:25 in `over`
+        LoadTemp                       // src/prelude.fth:4:28 in `over`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        Add                            // src/prelude.fth:16:19 in `-`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(15)                    // src/prelude.fth:21:8 in `0=`
+    Block(14)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(16)                   // src/prelude.fth:21:13 in `0=`
+    Block(15)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(15)                 // src/prelude.fth:21:21 in `0=`
+    Block(16)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(19)                    // paxforth/tests/check/case-a.fth:8:14 in `main`
+    Block(17)
+        PushLiteral(2)                 // paxforth/tests/check/case-a.fth:8:17 in `main`
+        Print                          // paxforth/tests/check/case-a.fth:8:19 in `main`
+        LoopLeave(20)                  // paxforth/tests/check/case-a.fth:8:25 in `main`
+    Block(18)
+        JumpTarget(18)                 // paxforth/tests/check/case-a.fth:8:31 in `main`
+    Block(19)
+        PushLiteral(3)                 // paxforth/tests/check/case-a.fth:9:17 in `main`
+        Print                          // paxforth/tests/check/case-a.fth:9:19 in `main`
+        PushLiteral(1)                 // paxforth/tests/check/case-a.fth:10:5 in `main`
+        LoopIf0(1)                     // paxforth/tests/check/case-a.fth:11:1 in `main`
+    Block(20)
+        Drop                           // paxforth/tests/check/case-a.fth:12:1 in `main`
+        Print                          // paxforth/tests/check/case-a.fth:14:1 in `main`
+        Exit                           // :0:0 in ``
+
+
