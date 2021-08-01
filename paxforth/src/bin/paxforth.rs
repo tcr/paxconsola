@@ -76,7 +76,7 @@ struct FileOpts {
 
 #[paw::main]
 fn main(args: Args) -> Result<(), std::io::Error> {
-    env_logger::init();
+    env_logger::builder().format_timestamp(None).init();
 
     // Extract file
     let file_opts = match &args.cmd {

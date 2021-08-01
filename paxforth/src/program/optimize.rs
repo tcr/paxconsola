@@ -38,14 +38,14 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                 Pax::AltPush | Pax::Drop | Pax::StoreTemp => {
                     let reg: RegIndex = *before_state.data.iter().last().unwrap();
                     if reg_is_droppable[&reg] {
-                        info!("   [{:?}] Skipping {:?}", opcode.0, reg);
+                        // info!("   [{:?}] Skipping {:?}", opcode.0, reg);
                         skip_entry = true;
                     }
                 }
                 Pax::PushLiteral(_) | Pax::AltPop | Pax::LoadTemp | Pax::Add | Pax::Nand => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
                     if reg_is_droppable[&reg] {
-                        info!("   [{:?}] Skipping {:?}", opcode.0, reg);
+                        // info!("   [{:?}] Skipping {:?}", opcode.0, reg);
                         skip_entry = true;
                     }
                 }

@@ -8,11 +8,15 @@
         LoadTemp                       // src/prelude.fth:4:19 in `over`
         PushLiteral(6)                 // src/prelude.fth:4:25 in `over`
         LoadTemp                       // src/prelude.fth:4:28 in `over`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
         PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
         Nand                           // src/prelude.fth:14:15 in `invert`
         PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
         Add                            // src/prelude.fth:15:21 in `negate`
         Add                            // src/prelude.fth:16:19 in `-`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
         JumpIf0(3)                     // src/prelude.fth:21:8 in `0=`
     Block(2)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
@@ -21,6 +25,10 @@
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
         JumpTarget(3)                  // src/prelude.fth:21:21 in `0=`
     Block(4)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
         JumpIf0(7)                     // paxforth/tests/check/case-a.fth:6:14 in `main`
     Block(5)
         PushLiteral(0)                 // paxforth/tests/check/case-a.fth:6:17 in `main`
@@ -33,11 +41,15 @@
         LoadTemp                       // src/prelude.fth:4:19 in `over`
         PushLiteral(7)                 // src/prelude.fth:4:25 in `over`
         LoadTemp                       // src/prelude.fth:4:28 in `over`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
         PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
         Nand                           // src/prelude.fth:14:15 in `invert`
         PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
         Add                            // src/prelude.fth:15:21 in `negate`
         Add                            // src/prelude.fth:16:19 in `-`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
         JumpIf0(9)                     // src/prelude.fth:21:8 in `0=`
     Block(8)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
@@ -46,6 +58,10 @@
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
         JumpTarget(9)                  // src/prelude.fth:21:21 in `0=`
     Block(10)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
         JumpIf0(13)                    // paxforth/tests/check/case-a.fth:7:14 in `main`
     Block(11)
         PushLiteral(1)                 // paxforth/tests/check/case-a.fth:7:17 in `main`
@@ -55,13 +71,18 @@
         JumpTarget(12)                 // paxforth/tests/check/case-a.fth:7:31 in `main`
     Block(13)
         StoreTemp                      // src/prelude.fth:4:13 in `over`
+        LoadTemp                       // src/prelude.fth:4:19 in `over`
         PushLiteral(8)                 // src/prelude.fth:4:25 in `over`
         LoadTemp                       // src/prelude.fth:4:28 in `over`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
         PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
         Nand                           // src/prelude.fth:14:15 in `invert`
         PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
         Add                            // src/prelude.fth:15:21 in `negate`
         Add                            // src/prelude.fth:16:19 in `-`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
         JumpIf0(15)                    // src/prelude.fth:21:8 in `0=`
     Block(14)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
@@ -70,6 +91,10 @@
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
         JumpTarget(15)                 // src/prelude.fth:21:21 in `0=`
     Block(16)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
         JumpIf0(19)                    // paxforth/tests/check/case-a.fth:8:14 in `main`
     Block(17)
         PushLiteral(2)                 // paxforth/tests/check/case-a.fth:8:17 in `main`
@@ -83,6 +108,7 @@
         PushLiteral(1)                 // paxforth/tests/check/case-a.fth:10:5 in `main`
         LoopIf0(1)                     // paxforth/tests/check/case-a.fth:11:1 in `main`
     Block(20)
+        Drop                           // paxforth/tests/check/case-a.fth:12:1 in `main`
         Print                          // paxforth/tests/check/case-a.fth:14:1 in `main`
         Exit                           // :0:0 in ``
 

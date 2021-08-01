@@ -60,9 +60,11 @@ pub enum RegOrigin {
     DataParam,
     RetParam,
     TempParam,
+    PushLiteral(PaxLiteral),
     Consumes(HashSet<RegIndex>),
     Phi(HashSet<RegIndex>),
     Fork(RegIndex),
+    Copy(RegIndex),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -131,7 +133,11 @@ impl PaxAnalyzerWalker {
     fn new() -> PaxAnalyzerWalker {
         PaxAnalyzerWalker {
             reg_state: RegState::new(),
-            reg_info_map: btreemap![0 => RegInfo::new_dropped()], // temp register at "0"
+            reg_info_map: btreemap![0 => {
+                let mut reg_info = RegInfo::new_dropped();
+                reg_info.origin = RegOrigin::PushLiteral(0);
+                reg_info
+            }], // temp register at "0"
             entry_cache: HashMap::new(),
             result_cache: HashMap::new(),
             has_leave: HashSet::new(),
@@ -185,6 +191,7 @@ impl PaxAnalyzerWalker {
         let reg = self.data_push();
 
         self.get_reg_info_mut(&reg).literal = Some(literal);
+        self.get_reg_info_mut(&reg).origin = RegOrigin::PushLiteral(literal);
     }
 
     fn data_pop(&mut self) -> RegIndex {
@@ -203,6 +210,15 @@ impl PaxAnalyzerWalker {
     fn data_drop(&mut self) {
         let reg = self.reg_state.data.pop().unwrap_or_else(|| self.new_reg());
         self.get_reg_info_mut(&reg).fate = RegFate::Dropped;
+
+        // Some conditions to not propagate drop.
+        // TODO remove these.
+        if let &RegOrigin::Phi(ref parents) = &self.get_reg_info_mut(&reg).origin {
+            return;
+        }
+        if let &RegOrigin::Fork(ref parents) = &self.get_reg_info_mut(&reg).origin {
+            return;
+        }
 
         // Recurse through parent registers to drop them also.
         let mut regs_to_drop = vec![reg];
@@ -246,6 +262,7 @@ impl PaxAnalyzerWalker {
         self.reg_state.data.push(new_temp);
         let literal = self.get_reg_info(&self.reg_state.temp).literal.clone();
         self.get_reg_info_mut(&new_temp).literal = literal;
+        self.get_reg_info_mut(&new_temp).origin = RegOrigin::Copy(self.reg_state.temp);
 
         let temp_reg = self.reg_state.temp;
         self.get_reg_info_mut(&temp_reg).fate = RegFate::Copied;
@@ -333,7 +350,9 @@ impl PaxAnalyzerWalker {
             .collect();
 
         // Temp shouldn't be shared over a phi or fork boundary so don't change its "fate".
-        self.reg_state.temp = self.new_reg_with_origin(RegOrigin::Phi(hashset! {}));
+        let new_temp = self.new_reg_with_origin(RegOrigin::Phi(hashset! {}));
+        self.reg_state.temp = new_temp;
+        self.get_reg_info_mut(&new_temp).fate = RegFate::Dropped;
     }
 
     fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
@@ -351,6 +370,7 @@ impl PaxAnalyzerWalker {
             itertools::zip(&source.ret, &apply.ret).collect::<Vec<_>>(),
             std::iter::once((&source.temp, &apply.temp)).collect::<Vec<_>>(),
         ]) {
+            self.get_reg_info_mut(&apply_reg).fate = RegFate::JoinedPhi;
             if source_reg != apply_reg {
                 if let RegOrigin::Phi(ref mut phi) = self.get_reg_info_mut(source_reg).origin {
                     phi.insert(*apply_reg);
@@ -450,7 +470,10 @@ impl PaxWalker for PaxAnalyzerWalker {
             /* branches */
             PaxTerm::JumpIf0(_) => {
                 // Enter if branch.
-                self.data_pop();
+                let reg = self.data_pop();
+
+                // Mark register as consumed.
+                self.get_reg_info_mut(&reg).fate = RegFate::Consumed;
 
                 // Save entry state.
                 self.entry_cache
@@ -558,7 +581,10 @@ impl PaxWalker for PaxAnalyzerWalker {
             }
             PaxTerm::LoopIf0(_) => {
                 // Exit loop.
-                self.data_pop();
+                let reg = self.data_pop();
+
+                // Mark register as consumed.
+                self.get_reg_info_mut(&reg).fate = RegFate::Consumed;
 
                 // Save result state.
                 let result_state = self.reg_state.clone();

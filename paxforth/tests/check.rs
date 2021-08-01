@@ -8,7 +8,7 @@ use std::path::PathBuf;
 #[ctor::ctor]
 #[cfg(test)]
 fn init() {
-    env_logger::init();
+    env_logger::builder().format_timestamp(None).init();
 }
 
 #[derive(Clone)]
