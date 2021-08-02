@@ -1,22 +1,65 @@
 use crate::program::analyze::*;
 use crate::*;
 use log::*;
-use std::collections::HashMap;
+use maplit::{hashmap, hashset};
+use std::collections::{HashMap, HashSet, VecDeque};
 
-fn get_reg_discard_map(walker: &PaxAnalyzerWalker) -> HashMap<RegIndex, bool> {
-    walker
-        .reg_info_map
-        .iter()
-        .map(|(k, v)| {
-            (
-                *k,
-                // TODO remove these restrictions
-                !matches!(v.origin, RegOrigin::Phi(..))
-                    && !matches!(v.origin, RegOrigin::Fork(..))
-                    && v.discard,
-            )
-        })
-        .collect()
+fn get_reg_discard_map(walker: &PaxAnalyzerWalker) -> HashSet<RegIndex> {
+    let mut discard_map: HashSet<RegIndex> = hashset! {};
+
+    let mut forked_map: HashMap<RegIndex, HashSet<RegIndex>> = hashmap! {};
+
+    let mut queue: VecDeque<RegIndex> = VecDeque::new();
+    queue.extend(
+        walker
+            .reg_info_map
+            .iter()
+            .filter(|(_, v)| v.fate == RegFate::Dropped)
+            .map(|(k, _)| k),
+    );
+
+    while !queue.is_empty() {
+        while let Some(reg) = queue.pop_front() {
+            // Don't need to repeat a discarded register.
+            if discard_map.contains(&reg) {
+                continue;
+            }
+
+            // Recurse through parent registers to drop them also.
+            let mut regs_to_drop = vec![reg];
+            while let Some(reg) = regs_to_drop.pop() {
+                // Some conditions to not propagate drop.
+                if let &RegOrigin::Phi(..) = &walker.get_reg_info(&reg).origin {
+                    continue;
+                }
+                if let &RegOrigin::Fork(forked_from) = &walker.get_reg_info(&reg).origin {
+                    forked_map
+                        .entry(forked_from)
+                        .or_insert(hashset! {})
+                        .insert(reg);
+                    continue;
+                }
+
+                discard_map.insert(reg);
+
+                if let &RegOrigin::Consumes(ref parents) = &walker.get_reg_info(&reg).origin {
+                    regs_to_drop.extend(parents.clone());
+                }
+            }
+        }
+
+        // Iterate possible forks.
+        for (forked_reg, discarded_children) in forked_map.drain() {
+            if let &RegFate::Forked(ref children) = &walker.get_reg_info(&forked_reg).fate {
+                if discarded_children.is_superset(children) {
+                    discard_map.extend(children);
+                    queue.push_front(forked_reg);
+                }
+            }
+        }
+    }
+
+    discard_map
 }
 
 /**
@@ -40,14 +83,14 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             match &opcode.0 {
                 Pax::AltPush | Pax::Drop | Pax::StoreTemp => {
                     let reg: RegIndex = *before_state.data.iter().last().unwrap();
-                    if reg_is_droppable[&reg] {
+                    if reg_is_droppable.contains(&reg) {
                         // info!("   [{:?}] Skipping {:?}", opcode.0, reg);
                         skip_entry = true;
                     }
                 }
                 Pax::PushLiteral(_) | Pax::AltPop | Pax::LoadTemp | Pax::Add | Pax::Nand => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
-                    if reg_is_droppable[&reg] {
+                    if reg_is_droppable.contains(&reg) {
                         // info!("   [{:?}] Skipping {:?}", opcode.0, reg);
                         skip_entry = true;
                     }
@@ -95,8 +138,8 @@ fn reg_base_literal(walker: &PaxAnalyzerWalker, mut reg: RegIndex) -> Option<Pax
 fn get_reg_literal_map(walker: &PaxAnalyzerWalker) -> HashMap<RegIndex, PaxLiteral> {
     walker
         .reg_info_map
-        .iter()
-        .filter_map(|(k, v)| {
+        .keys()
+        .filter_map(|k| {
             if let Some(lit) = reg_base_literal(walker, *k) {
                 Some((*k, lit))
             } else {
