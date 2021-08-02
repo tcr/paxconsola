@@ -59,7 +59,6 @@ pub enum RegOrigin {
     Unknown,
     DataParam,
     RetParam,
-    TempParam,
     PushLiteral(PaxLiteral),
     Consumes(HashSet<RegIndex>),
     Phi(HashSet<RegIndex>),
@@ -81,7 +80,6 @@ pub enum RegFate {
 pub struct RegInfo {
     pub origin: RegOrigin,
     pub fate: RegFate,
-    pub literal: Option<PaxLiteral>,
     pub discard: bool,
 }
 
@@ -92,7 +90,6 @@ impl RegInfo {
         RegInfo {
             origin: RegOrigin::Unknown,
             fate: RegFate::Unknown,
-            literal: None,
             discard: false,
         }
     }
@@ -101,7 +98,6 @@ impl RegInfo {
         RegInfo {
             origin: RegOrigin::Unknown,
             fate: RegFate::Dropped,
-            literal: None,
             discard: false,
         }
     }
@@ -110,7 +106,6 @@ impl RegInfo {
         RegInfo {
             origin,
             fate: RegFate::Unknown,
-            literal: None,
             discard: false,
         }
     }
@@ -227,23 +222,6 @@ impl PaxAnalyzerWalker {
             if let &RegOrigin::Consumes(ref parents) = &self.get_reg_info_mut(&reg).origin {
                 regs_to_drop.extend(parents.clone());
             }
-            // if let &RegOrigin::Phi(ref parents) = &self.get_reg_info_mut(&reg).origin {
-            //     regs_to_drop.extend(parents.clone());
-            // }
-            // if let &RegOrigin::Fork(fork_from) = &self.get_reg_info(&reg).origin {
-            //     // warn!("reg {} was forked from {}", reg, fork_from);
-            //     if let &RegFate::Forked(ref forked) = &self.get_reg_info(&fork_from).fate {
-            //         // error!("WHAT IS THIS: FORKED: {}, {:?}", fork_from, forked);
-            //         if forked.iter().all(|reg| self.get_reg_info(reg).discard) {
-            //             regs_to_drop.push(fork_from);
-            //         }
-            //     } else {
-            //         error!(
-            //             "what is this fate? {:?}",
-            //             self.get_reg_info(&fork_from).fate
-            //         );
-            //     }
-            // }
         }
     }
 
@@ -262,15 +240,14 @@ impl PaxAnalyzerWalker {
         let temp_reg = self.reg_state.temp;
         self.get_reg_info_mut(&temp_reg).fate = RegFate::Copied;
         self.get_reg_info_mut(&temp_reg).discard = false;
-
+        self.get_reg_info_mut(&new_temp).origin = RegOrigin::Copy(self.reg_state.temp);
         // TODO may not need this in optimization step
-        self.get_reg_info_mut(&new_temp).origin =
-            if let RegOrigin::PushLiteral(lit) = &self.get_reg_info(&self.reg_state.temp).origin {
-                RegOrigin::PushLiteral(*lit)
-            } else {
-                RegOrigin::Copy(self.reg_state.temp)
-            };
-
+        // self.get_reg_info_mut(&new_temp).origin =
+        //     if let RegOrigin::PushLiteral(lit) = &self.get_reg_info(&self.reg_state.temp).origin {
+        //         RegOrigin::PushLiteral(*lit)
+        //     } else {
+        //         RegOrigin::Copy(self.reg_state.temp)
+        //     };
         // Push temp copy to the data stack.
         self.reg_state.data.push(new_temp);
     }
@@ -663,7 +640,12 @@ pub fn dump_reg_state_blocks(blocks: &[RegStateBlock]) {
 pub fn dump_reg_info(reg_info: &BTreeMap<RegIndex, RegInfo>) {
     info!("[register info]");
     for (key, reg) in reg_info {
-        info!("  {:>4} = {:?}", key, reg);
+        info!(
+            "   {:<6} origin: {:<26} fate: {:?}",
+            format!("[{}]", key),
+            format!("{:?}", reg.origin),
+            reg.fate
+        );
     }
     info!("");
 }

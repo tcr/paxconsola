@@ -1,15 +1,10 @@
 use crate::program::analyze::*;
 use crate::*;
 use log::*;
-use maplit::hashset;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
-/**
- * Simple rewriter function.
- */
-fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
-    // List all droppable vectors.
-    let reg_is_droppable = walker
+fn get_reg_discard_map(walker: &PaxAnalyzerWalker) -> HashMap<RegIndex, bool> {
+    walker
         .reg_info_map
         .iter()
         .map(|(k, v)| {
@@ -21,7 +16,15 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
                     && v.discard,
             )
         })
-        .collect::<HashMap<RegIndex, bool>>();
+        .collect()
+}
+
+/**
+ * Simple rewriter function.
+ */
+fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
+    // List all droppable vectors.
+    let reg_is_droppable = get_reg_discard_map(walker);
 
     let mut out_blocks = vec![];
     for (_i, block) in walker.blocks.iter().enumerate() {
@@ -74,19 +77,38 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
     out_blocks
 }
 
-fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
-    // List all droppable vectors.
-    let reg_literal = walker
+fn reg_base_literal(walker: &PaxAnalyzerWalker, mut reg: RegIndex) -> Option<PaxLiteral> {
+    loop {
+        match walker.get_reg_info(&reg).origin {
+            RegOrigin::PushLiteral(lit) => return Some(lit),
+            RegOrigin::Copy(reg_parent) => {
+                // Loop and continue
+                reg = reg_parent;
+            }
+            _ => {
+                return None;
+            }
+        }
+    }
+}
+
+fn get_reg_literal_map(walker: &PaxAnalyzerWalker) -> HashMap<RegIndex, PaxLiteral> {
+    walker
         .reg_info_map
         .iter()
         .filter_map(|(k, v)| {
-            if let RegOrigin::PushLiteral(lit) = &v.origin {
-                Some((*k, *lit))
+            if let Some(lit) = reg_base_literal(walker, *k) {
+                Some((*k, lit))
             } else {
                 None
             }
         })
-        .collect::<HashMap<RegIndex, PaxLiteral>>();
+        .collect()
+}
+
+fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
+    // List all droppable vectors.
+    let reg_literal = get_reg_literal_map(walker);
 
     let mut out_blocks = vec![];
     for (_i, block) in walker.blocks.iter().enumerate() {
