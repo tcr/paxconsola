@@ -4,6 +4,21 @@ use log::*;
 use maplit::{hashmap, hashset};
 use std::collections::{HashMap, HashSet, VecDeque};
 
+// fn reg_base(walker: &PaxAnalyzerWalker, mut reg: RegIndex) -> Option<RegIndex> {
+//     loop {
+//         match walker.get_reg_info(&reg).origin {
+//             RegOrigin::PushLiteral(lit) => return Some(reg),
+//             RegOrigin::Copy(reg_parent) => {
+//                 // Loop and continue
+//                 reg = reg_parent;
+//             }
+//             _ => {
+//                 return None;
+//             }
+//         }
+//     }
+// }
+
 fn get_reg_discard_map(walker: &PaxAnalyzerWalker) -> HashSet<RegIndex> {
     let mut discard_map: HashSet<RegIndex> = hashset! {};
 
