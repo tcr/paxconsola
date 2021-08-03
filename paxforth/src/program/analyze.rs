@@ -59,11 +59,11 @@ pub enum RegOrigin {
     Unknown,
     DataParam,
     RetParam,
-    PushLiteral(PaxLiteral),
     Consumes(HashSet<RegIndex>),
-    Phi(HashSet<RegIndex>),
-    Fork(RegIndex),
     Copy(RegIndex),
+    Fork(RegIndex),
+    Phi(HashSet<RegIndex>),
+    PushLiteral(PaxLiteral),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,7 +71,7 @@ pub enum RegFate {
     Unknown,
     Dropped,
     Consumed,
-    Copied,
+    Copied(HashSet<RegIndex>),
     Forked(HashSet<RegIndex>),
     JoinedPhi,
 }
@@ -216,7 +216,11 @@ impl PaxAnalyzerWalker {
         let new_temp = self.new_reg();
         let temp_reg = self.reg_state.temp;
         self.get_reg_info_mut(&new_temp).origin = RegOrigin::Copy(self.reg_state.temp);
-        self.get_reg_info_mut(&temp_reg).fate = RegFate::Copied;
+        if let RegFate::Copied(copied) = &mut self.get_reg_info_mut(&temp_reg).fate {
+            copied.insert(new_temp);
+        } else {
+            unreachable!();
+        }
 
         // Push temp copy to the data stack.
         self.reg_state.data.push(new_temp);
@@ -228,7 +232,7 @@ impl PaxAnalyzerWalker {
 
         // Assume dropped until it's loaded.
         let temp_reg = self.reg_state.temp;
-        self.get_reg_info_mut(&temp_reg).fate = RegFate::Dropped;
+        self.get_reg_info_mut(&temp_reg).fate = RegFate::Copied(hashset! {});
     }
 
     /**
