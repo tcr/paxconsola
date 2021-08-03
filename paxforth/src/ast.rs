@@ -5,6 +5,7 @@ use serde::*;
  * Opcodes
  */
 
+pub type PaxAddress = u16;
 pub type PaxLiteral = i16;
 
 // Pax opcodes for execution.

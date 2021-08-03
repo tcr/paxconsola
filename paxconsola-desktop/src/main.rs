@@ -5,6 +5,8 @@ use ggez::input;
 use ggez::nalgebra as na;
 use ggez::timer;
 use ggez::{Context, GameResult};
+use paxforth::program::inline::*;
+use paxforth::program::optimize::*;
 use paxforth::runner::wasm::wasmtime::*;
 use paxforth::targets::wasm::*;
 use paxforth::*;
@@ -23,8 +25,17 @@ impl MainState {
 
         // Main must be inlined before evaluating in WebAssembly.
         let mut program = source_program.clone();
+
+        // if arg_inline {
         inline_into_function(&mut program, "main");
-        // optimize_function(&mut program, "main");
+        // }
+        // if arg_optimize {
+        let main_opt = propagate_registers(&program, "main");
+        program.remove("main");
+        program.insert("main".to_string(), main_opt);
+        // strip_branches(&mut source_program, "main");
+        // }
+
         let wat = WasmForthCompiler::compile(&program);
 
         // Run as WASM.
@@ -39,14 +50,14 @@ impl MainState {
 
 impl event::EventHandler for MainState {
     fn update(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
-        const DESIRED_FPS: u32 = 10;
+        const DESIRED_FPS: u32 = 9;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.pos_x = self.pos_x % 800.0 + 1.0;
 
             self.runner.run().unwrap();
             let buffer = self.runner.flush_buffer().unwrap();
-            eprint!("{}", String::from_utf8_lossy(&buffer));
+            // eprint!("{}", String::from_utf8_lossy(&buffer));
         }
 
         Ok(())
@@ -60,16 +71,16 @@ impl event::EventHandler for MainState {
         repeat: bool,
     ) {
         if keycode == KeyCode::Down {
-            self.runner.set_mem(0xC020, 40);
+            self.runner.set_mem(0xC020, 40).ok();
         }
         if keycode == KeyCode::Left {
-            self.runner.set_mem(0xC020, 37);
+            self.runner.set_mem(0xC020, 37).ok();
         }
         if keycode == KeyCode::Up {
-            self.runner.set_mem(0xC020, 38);
+            self.runner.set_mem(0xC020, 38).ok();
         }
         if keycode == KeyCode::Right {
-            self.runner.set_mem(0xC020, 39);
+            self.runner.set_mem(0xC020, 39).ok();
         }
     }
 

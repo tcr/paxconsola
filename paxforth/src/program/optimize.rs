@@ -65,6 +65,7 @@ fn get_reg_discard_map(walker: &PaxAnalyzerWalker) -> HashSet<RegIndex> {
                 }
                 if let &RegOrigin::Copy(copied_from) = &walker.get_reg_info(&reg).origin {
                     copy_set.insert(copied_from);
+                    // We can discard this copy register immediately.
                 }
 
                 discard_set.insert(reg);
