@@ -13,7 +13,7 @@ pub use parse::*;
 
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 
-pub const PRELUDE: &str = include_str!("prelude.fth");
+pub const PRELUDE: &str = include_str!("../../lib/prelude.fth");
 
 pub trait ForthCompiler {
     fn compile(program: &PaxProgram) -> String;

@@ -1,0 +1,6 @@
+[book]
+authors = ["Tim Ryan"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Pax Consola Docs"
