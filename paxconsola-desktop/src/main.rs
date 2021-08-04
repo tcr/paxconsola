@@ -19,10 +19,10 @@ struct MainState {
 
 impl MainState {
     fn new() -> ggez::GameResult<MainState> {
-        let src = std::fs::read_to_string("snake.pax").unwrap();
+        let src = std::fs::read_to_string("snake.fth").unwrap();
 
         // Parse program into Pax.
-        let source_program = parse_to_pax(&src, Some("snake.pax"));
+        let source_program = parse_to_pax(&src, Some("snake.fth"));
 
         // Main must be inlined before evaluating in WebAssembly.
         let mut program = source_program.clone();
@@ -66,7 +66,7 @@ impl event::EventHandler<ggez::GameError> for MainState {
             let end = SystemTime::now();
             self.time_count
                 .push(end.duration_since(start).unwrap().as_nanos());
-            if self.time_count.len() > 30 {
+            if self.time_count.len() > 100 {
                 let len = self.time_count.len();
                 eprintln!(
                     "average loop time: {:.3}ms",
