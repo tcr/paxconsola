@@ -2,6 +2,12 @@ $C020 constant last-key
 $C022 constant random-register
 $9800 constant graphics
 
+0 constant WHITE
+1 constant BLACK
+2 constant RED
+3 constant GREEN
+4 constant BLUE
+
 : random random-register @ 255 and swap % ;
 
 37 constant left
@@ -39,10 +45,15 @@ variable length
 \ TODO should be multiplying 32 by `cells`
 : convert-x-y ( x y -- offset )  32 * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
-: draw-white ( x y -- )  0 rot rot draw ;
-: draw-black ( x y -- )  2 rot rot draw ;
-: draw-snake-tile ( x y -- )  3 rot rot draw ;
-: draw-apple-tile ( x y -- )  4 rot rot draw ;
+
+: draw-white ( x y -- )
+  WHITE rot rot draw ;
+: draw-black ( x y -- ) 
+  BLACK rot rot draw ;
+: draw-snake-tile ( x y -- )
+  GREEN rot rot draw ;
+: draw-apple-tile ( x y -- )
+  RED rot rot draw ;
 
 : draw-walls
   width 0 do

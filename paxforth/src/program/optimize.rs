@@ -1,13 +1,13 @@
 use crate::program::analyze::*;
 use crate::*;
 use log::*;
-use maplit::{hashmap, hashset};
+use maplit::hashset;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 fn reg_base(walker: &PaxAnalyzerWalker, mut reg: RegIndex) -> Option<RegIndex> {
     loop {
         match walker.get_reg_info(&reg).origin {
-            RegOrigin::PushLiteral(lit) => return Some(reg),
+            RegOrigin::PushLiteral(..) => return Some(reg),
             RegOrigin::Copy(reg_parent) => {
                 // Loop and continue
                 reg = reg_parent;
