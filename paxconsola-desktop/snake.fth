@@ -37,55 +37,55 @@ variable direction
 variable length
 
 : snake-x ( offset -- address )
-  cells snake-x-head + ;
+    cells snake-x-head + ;
 
 : snake-y ( offset -- address )
-  cells snake-y-head + ;
+    cells snake-y-head + ;
 
 \ TODO should be multiplying 32 by `cells`
 : convert-x-y ( x y -- offset )  32 * + ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
 
 : draw-white ( x y -- )
-  WHITE rot rot draw ;
+    WHITE rot rot draw ;
 : draw-black ( x y -- ) 
-  BLACK rot rot draw ;
+    BLACK rot rot draw ;
 : draw-snake-tile ( x y -- )
-  GREEN rot rot draw ;
+    GREEN rot rot draw ;
 : draw-apple-tile ( x y -- )
-  RED rot rot draw ;
+    RED rot rot draw ;
 
 : draw-walls
-  width 0 do
-    i 0 draw-black
-    i height 1 - draw-black
-  loop
-  height 0 do
-    0 i draw-black
-    width 1 - i draw-black
-  loop ;
+    width 0 do
+        i 0 draw-black
+        i height 1 - draw-black
+    loop
+    height 0 do
+        0 i draw-black
+        width 1 - i draw-black
+    loop ;
 
 : initialize-snake
-  4 length !
-  length @ 1 + 0 do
-    8 i - i snake-x !
-    8 i snake-y !
-  loop
-  right direction ! ;
+    4 length !
+    length @ 1 + 0 do
+        8 i - i snake-x !
+        8 i snake-y !
+    loop
+    right direction ! ;
 
 : set-apple-position apple-x ! apple-y ! ;
 
 : initialize-apple  8 13 set-apple-position ;
 
 : initialize
-  width 0 do
-    height 0 do
-      j i draw-white
+    width 0 do
+        height 0 do
+            j i draw-white
+        loop
     loop
-  loop
-  draw-walls
-  initialize-snake
-  initialize-apple ;
+    draw-walls
+    initialize-snake
+    initialize-apple ;
 
 
 \ game runtime
@@ -96,25 +96,25 @@ variable length
 : move-right  1 snake-x-head +! ;
 
 : move-snake-head  direction @
-  left over  = if move-left else
-  up over    = if move-up else
-  right over = if move-right else
-  down over  = if move-down
-  then then then then drop ;
+    left over  = if move-left else
+    up over    = if move-up else
+    right over = if move-right else
+    down over  = if move-down
+    then then then then drop ;
 
 \ Move each segment of the snake forward by one
 : move-snake-tail  -1 length @ do
-    i drop i snake-x @ i 1 + snake-x !
-    i snake-y @ i 1 + snake-y !
-  1 -loop ;
+        i drop i snake-x @ i 1 + snake-x !
+        i snake-y @ i 1 + snake-y !
+    1 -loop ;
 
 : is-horizontal  direction @ dup
-  left = swap
-  right = or ;
+    left = swap
+    right = or ;
 
 : is-vertical  direction @ dup
-  up = swap
-  down = or ;
+    up = swap
+    down = or ;
 
 : turn-up     is-horizontal if up direction ! then ;
 : turn-left   is-vertical if left direction ! then ;
@@ -122,60 +122,60 @@ variable length
 : turn-right  is-vertical if right direction ! then ;
 
 : change-direction ( key -- )
-  left over = if turn-left else
-  up over = if turn-up else
-  right over = if turn-right else
-  down over = if turn-down
-  then then then then drop ;
+    left over = if turn-left else
+    up over = if turn-up else
+    right over = if turn-right else
+    down over = if turn-down
+    then then then then drop ;
 
 : check-input
-  last-key @ change-direction
-  0 last-key ! ;
+    last-key @ change-direction
+    0 last-key ! ;
 
 \ get random x or y position within playable area
 : random-x-position ( -- pos )
-  width 4 - random 2 + ;
+    width 4 - random 2 + ;
 : random-y-position ( -- pos )
-  height 4 - random 2 + ;
+    height 4 - random 2 + ;
 
 : move-apple
-  apple-x @ apple-y @ draw-white
-  random-x-position random-y-position
-  set-apple-position ;
+    apple-x @ apple-y @ draw-white
+    random-x-position random-y-position
+    set-apple-position ;
 
 : grow-snake  1 length +! ;
 
 : check-apple
-  snake-x-head @ apple-x @ =
-  snake-y-head @ apple-y @ =
-  and if
-    move-apple
-    grow-snake
-  then ;
+    snake-x-head @ apple-x @ =
+    snake-y-head @ apple-y @ =
+    and if
+        move-apple
+        grow-snake
+    then ;
 
 : check-collision ( -- flag )
-  \ get current x/y position
-  snake-x-head @ snake-y-head @
+    \ get current x/y position
+    snake-x-head @ snake-y-head @
 
-  \ get color at current position
-  convert-x-y graphics + c@
+    \ get color at current position
+    convert-x-y graphics + c@
 
-  \ leave boolean flag on stack
-  0 = ;
+    \ leave boolean flag on stack
+    0 = ;
 
 : draw-snake
-  length @ 0 do
-    i snake-x @ i snake-y @ draw-snake-tile
-  loop
-  length @ snake-x @
-  length @ snake-y @
-  draw-white ;
+    length @ 0 do
+        i snake-x @ i snake-y @ draw-snake-tile
+    loop
+    length @ snake-x @
+    length @ snake-y @
+    draw-white ;
 
 : draw-apple
-  apple-x @ apple-y @ draw-apple-tile ;
+    apple-x @ apple-y @ draw-apple-tile ;
 
 
-initialized @ print
+initialized @ drop \ print
 
 \ Initialize only once
 initialized @ 0= if initialize then

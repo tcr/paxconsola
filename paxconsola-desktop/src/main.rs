@@ -1,8 +1,8 @@
 use ggez;
-use ggez::event::{self, KeyCode, KeyMods, MouseButton};
+use ggez::event::{self, KeyCode, KeyMods};
 use ggez::graphics::{self, DrawParam};
 use ggez::timer;
-use ggez::{Context, GameResult};
+use ggez::Context;
 use glam::*;
 use paxforth::program::inline::*;
 use paxforth::program::optimize::*;
@@ -69,7 +69,7 @@ impl event::EventHandler<ggez::GameError> for MainState {
             if self.time_count.len() > 100 {
                 let len = self.time_count.len();
                 eprintln!(
-                    "average loop time: {:.3}ms",
+                    "average wasm execution time: {:.3}ms",
                     (((self.time_count.drain(0..).sum::<u128>() as usize) / len) as f64)
                         / 1_000_000.
                 );
@@ -77,7 +77,7 @@ impl event::EventHandler<ggez::GameError> for MainState {
         }
 
         let buffer = self.runner.flush_buffer().unwrap();
-        // eprint!("{}", String::from_utf8_lossy(&buffer));
+        eprint!("{}", String::from_utf8_lossy(&buffer));
 
         Ok(())
     }
@@ -86,8 +86,8 @@ impl event::EventHandler<ggez::GameError> for MainState {
         &mut self,
         _ctx: &mut Context,
         keycode: KeyCode,
-        keymod: KeyMods,
-        repeat: bool,
+        _keymod: KeyMods,
+        _repeat: bool,
     ) {
         if keycode == KeyCode::Down {
             self.runner.set_mem(0xC020, 40).ok();
@@ -106,8 +106,8 @@ impl event::EventHandler<ggez::GameError> for MainState {
     fn draw(&mut self, ctx: &mut ggez::Context) -> ggez::GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        let SWIDTH: f32 = graphics::drawable_size(ctx).0 as f32;
-        let SHEIGHT: f32 = graphics::drawable_size(ctx).1 as f32;
+        let size_width: f32 = graphics::drawable_size(ctx).0 as f32;
+        let size_height: f32 = graphics::drawable_size(ctx).1 as f32;
 
         const WIDTH: usize = 20;
         const HEIGHT: usize = 18;
@@ -116,8 +116,8 @@ impl event::EventHandler<ggez::GameError> for MainState {
 
         let mem = self.runner.get_mem_ref();
 
-        let wunit = SWIDTH / WIDTH as f32;
-        let hunit = SHEIGHT / HEIGHT as f32;
+        let wunit = size_width / WIDTH as f32;
+        let hunit = size_height / HEIGHT as f32;
 
         let mesh = graphics::MeshBuilder::new()
             .rectangle(
