@@ -255,7 +255,7 @@ fn debug_program_function(
                     let v = vm.memory[addr] & 0xFF;
                     vm.data_push(v);
                 }
-                Pax::LoadTemp => {
+                Pax::TempLoad => {
                     vm.data_push(vm.memory[0]);
                 }
                 Pax::Store => {
@@ -266,7 +266,7 @@ fn debug_program_function(
                     let addr = vm.data_pop() as u16 as usize;
                     vm.memory[addr] = vm.data_pop() & 0xFF;
                 }
-                Pax::StoreTemp => {
+                Pax::TempStore => {
                     vm.memory[0] = vm.data_pop();
                 }
             }

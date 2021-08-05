@@ -228,8 +228,8 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "debugger" => program.current().op(&(Pax::Debugger, pos)),
 
             // Temp values
-            "temp@" => program.current().op(&(Pax::LoadTemp, pos)),
-            "temp!" => program.current().op(&(Pax::StoreTemp, pos)),
+            "temp@" => program.current().op(&(Pax::TempLoad, pos)),
+            "temp!" => program.current().op(&(Pax::TempStore, pos)),
 
             // Function delimiters
             ":" => {

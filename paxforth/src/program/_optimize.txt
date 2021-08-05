@@ -52,7 +52,7 @@ fn propagate_literals_in_block(
                         reg_blacklist.insert(temp_reg.clone());
                     }
                 }
-                Pax::StoreTemp => {
+                Pax::TempStore => {
                     // Blacklist previous temp value.
                     if let Some(ref temp_reg) = stack.temp {
                         reg_blacklist.insert(temp_reg.clone());
@@ -71,7 +71,7 @@ fn propagate_literals_in_block(
                     }
                 }
 
-                Pax::LoadTemp => {
+                Pax::TempLoad => {
                     let next_reg = next_stack.as_ref().unwrap().temp.as_ref().unwrap();
                     let reg = next_stack.as_ref().unwrap().data.last().unwrap();
 
@@ -121,7 +121,7 @@ fn propagate_literals_in_block(
             // a direct literal load and blacklist the register.
             let target_reg = match &command {
                 Pax::AltPop => next_stack.as_ref().and_then(|s| s.data.last()),
-                Pax::LoadTemp => stack.temp.as_ref(),
+                Pax::TempLoad => stack.temp.as_ref(),
                 _ => None,
             };
             if let Some(target_reg) = target_reg {

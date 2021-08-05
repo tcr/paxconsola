@@ -51,11 +51,11 @@ impl PaxWalker for WasmForthCompilerWalker {
                 self.push(&format!("    call $data_pop"));
                 self.push(&format!("    call $return_push"));
             }
-            Pax::LoadTemp => {
+            Pax::TempLoad => {
                 self.push(&format!("    call $temp_load"));
                 self.push(&format!("    call $data_push"));
             }
-            Pax::StoreTemp => {
+            Pax::TempStore => {
                 self.push(&format!("    call $data_pop"));
                 self.push(&format!("    call $temp_store"));
             }

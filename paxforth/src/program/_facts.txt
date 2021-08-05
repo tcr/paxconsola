@@ -248,11 +248,11 @@ impl ProgramFacts {
                     state.pop_data();
                     state.pop_data();
                 }
-                Pax::LoadTemp => {
+                Pax::TempLoad => {
                     let reg = state.pop_temp();
                     state.push_data(reg);
                 }
-                Pax::StoreTemp => {
+                Pax::TempStore => {
                     let reg = state.pop_data();
                     state.push_temp(reg);
                 }

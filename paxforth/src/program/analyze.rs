@@ -347,10 +347,10 @@ impl PaxWalker for PaxAnalyzerWalker {
                 let reg = self.data_pop();
                 self.ret_push(reg);
             }
-            Pax::StoreTemp => {
+            Pax::TempStore => {
                 self.store_temp();
             }
-            Pax::LoadTemp => {
+            Pax::TempLoad => {
                 self.load_temp();
             }
 
@@ -397,10 +397,6 @@ impl PaxWalker for PaxAnalyzerWalker {
 
         match &terminator.0 {
             PaxTerm::Exit => {}
-
-            PaxTerm::Call(ref s) => {
-                panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
-            }
 
             /* branches */
             PaxTerm::JumpIf0(_) => {
@@ -550,6 +546,12 @@ impl PaxWalker for PaxAnalyzerWalker {
                         self.apply_phi_to_info(source, apply);
                     }
                 }
+            }
+
+            // Function calls
+            PaxTerm::Call(ref s) => {
+                // TODO reform this call method
+                panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
             }
         }
 

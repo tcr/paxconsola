@@ -99,14 +99,14 @@ fn translate_to_gb(_i: usize, op: Pax) -> Vec<GbIr> {
         // ( a -- )
         Pax::Debugger | Pax::Abort => panic!("gb backend doesn't support 'abort' or 'debugger'"),
         // ( -- t )
-        Pax::LoadTemp => vec![
+        Pax::TempLoad => vec![
             GbIr::Dup,
             // FIXME assumes temp is first variable
             GbIr::ReplaceLiteral(BASE_VARIABLE_OFFSET as _),
             GbIr::ReplaceLoad,
         ],
         // ( t -- )
-        Pax::StoreTemp => vec![
+        Pax::TempStore => vec![
             GbIr::Dup,
             // FIXME assumes temp is first variable
             GbIr::ReplaceLiteral(BASE_VARIABLE_OFFSET as _),

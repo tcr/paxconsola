@@ -37,13 +37,13 @@ pub fn cross_compile_ir_tom(_i: usize, op: Pax) -> String {
         Pax::AltPush => tom_output!(out, "return_push()"),
 
         // FIXME should implement real load16
-        Pax::LoadTemp => tom_output!(
+        Pax::TempLoad => tom_output!(
             out,
             "push_literal(0x100)
 load()"
         ),
         // FIXME should implement real store16
-        Pax::StoreTemp => tom_output!(
+        Pax::TempStore => tom_output!(
             out,
             "push_literal(0x100)
 store()"

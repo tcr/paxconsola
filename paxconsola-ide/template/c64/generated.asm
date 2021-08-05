@@ -1,4 +1,4 @@
-@OPCODE_0:   ; [c64_ir] LoadTemp
+@OPCODE_0:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -222,14 +222,14 @@
     dex
     lda $00,x
 
-@OPCODE_30:   ; [c64_ir] StoreTemp
+@OPCODE_30:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_31:   ; [c64_ir] LoadTemp
+@OPCODE_31:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -266,7 +266,7 @@
     tay
     pla
 
-@OPCODE_35:   ; [c64_ir] LoadTemp
+@OPCODE_35:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -382,7 +382,7 @@
     tay
     pla
 
-@OPCODE_51:   ; [c64_ir] StoreTemp
+@OPCODE_51:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -399,7 +399,7 @@
     dex
     lda $00,x
 
-@OPCODE_53:   ; [c64_ir] LoadTemp
+@OPCODE_53:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -461,7 +461,7 @@
     tay
     pla
 
-@OPCODE_61:   ; [c64_ir] StoreTemp
+@OPCODE_61:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -478,7 +478,7 @@
     dex
     lda $00,x
 
-@OPCODE_63:   ; [c64_ir] LoadTemp
+@OPCODE_63:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -575,7 +575,7 @@
     tay
     pla
 
-@OPCODE_76:   ; [c64_ir] StoreTemp
+@OPCODE_76:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -592,7 +592,7 @@
     dex
     lda $00,x
 
-@OPCODE_78:   ; [c64_ir] LoadTemp
+@OPCODE_78:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -654,7 +654,7 @@
     tay
     pla
 
-@OPCODE_86:   ; [c64_ir] StoreTemp
+@OPCODE_86:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -671,7 +671,7 @@
     dex
     lda $00,x
 
-@OPCODE_88:   ; [c64_ir] LoadTemp
+@OPCODE_88:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -862,14 +862,14 @@
     tay
     pla
 
-@OPCODE_114:   ; [c64_ir] StoreTemp
+@OPCODE_114:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_115:   ; [c64_ir] LoadTemp
+@OPCODE_115:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -886,7 +886,7 @@
     dex
     lda $00,x
 
-@OPCODE_117:   ; [c64_ir] LoadTemp
+@OPCODE_117:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1078,14 +1078,14 @@
     tay
     pla
 
-@OPCODE_141:   ; [c64_ir] StoreTemp
+@OPCODE_141:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_142:   ; [c64_ir] LoadTemp
+@OPCODE_142:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1102,7 +1102,7 @@
     dex
     lda $00,x
 
-@OPCODE_144:   ; [c64_ir] LoadTemp
+@OPCODE_144:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1154,14 +1154,14 @@
     tay
     pla
 
-@OPCODE_151:   ; [c64_ir] StoreTemp
+@OPCODE_151:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_152:   ; [c64_ir] LoadTemp
+@OPCODE_152:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1178,7 +1178,7 @@
     dex
     lda $00,x
 
-@OPCODE_154:   ; [c64_ir] LoadTemp
+@OPCODE_154:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1532,7 +1532,7 @@
     tay
     pla
 
-@OPCODE_201:   ; [c64_ir] StoreTemp
+@OPCODE_201:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -1549,7 +1549,7 @@
     dex
     lda $00,x
 
-@OPCODE_203:   ; [c64_ir] LoadTemp
+@OPCODE_203:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1742,7 +1742,7 @@
     tay
     pla
 
-@OPCODE_228:   ; [c64_ir] StoreTemp
+@OPCODE_228:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -1759,7 +1759,7 @@
     dex
     lda $00,x
 
-@OPCODE_230:   ; [c64_ir] LoadTemp
+@OPCODE_230:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -1977,14 +1977,14 @@
     dex
     lda $00,x
 
-@OPCODE_257:   ; [c64_ir] StoreTemp
+@OPCODE_257:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_258:   ; [c64_ir] LoadTemp
+@OPCODE_258:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2021,7 +2021,7 @@
     tay
     pla
 
-@OPCODE_262:   ; [c64_ir] LoadTemp
+@OPCODE_262:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2302,7 +2302,7 @@
     tay
     pla
 
-@OPCODE_299:   ; [c64_ir] StoreTemp
+@OPCODE_299:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -2319,7 +2319,7 @@
     dex
     lda $00,x
 
-@OPCODE_301:   ; [c64_ir] LoadTemp
+@OPCODE_301:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2381,7 +2381,7 @@
     tay
     pla
 
-@OPCODE_309:   ; [c64_ir] StoreTemp
+@OPCODE_309:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -2398,7 +2398,7 @@
     dex
     lda $00,x
 
-@OPCODE_311:   ; [c64_ir] LoadTemp
+@OPCODE_311:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2495,7 +2495,7 @@
     tay
     pla
 
-@OPCODE_324:   ; [c64_ir] StoreTemp
+@OPCODE_324:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -2512,7 +2512,7 @@
     dex
     lda $00,x
 
-@OPCODE_326:   ; [c64_ir] LoadTemp
+@OPCODE_326:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2574,7 +2574,7 @@
     tay
     pla
 
-@OPCODE_334:   ; [c64_ir] StoreTemp
+@OPCODE_334:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -2591,7 +2591,7 @@
     dex
     lda $00,x
 
-@OPCODE_336:   ; [c64_ir] LoadTemp
+@OPCODE_336:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2782,14 +2782,14 @@
     tay
     pla
 
-@OPCODE_362:   ; [c64_ir] StoreTemp
+@OPCODE_362:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_363:   ; [c64_ir] LoadTemp
+@OPCODE_363:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2806,7 +2806,7 @@
     dex
     lda $00,x
 
-@OPCODE_365:   ; [c64_ir] LoadTemp
+@OPCODE_365:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -2998,14 +2998,14 @@
     tay
     pla
 
-@OPCODE_389:   ; [c64_ir] StoreTemp
+@OPCODE_389:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_390:   ; [c64_ir] LoadTemp
+@OPCODE_390:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -3022,7 +3022,7 @@
     dex
     lda $00,x
 
-@OPCODE_392:   ; [c64_ir] LoadTemp
+@OPCODE_392:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -3074,14 +3074,14 @@
     tay
     pla
 
-@OPCODE_399:   ; [c64_ir] StoreTemp
+@OPCODE_399:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_400:   ; [c64_ir] LoadTemp
+@OPCODE_400:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -3098,7 +3098,7 @@
     dex
     lda $00,x
 
-@OPCODE_402:   ; [c64_ir] LoadTemp
+@OPCODE_402:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -3452,7 +3452,7 @@
     tay
     pla
 
-@OPCODE_449:   ; [c64_ir] StoreTemp
+@OPCODE_449:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -3469,7 +3469,7 @@
     dex
     lda $00,x
 
-@OPCODE_451:   ; [c64_ir] LoadTemp
+@OPCODE_451:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -3662,7 +3662,7 @@
     tay
     pla
 
-@OPCODE_476:   ; [c64_ir] StoreTemp
+@OPCODE_476:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -3679,7 +3679,7 @@
     dex
     lda $00,x
 
-@OPCODE_478:   ; [c64_ir] LoadTemp
+@OPCODE_478:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4003,14 +4003,14 @@
     tay
     pla
 
-@OPCODE_519:   ; [c64_ir] StoreTemp
+@OPCODE_519:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_520:   ; [c64_ir] LoadTemp
+@OPCODE_520:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4027,7 +4027,7 @@
     dex
     lda $00,x
 
-@OPCODE_522:   ; [c64_ir] LoadTemp
+@OPCODE_522:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4079,14 +4079,14 @@
     tay
     pla
 
-@OPCODE_529:   ; [c64_ir] StoreTemp
+@OPCODE_529:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_530:   ; [c64_ir] LoadTemp
+@OPCODE_530:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4103,7 +4103,7 @@
     dex
     lda $00,x
 
-@OPCODE_532:   ; [c64_ir] LoadTemp
+@OPCODE_532:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4457,7 +4457,7 @@
     tay
     pla
 
-@OPCODE_579:   ; [c64_ir] StoreTemp
+@OPCODE_579:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -4474,7 +4474,7 @@
     dex
     lda $00,x
 
-@OPCODE_581:   ; [c64_ir] LoadTemp
+@OPCODE_581:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4731,14 +4731,14 @@
     dex
     lda $00,x
 
-@OPCODE_614:   ; [c64_ir] StoreTemp
+@OPCODE_614:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_615:   ; [c64_ir] LoadTemp
+@OPCODE_615:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4775,7 +4775,7 @@
     tay
     pla
 
-@OPCODE_619:   ; [c64_ir] LoadTemp
+@OPCODE_619:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4884,7 +4884,7 @@
     tay
     pla
 
-@OPCODE_634:   ; [c64_ir] StoreTemp
+@OPCODE_634:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -4901,7 +4901,7 @@
     dex
     lda $00,x
 
-@OPCODE_636:   ; [c64_ir] LoadTemp
+@OPCODE_636:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -4963,7 +4963,7 @@
     tay
     pla
 
-@OPCODE_644:   ; [c64_ir] StoreTemp
+@OPCODE_644:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -4980,7 +4980,7 @@
     dex
     lda $00,x
 
-@OPCODE_646:   ; [c64_ir] LoadTemp
+@OPCODE_646:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5077,7 +5077,7 @@
     tay
     pla
 
-@OPCODE_659:   ; [c64_ir] StoreTemp
+@OPCODE_659:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -5094,7 +5094,7 @@
     dex
     lda $00,x
 
-@OPCODE_661:   ; [c64_ir] LoadTemp
+@OPCODE_661:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5156,7 +5156,7 @@
     tay
     pla
 
-@OPCODE_669:   ; [c64_ir] StoreTemp
+@OPCODE_669:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -5173,7 +5173,7 @@
     dex
     lda $00,x
 
-@OPCODE_671:   ; [c64_ir] LoadTemp
+@OPCODE_671:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5364,14 +5364,14 @@
     tay
     pla
 
-@OPCODE_697:   ; [c64_ir] StoreTemp
+@OPCODE_697:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_698:   ; [c64_ir] LoadTemp
+@OPCODE_698:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5388,7 +5388,7 @@
     dex
     lda $00,x
 
-@OPCODE_700:   ; [c64_ir] LoadTemp
+@OPCODE_700:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5580,14 +5580,14 @@
     tay
     pla
 
-@OPCODE_724:   ; [c64_ir] StoreTemp
+@OPCODE_724:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_725:   ; [c64_ir] LoadTemp
+@OPCODE_725:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5604,7 +5604,7 @@
     dex
     lda $00,x
 
-@OPCODE_727:   ; [c64_ir] LoadTemp
+@OPCODE_727:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5656,14 +5656,14 @@
     tay
     pla
 
-@OPCODE_734:   ; [c64_ir] StoreTemp
+@OPCODE_734:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_735:   ; [c64_ir] LoadTemp
+@OPCODE_735:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -5680,7 +5680,7 @@
     dex
     lda $00,x
 
-@OPCODE_737:   ; [c64_ir] LoadTemp
+@OPCODE_737:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6034,7 +6034,7 @@
     tay
     pla
 
-@OPCODE_784:   ; [c64_ir] StoreTemp
+@OPCODE_784:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -6051,7 +6051,7 @@
     dex
     lda $00,x
 
-@OPCODE_786:   ; [c64_ir] LoadTemp
+@OPCODE_786:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6244,7 +6244,7 @@
     tay
     pla
 
-@OPCODE_811:   ; [c64_ir] StoreTemp
+@OPCODE_811:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -6261,7 +6261,7 @@
     dex
     lda $00,x
 
-@OPCODE_813:   ; [c64_ir] LoadTemp
+@OPCODE_813:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6651,14 +6651,14 @@
     dex
     lda $00,x
 
-@OPCODE_862:   ; [c64_ir] StoreTemp
+@OPCODE_862:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_863:   ; [c64_ir] LoadTemp
+@OPCODE_863:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6695,7 +6695,7 @@
     tay
     pla
 
-@OPCODE_867:   ; [c64_ir] LoadTemp
+@OPCODE_867:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6804,7 +6804,7 @@
     tay
     pla
 
-@OPCODE_882:   ; [c64_ir] StoreTemp
+@OPCODE_882:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -6821,7 +6821,7 @@
     dex
     lda $00,x
 
-@OPCODE_884:   ; [c64_ir] LoadTemp
+@OPCODE_884:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6883,7 +6883,7 @@
     tay
     pla
 
-@OPCODE_892:   ; [c64_ir] StoreTemp
+@OPCODE_892:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -6900,7 +6900,7 @@
     dex
     lda $00,x
 
-@OPCODE_894:   ; [c64_ir] LoadTemp
+@OPCODE_894:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -6997,7 +6997,7 @@
     tay
     pla
 
-@OPCODE_907:   ; [c64_ir] StoreTemp
+@OPCODE_907:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -7014,7 +7014,7 @@
     dex
     lda $00,x
 
-@OPCODE_909:   ; [c64_ir] LoadTemp
+@OPCODE_909:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7076,7 +7076,7 @@
     tay
     pla
 
-@OPCODE_917:   ; [c64_ir] StoreTemp
+@OPCODE_917:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -7093,7 +7093,7 @@
     dex
     lda $00,x
 
-@OPCODE_919:   ; [c64_ir] LoadTemp
+@OPCODE_919:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7284,14 +7284,14 @@
     tay
     pla
 
-@OPCODE_945:   ; [c64_ir] StoreTemp
+@OPCODE_945:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_946:   ; [c64_ir] LoadTemp
+@OPCODE_946:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7308,7 +7308,7 @@
     dex
     lda $00,x
 
-@OPCODE_948:   ; [c64_ir] LoadTemp
+@OPCODE_948:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7500,14 +7500,14 @@
     tay
     pla
 
-@OPCODE_972:   ; [c64_ir] StoreTemp
+@OPCODE_972:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_973:   ; [c64_ir] LoadTemp
+@OPCODE_973:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7524,7 +7524,7 @@
     dex
     lda $00,x
 
-@OPCODE_975:   ; [c64_ir] LoadTemp
+@OPCODE_975:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7576,14 +7576,14 @@
     tay
     pla
 
-@OPCODE_982:   ; [c64_ir] StoreTemp
+@OPCODE_982:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_983:   ; [c64_ir] LoadTemp
+@OPCODE_983:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7600,7 +7600,7 @@
     dex
     lda $00,x
 
-@OPCODE_985:   ; [c64_ir] LoadTemp
+@OPCODE_985:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -7954,7 +7954,7 @@
     tay
     pla
 
-@OPCODE_1032:   ; [c64_ir] StoreTemp
+@OPCODE_1032:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -7971,7 +7971,7 @@
     dex
     lda $00,x
 
-@OPCODE_1034:   ; [c64_ir] LoadTemp
+@OPCODE_1034:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -8164,7 +8164,7 @@
     tay
     pla
 
-@OPCODE_1059:   ; [c64_ir] StoreTemp
+@OPCODE_1059:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -8181,7 +8181,7 @@
     dex
     lda $00,x
 
-@OPCODE_1061:   ; [c64_ir] LoadTemp
+@OPCODE_1061:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -8505,14 +8505,14 @@
     tay
     pla
 
-@OPCODE_1102:   ; [c64_ir] StoreTemp
+@OPCODE_1102:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1103:   ; [c64_ir] LoadTemp
+@OPCODE_1103:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -8529,7 +8529,7 @@
     dex
     lda $00,x
 
-@OPCODE_1105:   ; [c64_ir] LoadTemp
+@OPCODE_1105:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -8581,14 +8581,14 @@
     tay
     pla
 
-@OPCODE_1112:   ; [c64_ir] StoreTemp
+@OPCODE_1112:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1113:   ; [c64_ir] LoadTemp
+@OPCODE_1113:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -8605,7 +8605,7 @@
     dex
     lda $00,x
 
-@OPCODE_1115:   ; [c64_ir] LoadTemp
+@OPCODE_1115:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -8959,7 +8959,7 @@
     tay
     pla
 
-@OPCODE_1162:   ; [c64_ir] StoreTemp
+@OPCODE_1162:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -8976,7 +8976,7 @@
     dex
     lda $00,x
 
-@OPCODE_1164:   ; [c64_ir] LoadTemp
+@OPCODE_1164:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9320,14 +9320,14 @@
     dex
     lda $00,x
 
-@OPCODE_1208:   ; [c64_ir] StoreTemp
+@OPCODE_1208:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1209:   ; [c64_ir] LoadTemp
+@OPCODE_1209:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9364,7 +9364,7 @@
     tay
     pla
 
-@OPCODE_1213:   ; [c64_ir] LoadTemp
+@OPCODE_1213:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9594,14 +9594,14 @@
     dex
     lda $00,x
 
-@OPCODE_1242:   ; [c64_ir] StoreTemp
+@OPCODE_1242:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1243:   ; [c64_ir] LoadTemp
+@OPCODE_1243:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9638,7 +9638,7 @@
     tay
     pla
 
-@OPCODE_1247:   ; [c64_ir] LoadTemp
+@OPCODE_1247:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9720,21 +9720,21 @@
 @OPCODE_1258:   ; [c64_ir] BranchTarget(193)
 @target_193:
 
-@OPCODE_1259:   ; [c64_ir] StoreTemp
+@OPCODE_1259:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1260:   ; [c64_ir] LoadTemp
+@OPCODE_1260:   ; [c64_ir] TempLoad
     pha
     tya
     pha
     lda TEMP_PAX1
     ldy TEMP_PAX2
 
-@OPCODE_1261:   ; [c64_ir] LoadTemp
+@OPCODE_1261:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9889,14 +9889,14 @@
     dex
     lda $00,x
 
-@OPCODE_1279:   ; [c64_ir] StoreTemp
+@OPCODE_1279:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1280:   ; [c64_ir] LoadTemp
+@OPCODE_1280:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -9933,7 +9933,7 @@
     tay
     pla
 
-@OPCODE_1284:   ; [c64_ir] LoadTemp
+@OPCODE_1284:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -10015,21 +10015,21 @@
 @OPCODE_1295:   ; [c64_ir] BranchTarget(197)
 @target_197:
 
-@OPCODE_1296:   ; [c64_ir] StoreTemp
+@OPCODE_1296:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1297:   ; [c64_ir] LoadTemp
+@OPCODE_1297:   ; [c64_ir] TempLoad
     pha
     tya
     pha
     lda TEMP_PAX1
     ldy TEMP_PAX2
 
-@OPCODE_1298:   ; [c64_ir] LoadTemp
+@OPCODE_1298:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -10283,14 +10283,14 @@
     tay
     pla
 
-@OPCODE_1329:   ; [c64_ir] StoreTemp
+@OPCODE_1329:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1330:   ; [c64_ir] LoadTemp
+@OPCODE_1330:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -10307,7 +10307,7 @@
     dex
     lda $00,x
 
-@OPCODE_1332:   ; [c64_ir] LoadTemp
+@OPCODE_1332:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -10359,14 +10359,14 @@
     tay
     pla
 
-@OPCODE_1339:   ; [c64_ir] StoreTemp
+@OPCODE_1339:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
 
-@OPCODE_1340:   ; [c64_ir] LoadTemp
+@OPCODE_1340:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -10383,7 +10383,7 @@
     dex
     lda $00,x
 
-@OPCODE_1342:   ; [c64_ir] LoadTemp
+@OPCODE_1342:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -10737,7 +10737,7 @@
     tay
     pla
 
-@OPCODE_1389:   ; [c64_ir] StoreTemp
+@OPCODE_1389:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
@@ -10754,7 +10754,7 @@
     dex
     lda $00,x
 
-@OPCODE_1391:   ; [c64_ir] LoadTemp
+@OPCODE_1391:   ; [c64_ir] TempLoad
     pha
     tya
     pha
@@ -11102,7 +11102,7 @@
     ldy #0
     lda #1
 
-@OPCODE_1437:   ; [c64_ir] StoreTemp
+@OPCODE_1437:   ; [c64_ir] TempStore
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla

@@ -72,7 +72,7 @@ Current file: paxconsola.s
 000039r 1  A0 00            ldy #0
 00003Br 1               
 00003Br 1                   .include "generated.asm"
-00003Br 2               @OPCODE_0:   ; [c64_ir] LoadTemp
+00003Br 2               @OPCODE_0:   ; [c64_ir] TempLoad
 00003Br 2  48               pha
 00003Cr 2  98               tya
 00003Dr 2  48               pha
@@ -296,14 +296,14 @@ Current file: paxconsola.s
 000109r 2  CA               dex
 00010Ar 2  B5 00            lda $00,x
 00010Cr 2               
-00010Cr 2               @OPCODE_30:   ; [c64_ir] StoreTemp
+00010Cr 2               @OPCODE_30:   ; [c64_ir] TempStore
 00010Cr 2  85 95            sta TEMP_PAX1
 00010Er 2  84 96            sty TEMP_PAX2
 000110r 2  68               pla
 000111r 2  A8               tay
 000112r 2  68               pla
 000113r 2               
-000113r 2               @OPCODE_31:   ; [c64_ir] LoadTemp
+000113r 2               @OPCODE_31:   ; [c64_ir] TempLoad
 000113r 2  48               pha
 000114r 2  98               tya
 000115r 2  48               pha
@@ -340,7 +340,7 @@ Current file: paxconsola.s
 000136r 2  A8               tay
 000137r 2  68               pla
 000138r 2               
-000138r 2               @OPCODE_35:   ; [c64_ir] LoadTemp
+000138r 2               @OPCODE_35:   ; [c64_ir] TempLoad
 000138r 2  48               pha
 000139r 2  98               tya
 00013Ar 2  48               pha
@@ -456,7 +456,7 @@ Current file: paxconsola.s
 00019Fr 2  A8               tay
 0001A0r 2  68               pla
 0001A1r 2               
-0001A1r 2               @OPCODE_51:   ; [c64_ir] StoreTemp
+0001A1r 2               @OPCODE_51:   ; [c64_ir] TempStore
 0001A1r 2  85 95            sta TEMP_PAX1
 0001A3r 2  84 96            sty TEMP_PAX2
 0001A5r 2  68               pla
@@ -473,7 +473,7 @@ Current file: paxconsola.s
 0001AFr 2  CA               dex
 0001B0r 2  B5 00            lda $00,x
 0001B2r 2               
-0001B2r 2               @OPCODE_53:   ; [c64_ir] LoadTemp
+0001B2r 2               @OPCODE_53:   ; [c64_ir] TempLoad
 0001B2r 2  48               pha
 0001B3r 2  98               tya
 0001B4r 2  48               pha
@@ -535,7 +535,7 @@ Current file: paxconsola.s
 0001E9r 2  A8               tay
 0001EAr 2  68               pla
 0001EBr 2               
-0001EBr 2               @OPCODE_61:   ; [c64_ir] StoreTemp
+0001EBr 2               @OPCODE_61:   ; [c64_ir] TempStore
 0001EBr 2  85 95            sta TEMP_PAX1
 0001EDr 2  84 96            sty TEMP_PAX2
 0001EFr 2  68               pla
@@ -552,7 +552,7 @@ Current file: paxconsola.s
 0001F9r 2  CA               dex
 0001FAr 2  B5 00            lda $00,x
 0001FCr 2               
-0001FCr 2               @OPCODE_63:   ; [c64_ir] LoadTemp
+0001FCr 2               @OPCODE_63:   ; [c64_ir] TempLoad
 0001FCr 2  48               pha
 0001FDr 2  98               tya
 0001FEr 2  48               pha
@@ -649,7 +649,7 @@ Current file: paxconsola.s
 000251r 2  A8               tay
 000252r 2  68               pla
 000253r 2               
-000253r 2               @OPCODE_76:   ; [c64_ir] StoreTemp
+000253r 2               @OPCODE_76:   ; [c64_ir] TempStore
 000253r 2  85 95            sta TEMP_PAX1
 000255r 2  84 96            sty TEMP_PAX2
 000257r 2  68               pla
@@ -666,7 +666,7 @@ Current file: paxconsola.s
 000261r 2  CA               dex
 000262r 2  B5 00            lda $00,x
 000264r 2               
-000264r 2               @OPCODE_78:   ; [c64_ir] LoadTemp
+000264r 2               @OPCODE_78:   ; [c64_ir] TempLoad
 000264r 2  48               pha
 000265r 2  98               tya
 000266r 2  48               pha
@@ -728,7 +728,7 @@ Current file: paxconsola.s
 00029Br 2  A8               tay
 00029Cr 2  68               pla
 00029Dr 2               
-00029Dr 2               @OPCODE_86:   ; [c64_ir] StoreTemp
+00029Dr 2               @OPCODE_86:   ; [c64_ir] TempStore
 00029Dr 2  85 95            sta TEMP_PAX1
 00029Fr 2  84 96            sty TEMP_PAX2
 0002A1r 2  68               pla
@@ -745,7 +745,7 @@ Current file: paxconsola.s
 0002ABr 2  CA               dex
 0002ACr 2  B5 00            lda $00,x
 0002AEr 2               
-0002AEr 2               @OPCODE_88:   ; [c64_ir] LoadTemp
+0002AEr 2               @OPCODE_88:   ; [c64_ir] TempLoad
 0002AEr 2  48               pha
 0002AFr 2  98               tya
 0002B0r 2  48               pha
@@ -936,14 +936,14 @@ Current file: paxconsola.s
 000358r 2  A8               tay
 000359r 2  68               pla
 00035Ar 2               
-00035Ar 2               @OPCODE_114:   ; [c64_ir] StoreTemp
+00035Ar 2               @OPCODE_114:   ; [c64_ir] TempStore
 00035Ar 2  85 95            sta TEMP_PAX1
 00035Cr 2  84 96            sty TEMP_PAX2
 00035Er 2  68               pla
 00035Fr 2  A8               tay
 000360r 2  68               pla
 000361r 2               
-000361r 2               @OPCODE_115:   ; [c64_ir] LoadTemp
+000361r 2               @OPCODE_115:   ; [c64_ir] TempLoad
 000361r 2  48               pha
 000362r 2  98               tya
 000363r 2  48               pha
@@ -960,7 +960,7 @@ Current file: paxconsola.s
 00036Fr 2  CA               dex
 000370r 2  B5 00            lda $00,x
 000372r 2               
-000372r 2               @OPCODE_117:   ; [c64_ir] LoadTemp
+000372r 2               @OPCODE_117:   ; [c64_ir] TempLoad
 000372r 2  48               pha
 000373r 2  98               tya
 000374r 2  48               pha
@@ -1152,14 +1152,14 @@ Current file: paxconsola.s
 00042Cr 2  A8               tay
 00042Dr 2  68               pla
 00042Er 2               
-00042Er 2               @OPCODE_141:   ; [c64_ir] StoreTemp
+00042Er 2               @OPCODE_141:   ; [c64_ir] TempStore
 00042Er 2  85 95            sta TEMP_PAX1
 000430r 2  84 96            sty TEMP_PAX2
 000432r 2  68               pla
 000433r 2  A8               tay
 000434r 2  68               pla
 000435r 2               
-000435r 2               @OPCODE_142:   ; [c64_ir] LoadTemp
+000435r 2               @OPCODE_142:   ; [c64_ir] TempLoad
 000435r 2  48               pha
 000436r 2  98               tya
 000437r 2  48               pha
@@ -1176,7 +1176,7 @@ Current file: paxconsola.s
 000443r 2  CA               dex
 000444r 2  B5 00            lda $00,x
 000446r 2               
-000446r 2               @OPCODE_144:   ; [c64_ir] LoadTemp
+000446r 2               @OPCODE_144:   ; [c64_ir] TempLoad
 000446r 2  48               pha
 000447r 2  98               tya
 000448r 2  48               pha
@@ -1228,14 +1228,14 @@ Current file: paxconsola.s
 000473r 2  A8               tay
 000474r 2  68               pla
 000475r 2               
-000475r 2               @OPCODE_151:   ; [c64_ir] StoreTemp
+000475r 2               @OPCODE_151:   ; [c64_ir] TempStore
 000475r 2  85 95            sta TEMP_PAX1
 000477r 2  84 96            sty TEMP_PAX2
 000479r 2  68               pla
 00047Ar 2  A8               tay
 00047Br 2  68               pla
 00047Cr 2               
-00047Cr 2               @OPCODE_152:   ; [c64_ir] LoadTemp
+00047Cr 2               @OPCODE_152:   ; [c64_ir] TempLoad
 00047Cr 2  48               pha
 00047Dr 2  98               tya
 00047Er 2  48               pha
@@ -1252,7 +1252,7 @@ Current file: paxconsola.s
 00048Ar 2  CA               dex
 00048Br 2  B5 00            lda $00,x
 00048Dr 2               
-00048Dr 2               @OPCODE_154:   ; [c64_ir] LoadTemp
+00048Dr 2               @OPCODE_154:   ; [c64_ir] TempLoad
 00048Dr 2  48               pha
 00048Er 2  98               tya
 00048Fr 2  48               pha
@@ -1606,7 +1606,7 @@ Current file: paxconsola.s
 0005DBr 2  A8               tay
 0005DCr 2  68               pla
 0005DDr 2               
-0005DDr 2               @OPCODE_201:   ; [c64_ir] StoreTemp
+0005DDr 2               @OPCODE_201:   ; [c64_ir] TempStore
 0005DDr 2  85 95            sta TEMP_PAX1
 0005DFr 2  84 96            sty TEMP_PAX2
 0005E1r 2  68               pla
@@ -1623,7 +1623,7 @@ Current file: paxconsola.s
 0005EBr 2  CA               dex
 0005ECr 2  B5 00            lda $00,x
 0005EEr 2               
-0005EEr 2               @OPCODE_203:   ; [c64_ir] LoadTemp
+0005EEr 2               @OPCODE_203:   ; [c64_ir] TempLoad
 0005EEr 2  48               pha
 0005EFr 2  98               tya
 0005F0r 2  48               pha
@@ -1816,7 +1816,7 @@ Current file: paxconsola.s
 00069Cr 2  A8               tay
 00069Dr 2  68               pla
 00069Er 2               
-00069Er 2               @OPCODE_228:   ; [c64_ir] StoreTemp
+00069Er 2               @OPCODE_228:   ; [c64_ir] TempStore
 00069Er 2  85 95            sta TEMP_PAX1
 0006A0r 2  84 96            sty TEMP_PAX2
 0006A2r 2  68               pla
@@ -1833,7 +1833,7 @@ Current file: paxconsola.s
 0006ACr 2  CA               dex
 0006ADr 2  B5 00            lda $00,x
 0006AFr 2               
-0006AFr 2               @OPCODE_230:   ; [c64_ir] LoadTemp
+0006AFr 2               @OPCODE_230:   ; [c64_ir] TempLoad
 0006AFr 2  48               pha
 0006B0r 2  98               tya
 0006B1r 2  48               pha
@@ -2051,14 +2051,14 @@ Current file: paxconsola.s
 000780r 2  CA               dex
 000781r 2  B5 00            lda $00,x
 000783r 2               
-000783r 2               @OPCODE_257:   ; [c64_ir] StoreTemp
+000783r 2               @OPCODE_257:   ; [c64_ir] TempStore
 000783r 2  85 95            sta TEMP_PAX1
 000785r 2  84 96            sty TEMP_PAX2
 000787r 2  68               pla
 000788r 2  A8               tay
 000789r 2  68               pla
 00078Ar 2               
-00078Ar 2               @OPCODE_258:   ; [c64_ir] LoadTemp
+00078Ar 2               @OPCODE_258:   ; [c64_ir] TempLoad
 00078Ar 2  48               pha
 00078Br 2  98               tya
 00078Cr 2  48               pha
@@ -2095,7 +2095,7 @@ Current file: paxconsola.s
 0007ADr 2  A8               tay
 0007AEr 2  68               pla
 0007AFr 2               
-0007AFr 2               @OPCODE_262:   ; [c64_ir] LoadTemp
+0007AFr 2               @OPCODE_262:   ; [c64_ir] TempLoad
 0007AFr 2  48               pha
 0007B0r 2  98               tya
 0007B1r 2  48               pha
@@ -2376,7 +2376,7 @@ Current file: paxconsola.s
 0008BCr 2  A8               tay
 0008BDr 2  68               pla
 0008BEr 2               
-0008BEr 2               @OPCODE_299:   ; [c64_ir] StoreTemp
+0008BEr 2               @OPCODE_299:   ; [c64_ir] TempStore
 0008BEr 2  85 95            sta TEMP_PAX1
 0008C0r 2  84 96            sty TEMP_PAX2
 0008C2r 2  68               pla
@@ -2393,7 +2393,7 @@ Current file: paxconsola.s
 0008CCr 2  CA               dex
 0008CDr 2  B5 00            lda $00,x
 0008CFr 2               
-0008CFr 2               @OPCODE_301:   ; [c64_ir] LoadTemp
+0008CFr 2               @OPCODE_301:   ; [c64_ir] TempLoad
 0008CFr 2  48               pha
 0008D0r 2  98               tya
 0008D1r 2  48               pha
@@ -2455,7 +2455,7 @@ Current file: paxconsola.s
 000906r 2  A8               tay
 000907r 2  68               pla
 000908r 2               
-000908r 2               @OPCODE_309:   ; [c64_ir] StoreTemp
+000908r 2               @OPCODE_309:   ; [c64_ir] TempStore
 000908r 2  85 95            sta TEMP_PAX1
 00090Ar 2  84 96            sty TEMP_PAX2
 00090Cr 2  68               pla
@@ -2472,7 +2472,7 @@ Current file: paxconsola.s
 000916r 2  CA               dex
 000917r 2  B5 00            lda $00,x
 000919r 2               
-000919r 2               @OPCODE_311:   ; [c64_ir] LoadTemp
+000919r 2               @OPCODE_311:   ; [c64_ir] TempLoad
 000919r 2  48               pha
 00091Ar 2  98               tya
 00091Br 2  48               pha
@@ -2569,7 +2569,7 @@ Current file: paxconsola.s
 00096Er 2  A8               tay
 00096Fr 2  68               pla
 000970r 2               
-000970r 2               @OPCODE_324:   ; [c64_ir] StoreTemp
+000970r 2               @OPCODE_324:   ; [c64_ir] TempStore
 000970r 2  85 95            sta TEMP_PAX1
 000972r 2  84 96            sty TEMP_PAX2
 000974r 2  68               pla
@@ -2586,7 +2586,7 @@ Current file: paxconsola.s
 00097Er 2  CA               dex
 00097Fr 2  B5 00            lda $00,x
 000981r 2               
-000981r 2               @OPCODE_326:   ; [c64_ir] LoadTemp
+000981r 2               @OPCODE_326:   ; [c64_ir] TempLoad
 000981r 2  48               pha
 000982r 2  98               tya
 000983r 2  48               pha
@@ -2648,7 +2648,7 @@ Current file: paxconsola.s
 0009B8r 2  A8               tay
 0009B9r 2  68               pla
 0009BAr 2               
-0009BAr 2               @OPCODE_334:   ; [c64_ir] StoreTemp
+0009BAr 2               @OPCODE_334:   ; [c64_ir] TempStore
 0009BAr 2  85 95            sta TEMP_PAX1
 0009BCr 2  84 96            sty TEMP_PAX2
 0009BEr 2  68               pla
@@ -2665,7 +2665,7 @@ Current file: paxconsola.s
 0009C8r 2  CA               dex
 0009C9r 2  B5 00            lda $00,x
 0009CBr 2               
-0009CBr 2               @OPCODE_336:   ; [c64_ir] LoadTemp
+0009CBr 2               @OPCODE_336:   ; [c64_ir] TempLoad
 0009CBr 2  48               pha
 0009CCr 2  98               tya
 0009CDr 2  48               pha
@@ -2856,14 +2856,14 @@ Current file: paxconsola.s
 000A75r 2  A8               tay
 000A76r 2  68               pla
 000A77r 2               
-000A77r 2               @OPCODE_362:   ; [c64_ir] StoreTemp
+000A77r 2               @OPCODE_362:   ; [c64_ir] TempStore
 000A77r 2  85 95            sta TEMP_PAX1
 000A79r 2  84 96            sty TEMP_PAX2
 000A7Br 2  68               pla
 000A7Cr 2  A8               tay
 000A7Dr 2  68               pla
 000A7Er 2               
-000A7Er 2               @OPCODE_363:   ; [c64_ir] LoadTemp
+000A7Er 2               @OPCODE_363:   ; [c64_ir] TempLoad
 000A7Er 2  48               pha
 000A7Fr 2  98               tya
 000A80r 2  48               pha
@@ -2880,7 +2880,7 @@ Current file: paxconsola.s
 000A8Cr 2  CA               dex
 000A8Dr 2  B5 00            lda $00,x
 000A8Fr 2               
-000A8Fr 2               @OPCODE_365:   ; [c64_ir] LoadTemp
+000A8Fr 2               @OPCODE_365:   ; [c64_ir] TempLoad
 000A8Fr 2  48               pha
 000A90r 2  98               tya
 000A91r 2  48               pha
@@ -3072,14 +3072,14 @@ Current file: paxconsola.s
 000B49r 2  A8               tay
 000B4Ar 2  68               pla
 000B4Br 2               
-000B4Br 2               @OPCODE_389:   ; [c64_ir] StoreTemp
+000B4Br 2               @OPCODE_389:   ; [c64_ir] TempStore
 000B4Br 2  85 95            sta TEMP_PAX1
 000B4Dr 2  84 96            sty TEMP_PAX2
 000B4Fr 2  68               pla
 000B50r 2  A8               tay
 000B51r 2  68               pla
 000B52r 2               
-000B52r 2               @OPCODE_390:   ; [c64_ir] LoadTemp
+000B52r 2               @OPCODE_390:   ; [c64_ir] TempLoad
 000B52r 2  48               pha
 000B53r 2  98               tya
 000B54r 2  48               pha
@@ -3096,7 +3096,7 @@ Current file: paxconsola.s
 000B60r 2  CA               dex
 000B61r 2  B5 00            lda $00,x
 000B63r 2               
-000B63r 2               @OPCODE_392:   ; [c64_ir] LoadTemp
+000B63r 2               @OPCODE_392:   ; [c64_ir] TempLoad
 000B63r 2  48               pha
 000B64r 2  98               tya
 000B65r 2  48               pha
@@ -3148,14 +3148,14 @@ Current file: paxconsola.s
 000B90r 2  A8               tay
 000B91r 2  68               pla
 000B92r 2               
-000B92r 2               @OPCODE_399:   ; [c64_ir] StoreTemp
+000B92r 2               @OPCODE_399:   ; [c64_ir] TempStore
 000B92r 2  85 95            sta TEMP_PAX1
 000B94r 2  84 96            sty TEMP_PAX2
 000B96r 2  68               pla
 000B97r 2  A8               tay
 000B98r 2  68               pla
 000B99r 2               
-000B99r 2               @OPCODE_400:   ; [c64_ir] LoadTemp
+000B99r 2               @OPCODE_400:   ; [c64_ir] TempLoad
 000B99r 2  48               pha
 000B9Ar 2  98               tya
 000B9Br 2  48               pha
@@ -3172,7 +3172,7 @@ Current file: paxconsola.s
 000BA7r 2  CA               dex
 000BA8r 2  B5 00            lda $00,x
 000BAAr 2               
-000BAAr 2               @OPCODE_402:   ; [c64_ir] LoadTemp
+000BAAr 2               @OPCODE_402:   ; [c64_ir] TempLoad
 000BAAr 2  48               pha
 000BABr 2  98               tya
 000BACr 2  48               pha
@@ -3526,7 +3526,7 @@ Current file: paxconsola.s
 000CF8r 2  A8               tay
 000CF9r 2  68               pla
 000CFAr 2               
-000CFAr 2               @OPCODE_449:   ; [c64_ir] StoreTemp
+000CFAr 2               @OPCODE_449:   ; [c64_ir] TempStore
 000CFAr 2  85 95            sta TEMP_PAX1
 000CFCr 2  84 96            sty TEMP_PAX2
 000CFEr 2  68               pla
@@ -3543,7 +3543,7 @@ Current file: paxconsola.s
 000D08r 2  CA               dex
 000D09r 2  B5 00            lda $00,x
 000D0Br 2               
-000D0Br 2               @OPCODE_451:   ; [c64_ir] LoadTemp
+000D0Br 2               @OPCODE_451:   ; [c64_ir] TempLoad
 000D0Br 2  48               pha
 000D0Cr 2  98               tya
 000D0Dr 2  48               pha
@@ -3736,7 +3736,7 @@ Current file: paxconsola.s
 000DB9r 2  A8               tay
 000DBAr 2  68               pla
 000DBBr 2               
-000DBBr 2               @OPCODE_476:   ; [c64_ir] StoreTemp
+000DBBr 2               @OPCODE_476:   ; [c64_ir] TempStore
 000DBBr 2  85 95            sta TEMP_PAX1
 000DBDr 2  84 96            sty TEMP_PAX2
 000DBFr 2  68               pla
@@ -3753,7 +3753,7 @@ Current file: paxconsola.s
 000DC9r 2  CA               dex
 000DCAr 2  B5 00            lda $00,x
 000DCCr 2               
-000DCCr 2               @OPCODE_478:   ; [c64_ir] LoadTemp
+000DCCr 2               @OPCODE_478:   ; [c64_ir] TempLoad
 000DCCr 2  48               pha
 000DCDr 2  98               tya
 000DCEr 2  48               pha
@@ -4077,14 +4077,14 @@ Current file: paxconsola.s
 000F03r 2  A8               tay
 000F04r 2  68               pla
 000F05r 2               
-000F05r 2               @OPCODE_519:   ; [c64_ir] StoreTemp
+000F05r 2               @OPCODE_519:   ; [c64_ir] TempStore
 000F05r 2  85 95            sta TEMP_PAX1
 000F07r 2  84 96            sty TEMP_PAX2
 000F09r 2  68               pla
 000F0Ar 2  A8               tay
 000F0Br 2  68               pla
 000F0Cr 2               
-000F0Cr 2               @OPCODE_520:   ; [c64_ir] LoadTemp
+000F0Cr 2               @OPCODE_520:   ; [c64_ir] TempLoad
 000F0Cr 2  48               pha
 000F0Dr 2  98               tya
 000F0Er 2  48               pha
@@ -4101,7 +4101,7 @@ Current file: paxconsola.s
 000F1Ar 2  CA               dex
 000F1Br 2  B5 00            lda $00,x
 000F1Dr 2               
-000F1Dr 2               @OPCODE_522:   ; [c64_ir] LoadTemp
+000F1Dr 2               @OPCODE_522:   ; [c64_ir] TempLoad
 000F1Dr 2  48               pha
 000F1Er 2  98               tya
 000F1Fr 2  48               pha
@@ -4153,14 +4153,14 @@ Current file: paxconsola.s
 000F4Ar 2  A8               tay
 000F4Br 2  68               pla
 000F4Cr 2               
-000F4Cr 2               @OPCODE_529:   ; [c64_ir] StoreTemp
+000F4Cr 2               @OPCODE_529:   ; [c64_ir] TempStore
 000F4Cr 2  85 95            sta TEMP_PAX1
 000F4Er 2  84 96            sty TEMP_PAX2
 000F50r 2  68               pla
 000F51r 2  A8               tay
 000F52r 2  68               pla
 000F53r 2               
-000F53r 2               @OPCODE_530:   ; [c64_ir] LoadTemp
+000F53r 2               @OPCODE_530:   ; [c64_ir] TempLoad
 000F53r 2  48               pha
 000F54r 2  98               tya
 000F55r 2  48               pha
@@ -4177,7 +4177,7 @@ Current file: paxconsola.s
 000F61r 2  CA               dex
 000F62r 2  B5 00            lda $00,x
 000F64r 2               
-000F64r 2               @OPCODE_532:   ; [c64_ir] LoadTemp
+000F64r 2               @OPCODE_532:   ; [c64_ir] TempLoad
 000F64r 2  48               pha
 000F65r 2  98               tya
 000F66r 2  48               pha
@@ -4531,7 +4531,7 @@ Current file: paxconsola.s
 0010B2r 2  A8               tay
 0010B3r 2  68               pla
 0010B4r 2               
-0010B4r 2               @OPCODE_579:   ; [c64_ir] StoreTemp
+0010B4r 2               @OPCODE_579:   ; [c64_ir] TempStore
 0010B4r 2  85 95            sta TEMP_PAX1
 0010B6r 2  84 96            sty TEMP_PAX2
 0010B8r 2  68               pla
@@ -4548,7 +4548,7 @@ Current file: paxconsola.s
 0010C2r 2  CA               dex
 0010C3r 2  B5 00            lda $00,x
 0010C5r 2               
-0010C5r 2               @OPCODE_581:   ; [c64_ir] LoadTemp
+0010C5r 2               @OPCODE_581:   ; [c64_ir] TempLoad
 0010C5r 2  48               pha
 0010C6r 2  98               tya
 0010C7r 2  48               pha
@@ -4805,14 +4805,14 @@ Current file: paxconsola.s
 0011AFr 2  CA               dex
 0011B0r 2  B5 00            lda $00,x
 0011B2r 2               
-0011B2r 2               @OPCODE_614:   ; [c64_ir] StoreTemp
+0011B2r 2               @OPCODE_614:   ; [c64_ir] TempStore
 0011B2r 2  85 95            sta TEMP_PAX1
 0011B4r 2  84 96            sty TEMP_PAX2
 0011B6r 2  68               pla
 0011B7r 2  A8               tay
 0011B8r 2  68               pla
 0011B9r 2               
-0011B9r 2               @OPCODE_615:   ; [c64_ir] LoadTemp
+0011B9r 2               @OPCODE_615:   ; [c64_ir] TempLoad
 0011B9r 2  48               pha
 0011BAr 2  98               tya
 0011BBr 2  48               pha
@@ -4849,7 +4849,7 @@ Current file: paxconsola.s
 0011DCr 2  A8               tay
 0011DDr 2  68               pla
 0011DEr 2               
-0011DEr 2               @OPCODE_619:   ; [c64_ir] LoadTemp
+0011DEr 2               @OPCODE_619:   ; [c64_ir] TempLoad
 0011DEr 2  48               pha
 0011DFr 2  98               tya
 0011E0r 2  48               pha
@@ -4958,7 +4958,7 @@ Current file: paxconsola.s
 00123Er 2  A8               tay
 00123Fr 2  68               pla
 001240r 2               
-001240r 2               @OPCODE_634:   ; [c64_ir] StoreTemp
+001240r 2               @OPCODE_634:   ; [c64_ir] TempStore
 001240r 2  85 95            sta TEMP_PAX1
 001242r 2  84 96            sty TEMP_PAX2
 001244r 2  68               pla
@@ -4975,7 +4975,7 @@ Current file: paxconsola.s
 00124Er 2  CA               dex
 00124Fr 2  B5 00            lda $00,x
 001251r 2               
-001251r 2               @OPCODE_636:   ; [c64_ir] LoadTemp
+001251r 2               @OPCODE_636:   ; [c64_ir] TempLoad
 001251r 2  48               pha
 001252r 2  98               tya
 001253r 2  48               pha
@@ -5037,7 +5037,7 @@ Current file: paxconsola.s
 001288r 2  A8               tay
 001289r 2  68               pla
 00128Ar 2               
-00128Ar 2               @OPCODE_644:   ; [c64_ir] StoreTemp
+00128Ar 2               @OPCODE_644:   ; [c64_ir] TempStore
 00128Ar 2  85 95            sta TEMP_PAX1
 00128Cr 2  84 96            sty TEMP_PAX2
 00128Er 2  68               pla
@@ -5054,7 +5054,7 @@ Current file: paxconsola.s
 001298r 2  CA               dex
 001299r 2  B5 00            lda $00,x
 00129Br 2               
-00129Br 2               @OPCODE_646:   ; [c64_ir] LoadTemp
+00129Br 2               @OPCODE_646:   ; [c64_ir] TempLoad
 00129Br 2  48               pha
 00129Cr 2  98               tya
 00129Dr 2  48               pha
@@ -5151,7 +5151,7 @@ Current file: paxconsola.s
 0012F0r 2  A8               tay
 0012F1r 2  68               pla
 0012F2r 2               
-0012F2r 2               @OPCODE_659:   ; [c64_ir] StoreTemp
+0012F2r 2               @OPCODE_659:   ; [c64_ir] TempStore
 0012F2r 2  85 95            sta TEMP_PAX1
 0012F4r 2  84 96            sty TEMP_PAX2
 0012F6r 2  68               pla
@@ -5168,7 +5168,7 @@ Current file: paxconsola.s
 001300r 2  CA               dex
 001301r 2  B5 00            lda $00,x
 001303r 2               
-001303r 2               @OPCODE_661:   ; [c64_ir] LoadTemp
+001303r 2               @OPCODE_661:   ; [c64_ir] TempLoad
 001303r 2  48               pha
 001304r 2  98               tya
 001305r 2  48               pha
@@ -5230,7 +5230,7 @@ Current file: paxconsola.s
 00133Ar 2  A8               tay
 00133Br 2  68               pla
 00133Cr 2               
-00133Cr 2               @OPCODE_669:   ; [c64_ir] StoreTemp
+00133Cr 2               @OPCODE_669:   ; [c64_ir] TempStore
 00133Cr 2  85 95            sta TEMP_PAX1
 00133Er 2  84 96            sty TEMP_PAX2
 001340r 2  68               pla
@@ -5247,7 +5247,7 @@ Current file: paxconsola.s
 00134Ar 2  CA               dex
 00134Br 2  B5 00            lda $00,x
 00134Dr 2               
-00134Dr 2               @OPCODE_671:   ; [c64_ir] LoadTemp
+00134Dr 2               @OPCODE_671:   ; [c64_ir] TempLoad
 00134Dr 2  48               pha
 00134Er 2  98               tya
 00134Fr 2  48               pha
@@ -5438,14 +5438,14 @@ Current file: paxconsola.s
 0013F7r 2  A8               tay
 0013F8r 2  68               pla
 0013F9r 2               
-0013F9r 2               @OPCODE_697:   ; [c64_ir] StoreTemp
+0013F9r 2               @OPCODE_697:   ; [c64_ir] TempStore
 0013F9r 2  85 95            sta TEMP_PAX1
 0013FBr 2  84 96            sty TEMP_PAX2
 0013FDr 2  68               pla
 0013FEr 2  A8               tay
 0013FFr 2  68               pla
 001400r 2               
-001400r 2               @OPCODE_698:   ; [c64_ir] LoadTemp
+001400r 2               @OPCODE_698:   ; [c64_ir] TempLoad
 001400r 2  48               pha
 001401r 2  98               tya
 001402r 2  48               pha
@@ -5462,7 +5462,7 @@ Current file: paxconsola.s
 00140Er 2  CA               dex
 00140Fr 2  B5 00            lda $00,x
 001411r 2               
-001411r 2               @OPCODE_700:   ; [c64_ir] LoadTemp
+001411r 2               @OPCODE_700:   ; [c64_ir] TempLoad
 001411r 2  48               pha
 001412r 2  98               tya
 001413r 2  48               pha
@@ -5654,14 +5654,14 @@ Current file: paxconsola.s
 0014CBr 2  A8               tay
 0014CCr 2  68               pla
 0014CDr 2               
-0014CDr 2               @OPCODE_724:   ; [c64_ir] StoreTemp
+0014CDr 2               @OPCODE_724:   ; [c64_ir] TempStore
 0014CDr 2  85 95            sta TEMP_PAX1
 0014CFr 2  84 96            sty TEMP_PAX2
 0014D1r 2  68               pla
 0014D2r 2  A8               tay
 0014D3r 2  68               pla
 0014D4r 2               
-0014D4r 2               @OPCODE_725:   ; [c64_ir] LoadTemp
+0014D4r 2               @OPCODE_725:   ; [c64_ir] TempLoad
 0014D4r 2  48               pha
 0014D5r 2  98               tya
 0014D6r 2  48               pha
@@ -5678,7 +5678,7 @@ Current file: paxconsola.s
 0014E2r 2  CA               dex
 0014E3r 2  B5 00            lda $00,x
 0014E5r 2               
-0014E5r 2               @OPCODE_727:   ; [c64_ir] LoadTemp
+0014E5r 2               @OPCODE_727:   ; [c64_ir] TempLoad
 0014E5r 2  48               pha
 0014E6r 2  98               tya
 0014E7r 2  48               pha
@@ -5730,14 +5730,14 @@ Current file: paxconsola.s
 001512r 2  A8               tay
 001513r 2  68               pla
 001514r 2               
-001514r 2               @OPCODE_734:   ; [c64_ir] StoreTemp
+001514r 2               @OPCODE_734:   ; [c64_ir] TempStore
 001514r 2  85 95            sta TEMP_PAX1
 001516r 2  84 96            sty TEMP_PAX2
 001518r 2  68               pla
 001519r 2  A8               tay
 00151Ar 2  68               pla
 00151Br 2               
-00151Br 2               @OPCODE_735:   ; [c64_ir] LoadTemp
+00151Br 2               @OPCODE_735:   ; [c64_ir] TempLoad
 00151Br 2  48               pha
 00151Cr 2  98               tya
 00151Dr 2  48               pha
@@ -5754,7 +5754,7 @@ Current file: paxconsola.s
 001529r 2  CA               dex
 00152Ar 2  B5 00            lda $00,x
 00152Cr 2               
-00152Cr 2               @OPCODE_737:   ; [c64_ir] LoadTemp
+00152Cr 2               @OPCODE_737:   ; [c64_ir] TempLoad
 00152Cr 2  48               pha
 00152Dr 2  98               tya
 00152Er 2  48               pha
@@ -6108,7 +6108,7 @@ Current file: paxconsola.s
 00167Ar 2  A8               tay
 00167Br 2  68               pla
 00167Cr 2               
-00167Cr 2               @OPCODE_784:   ; [c64_ir] StoreTemp
+00167Cr 2               @OPCODE_784:   ; [c64_ir] TempStore
 00167Cr 2  85 95            sta TEMP_PAX1
 00167Er 2  84 96            sty TEMP_PAX2
 001680r 2  68               pla
@@ -6125,7 +6125,7 @@ Current file: paxconsola.s
 00168Ar 2  CA               dex
 00168Br 2  B5 00            lda $00,x
 00168Dr 2               
-00168Dr 2               @OPCODE_786:   ; [c64_ir] LoadTemp
+00168Dr 2               @OPCODE_786:   ; [c64_ir] TempLoad
 00168Dr 2  48               pha
 00168Er 2  98               tya
 00168Fr 2  48               pha
@@ -6318,7 +6318,7 @@ Current file: paxconsola.s
 00173Br 2  A8               tay
 00173Cr 2  68               pla
 00173Dr 2               
-00173Dr 2               @OPCODE_811:   ; [c64_ir] StoreTemp
+00173Dr 2               @OPCODE_811:   ; [c64_ir] TempStore
 00173Dr 2  85 95            sta TEMP_PAX1
 00173Fr 2  84 96            sty TEMP_PAX2
 001741r 2  68               pla
@@ -6335,7 +6335,7 @@ Current file: paxconsola.s
 00174Br 2  CA               dex
 00174Cr 2  B5 00            lda $00,x
 00174Er 2               
-00174Er 2               @OPCODE_813:   ; [c64_ir] LoadTemp
+00174Er 2               @OPCODE_813:   ; [c64_ir] TempLoad
 00174Er 2  48               pha
 00174Fr 2  98               tya
 001750r 2  48               pha
@@ -6725,14 +6725,14 @@ Current file: paxconsola.s
 0018CCr 2  CA               dex
 0018CDr 2  B5 00            lda $00,x
 0018CFr 2               
-0018CFr 2               @OPCODE_862:   ; [c64_ir] StoreTemp
+0018CFr 2               @OPCODE_862:   ; [c64_ir] TempStore
 0018CFr 2  85 95            sta TEMP_PAX1
 0018D1r 2  84 96            sty TEMP_PAX2
 0018D3r 2  68               pla
 0018D4r 2  A8               tay
 0018D5r 2  68               pla
 0018D6r 2               
-0018D6r 2               @OPCODE_863:   ; [c64_ir] LoadTemp
+0018D6r 2               @OPCODE_863:   ; [c64_ir] TempLoad
 0018D6r 2  48               pha
 0018D7r 2  98               tya
 0018D8r 2  48               pha
@@ -6769,7 +6769,7 @@ Current file: paxconsola.s
 0018F9r 2  A8               tay
 0018FAr 2  68               pla
 0018FBr 2               
-0018FBr 2               @OPCODE_867:   ; [c64_ir] LoadTemp
+0018FBr 2               @OPCODE_867:   ; [c64_ir] TempLoad
 0018FBr 2  48               pha
 0018FCr 2  98               tya
 0018FDr 2  48               pha
@@ -6878,7 +6878,7 @@ Current file: paxconsola.s
 00195Br 2  A8               tay
 00195Cr 2  68               pla
 00195Dr 2               
-00195Dr 2               @OPCODE_882:   ; [c64_ir] StoreTemp
+00195Dr 2               @OPCODE_882:   ; [c64_ir] TempStore
 00195Dr 2  85 95            sta TEMP_PAX1
 00195Fr 2  84 96            sty TEMP_PAX2
 001961r 2  68               pla
@@ -6895,7 +6895,7 @@ Current file: paxconsola.s
 00196Br 2  CA               dex
 00196Cr 2  B5 00            lda $00,x
 00196Er 2               
-00196Er 2               @OPCODE_884:   ; [c64_ir] LoadTemp
+00196Er 2               @OPCODE_884:   ; [c64_ir] TempLoad
 00196Er 2  48               pha
 00196Fr 2  98               tya
 001970r 2  48               pha
@@ -6957,7 +6957,7 @@ Current file: paxconsola.s
 0019A5r 2  A8               tay
 0019A6r 2  68               pla
 0019A7r 2               
-0019A7r 2               @OPCODE_892:   ; [c64_ir] StoreTemp
+0019A7r 2               @OPCODE_892:   ; [c64_ir] TempStore
 0019A7r 2  85 95            sta TEMP_PAX1
 0019A9r 2  84 96            sty TEMP_PAX2
 0019ABr 2  68               pla
@@ -6974,7 +6974,7 @@ Current file: paxconsola.s
 0019B5r 2  CA               dex
 0019B6r 2  B5 00            lda $00,x
 0019B8r 2               
-0019B8r 2               @OPCODE_894:   ; [c64_ir] LoadTemp
+0019B8r 2               @OPCODE_894:   ; [c64_ir] TempLoad
 0019B8r 2  48               pha
 0019B9r 2  98               tya
 0019BAr 2  48               pha
@@ -7071,7 +7071,7 @@ Current file: paxconsola.s
 001A0Dr 2  A8               tay
 001A0Er 2  68               pla
 001A0Fr 2               
-001A0Fr 2               @OPCODE_907:   ; [c64_ir] StoreTemp
+001A0Fr 2               @OPCODE_907:   ; [c64_ir] TempStore
 001A0Fr 2  85 95            sta TEMP_PAX1
 001A11r 2  84 96            sty TEMP_PAX2
 001A13r 2  68               pla
@@ -7088,7 +7088,7 @@ Current file: paxconsola.s
 001A1Dr 2  CA               dex
 001A1Er 2  B5 00            lda $00,x
 001A20r 2               
-001A20r 2               @OPCODE_909:   ; [c64_ir] LoadTemp
+001A20r 2               @OPCODE_909:   ; [c64_ir] TempLoad
 001A20r 2  48               pha
 001A21r 2  98               tya
 001A22r 2  48               pha
@@ -7150,7 +7150,7 @@ Current file: paxconsola.s
 001A57r 2  A8               tay
 001A58r 2  68               pla
 001A59r 2               
-001A59r 2               @OPCODE_917:   ; [c64_ir] StoreTemp
+001A59r 2               @OPCODE_917:   ; [c64_ir] TempStore
 001A59r 2  85 95            sta TEMP_PAX1
 001A5Br 2  84 96            sty TEMP_PAX2
 001A5Dr 2  68               pla
@@ -7167,7 +7167,7 @@ Current file: paxconsola.s
 001A67r 2  CA               dex
 001A68r 2  B5 00            lda $00,x
 001A6Ar 2               
-001A6Ar 2               @OPCODE_919:   ; [c64_ir] LoadTemp
+001A6Ar 2               @OPCODE_919:   ; [c64_ir] TempLoad
 001A6Ar 2  48               pha
 001A6Br 2  98               tya
 001A6Cr 2  48               pha
@@ -7358,14 +7358,14 @@ Current file: paxconsola.s
 001B14r 2  A8               tay
 001B15r 2  68               pla
 001B16r 2               
-001B16r 2               @OPCODE_945:   ; [c64_ir] StoreTemp
+001B16r 2               @OPCODE_945:   ; [c64_ir] TempStore
 001B16r 2  85 95            sta TEMP_PAX1
 001B18r 2  84 96            sty TEMP_PAX2
 001B1Ar 2  68               pla
 001B1Br 2  A8               tay
 001B1Cr 2  68               pla
 001B1Dr 2               
-001B1Dr 2               @OPCODE_946:   ; [c64_ir] LoadTemp
+001B1Dr 2               @OPCODE_946:   ; [c64_ir] TempLoad
 001B1Dr 2  48               pha
 001B1Er 2  98               tya
 001B1Fr 2  48               pha
@@ -7382,7 +7382,7 @@ Current file: paxconsola.s
 001B2Br 2  CA               dex
 001B2Cr 2  B5 00            lda $00,x
 001B2Er 2               
-001B2Er 2               @OPCODE_948:   ; [c64_ir] LoadTemp
+001B2Er 2               @OPCODE_948:   ; [c64_ir] TempLoad
 001B2Er 2  48               pha
 001B2Fr 2  98               tya
 001B30r 2  48               pha
@@ -7574,14 +7574,14 @@ Current file: paxconsola.s
 001BE8r 2  A8               tay
 001BE9r 2  68               pla
 001BEAr 2               
-001BEAr 2               @OPCODE_972:   ; [c64_ir] StoreTemp
+001BEAr 2               @OPCODE_972:   ; [c64_ir] TempStore
 001BEAr 2  85 95            sta TEMP_PAX1
 001BECr 2  84 96            sty TEMP_PAX2
 001BEEr 2  68               pla
 001BEFr 2  A8               tay
 001BF0r 2  68               pla
 001BF1r 2               
-001BF1r 2               @OPCODE_973:   ; [c64_ir] LoadTemp
+001BF1r 2               @OPCODE_973:   ; [c64_ir] TempLoad
 001BF1r 2  48               pha
 001BF2r 2  98               tya
 001BF3r 2  48               pha
@@ -7598,7 +7598,7 @@ Current file: paxconsola.s
 001BFFr 2  CA               dex
 001C00r 2  B5 00            lda $00,x
 001C02r 2               
-001C02r 2               @OPCODE_975:   ; [c64_ir] LoadTemp
+001C02r 2               @OPCODE_975:   ; [c64_ir] TempLoad
 001C02r 2  48               pha
 001C03r 2  98               tya
 001C04r 2  48               pha
@@ -7650,14 +7650,14 @@ Current file: paxconsola.s
 001C2Fr 2  A8               tay
 001C30r 2  68               pla
 001C31r 2               
-001C31r 2               @OPCODE_982:   ; [c64_ir] StoreTemp
+001C31r 2               @OPCODE_982:   ; [c64_ir] TempStore
 001C31r 2  85 95            sta TEMP_PAX1
 001C33r 2  84 96            sty TEMP_PAX2
 001C35r 2  68               pla
 001C36r 2  A8               tay
 001C37r 2  68               pla
 001C38r 2               
-001C38r 2               @OPCODE_983:   ; [c64_ir] LoadTemp
+001C38r 2               @OPCODE_983:   ; [c64_ir] TempLoad
 001C38r 2  48               pha
 001C39r 2  98               tya
 001C3Ar 2  48               pha
@@ -7674,7 +7674,7 @@ Current file: paxconsola.s
 001C46r 2  CA               dex
 001C47r 2  B5 00            lda $00,x
 001C49r 2               
-001C49r 2               @OPCODE_985:   ; [c64_ir] LoadTemp
+001C49r 2               @OPCODE_985:   ; [c64_ir] TempLoad
 001C49r 2  48               pha
 001C4Ar 2  98               tya
 001C4Br 2  48               pha
@@ -8028,7 +8028,7 @@ Current file: paxconsola.s
 001D97r 2  A8               tay
 001D98r 2  68               pla
 001D99r 2               
-001D99r 2               @OPCODE_1032:   ; [c64_ir] StoreTemp
+001D99r 2               @OPCODE_1032:   ; [c64_ir] TempStore
 001D99r 2  85 95            sta TEMP_PAX1
 001D9Br 2  84 96            sty TEMP_PAX2
 001D9Dr 2  68               pla
@@ -8045,7 +8045,7 @@ Current file: paxconsola.s
 001DA7r 2  CA               dex
 001DA8r 2  B5 00            lda $00,x
 001DAAr 2               
-001DAAr 2               @OPCODE_1034:   ; [c64_ir] LoadTemp
+001DAAr 2               @OPCODE_1034:   ; [c64_ir] TempLoad
 001DAAr 2  48               pha
 001DABr 2  98               tya
 001DACr 2  48               pha
@@ -8238,7 +8238,7 @@ Current file: paxconsola.s
 001E58r 2  A8               tay
 001E59r 2  68               pla
 001E5Ar 2               
-001E5Ar 2               @OPCODE_1059:   ; [c64_ir] StoreTemp
+001E5Ar 2               @OPCODE_1059:   ; [c64_ir] TempStore
 001E5Ar 2  85 95            sta TEMP_PAX1
 001E5Cr 2  84 96            sty TEMP_PAX2
 001E5Er 2  68               pla
@@ -8255,7 +8255,7 @@ Current file: paxconsola.s
 001E68r 2  CA               dex
 001E69r 2  B5 00            lda $00,x
 001E6Br 2               
-001E6Br 2               @OPCODE_1061:   ; [c64_ir] LoadTemp
+001E6Br 2               @OPCODE_1061:   ; [c64_ir] TempLoad
 001E6Br 2  48               pha
 001E6Cr 2  98               tya
 001E6Dr 2  48               pha
@@ -8579,14 +8579,14 @@ Current file: paxconsola.s
 001FA2r 2  A8               tay
 001FA3r 2  68               pla
 001FA4r 2               
-001FA4r 2               @OPCODE_1102:   ; [c64_ir] StoreTemp
+001FA4r 2               @OPCODE_1102:   ; [c64_ir] TempStore
 001FA4r 2  85 95            sta TEMP_PAX1
 001FA6r 2  84 96            sty TEMP_PAX2
 001FA8r 2  68               pla
 001FA9r 2  A8               tay
 001FAAr 2  68               pla
 001FABr 2               
-001FABr 2               @OPCODE_1103:   ; [c64_ir] LoadTemp
+001FABr 2               @OPCODE_1103:   ; [c64_ir] TempLoad
 001FABr 2  48               pha
 001FACr 2  98               tya
 001FADr 2  48               pha
@@ -8603,7 +8603,7 @@ Current file: paxconsola.s
 001FB9r 2  CA               dex
 001FBAr 2  B5 00            lda $00,x
 001FBCr 2               
-001FBCr 2               @OPCODE_1105:   ; [c64_ir] LoadTemp
+001FBCr 2               @OPCODE_1105:   ; [c64_ir] TempLoad
 001FBCr 2  48               pha
 001FBDr 2  98               tya
 001FBEr 2  48               pha
@@ -8655,14 +8655,14 @@ Current file: paxconsola.s
 001FE9r 2  A8               tay
 001FEAr 2  68               pla
 001FEBr 2               
-001FEBr 2               @OPCODE_1112:   ; [c64_ir] StoreTemp
+001FEBr 2               @OPCODE_1112:   ; [c64_ir] TempStore
 001FEBr 2  85 95            sta TEMP_PAX1
 001FEDr 2  84 96            sty TEMP_PAX2
 001FEFr 2  68               pla
 001FF0r 2  A8               tay
 001FF1r 2  68               pla
 001FF2r 2               
-001FF2r 2               @OPCODE_1113:   ; [c64_ir] LoadTemp
+001FF2r 2               @OPCODE_1113:   ; [c64_ir] TempLoad
 001FF2r 2  48               pha
 001FF3r 2  98               tya
 001FF4r 2  48               pha
@@ -8679,7 +8679,7 @@ Current file: paxconsola.s
 002000r 2  CA               dex
 002001r 2  B5 00            lda $00,x
 002003r 2               
-002003r 2               @OPCODE_1115:   ; [c64_ir] LoadTemp
+002003r 2               @OPCODE_1115:   ; [c64_ir] TempLoad
 002003r 2  48               pha
 002004r 2  98               tya
 002005r 2  48               pha
@@ -9033,7 +9033,7 @@ Current file: paxconsola.s
 002151r 2  A8               tay
 002152r 2  68               pla
 002153r 2               
-002153r 2               @OPCODE_1162:   ; [c64_ir] StoreTemp
+002153r 2               @OPCODE_1162:   ; [c64_ir] TempStore
 002153r 2  85 95            sta TEMP_PAX1
 002155r 2  84 96            sty TEMP_PAX2
 002157r 2  68               pla
@@ -9050,7 +9050,7 @@ Current file: paxconsola.s
 002161r 2  CA               dex
 002162r 2  B5 00            lda $00,x
 002164r 2               
-002164r 2               @OPCODE_1164:   ; [c64_ir] LoadTemp
+002164r 2               @OPCODE_1164:   ; [c64_ir] TempLoad
 002164r 2  48               pha
 002165r 2  98               tya
 002166r 2  48               pha
@@ -9394,14 +9394,14 @@ Current file: paxconsola.s
 0022AAr 2  CA               dex
 0022ABr 2  B5 00            lda $00,x
 0022ADr 2               
-0022ADr 2               @OPCODE_1208:   ; [c64_ir] StoreTemp
+0022ADr 2               @OPCODE_1208:   ; [c64_ir] TempStore
 0022ADr 2  85 95            sta TEMP_PAX1
 0022AFr 2  84 96            sty TEMP_PAX2
 0022B1r 2  68               pla
 0022B2r 2  A8               tay
 0022B3r 2  68               pla
 0022B4r 2               
-0022B4r 2               @OPCODE_1209:   ; [c64_ir] LoadTemp
+0022B4r 2               @OPCODE_1209:   ; [c64_ir] TempLoad
 0022B4r 2  48               pha
 0022B5r 2  98               tya
 0022B6r 2  48               pha
@@ -9438,7 +9438,7 @@ Current file: paxconsola.s
 0022D7r 2  A8               tay
 0022D8r 2  68               pla
 0022D9r 2               
-0022D9r 2               @OPCODE_1213:   ; [c64_ir] LoadTemp
+0022D9r 2               @OPCODE_1213:   ; [c64_ir] TempLoad
 0022D9r 2  48               pha
 0022DAr 2  98               tya
 0022DBr 2  48               pha
@@ -9668,14 +9668,14 @@ Current file: paxconsola.s
 0023B8r 2  CA               dex
 0023B9r 2  B5 00            lda $00,x
 0023BBr 2               
-0023BBr 2               @OPCODE_1242:   ; [c64_ir] StoreTemp
+0023BBr 2               @OPCODE_1242:   ; [c64_ir] TempStore
 0023BBr 2  85 95            sta TEMP_PAX1
 0023BDr 2  84 96            sty TEMP_PAX2
 0023BFr 2  68               pla
 0023C0r 2  A8               tay
 0023C1r 2  68               pla
 0023C2r 2               
-0023C2r 2               @OPCODE_1243:   ; [c64_ir] LoadTemp
+0023C2r 2               @OPCODE_1243:   ; [c64_ir] TempLoad
 0023C2r 2  48               pha
 0023C3r 2  98               tya
 0023C4r 2  48               pha
@@ -9712,7 +9712,7 @@ Current file: paxconsola.s
 0023E5r 2  A8               tay
 0023E6r 2  68               pla
 0023E7r 2               
-0023E7r 2               @OPCODE_1247:   ; [c64_ir] LoadTemp
+0023E7r 2               @OPCODE_1247:   ; [c64_ir] TempLoad
 0023E7r 2  48               pha
 0023E8r 2  98               tya
 0023E9r 2  48               pha
@@ -9794,21 +9794,21 @@ Current file: paxconsola.s
 00242Er 2               @OPCODE_1258:   ; [c64_ir] BranchTarget(193)
 00242Er 2               @target_193:
 00242Er 2               
-00242Er 2               @OPCODE_1259:   ; [c64_ir] StoreTemp
+00242Er 2               @OPCODE_1259:   ; [c64_ir] TempStore
 00242Er 2  85 95            sta TEMP_PAX1
 002430r 2  84 96            sty TEMP_PAX2
 002432r 2  68               pla
 002433r 2  A8               tay
 002434r 2  68               pla
 002435r 2               
-002435r 2               @OPCODE_1260:   ; [c64_ir] LoadTemp
+002435r 2               @OPCODE_1260:   ; [c64_ir] TempLoad
 002435r 2  48               pha
 002436r 2  98               tya
 002437r 2  48               pha
 002438r 2  A5 95            lda TEMP_PAX1
 00243Ar 2  A4 96            ldy TEMP_PAX2
 00243Cr 2               
-00243Cr 2               @OPCODE_1261:   ; [c64_ir] LoadTemp
+00243Cr 2               @OPCODE_1261:   ; [c64_ir] TempLoad
 00243Cr 2  48               pha
 00243Dr 2  98               tya
 00243Er 2  48               pha
@@ -9963,14 +9963,14 @@ Current file: paxconsola.s
 0024D9r 2  CA               dex
 0024DAr 2  B5 00            lda $00,x
 0024DCr 2               
-0024DCr 2               @OPCODE_1279:   ; [c64_ir] StoreTemp
+0024DCr 2               @OPCODE_1279:   ; [c64_ir] TempStore
 0024DCr 2  85 95            sta TEMP_PAX1
 0024DEr 2  84 96            sty TEMP_PAX2
 0024E0r 2  68               pla
 0024E1r 2  A8               tay
 0024E2r 2  68               pla
 0024E3r 2               
-0024E3r 2               @OPCODE_1280:   ; [c64_ir] LoadTemp
+0024E3r 2               @OPCODE_1280:   ; [c64_ir] TempLoad
 0024E3r 2  48               pha
 0024E4r 2  98               tya
 0024E5r 2  48               pha
@@ -10007,7 +10007,7 @@ Current file: paxconsola.s
 002506r 2  A8               tay
 002507r 2  68               pla
 002508r 2               
-002508r 2               @OPCODE_1284:   ; [c64_ir] LoadTemp
+002508r 2               @OPCODE_1284:   ; [c64_ir] TempLoad
 002508r 2  48               pha
 002509r 2  98               tya
 00250Ar 2  48               pha
@@ -10089,21 +10089,21 @@ Current file: paxconsola.s
 00254Fr 2               @OPCODE_1295:   ; [c64_ir] BranchTarget(197)
 00254Fr 2               @target_197:
 00254Fr 2               
-00254Fr 2               @OPCODE_1296:   ; [c64_ir] StoreTemp
+00254Fr 2               @OPCODE_1296:   ; [c64_ir] TempStore
 00254Fr 2  85 95            sta TEMP_PAX1
 002551r 2  84 96            sty TEMP_PAX2
 002553r 2  68               pla
 002554r 2  A8               tay
 002555r 2  68               pla
 002556r 2               
-002556r 2               @OPCODE_1297:   ; [c64_ir] LoadTemp
+002556r 2               @OPCODE_1297:   ; [c64_ir] TempLoad
 002556r 2  48               pha
 002557r 2  98               tya
 002558r 2  48               pha
 002559r 2  A5 95            lda TEMP_PAX1
 00255Br 2  A4 96            ldy TEMP_PAX2
 00255Dr 2               
-00255Dr 2               @OPCODE_1298:   ; [c64_ir] LoadTemp
+00255Dr 2               @OPCODE_1298:   ; [c64_ir] TempLoad
 00255Dr 2  48               pha
 00255Er 2  98               tya
 00255Fr 2  48               pha
@@ -10357,14 +10357,14 @@ Current file: paxconsola.s
 002659r 2  A8               tay
 00265Ar 2  68               pla
 00265Br 2               
-00265Br 2               @OPCODE_1329:   ; [c64_ir] StoreTemp
+00265Br 2               @OPCODE_1329:   ; [c64_ir] TempStore
 00265Br 2  85 95            sta TEMP_PAX1
 00265Dr 2  84 96            sty TEMP_PAX2
 00265Fr 2  68               pla
 002660r 2  A8               tay
 002661r 2  68               pla
 002662r 2               
-002662r 2               @OPCODE_1330:   ; [c64_ir] LoadTemp
+002662r 2               @OPCODE_1330:   ; [c64_ir] TempLoad
 002662r 2  48               pha
 002663r 2  98               tya
 002664r 2  48               pha
@@ -10381,7 +10381,7 @@ Current file: paxconsola.s
 002670r 2  CA               dex
 002671r 2  B5 00            lda $00,x
 002673r 2               
-002673r 2               @OPCODE_1332:   ; [c64_ir] LoadTemp
+002673r 2               @OPCODE_1332:   ; [c64_ir] TempLoad
 002673r 2  48               pha
 002674r 2  98               tya
 002675r 2  48               pha
@@ -10433,14 +10433,14 @@ Current file: paxconsola.s
 0026A0r 2  A8               tay
 0026A1r 2  68               pla
 0026A2r 2               
-0026A2r 2               @OPCODE_1339:   ; [c64_ir] StoreTemp
+0026A2r 2               @OPCODE_1339:   ; [c64_ir] TempStore
 0026A2r 2  85 95            sta TEMP_PAX1
 0026A4r 2  84 96            sty TEMP_PAX2
 0026A6r 2  68               pla
 0026A7r 2  A8               tay
 0026A8r 2  68               pla
 0026A9r 2               
-0026A9r 2               @OPCODE_1340:   ; [c64_ir] LoadTemp
+0026A9r 2               @OPCODE_1340:   ; [c64_ir] TempLoad
 0026A9r 2  48               pha
 0026AAr 2  98               tya
 0026ABr 2  48               pha
@@ -10457,7 +10457,7 @@ Current file: paxconsola.s
 0026B7r 2  CA               dex
 0026B8r 2  B5 00            lda $00,x
 0026BAr 2               
-0026BAr 2               @OPCODE_1342:   ; [c64_ir] LoadTemp
+0026BAr 2               @OPCODE_1342:   ; [c64_ir] TempLoad
 0026BAr 2  48               pha
 0026BBr 2  98               tya
 0026BCr 2  48               pha
@@ -10811,7 +10811,7 @@ Current file: paxconsola.s
 002808r 2  A8               tay
 002809r 2  68               pla
 00280Ar 2               
-00280Ar 2               @OPCODE_1389:   ; [c64_ir] StoreTemp
+00280Ar 2               @OPCODE_1389:   ; [c64_ir] TempStore
 00280Ar 2  85 95            sta TEMP_PAX1
 00280Cr 2  84 96            sty TEMP_PAX2
 00280Er 2  68               pla
@@ -10828,7 +10828,7 @@ Current file: paxconsola.s
 002818r 2  CA               dex
 002819r 2  B5 00            lda $00,x
 00281Br 2               
-00281Br 2               @OPCODE_1391:   ; [c64_ir] LoadTemp
+00281Br 2               @OPCODE_1391:   ; [c64_ir] TempLoad
 00281Br 2  48               pha
 00281Cr 2  98               tya
 00281Dr 2  48               pha
@@ -11176,7 +11176,7 @@ Current file: paxconsola.s
 00295Ar 2  A0 00            ldy #0
 00295Cr 2  A9 01            lda #1
 00295Er 2               
-00295Er 2               @OPCODE_1437:   ; [c64_ir] StoreTemp
+00295Er 2               @OPCODE_1437:   ; [c64_ir] TempStore
 00295Er 2  85 95            sta TEMP_PAX1
 002960r 2  84 96            sty TEMP_PAX2
 002962r 2  68               pla

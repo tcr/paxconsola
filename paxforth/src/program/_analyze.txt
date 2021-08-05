@@ -303,12 +303,12 @@ fn analyze_block(
                 analysis.push_data(block_analysis, reg);
             }
 
-            LoadTemp => {
+            TempLoad => {
                 let reg = analysis.temp_load(block_analysis);
                 analysis.push_data(block_analysis, reg);
             }
 
-            StoreTemp => {
+            TempStore => {
                 let reg = analysis.pop_data(block_analysis);
                 analysis.temp_store(block_analysis, reg);
             }

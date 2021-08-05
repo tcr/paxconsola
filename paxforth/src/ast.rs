@@ -17,17 +17,17 @@ pub enum Pax {
 
     AltPop,
     AltPush,
-    LoadTemp,
-    StoreTemp,
 
     // Metadata(String),
     Add,
     Nand,
 
     Load,
+    Store,
     Load8,
     Store8,
-    Store,
+    TempLoad,
+    TempStore,
 
     Print,
     Emit,

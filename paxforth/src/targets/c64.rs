@@ -116,7 +116,7 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
         ),
 
         // FIXME should implement real load16
-        Pax::LoadTemp => gb_output!(
+        Pax::TempLoad => gb_output!(
             out,
             "
     pha
@@ -127,7 +127,7 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
         "
         ),
         // FIXME should implement real store16
-        Pax::StoreTemp => gb_output!(
+        Pax::TempStore => gb_output!(
             out,
             "
     sta TEMP_PAX1

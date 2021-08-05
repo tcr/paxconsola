@@ -123,14 +123,14 @@ fn remove_dropped_regs(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             let opcode = &analyzed_opcode.0;
             let after_state = &analyzed_opcode.1;
             match &opcode.0 {
-                Pax::AltPush | Pax::Drop | Pax::StoreTemp => {
+                Pax::AltPush | Pax::Drop | Pax::TempStore => {
                     let reg: RegIndex = *before_state.data.iter().last().unwrap();
                     if reg_is_droppable.contains(&reg) {
                         // info!("   [{:?}] Skipping {:?}", opcode.0, reg);
                         skip_entry = true;
                     }
                 }
-                Pax::PushLiteral(_) | Pax::AltPop | Pax::LoadTemp | Pax::Add | Pax::Nand => {
+                Pax::PushLiteral(_) | Pax::AltPop | Pax::TempLoad | Pax::Add | Pax::Nand => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
                     if reg_is_droppable.contains(&reg) {
                         // info!("   [{:?}] Skipping {:?}", opcode.0, reg);
@@ -207,7 +207,7 @@ fn propagate_literals_forward(walker: &PaxAnalyzerWalker) -> Vec<Block> {
             let opcode = &analyzed_opcode.0;
             let after_state = &analyzed_opcode.1;
             match &opcode.0 {
-                Pax::LoadTemp => {
+                Pax::TempLoad => {
                     let reg: RegIndex = *after_state.data.iter().last().unwrap();
                     if let Some(literal) = reg_literal.get(&reg) {
                         info!("   [{:?}] PushLiteral {:?}", opcode.0, reg);
@@ -277,6 +277,7 @@ pub fn propagate_registers(program: &PaxProgram, name: &str) -> Vec<Block> {
     };
 
     let insr_count_after = instruction_count(&blocks);
+    // TODO write this to a file!!
     warn!(
         "Instruction count before: {} after: {}",
         insr_count_before, insr_count_after

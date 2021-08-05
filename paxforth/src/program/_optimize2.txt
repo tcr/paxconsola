@@ -59,7 +59,7 @@ fn propagate_literals_in_block(
                     // result_opcodes.insert(0, opcode.clone());
                 }
             }
-            Pax::StoreTemp => {
+            Pax::TempStore => {
                 // Blacklist previous temp value.
                 // if let Some(ref temp_reg) = stack.temp() {
                 //     reg_blacklist.insert(temp_reg.clone());
@@ -73,7 +73,7 @@ fn propagate_literals_in_block(
                     //     result_opcodes.insert(0, opcode.clone());
                 }
             }
-            Pax::LoadTemp => {
+            Pax::TempLoad => {
                 // let next_reg = stack.temp().as_ref().unwrap();
                 let reg = next_stack.data().last().unwrap();
 
