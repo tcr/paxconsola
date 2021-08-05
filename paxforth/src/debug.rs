@@ -40,8 +40,9 @@ enum DebugMode {
 pub fn read_line() -> Result<String> {
     let mut line = String::new();
     while let Event::Key(KeyEvent { code, .. }) = event::read()? {
+        eprintln!("what {:?}", code);
         match code {
-            KeyCode::Enter => {
+            KeyCode::Enter | KeyCode::Char('\r') => {
                 break;
             }
             KeyCode::Char(c) => {

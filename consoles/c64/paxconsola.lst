@@ -1,0 +1,1020 @@
+ca65 V2.18 - Git N/A
+Main file   : paxconsola.s
+Current file: paxconsola.s
+
+000000r 1               GFX = $0400
+000000r 1               
+000000r 1               ; Override Datasette ram
+000000r 1               TEMP = $92
+000000r 1               TEMP2 = $93
+000000r 1               TEMP3 = $94
+000000r 1               
+000000r 1               TEMP_PAX1 = $95
+000000r 1               TEMP_PAX2 = $96
+000000r 1               
+000000r 1               STACK_RESERVE = $97
+000000r 1               
+000000r 1               ; Can override all BASIC values
+000000r 1               ; https://csdb.dk/forums/index.php?roomid=11&topicid=3541&showallposts=1
+000000r 1               X_START = $02
+000000r 1               X_END = $7f
+000000r 1               
+000000r 1               .code
+000000r 1                   ; Make screen black and text white
+000000r 1  A9 00            lda #$00
+000002r 1  8D 20 D0         sta $d020
+000005r 1  8D 21 D0         sta $d021
+000008r 1  A9 01            lda #$01
+00000Ar 1  8D 86 02         sta $0286
+00000Dr 1               
+00000Dr 1                   ; Select charset
+00000Dr 1  A9 17            lda #23
+00000Fr 1  8D 18 D0         sta $d018
+000012r 1               
+000012r 1                   ; Clear the screen
+000012r 1  20 44 E5         jsr $e544
+000015r 1               
+000015r 1                   ; draw some helpful text
+000015r 1  20 rr rr         jsr draw_text
+000018r 1               
+000018r 1  A9 00            lda #00
+00001Ar 1  A2 7D            ldx #(X_END-X_START)
+00001Cr 1               ClearReturnStackLoop:
+00001Cr 1  95 02            sta X_START,x
+00001Er 1  CA               dex
+00001Fr 1  10 FB            bpl ClearReturnStackLoop
+000021r 1               
+000021r 1  A9 00            lda #$00
+000023r 1  A2 FF            ldx #$ff
+000025r 1               ClearMemoryLoop:
+000025r 1  9D 00 90         sta $9000,x
+000028r 1  CA               dex
+000029r 1  D0 FA            bne ClearMemoryLoop
+00002Br 1               
+00002Br 1               
+00002Br 1               before_mainloop:
+00002Br 1  EA               nop
+00002Cr 1               mainloop:
+00002Cr 1  AD 11 D0         lda $d011
+00002Fr 1  10 FB            bpl mainloop ; no: go to mainloop
+000031r 1               
+000031r 1               pax_start:
+000031r 1                   ; disable inerrupts
+000031r 1  78               sei
+000032r 1                   ; store stack pointer, since execution might not be clean
+000032r 1  BA               tsx
+000033r 1  86 97            stx STACK_RESERVE
+000035r 1               
+000035r 1                   ; Set up PAX registers for execution
+000035r 1                   ; X=return stack pointer, Y = high byte of TOS, A = low byte of TOS
+000035r 1  A2 02            ldx #X_START
+000037r 1  A9 00            lda #0
+000039r 1  A0 00            ldy #0
+00003Br 1               
+00003Br 1                   .include "generated.asm"
+00003Br 2               @target_0:
+00003Br 2               
+00003Br 2               @OPCODE_1:   ; [c64_ir] PushLiteral(64)
+00003Br 2  48               pha
+00003Cr 2  98               tya
+00003Dr 2  48               pha
+00003Er 2  A0 00            ldy #0
+000040r 2  A9 40            lda #64
+000042r 2               
+000042r 2               @OPCODE_2:   ; [c64_ir] PushLiteral(1024)
+000042r 2  48               pha
+000043r 2  98               tya
+000044r 2  48               pha
+000045r 2  A0 04            ldy #4
+000047r 2  A9 00            lda #0
+000049r 2               
+000049r 2               @OPCODE_3:   ; [c64_ir] Store8
+000049r 2  85 92            sta TEMP
+00004Br 2  84 93            sty TEMP2
+00004Dr 2  68               pla
+00004Er 2  68               pla
+00004Fr 2  A0 00            ldy #0
+000051r 2  91 92            sta (TEMP),y
+000053r 2  68               pla
+000054r 2  A8               tay
+000055r 2  68               pla
+000056r 2               
+000056r 2               @OPCODE_4:   ; [c64_ir] PushLiteral(280)
+000056r 2  48               pha
+000057r 2  98               tya
+000058r 2  48               pha
+000059r 2  A0 01            ldy #1
+00005Br 2  A9 18            lda #24
+00005Dr 2               
+00005Dr 2               @OPCODE_5:   ; [c64_ir] PushLiteral(22)
+00005Dr 2  48               pha
+00005Er 2  98               tya
+00005Fr 2  48               pha
+000060r 2  A0 00            ldy #0
+000062r 2  A9 16            lda #22
+000064r 2               
+000064r 2               @OPCODE_6:   ; [c64_ir] AltPush
+000064r 2  95 00            sta $00,x
+000066r 2  98               tya
+000067r 2  E8               inx
+000068r 2  95 00            sta $00,x
+00006Ar 2  E8               inx
+00006Br 2  68               pla
+00006Cr 2  A8               tay
+00006Dr 2  68               pla
+00006Er 2               
+00006Er 2               @OPCODE_7:   ; [c64_ir] AltPush
+00006Er 2  95 00            sta $00,x
+000070r 2  98               tya
+000071r 2  E8               inx
+000072r 2  95 00            sta $00,x
+000074r 2  E8               inx
+000075r 2  68               pla
+000076r 2  A8               tay
+000077r 2  68               pla
+000078r 2               
+000078r 2               @OPCODE_8:   ; [c64_ir] LoopTarget(0)
+000078r 2               
+000078r 2               @target_1:
+000078r 2               
+000078r 2               @OPCODE_10:   ; [c64_ir] PushLiteral(211)
+000078r 2  48               pha
+000079r 2  98               tya
+00007Ar 2  48               pha
+00007Br 2  A0 00            ldy #0
+00007Dr 2  A9 D3            lda #211
+00007Fr 2               
+00007Fr 2               @OPCODE_11:   ; [c64_ir] PushLiteral(1024)
+00007Fr 2  48               pha
+000080r 2  98               tya
+000081r 2  48               pha
+000082r 2  A0 04            ldy #4
+000084r 2  A9 00            lda #0
+000086r 2               
+000086r 2               @OPCODE_12:   ; [c64_ir] PushLiteral(7777)
+000086r 2  48               pha
+000087r 2  98               tya
+000088r 2  48               pha
+000089r 2  A0 1E            ldy #30
+00008Br 2  A9 61            lda #97
+00008Dr 2               
+00008Dr 2               @OPCODE_13:   ; [c64_ir] AltPush
+00008Dr 2  95 00            sta $00,x
+00008Fr 2  98               tya
+000090r 2  E8               inx
+000091r 2  95 00            sta $00,x
+000093r 2  E8               inx
+000094r 2  68               pla
+000095r 2  A8               tay
+000096r 2  68               pla
+000097r 2               
+000097r 2               @OPCODE_14:   ; [c64_ir] AltPop
+000097r 2  48               pha
+000098r 2  98               tya
+000099r 2  48               pha ; bump down TOS
+00009Ar 2  CA               dex
+00009Br 2  B5 00            lda $00,x
+00009Dr 2  A8               tay
+00009Er 2  CA               dex
+00009Fr 2  B5 00            lda $00,x
+0000A1r 2               
+0000A1r 2               @OPCODE_15:   ; [c64_ir] AltPop
+0000A1r 2  48               pha
+0000A2r 2  98               tya
+0000A3r 2  48               pha ; bump down TOS
+0000A4r 2  CA               dex
+0000A5r 2  B5 00            lda $00,x
+0000A7r 2  A8               tay
+0000A8r 2  CA               dex
+0000A9r 2  B5 00            lda $00,x
+0000ABr 2               
+0000ABr 2               @OPCODE_16:   ; [c64_ir] AltPop
+0000ABr 2  48               pha
+0000ACr 2  98               tya
+0000ADr 2  48               pha ; bump down TOS
+0000AEr 2  CA               dex
+0000AFr 2  B5 00            lda $00,x
+0000B1r 2  A8               tay
+0000B2r 2  CA               dex
+0000B3r 2  B5 00            lda $00,x
+0000B5r 2               
+0000B5r 2               @OPCODE_17:   ; [c64_ir] TempStore
+0000B5r 2  85 95            sta TEMP_PAX1
+0000B7r 2  84 96            sty TEMP_PAX2
+0000B9r 2  68               pla
+0000BAr 2  A8               tay
+0000BBr 2  68               pla
+0000BCr 2               
+0000BCr 2               @OPCODE_18:   ; [c64_ir] TempLoad
+0000BCr 2  48               pha
+0000BDr 2  98               tya
+0000BEr 2  48               pha
+0000BFr 2  A5 95            lda TEMP_PAX1
+0000C1r 2  A4 96            ldy TEMP_PAX2
+0000C3r 2               
+0000C3r 2               @OPCODE_19:   ; [c64_ir] AltPush
+0000C3r 2  95 00            sta $00,x
+0000C5r 2  98               tya
+0000C6r 2  E8               inx
+0000C7r 2  95 00            sta $00,x
+0000C9r 2  E8               inx
+0000CAr 2  68               pla
+0000CBr 2  A8               tay
+0000CCr 2  68               pla
+0000CDr 2               
+0000CDr 2               @OPCODE_20:   ; [c64_ir] AltPush
+0000CDr 2  95 00            sta $00,x
+0000CFr 2  98               tya
+0000D0r 2  E8               inx
+0000D1r 2  95 00            sta $00,x
+0000D3r 2  E8               inx
+0000D4r 2  68               pla
+0000D5r 2  A8               tay
+0000D6r 2  68               pla
+0000D7r 2               
+0000D7r 2               @OPCODE_21:   ; [c64_ir] AltPush
+0000D7r 2  95 00            sta $00,x
+0000D9r 2  98               tya
+0000DAr 2  E8               inx
+0000DBr 2  95 00            sta $00,x
+0000DDr 2  E8               inx
+0000DEr 2  68               pla
+0000DFr 2  A8               tay
+0000E0r 2  68               pla
+0000E1r 2               
+0000E1r 2               @OPCODE_22:   ; [c64_ir] TempLoad
+0000E1r 2  48               pha
+0000E2r 2  98               tya
+0000E3r 2  48               pha
+0000E4r 2  A5 95            lda TEMP_PAX1
+0000E6r 2  A4 96            ldy TEMP_PAX2
+0000E8r 2               
+0000E8r 2               @OPCODE_23:   ; [c64_ir] AltPop
+0000E8r 2  48               pha
+0000E9r 2  98               tya
+0000EAr 2  48               pha ; bump down TOS
+0000EBr 2  CA               dex
+0000ECr 2  B5 00            lda $00,x
+0000EEr 2  A8               tay
+0000EFr 2  CA               dex
+0000F0r 2  B5 00            lda $00,x
+0000F2r 2               
+0000F2r 2               @OPCODE_24:   ; [c64_ir] Drop
+0000F2r 2  68               pla
+0000F3r 2  A8               tay
+0000F4r 2  68               pla
+0000F5r 2               
+0000F5r 2               @OPCODE_25:   ; [c64_ir] Add
+0000F5r 2  18               clc
+0000F6r 2  85 92            sta TEMP
+0000F8r 2  84 93            sty TEMP2
+0000FAr 2  68               pla
+0000FBr 2  85 94            sta TEMP3
+0000FDr 2  68               pla
+0000FEr 2  65 92            adc TEMP
+000100r 2  85 92            sta TEMP
+000102r 2  A5 93            lda TEMP2
+000104r 2  65 94            adc TEMP3
+000106r 2  A8               tay
+000107r 2  A5 92            lda TEMP
+000109r 2               
+000109r 2               @OPCODE_26:   ; [c64_ir] Store8
+000109r 2  85 92            sta TEMP
+00010Br 2  84 93            sty TEMP2
+00010Dr 2  68               pla
+00010Er 2  68               pla
+00010Fr 2  A0 00            ldy #0
+000111r 2  91 92            sta (TEMP),y
+000113r 2  68               pla
+000114r 2  A8               tay
+000115r 2  68               pla
+000116r 2               
+000116r 2               @OPCODE_27:   ; [c64_ir] PushLiteral(7777)
+000116r 2  48               pha
+000117r 2  98               tya
+000118r 2  48               pha
+000119r 2  A0 1E            ldy #30
+00011Br 2  A9 61            lda #97
+00011Dr 2               
+00011Dr 2               @OPCODE_28:   ; [c64_ir] AltPush
+00011Dr 2  95 00            sta $00,x
+00011Fr 2  98               tya
+000120r 2  E8               inx
+000121r 2  95 00            sta $00,x
+000123r 2  E8               inx
+000124r 2  68               pla
+000125r 2  A8               tay
+000126r 2  68               pla
+000127r 2               
+000127r 2               @OPCODE_29:   ; [c64_ir] AltPop
+000127r 2  48               pha
+000128r 2  98               tya
+000129r 2  48               pha ; bump down TOS
+00012Ar 2  CA               dex
+00012Br 2  B5 00            lda $00,x
+00012Dr 2  A8               tay
+00012Er 2  CA               dex
+00012Fr 2  B5 00            lda $00,x
+000131r 2               
+000131r 2               @OPCODE_30:   ; [c64_ir] AltPop
+000131r 2  48               pha
+000132r 2  98               tya
+000133r 2  48               pha ; bump down TOS
+000134r 2  CA               dex
+000135r 2  B5 00            lda $00,x
+000137r 2  A8               tay
+000138r 2  CA               dex
+000139r 2  B5 00            lda $00,x
+00013Br 2               
+00013Br 2               @OPCODE_31:   ; [c64_ir] AltPop
+00013Br 2  48               pha
+00013Cr 2  98               tya
+00013Dr 2  48               pha ; bump down TOS
+00013Er 2  CA               dex
+00013Fr 2  B5 00            lda $00,x
+000141r 2  A8               tay
+000142r 2  CA               dex
+000143r 2  B5 00            lda $00,x
+000145r 2               
+000145r 2               @OPCODE_32:   ; [c64_ir] PushLiteral(7777)
+000145r 2  48               pha
+000146r 2  98               tya
+000147r 2  48               pha
+000148r 2  A0 1E            ldy #30
+00014Ar 2  A9 61            lda #97
+00014Cr 2               
+00014Cr 2               @OPCODE_33:   ; [c64_ir] AltPush
+00014Cr 2  95 00            sta $00,x
+00014Er 2  98               tya
+00014Fr 2  E8               inx
+000150r 2  95 00            sta $00,x
+000152r 2  E8               inx
+000153r 2  68               pla
+000154r 2  A8               tay
+000155r 2  68               pla
+000156r 2               
+000156r 2               @OPCODE_34:   ; [c64_ir] PushLiteral(1)
+000156r 2  48               pha
+000157r 2  98               tya
+000158r 2  48               pha
+000159r 2  A0 00            ldy #0
+00015Br 2  A9 01            lda #1
+00015Dr 2               
+00015Dr 2               @OPCODE_35:   ; [c64_ir] Add
+00015Dr 2  18               clc
+00015Er 2  85 92            sta TEMP
+000160r 2  84 93            sty TEMP2
+000162r 2  68               pla
+000163r 2  85 94            sta TEMP3
+000165r 2  68               pla
+000166r 2  65 92            adc TEMP
+000168r 2  85 92            sta TEMP
+00016Ar 2  A5 93            lda TEMP2
+00016Cr 2  65 94            adc TEMP3
+00016Er 2  A8               tay
+00016Fr 2  A5 92            lda TEMP
+000171r 2               
+000171r 2               @OPCODE_36:   ; [c64_ir] AltPop
+000171r 2  48               pha
+000172r 2  98               tya
+000173r 2  48               pha ; bump down TOS
+000174r 2  CA               dex
+000175r 2  B5 00            lda $00,x
+000177r 2  A8               tay
+000178r 2  CA               dex
+000179r 2  B5 00            lda $00,x
+00017Br 2               
+00017Br 2               @OPCODE_37:   ; [c64_ir] Drop
+00017Br 2  68               pla
+00017Cr 2  A8               tay
+00017Dr 2  68               pla
+00017Er 2               
+00017Er 2               @OPCODE_38:   ; [c64_ir] PushLiteral(7777)
+00017Er 2  48               pha
+00017Fr 2  98               tya
+000180r 2  48               pha
+000181r 2  A0 1E            ldy #30
+000183r 2  A9 61            lda #97
+000185r 2               
+000185r 2               @OPCODE_39:   ; [c64_ir] AltPush
+000185r 2  95 00            sta $00,x
+000187r 2  98               tya
+000188r 2  E8               inx
+000189r 2  95 00            sta $00,x
+00018Br 2  E8               inx
+00018Cr 2  68               pla
+00018Dr 2  A8               tay
+00018Er 2  68               pla
+00018Fr 2               
+00018Fr 2               @OPCODE_40:   ; [c64_ir] PushLiteral(7777)
+00018Fr 2  48               pha
+000190r 2  98               tya
+000191r 2  48               pha
+000192r 2  A0 1E            ldy #30
+000194r 2  A9 61            lda #97
+000196r 2               
+000196r 2               @OPCODE_41:   ; [c64_ir] AltPush
+000196r 2  95 00            sta $00,x
+000198r 2  98               tya
+000199r 2  E8               inx
+00019Ar 2  95 00            sta $00,x
+00019Cr 2  E8               inx
+00019Dr 2  68               pla
+00019Er 2  A8               tay
+00019Fr 2  68               pla
+0001A0r 2               
+0001A0r 2               @OPCODE_42:   ; [c64_ir] AltPush
+0001A0r 2  95 00            sta $00,x
+0001A2r 2  98               tya
+0001A3r 2  E8               inx
+0001A4r 2  95 00            sta $00,x
+0001A6r 2  E8               inx
+0001A7r 2  68               pla
+0001A8r 2  A8               tay
+0001A9r 2  68               pla
+0001AAr 2               
+0001AAr 2               @OPCODE_43:   ; [c64_ir] TempStore
+0001AAr 2  85 95            sta TEMP_PAX1
+0001ACr 2  84 96            sty TEMP_PAX2
+0001AEr 2  68               pla
+0001AFr 2  A8               tay
+0001B0r 2  68               pla
+0001B1r 2               
+0001B1r 2               @OPCODE_44:   ; [c64_ir] TempLoad
+0001B1r 2  48               pha
+0001B2r 2  98               tya
+0001B3r 2  48               pha
+0001B4r 2  A5 95            lda TEMP_PAX1
+0001B6r 2  A4 96            ldy TEMP_PAX2
+0001B8r 2               
+0001B8r 2               @OPCODE_45:   ; [c64_ir] AltPop
+0001B8r 2  48               pha
+0001B9r 2  98               tya
+0001BAr 2  48               pha ; bump down TOS
+0001BBr 2  CA               dex
+0001BCr 2  B5 00            lda $00,x
+0001BEr 2  A8               tay
+0001BFr 2  CA               dex
+0001C0r 2  B5 00            lda $00,x
+0001C2r 2               
+0001C2r 2               @OPCODE_46:   ; [c64_ir] TempLoad
+0001C2r 2  48               pha
+0001C3r 2  98               tya
+0001C4r 2  48               pha
+0001C5r 2  A5 95            lda TEMP_PAX1
+0001C7r 2  A4 96            ldy TEMP_PAX2
+0001C9r 2               
+0001C9r 2               @OPCODE_47:   ; [c64_ir] AltPop
+0001C9r 2  48               pha
+0001CAr 2  98               tya
+0001CBr 2  48               pha ; bump down TOS
+0001CCr 2  CA               dex
+0001CDr 2  B5 00            lda $00,x
+0001CFr 2  A8               tay
+0001D0r 2  CA               dex
+0001D1r 2  B5 00            lda $00,x
+0001D3r 2               
+0001D3r 2               @OPCODE_48:   ; [c64_ir] Drop
+0001D3r 2  68               pla
+0001D4r 2  A8               tay
+0001D5r 2  68               pla
+0001D6r 2               
+0001D6r 2               @OPCODE_49:   ; [c64_ir] PushLiteral(7777)
+0001D6r 2  48               pha
+0001D7r 2  98               tya
+0001D8r 2  48               pha
+0001D9r 2  A0 1E            ldy #30
+0001DBr 2  A9 61            lda #97
+0001DDr 2               
+0001DDr 2               @OPCODE_50:   ; [c64_ir] AltPush
+0001DDr 2  95 00            sta $00,x
+0001DFr 2  98               tya
+0001E0r 2  E8               inx
+0001E1r 2  95 00            sta $00,x
+0001E3r 2  E8               inx
+0001E4r 2  68               pla
+0001E5r 2  A8               tay
+0001E6r 2  68               pla
+0001E7r 2               
+0001E7r 2               @OPCODE_51:   ; [c64_ir] AltPush
+0001E7r 2  95 00            sta $00,x
+0001E9r 2  98               tya
+0001EAr 2  E8               inx
+0001EBr 2  95 00            sta $00,x
+0001EDr 2  E8               inx
+0001EEr 2  68               pla
+0001EFr 2  A8               tay
+0001F0r 2  68               pla
+0001F1r 2               
+0001F1r 2               @OPCODE_52:   ; [c64_ir] TempStore
+0001F1r 2  85 95            sta TEMP_PAX1
+0001F3r 2  84 96            sty TEMP_PAX2
+0001F5r 2  68               pla
+0001F6r 2  A8               tay
+0001F7r 2  68               pla
+0001F8r 2               
+0001F8r 2               @OPCODE_53:   ; [c64_ir] TempLoad
+0001F8r 2  48               pha
+0001F9r 2  98               tya
+0001FAr 2  48               pha
+0001FBr 2  A5 95            lda TEMP_PAX1
+0001FDr 2  A4 96            ldy TEMP_PAX2
+0001FFr 2               
+0001FFr 2               @OPCODE_54:   ; [c64_ir] AltPop
+0001FFr 2  48               pha
+000200r 2  98               tya
+000201r 2  48               pha ; bump down TOS
+000202r 2  CA               dex
+000203r 2  B5 00            lda $00,x
+000205r 2  A8               tay
+000206r 2  CA               dex
+000207r 2  B5 00            lda $00,x
+000209r 2               
+000209r 2               @OPCODE_55:   ; [c64_ir] TempLoad
+000209r 2  48               pha
+00020Ar 2  98               tya
+00020Br 2  48               pha
+00020Cr 2  A5 95            lda TEMP_PAX1
+00020Er 2  A4 96            ldy TEMP_PAX2
+000210r 2               
+000210r 2               @OPCODE_56:   ; [c64_ir] AltPop
+000210r 2  48               pha
+000211r 2  98               tya
+000212r 2  48               pha ; bump down TOS
+000213r 2  CA               dex
+000214r 2  B5 00            lda $00,x
+000216r 2  A8               tay
+000217r 2  CA               dex
+000218r 2  B5 00            lda $00,x
+00021Ar 2               
+00021Ar 2               @OPCODE_57:   ; [c64_ir] Drop
+00021Ar 2  68               pla
+00021Br 2  A8               tay
+00021Cr 2  68               pla
+00021Dr 2               
+00021Dr 2               @OPCODE_58:   ; [c64_ir] AltPop
+00021Dr 2  48               pha
+00021Er 2  98               tya
+00021Fr 2  48               pha ; bump down TOS
+000220r 2  CA               dex
+000221r 2  B5 00            lda $00,x
+000223r 2  A8               tay
+000224r 2  CA               dex
+000225r 2  B5 00            lda $00,x
+000227r 2               
+000227r 2               @OPCODE_59:   ; [c64_ir] Drop
+000227r 2  68               pla
+000228r 2  A8               tay
+000229r 2  68               pla
+00022Ar 2               
+00022Ar 2               @OPCODE_60:   ; [c64_ir] AltPush
+00022Ar 2  95 00            sta $00,x
+00022Cr 2  98               tya
+00022Dr 2  E8               inx
+00022Er 2  95 00            sta $00,x
+000230r 2  E8               inx
+000231r 2  68               pla
+000232r 2  A8               tay
+000233r 2  68               pla
+000234r 2               
+000234r 2               @OPCODE_61:   ; [c64_ir] AltPush
+000234r 2  95 00            sta $00,x
+000236r 2  98               tya
+000237r 2  E8               inx
+000238r 2  95 00            sta $00,x
+00023Ar 2  E8               inx
+00023Br 2  68               pla
+00023Cr 2  A8               tay
+00023Dr 2  68               pla
+00023Er 2               
+00023Er 2               @OPCODE_62:   ; [c64_ir] PushLiteral(7777)
+00023Er 2  48               pha
+00023Fr 2  98               tya
+000240r 2  48               pha
+000241r 2  A0 1E            ldy #30
+000243r 2  A9 61            lda #97
+000245r 2               
+000245r 2               @OPCODE_63:   ; [c64_ir] AltPush
+000245r 2  95 00            sta $00,x
+000247r 2  98               tya
+000248r 2  E8               inx
+000249r 2  95 00            sta $00,x
+00024Br 2  E8               inx
+00024Cr 2  68               pla
+00024Dr 2  A8               tay
+00024Er 2  68               pla
+00024Fr 2               
+00024Fr 2               @OPCODE_64:   ; [c64_ir] PushLiteral(7777)
+00024Fr 2  48               pha
+000250r 2  98               tya
+000251r 2  48               pha
+000252r 2  A0 1E            ldy #30
+000254r 2  A9 61            lda #97
+000256r 2               
+000256r 2               @OPCODE_65:   ; [c64_ir] AltPush
+000256r 2  95 00            sta $00,x
+000258r 2  98               tya
+000259r 2  E8               inx
+00025Ar 2  95 00            sta $00,x
+00025Cr 2  E8               inx
+00025Dr 2  68               pla
+00025Er 2  A8               tay
+00025Fr 2  68               pla
+000260r 2               
+000260r 2               @OPCODE_66:   ; [c64_ir] PushLiteral(7777)
+000260r 2  48               pha
+000261r 2  98               tya
+000262r 2  48               pha
+000263r 2  A0 1E            ldy #30
+000265r 2  A9 61            lda #97
+000267r 2               
+000267r 2               @OPCODE_67:   ; [c64_ir] AltPush
+000267r 2  95 00            sta $00,x
+000269r 2  98               tya
+00026Ar 2  E8               inx
+00026Br 2  95 00            sta $00,x
+00026Dr 2  E8               inx
+00026Er 2  68               pla
+00026Fr 2  A8               tay
+000270r 2  68               pla
+000271r 2               
+000271r 2               @OPCODE_68:   ; [c64_ir] PushLiteral(7777)
+000271r 2  48               pha
+000272r 2  98               tya
+000273r 2  48               pha
+000274r 2  A0 1E            ldy #30
+000276r 2  A9 61            lda #97
+000278r 2               
+000278r 2               @OPCODE_69:   ; [c64_ir] AltPush
+000278r 2  95 00            sta $00,x
+00027Ar 2  98               tya
+00027Br 2  E8               inx
+00027Cr 2  95 00            sta $00,x
+00027Er 2  E8               inx
+00027Fr 2  68               pla
+000280r 2  A8               tay
+000281r 2  68               pla
+000282r 2               
+000282r 2               @OPCODE_70:   ; [c64_ir] PushLiteral(-1)
+000282r 2  48               pha
+000283r 2  98               tya
+000284r 2  48               pha
+000285r 2  A0 FF            ldy #255
+000287r 2  A9 FF            lda #255
+000289r 2               
+000289r 2               @OPCODE_71:   ; [c64_ir] Nand
+000289r 2  84 92            sty TEMP
+00028Br 2  85 93            sta TEMP2
+00028Dr 2  68               pla
+00028Er 2  25 92            and TEMP
+000290r 2  49 FF            eor #$ff
+000292r 2  A8               tay
+000293r 2  68               pla
+000294r 2  25 93            and TEMP2
+000296r 2  49 FF            eor #$ff
+000298r 2               
+000298r 2               @OPCODE_72:   ; [c64_ir] AltPop
+000298r 2  48               pha
+000299r 2  98               tya
+00029Ar 2  48               pha ; bump down TOS
+00029Br 2  CA               dex
+00029Cr 2  B5 00            lda $00,x
+00029Er 2  A8               tay
+00029Fr 2  CA               dex
+0002A0r 2  B5 00            lda $00,x
+0002A2r 2               
+0002A2r 2               @OPCODE_73:   ; [c64_ir] Drop
+0002A2r 2  68               pla
+0002A3r 2  A8               tay
+0002A4r 2  68               pla
+0002A5r 2               
+0002A5r 2               @OPCODE_74:   ; [c64_ir] PushLiteral(1)
+0002A5r 2  48               pha
+0002A6r 2  98               tya
+0002A7r 2  48               pha
+0002A8r 2  A0 00            ldy #0
+0002AAr 2  A9 01            lda #1
+0002ACr 2               
+0002ACr 2               @OPCODE_75:   ; [c64_ir] Add
+0002ACr 2  18               clc
+0002ADr 2  85 92            sta TEMP
+0002AFr 2  84 93            sty TEMP2
+0002B1r 2  68               pla
+0002B2r 2  85 94            sta TEMP3
+0002B4r 2  68               pla
+0002B5r 2  65 92            adc TEMP
+0002B7r 2  85 92            sta TEMP
+0002B9r 2  A5 93            lda TEMP2
+0002BBr 2  65 94            adc TEMP3
+0002BDr 2  A8               tay
+0002BEr 2  A5 92            lda TEMP
+0002C0r 2               
+0002C0r 2               @OPCODE_76:   ; [c64_ir] AltPop
+0002C0r 2  48               pha
+0002C1r 2  98               tya
+0002C2r 2  48               pha ; bump down TOS
+0002C3r 2  CA               dex
+0002C4r 2  B5 00            lda $00,x
+0002C6r 2  A8               tay
+0002C7r 2  CA               dex
+0002C8r 2  B5 00            lda $00,x
+0002CAr 2               
+0002CAr 2               @OPCODE_77:   ; [c64_ir] Drop
+0002CAr 2  68               pla
+0002CBr 2  A8               tay
+0002CCr 2  68               pla
+0002CDr 2               
+0002CDr 2               @OPCODE_78:   ; [c64_ir] Add
+0002CDr 2  18               clc
+0002CEr 2  85 92            sta TEMP
+0002D0r 2  84 93            sty TEMP2
+0002D2r 2  68               pla
+0002D3r 2  85 94            sta TEMP3
+0002D5r 2  68               pla
+0002D6r 2  65 92            adc TEMP
+0002D8r 2  85 92            sta TEMP
+0002DAr 2  A5 93            lda TEMP2
+0002DCr 2  65 94            adc TEMP3
+0002DEr 2  A8               tay
+0002DFr 2  A5 92            lda TEMP
+0002E1r 2               
+0002E1r 2               @OPCODE_79:   ; [c64_ir] AltPop
+0002E1r 2  48               pha
+0002E2r 2  98               tya
+0002E3r 2  48               pha ; bump down TOS
+0002E4r 2  CA               dex
+0002E5r 2  B5 00            lda $00,x
+0002E7r 2  A8               tay
+0002E8r 2  CA               dex
+0002E9r 2  B5 00            lda $00,x
+0002EBr 2               
+0002EBr 2               @OPCODE_80:   ; [c64_ir] Drop
+0002EBr 2  68               pla
+0002ECr 2  A8               tay
+0002EDr 2  68               pla
+0002EEr 2               
+0002EEr 2               @OPCODE_81:   ; [c64_ir] PushLiteral(7777)
+0002EEr 2  48               pha
+0002EFr 2  98               tya
+0002F0r 2  48               pha
+0002F1r 2  A0 1E            ldy #30
+0002F3r 2  A9 61            lda #97
+0002F5r 2               
+0002F5r 2               @OPCODE_82:   ; [c64_ir] AltPush
+0002F5r 2  95 00            sta $00,x
+0002F7r 2  98               tya
+0002F8r 2  E8               inx
+0002F9r 2  95 00            sta $00,x
+0002FBr 2  E8               inx
+0002FCr 2  68               pla
+0002FDr 2  A8               tay
+0002FEr 2  68               pla
+0002FFr 2               
+0002FFr 2               @OPCODE_83:   ; [c64_ir] JumpIf0(3)
+0002FFr 2  85 92            sta TEMP
+000301r 2               
+000301r 2  68               pla
+000302r 2  A8               tay
+000303r 2  68               pla
+000304r 2               
+000304r 2  85 93            sta TEMP2
+000306r 2  A9 00            lda #0
+000308r 2  C5 92            cmp TEMP
+00030Ar 2  D0 05            bne *+7
+00030Cr 2  A5 93            lda TEMP2
+00030Er 2  4C rr rr         jmp @target_3
+000311r 2               
+000311r 2  A5 93            lda TEMP2
+000313r 2               
+000313r 2               @target_2:
+000313r 2               
+000313r 2               @OPCODE_85:   ; [c64_ir] PushLiteral(0)
+000313r 2  48               pha
+000314r 2  98               tya
+000315r 2  48               pha
+000316r 2  A0 00            ldy #0
+000318r 2  A9 00            lda #0
+00031Ar 2               
+00031Ar 2               @OPCODE_86:   ; [c64_ir] JumpElse(4)
+00031Ar 2  4C rr rr         jmp @target_4
+00031Dr 2               
+00031Dr 2               @target_3:
+00031Dr 2               
+00031Dr 2               @OPCODE_88:   ; [c64_ir] PushLiteral(-1)
+00031Dr 2  48               pha
+00031Er 2  98               tya
+00031Fr 2  48               pha
+000320r 2  A0 FF            ldy #255
+000322r 2  A9 FF            lda #255
+000324r 2               
+000324r 2               @OPCODE_89:   ; [c64_ir] JumpTarget(3)
+000324r 2               
+000324r 2               @target_4:
+000324r 2               
+000324r 2               @OPCODE_91:   ; [c64_ir] AltPop
+000324r 2  48               pha
+000325r 2  98               tya
+000326r 2  48               pha ; bump down TOS
+000327r 2  CA               dex
+000328r 2  B5 00            lda $00,x
+00032Ar 2  A8               tay
+00032Br 2  CA               dex
+00032Cr 2  B5 00            lda $00,x
+00032Er 2               
+00032Er 2               @OPCODE_92:   ; [c64_ir] Drop
+00032Er 2  68               pla
+00032Fr 2  A8               tay
+000330r 2  68               pla
+000331r 2               
+000331r 2               @OPCODE_93:   ; [c64_ir] AltPop
+000331r 2  48               pha
+000332r 2  98               tya
+000333r 2  48               pha ; bump down TOS
+000334r 2  CA               dex
+000335r 2  B5 00            lda $00,x
+000337r 2  A8               tay
+000338r 2  CA               dex
+000339r 2  B5 00            lda $00,x
+00033Br 2               
+00033Br 2               @OPCODE_94:   ; [c64_ir] Drop
+00033Br 2  68               pla
+00033Cr 2  A8               tay
+00033Dr 2  68               pla
+00033Er 2               
+00033Er 2               @OPCODE_95:   ; [c64_ir] PushLiteral(7777)
+00033Er 2  48               pha
+00033Fr 2  98               tya
+000340r 2  48               pha
+000341r 2  A0 1E            ldy #30
+000343r 2  A9 61            lda #97
+000345r 2               
+000345r 2               @OPCODE_96:   ; [c64_ir] AltPush
+000345r 2  95 00            sta $00,x
+000347r 2  98               tya
+000348r 2  E8               inx
+000349r 2  95 00            sta $00,x
+00034Br 2  E8               inx
+00034Cr 2  68               pla
+00034Dr 2  A8               tay
+00034Er 2  68               pla
+00034Fr 2               
+00034Fr 2               @OPCODE_97:   ; [c64_ir] AltPush
+00034Fr 2  95 00            sta $00,x
+000351r 2  98               tya
+000352r 2  E8               inx
+000353r 2  95 00            sta $00,x
+000355r 2  E8               inx
+000356r 2  68               pla
+000357r 2  A8               tay
+000358r 2  68               pla
+000359r 2               
+000359r 2               @OPCODE_98:   ; [c64_ir] TempStore
+000359r 2  85 95            sta TEMP_PAX1
+00035Br 2  84 96            sty TEMP_PAX2
+00035Dr 2  68               pla
+00035Er 2  A8               tay
+00035Fr 2  68               pla
+000360r 2               
+000360r 2               @OPCODE_99:   ; [c64_ir] AltPop
+000360r 2  48               pha
+000361r 2  98               tya
+000362r 2  48               pha ; bump down TOS
+000363r 2  CA               dex
+000364r 2  B5 00            lda $00,x
+000366r 2  A8               tay
+000367r 2  CA               dex
+000368r 2  B5 00            lda $00,x
+00036Ar 2               
+00036Ar 2               @OPCODE_100:   ; [c64_ir] TempLoad
+00036Ar 2  48               pha
+00036Br 2  98               tya
+00036Cr 2  48               pha
+00036Dr 2  A5 95            lda TEMP_PAX1
+00036Fr 2  A4 96            ldy TEMP_PAX2
+000371r 2               
+000371r 2               @OPCODE_101:   ; [c64_ir] AltPop
+000371r 2  48               pha
+000372r 2  98               tya
+000373r 2  48               pha ; bump down TOS
+000374r 2  CA               dex
+000375r 2  B5 00            lda $00,x
+000377r 2  A8               tay
+000378r 2  CA               dex
+000379r 2  B5 00            lda $00,x
+00037Br 2               
+00037Br 2               @OPCODE_102:   ; [c64_ir] Drop
+00037Br 2  68               pla
+00037Cr 2  A8               tay
+00037Dr 2  68               pla
+00037Er 2               
+00037Er 2               @OPCODE_103:   ; [c64_ir] AltPush
+00037Er 2  95 00            sta $00,x
+000380r 2  98               tya
+000381r 2  E8               inx
+000382r 2  95 00            sta $00,x
+000384r 2  E8               inx
+000385r 2  68               pla
+000386r 2  A8               tay
+000387r 2  68               pla
+000388r 2               
+000388r 2               @OPCODE_104:   ; [c64_ir] AltPop
+000388r 2  48               pha
+000389r 2  98               tya
+00038Ar 2  48               pha ; bump down TOS
+00038Br 2  CA               dex
+00038Cr 2  B5 00            lda $00,x
+00038Er 2  A8               tay
+00038Fr 2  CA               dex
+000390r 2  B5 00            lda $00,x
+000392r 2               
+000392r 2               @OPCODE_105:   ; [c64_ir] Drop
+000392r 2  68               pla
+000393r 2  A8               tay
+000394r 2  68               pla
+000395r 2               
+000395r 2               @OPCODE_106:   ; [c64_ir] LoopIf0(1)
+000395r 2  85 92            sta TEMP
+000397r 2               
+000397r 2  68               pla
+000398r 2  A8               tay
+000399r 2  68               pla
+00039Ar 2               
+00039Ar 2  85 93            sta TEMP2
+00039Cr 2  A9 00            lda #0
+00039Er 2  C5 92            cmp TEMP
+0003A0r 2  D0 05            bne *+7
+0003A2r 2  A5 93            lda TEMP2
+0003A4r 2  4C rr rr         jmp @target_1
+0003A7r 2               
+0003A7r 2  A5 93            lda TEMP2
+0003A9r 2               
+0003A9r 2               @target_5:
+0003A9r 2               
+0003A9r 2               @OPCODE_108:   ; [c64_ir] AltPop
+0003A9r 2  48               pha
+0003AAr 2  98               tya
+0003ABr 2  48               pha ; bump down TOS
+0003ACr 2  CA               dex
+0003ADr 2  B5 00            lda $00,x
+0003AFr 2  A8               tay
+0003B0r 2  CA               dex
+0003B1r 2  B5 00            lda $00,x
+0003B3r 2               
+0003B3r 2               @OPCODE_109:   ; [c64_ir] Drop
+0003B3r 2  68               pla
+0003B4r 2  A8               tay
+0003B5r 2  68               pla
+0003B6r 2               
+0003B6r 2               @OPCODE_110:   ; [c64_ir] AltPop
+0003B6r 2  48               pha
+0003B7r 2  98               tya
+0003B8r 2  48               pha ; bump down TOS
+0003B9r 2  CA               dex
+0003BAr 2  B5 00            lda $00,x
+0003BCr 2  A8               tay
+0003BDr 2  CA               dex
+0003BEr 2  B5 00            lda $00,x
+0003C0r 2               
+0003C0r 2               @OPCODE_111:   ; [c64_ir] Drop
+0003C0r 2  68               pla
+0003C1r 2  A8               tay
+0003C2r 2  68               pla
+0003C3r 2               
+0003C3r 2               @OPCODE_112:   ; [c64_ir] Exit
+0003C3r 2                   ;rts
+0003C3r 2               
+0003C3r 2               
+0003C3r 2               
+0003C3r 2               
+0003C3r 2               
+0003C3r 2               
+0003C3r 2               ; function start
+0003C3r 2               
+0003C3r 2               
+0003C3r 2               
+0003C3r 1               
+0003C3r 1                   ; restore stack
+0003C3r 1  A6 97            ldx STACK_RESERVE
+0003C5r 1  9A               txs
+0003C6r 1                   ; re-enable interrupts
+0003C6r 1  58               cli
+0003C7r 1               
+0003C7r 1               pax_finished:
+0003C7r 1  4C rr rr         jmp mainloop
+0003CAr 1               
+0003CAr 1               
+0003CAr 1               msg:
+0003CAr 1  20 20 20 20      .asciiz "              snake world!              "
+0003CEr 1  20 20 20 20  
+0003D2r 1  20 20 20 20  
+0003F3r 1               
+0003F3r 1               draw_text:
+0003F3r 1  A2 00            ldx #$00
+0003F5r 1               draw_loop:
+0003F5r 1  BD rr rr         lda msg,x
+0003F8r 1  9D 18 05         sta $0518,x
+0003FBr 1  E8               inx
+0003FCr 1  E0 28            cpx #$28
+0003FEr 1  D0 F5            bne draw_loop
+000400r 1  60               rts
+000400r 1               

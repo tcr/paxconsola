@@ -214,3 +214,17 @@ The terminator opcodes are:
 </tr>
 
 </table>
+
+
+## 6502 Target (C64)
+
+This target implements the following:
+
+* Y register is TOS (low byte)
+* A register is TOS (high byte)
+* X register is Return Stack pointer
+
+The stacks are as follows:
+
+* Data stack is stored on system stack (using pha/pla)
+* Return stack is stored in zero page (using lda $00,x)

@@ -116,9 +116,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     match args.cmd {
         Command::Compile { target, .. } => match target {
             Target::Commodore64 => {
-                let mut program = source_program.clone();
-                inline_into_function(&mut program, "main");
-                let result = C64ForthCompiler::compile(&program);
+                let result = C64ForthCompiler::compile(&source_program);
                 println!("{}", &result);
             }
             Target::Gameboy => {

@@ -45,18 +45,21 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
     pla
         "
         ),
-        Pax::PushLiteral(n) => gb_output!(
-            out,
-            "
+        Pax::PushLiteral(n) => {
+            let val = n as u16;
+            gb_output!(
+                out,
+                "
     pha
     tya
     pha
     ldy #{}
     lda #{}
         ",
-            ((n as u16) >> 8) & 0xFF,
-            (n as u8) & 0xFF,
-        ),
+                (val >> 8) & 0xFF,
+                (val as u8) & 0xFF,
+            )
+        }
         Pax::Add => gb_output!(
             out,
             "
@@ -198,7 +201,29 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
         ",
             target
         ),
-        PaxTerm::LoopLeave(target) | PaxTerm::LoopIf0(target) | PaxTerm::JumpIf0(target) => {
+        PaxTerm::LoopLeave(target) | PaxTerm::LoopIf0(target) => {
+            gb_output!(
+                out,
+                "
+    sta TEMP
+
+    pla
+    tay
+    pla
+
+    sta TEMP2
+    lda #0
+    cmp TEMP
+    bne *+7
+    lda TEMP2
+    jmp @target_{}
+
+    lda TEMP2
+        ",
+                target
+            )
+        }
+        PaxTerm::JumpIf0(target) => {
             gb_output!(
                 out,
                 "
@@ -221,13 +246,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
             )
         }
 
-        PaxTerm::LoopTarget(n) | PaxTerm::JumpTarget(n) => gb_output!(
-            out,
-            "
-@target_{}:
-        ",
-            n
-        ),
+        PaxTerm::LoopTarget(n) | PaxTerm::JumpTarget(n) => {}
 
         //         Pax::Metadata(s) => gb_output!(
         //             out,
@@ -277,7 +296,17 @@ impl ForthCompiler for C64ForthCompiler {
             }
 
             let mut result = vec![];
-            for (_i, block) in code.iter().enumerate() {
+            for (block_index, block) in code.iter().enumerate() {
+                let mut target_str = String::new();
+                gb_output!(
+                    target_str,
+                    "
+@target_{}:
+                ",
+                    block_index
+                );
+                result.push(target_str);
+
                 for (op, _pos) in block.opcodes() {
                     result.push(cross_compile_ir_c64(result.len(), op.to_owned()));
                 }
