@@ -5,4 +5,4 @@ $0400 constant graphics
 \ #1 tile at pos 0
 64 graphics c!
 
-280 22 do 211 graphics i + c! loop
+920 0 do 211 graphics i + c! loop

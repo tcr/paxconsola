@@ -16,21 +16,10 @@ const START_CODE: &str = r"$C020 constant last-key
 $C022 constant random-register
 $9800 constant graphics
 
-: random random-register @ 255 and swap % ;
-
-37 constant left
-38 constant up
-39 constant right
-40 constant down
-
-\ 30 constant width
-\ 20 constant height
-
-20 constant width
-18 constant height
-
 variable initialized
 variable frame \ unused
+
+: random random-register @ 255 and swap % ;
 
 variable snake-x-head
 500 cells allot
@@ -41,6 +30,18 @@ variable snake-y-head
 variable apple-x
 variable apple-y
 
+37 constant left
+38 constant up
+39 constant right
+40 constant down
+
+\ 30 constant width
+\ 20 constant height
+
+32 constant next-row
+20 constant width
+18 constant height
+
 variable direction
 variable length
 
@@ -50,23 +51,48 @@ variable length
 : snake-y ( offset -- address )
   cells snake-y-head + ;
 
-\ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  32 * + ;
+\ TODO should be multiplying next-row by `cells`
+: convert-x-y ( x y -- offset )  next-row * + ;
+: draw-index ( color index -- )  graphics + c! ;
 : draw ( color x y -- )  convert-x-y graphics + c! ;
 : draw-white ( x y -- )  0 rot rot draw ;
 : draw-black ( x y -- )  2 rot rot draw ;
 : draw-snake-tile ( x y -- )  3 rot rot draw ;
 : draw-apple-tile ( x y -- )  4 rot rot draw ;
 
+: draw-background ( -- )
+    0
+    height 0 do
+        width 0 do
+            0 over i + draw-index
+        loop
+        next-row +
+   loop
+   drop
+   ;
+
 : draw-walls
-  width 0 do
-    i 0 draw-black
-    i height 1 - draw-black
-  loop
-  height 0 do
-    0 i draw-black
-    width 1 - i draw-black
-  loop ;
+    \ Calculate end row
+    next-row height 1 - *
+    width 0 do
+        2 over i + draw-index
+    loop
+    drop
+    width 0 do
+        2 i draw-index
+    loop
+
+    width 1 -
+    height 0 do
+        2 over draw-index
+        next-row +
+    loop
+    0
+    height 0 do
+        2 over draw-index
+        next-row +
+    loop
+    ;
 
 : initialize-snake
   4 length !
@@ -81,11 +107,7 @@ variable length
 : initialize-apple  8 13 set-apple-position ;
 
 : initialize
-  width 0 do
-    height 0 do
-      j i draw-white
-    loop
-  loop
+  draw-background
   draw-walls
   initialize-snake
   initialize-apple ;

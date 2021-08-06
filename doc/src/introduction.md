@@ -226,5 +226,16 @@ This target implements the following:
 
 The stacks are as follows:
 
-* Data stack is stored on system stack (using pha/pla)
+* Data stack is stored using processor stack (using pha/pla)
+  * This allows fast access via dedicated opcodes
 * Return stack is stored in zero page (using lda $00,x)
+
+
+## Optimization
+
+* Function inlining (global setting)
+* Discard unused stack values
+* Inline constants / propagate stack values
+* Per-target function implementations (TODO)
+* Per-target peephole optimizations (TODO)
+* Indexing into stack (TODO)

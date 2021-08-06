@@ -26,17 +26,19 @@ macro_rules! gb_output {
     );
 }
 
-pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
+pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     let mut out = String::new();
     gb_output!(
         out,
         "
+; {}
 @OPCODE_{}:   ; [c64_ir] {:?}
         ",
+        op.1,
         i,
-        op
+        op.0,
     );
-    match op {
+    match op.0 {
         Pax::Drop => gb_output!(
             out,
             "
@@ -183,17 +185,19 @@ pub fn cross_compile_ir_c64(i: usize, op: Pax) -> String {
     out
 }
 
-pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
+pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
     let mut out = String::new();
     gb_output!(
         out,
         "
+; {}
 @OPCODE_{}:   ; [c64_ir] {:?}
         ",
+        op.1,
         i,
-        op
+        op.0
     );
-    match op {
+    match op.0 {
         PaxTerm::JumpElse(target) => gb_output!(
             out,
             "
@@ -227,6 +231,9 @@ pub fn cross_compile_ir_term_c64(i: usize, op: PaxTerm) -> String {
             gb_output!(
                 out,
                 "
+    sta TEMP
+    tya
+    ora TEMP
     sta TEMP
 
     pla
@@ -307,14 +314,11 @@ impl ForthCompiler for C64ForthCompiler {
                 );
                 result.push(target_str);
 
-                for (op, _pos) in block.opcodes() {
-                    result.push(cross_compile_ir_c64(result.len(), op.to_owned()));
+                for op in block.opcodes() {
+                    result.push(cross_compile_ir_c64(result.len(), op.clone()));
                 }
                 let terminator = block.terminator();
-                result.push(cross_compile_ir_term_c64(
-                    result.len(),
-                    terminator.0.to_owned(),
-                ));
+                result.push(cross_compile_ir_term_c64(result.len(), terminator.clone()));
             }
 
             out.push_str(&result.join("\n"));
