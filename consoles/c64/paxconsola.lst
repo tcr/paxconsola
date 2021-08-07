@@ -4,6 +4,12 @@ Current file: paxconsola.s
 
 000000r 1               GFX = $0400
 000000r 1               
+000000r 1               ;helpful labels
+000000r 1               ; https://gist.github.com/biomood/1001256
+000000r 1               CLEAR = $E544
+000000r 1               GETIN  =  $FFE4
+000000r 1               SCNKEY =  $FF9F
+000000r 1               
 000000r 1               ; Override Datasette ram
 000000r 1               TEMP = $92
 000000r 1               TEMP2 = $93
@@ -17144,22 +17150,68 @@ Current file: paxconsola.s
 00402Fr 1                   ; re-enable interrupts
 00402Fr 1  58               cli
 004030r 1               
-004030r 1               pax_finished:
-004030r 1  4C rr rr         jmp mainloop
-004033r 1               
-004033r 1               
-004033r 1               msg:
-004033r 1  20 20 20 20      .asciiz "              snake world!              "
-004037r 1  20 20 20 20  
-00403Br 1  20 20 20 20  
-00405Cr 1               
-00405Cr 1               draw_text:
-00405Cr 1  A2 00            ldx #$00
-00405Er 1               draw_loop:
-00405Er 1  BD rr rr         lda msg,x
-004061r 1  9D 18 05         sta $0518,x
-004064r 1  E8               inx
-004065r 1  E0 28            cpx #$28
-004067r 1  D0 F5            bne draw_loop
-004069r 1  60               rts
+004030r 1               
+004030r 1  20 9F FF         JSR SCNKEY      ;SCAN KEYBOARD
+004033r 1  20 E4 FF         JSR GETIN       ;GET CHARACTER
+004036r 1  C9 00            CMP #0          ;IS IT NULL?
+004038r 1  F0 2F            BEQ pax_finished  ;no? skip
+00403Ar 1               
+00403Ar 1               
+00403Ar 1               START	:
+00403Ar 1  C9 57            CMP #87		;W - up
+00403Cr 1  F0 0F            BEQ UP
+00403Er 1               
+00403Er 1  C9 53            CMP #83		;S - down
+004040r 1  F0 12            BEQ DOWN
+004042r 1               
+004042r 1  C9 41            CMP #65		;A - left
+004044r 1  F0 15            BEQ LEFT
+004046r 1               
+004046r 1  C9 44            CMP #68		;D - right
+004048r 1  F0 18            BEQ RIGHT
+00404Ar 1               
+00404Ar 1                   ;CMP ENTER	;end if enter clicked
+00404Ar 1                   ;BEQ END
+00404Ar 1               
+00404Ar 1  4C rr rr         JMP pax_finished
+00404Dr 1               
+00404Dr 1               UP:
+00404Dr 1  A9 26            LDA #38
+00404Fr 1  85 7E            STA $7e
+004051r 1  4C rr rr         JMP pax_finished
+004054r 1               
+004054r 1               DOWN:
+004054r 1  A9 28            LDA #40
+004056r 1  85 7E            STA $7e
+004058r 1  4C rr rr         JMP pax_finished
+00405Br 1               
+00405Br 1               LEFT:
+00405Br 1  A9 25            LDA #37
+00405Dr 1  85 7E            STA $7e
+00405Fr 1  4C rr rr         JMP pax_finished
+004062r 1               
+004062r 1               RIGHT:
+004062r 1  A9 27            LDA #39
+004064r 1  85 7E            STA $7e
+004066r 1  4C rr rr         JMP pax_finished
 004069r 1               
+004069r 1               
+004069r 1               pax_finished:
+004069r 1  4C rr rr         jmp mainloop
+00406Cr 1               
+00406Cr 1               
+00406Cr 1               msg:
+00406Cr 1  20 20 20 20      .asciiz "              snake world!              "
+004070r 1  20 20 20 20  
+004074r 1  20 20 20 20  
+004095r 1               
+004095r 1               draw_text:
+004095r 1  A2 00            ldx #$00
+004097r 1               draw_loop:
+004097r 1  BD rr rr         lda msg,x
+00409Ar 1  9D 18 05         sta $0518,x
+00409Dr 1  E8               inx
+00409Er 1  E0 28            cpx #$28
+0040A0r 1  D0 F5            bne draw_loop
+0040A2r 1  60               rts
+0040A2r 1               

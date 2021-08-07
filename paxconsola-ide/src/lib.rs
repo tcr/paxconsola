@@ -2,11 +2,14 @@
 
 use include_dir::*;
 use indexmap::IndexMap;
+use paxforth::program::*;
+use paxforth::runner::wasm::run_wasm_with_memory;
 use paxforth::*;
 use serde::*;
 use stdweb;
 use stdweb::js;
 use yew::services::interval::*;
+use yew::virtual_dom::VNode;
 use yew::worker::*;
 use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
 
@@ -392,7 +395,7 @@ impl Component for App {
                         run_wasm_with_memory(&wasm, &self.mem);
                         stdweb::console!(log, "first frame done.");
 
-                        self.wasm = Some(wasm);
+                        self.wasm = Some(wasm.to_vec());
 
                         js! {
                             setTimeout(() => document.querySelector("#WASM_CANVAS").focus(), 1000);
@@ -612,12 +615,14 @@ impl Component for App {
                                     .into_iter()
                                     .map(|y| html! { <div>{format!("    {:?}", y.0)}</div> })
                                     .collect::<Vec<_>>(),
-                                html! { <div>{format!("    {:?}", b.terminator().0)}</div> },
+                                vec![
+                                    html! { <div>{format!("    {:?}", b.terminator().0)}</div> },
+                                ],
                             ]
                             .concat()
                         })
                         .flatten()
-                        .collect::<Vec<_>>(),
+                        .collect::<Vec<VNode>>(),
                 ]
                 .concat()
             })

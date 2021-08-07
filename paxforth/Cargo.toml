@@ -10,6 +10,7 @@ num-traits = "0.2"
 num-derive = "0.3"
 glob = "*"
 rand = "*"
+getrandom = { version = "0.2", features = ["js"]}
 structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
 lazy_static = "1.4.0"
@@ -24,7 +25,7 @@ derive_more = "0.99.5"
 anyhow = "1.0.28"
 snailquote = "0.3"
 take_mut = "0.2.2"
-crossterm = "0.20"
+crossterm = "*"
 
 # logging
 log = "0.4.0"

@@ -233,9 +233,29 @@ The stacks are as follows:
 
 ## Optimization
 
+Pre-cross compilation:
+
 * Function inlining (global setting)
 * Discard unused stack values
 * Inline constants / propagate stack values
+
+Post-cross compilation
+
 * Per-target function implementations (TODO)
 * Per-target peephole optimizations (TODO)
 * Indexing into stack (TODO)
+* 8-bit value culling
+
+TODO: Can a target be redirected between stack OR zero page, to migrate C64 instructions over?
+
+TODO: Can a target debugger be used to test a "test" program? In all configurations? Can this
+be a mega CI test? Or a local bisect test?
+
+## Example Game: Snake
+
+Snake is a perfect example game because it can run in-memory even when all functions are inlined,
+but all optimizations are turned off. This can result in a binary too large to run on some systems.
+Meanwhile, the game is still easy to customize as a starter game.
+
+It also is based directly on easyforth.com which has a great tutorial for getting introduced to 
+Forth.

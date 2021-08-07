@@ -1,5 +1,5 @@
-al 004877 .__BSS_LOAD__
-al 004877 .__BSS_RUN__
+al 0048B0 .__BSS_LOAD__
+al 0048B0 .__BSS_RUN__
 al 000000 .__BSS_SIZE__
 al 000001 .__EXEHDR__
 al 000001 .__LOADADDR__
@@ -7,9 +7,14 @@ al 000000 .__ZP_FILEOFFS__
 al 000002 .__ZP_LAST__
 al 0000FE .__ZP_SIZE__
 al 000002 .__ZP_START__
-al 00486B .draw_loop
-al 004840 .msg
-al 00483D .pax_finished
+al 0048A4 .draw_loop
+al 004879 .msg
+al 00486F .RIGHT
+al 004868 .LEFT
+al 004861 .DOWN
+al 00485A .UP
+al 004847 .START
+al 004876 .pax_finished
 al 004839 .@OPCODE_1910
 al 004839 .@OPCODE_1908
 al 00482C .@OPCODE_1907
@@ -1926,4 +1931,4 @@ al 000839 .mainloop
 al 000838 .before_mainloop
 al 000832 .ClearMemoryLoop
 al 000829 .ClearReturnStackLoop
-al 004869 .draw_text
+al 0048A2 .draw_text
