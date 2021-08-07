@@ -27,6 +27,10 @@ macro_rules! gb_output {
 }
 
 pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
+    // Whether the data stack should live in zero-page, and the return stack should live in
+    // stack memory. This changes code verbosity and CPU time.
+    let switch_stacks = false;
+
     let mut out = String::new();
     gb_output!(
         out,
@@ -65,6 +69,18 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
         Pax::Add => gb_output!(
             out,
             "
+    ; 21
+    clc
+    dex
+    dex
+    adc $02,x 
+    sta TEMP
+    tya
+    adc $03,x
+    tay
+    lda TEMP
+
+    ; 36
     clc
     sta TEMP
     sty TEMP2
@@ -79,9 +95,30 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     lda TEMP
         "
         ),
-        Pax::Nand => gb_output!(
-            out,
+        Pax::Nand => {
+            if switch_stacks {
+                gb_output!(
+                    out,
+                    "
+    ; 26
+    dex
+    dex
+    and $02,x
+    eor #$ff
+    sta TEMP
+    tya
+    and $03,x
+    eor #$ff
+    tay
+    lda TEMP
+
             "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
+    ; 27
     sty TEMP
     sta TEMP2
     pla
@@ -92,7 +129,9 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     and TEMP2
     eor #$ff
         "
-        ),
+                )
+            }
+        }
         Pax::AltPop => gb_output!(
             out,
             "
@@ -100,8 +139,7 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     tya
     pha ; bump down TOS
     dex
-    lda $00,x
-    tay
+    ldy $00,x
     dex
     lda $00,x
         "
@@ -110,9 +148,8 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
             out,
             "
     sta $00,x
-    tya
     inx
-    sta $00,x
+    sty $00,x
     inx
     pla
     tay

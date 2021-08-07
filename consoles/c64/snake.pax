@@ -99,11 +99,19 @@ variable length
 
 : initialize-apple  8 13 set-apple-position ;
 
+: draw-full-snake
+  length @ 0 do
+    i snake-x @ i snake-y @ draw-snake-tile
+  loop
+  ;
+
 : initialize
   draw-background
   draw-walls
   initialize-snake
-  initialize-apple ;
+  initialize-apple
+  draw-full-snake
+  ;
 
 
 \ game runtime
@@ -183,10 +191,8 @@ variable length
   \ leave boolean flag on stack
   color-white = ;
 
-: draw-snake
-  length @ 0 do
-    i snake-x @ i snake-y @ draw-snake-tile
-  loop
+: draw-snake-head-tail
+  0 snake-x @ 0 snake-y @ draw-snake-tile
   length @ snake-x @
   length @ snake-y @
   draw-white ;
@@ -200,11 +206,12 @@ initialized @ 0= if initialize then
 1 initialized !
 
 \ Game loop
-draw-snake
+draw-snake-head-tail
 draw-apple
 check-input
 move-snake-tail
 move-snake-head
 check-apple
+
 check-collision
 if else 0 initialized ! then

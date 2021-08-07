@@ -82,6 +82,9 @@ pax_start:
     cli
 
 
+    LDA #5
+    STA $7f
+
     JSR SCNKEY      ;SCAN KEYBOARD
     JSR GETIN       ;GET CHARACTER
     CMP #0          ;IS IT NULL?
