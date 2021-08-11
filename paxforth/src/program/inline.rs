@@ -1,5 +1,9 @@
 use crate::*;
 
+/**
+ * When a function is inlined, we need a magic value to replace the function ptr we would otherwise
+ * be calling. The magic literal for this should be recognizable.
+ */
 const INLINED_FN_PTR: PaxLiteral = 7777;
 
 pub fn inline_into_function(program: &mut PaxProgram, method: &str) {

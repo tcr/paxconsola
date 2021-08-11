@@ -23,11 +23,6 @@ struct Args {
 
 #[derive(StructOpt, Debug)]
 enum Command {
-    Inlineup {
-        #[structopt(flatten)]
-        file: FileOpts,
-    },
-
     Compile {
         #[structopt(flatten)]
         file: FileOpts,
@@ -164,43 +159,6 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             if !debug_program(&code, &source_program) {
                 std::process::exit(1);
             }
-        }
-
-        Command::Inlineup { .. } => {
-            let fns = source_program.keys().collect::<Vec<_>>();
-
-            for name in fns.iter() {
-                // for name in vec!["myloopimpl"] {
-                if *name == "main" || *name == "*" {
-                    continue;
-                }
-
-                let mut program = source_program.clone();
-
-                // let name = "drop";
-                println!("[inlining] fn {:?}", name);
-
-                inline_into_function(&mut program, name);
-                // optimize_function(&mut program, name);
-
-                // eprintln!("----------> WHAT");
-                // dump_blocks(program.get("main").unwrap());
-
-                inline_into_function(&mut program, "main");
-
-                // FIXME allow optimization in main after independent optimization!
-                // optimize_function(&mut program, "main");
-
-                let wat = WasmForthCompiler::compile(&program);
-
-                // Run as WASM.
-                let wasm = wat::parse_str(&wat).unwrap();
-                run_wasm(&wasm, false).unwrap();
-                // break;
-                println!();
-            }
-
-            println!("\ndone.");
         }
     }
 
