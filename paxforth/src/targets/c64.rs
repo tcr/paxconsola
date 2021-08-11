@@ -26,11 +26,11 @@ macro_rules! gb_output {
     );
 }
 
-pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
-    // Whether the data stack should live in zero-page, and the return stack should live in
-    // stack memory. This changes code verbosity and CPU time.
-    let switch_stacks = false;
+// Whether the data stack should live in zero-page, and the return stack should live in
+// stack memory. This changes code verbosity and CPU time.
+const DATA_STACK_IN_ZERO_PAGE: bool = true;
 
+pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     let mut out = String::new();
     gb_output!(
         out,
@@ -43,43 +43,78 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
         op.0,
     );
     match op.0 {
-        Pax::Drop => gb_output!(
-            out,
-            "
+        Pax::Drop => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    dex
+    dex
+            ",
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     pla
     tay
     pla
-        "
-        ),
+            "
+                )
+            }
+        }
         Pax::PushLiteral(n) => {
             let val = n as u16;
-            gb_output!(
-                out,
-                "
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    inx
+    inx
+    lda #{}
+    sta $00,x
+    lda #{}
+    sta $01,x
+            ",
+                    (val as u8) & 0xFF,
+                    (val >> 8) & 0xFF,
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     pha
     tya
     pha
     ldy #{}
     lda #{}
-        ",
-                (val >> 8) & 0xFF,
-                (val as u8) & 0xFF,
-            )
+            ",
+                    (val >> 8) & 0xFF,
+                    (val as u8) & 0xFF,
+                )
+            }
         }
-        Pax::Add => gb_output!(
-            out,
-            "
+        Pax::Add => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
     ; 21
+    dex
+    dex
     clc
-    dex
-    dex
+    lda $00,x
     adc $02,x 
-    sta TEMP
-    tya
+    sta $00,x
+    lda $01,x
     adc $03,x
-    tay
-    lda TEMP
-
+    sta $01,x
+                    "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     ; 36
     clc
     sta TEMP
@@ -94,23 +129,25 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     tay
     lda TEMP
         "
-        ),
+                )
+            }
+        }
         Pax::Nand => {
-            if switch_stacks {
+            if DATA_STACK_IN_ZERO_PAGE {
                 gb_output!(
                     out,
                     "
     ; 26
     dex
     dex
+    lda $00,x
     and $02,x
     eor #$ff
-    sta TEMP
-    tya
+    sta $00,x
+    lda $01,x
     and $03,x
     eor #$ff
-    tay
-    lda TEMP
+    sta $01,x
 
             "
                 )
@@ -132,9 +169,23 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
                 )
             }
         }
-        Pax::AltPop => gb_output!(
-            out,
-            "
+        Pax::AltPop => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    inx
+    inx
+    pla
+    sta $00,x
+    pla
+    sta $01,x
+        "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     pha
     tya
     pha ; bump down TOS
@@ -143,10 +194,26 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     dex
     lda $00,x
         "
-        ),
-        Pax::AltPush => gb_output!(
-            out,
-            "
+                )
+            }
+        }
+        Pax::AltPush => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    dex
+    dex
+    lda $03,x
+    pha
+    lda $02,x
+    pha
+                    "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     sta $00,x
     inx
     sty $00,x
@@ -154,46 +221,109 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     pla
     tay
     pla
-        "
-        ),
+                    "
+                )
+            }
+        }
 
         // FIXME should implement real load16
-        Pax::TempLoad => gb_output!(
-            out,
-            "
+        Pax::TempLoad => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    inx
+    inx
+    lda TEMP_PAX1
+    sta $00,x
+    lda TEMP_PAX2
+    sta $01,x
+                    "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     pha
     tya
     pha
     lda TEMP_PAX1
     ldy TEMP_PAX2
-        "
-        ),
+                    "
+                )
+            }
+        }
         // FIXME should implement real store16
-        Pax::TempStore => gb_output!(
-            out,
-            "
+        Pax::TempStore => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    dex
+    dex
+    lda $03,x
+    sta TEMP_PAX2
+    lda $02,x
+    sta TEMP_PAX1
+                    "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     sta TEMP_PAX1
     sty TEMP_PAX2
     pla
     tay
     pla
-        "
-        ),
+                    "
+                )
+            }
+        }
 
         // FIXME should implement real load16
-        Pax::Load | Pax::Load8 => gb_output!(
-            out,
-            "
+        Pax::Load | Pax::Load8 => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    lda ($00,x)
+    sta $00,x
+    lda #0
+    sta $01,x
+                    "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     sta TEMP
     sty TEMP2
     ldy #0
     lda (TEMP),y
-        "
-        ),
+                    "
+                )
+            }
+        }
         // FIXME should implement real store16
-        Pax::Store | Pax::Store8 => gb_output!(
-            out,
-            "
+        Pax::Store | Pax::Store8 => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    dex
+    dex
+    dex
+    dex
+    lda $02,x
+    sta ($04,x)
+    ; TODO high byte
+                    "
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     sta TEMP
     sty TEMP2
     pla
@@ -203,18 +333,11 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
     pla
     tay
     pla
-        "
-        ),
+                    "
+                )
+            }
+        }
 
-        //         Pax::Metadata(s) => gb_output!(
-        //             out,
-        //             "
-        //     ; [metadata] {:?}
-        // PAX_FN_{}:
-        //         ",
-        //             s,
-        //             name_slug(&s)
-        //         ),
         e => {
             unimplemented!("e {:?}", e);
         }
@@ -235,17 +358,33 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
         op.0
     );
     match op.0 {
-        PaxTerm::JumpElse(target) => gb_output!(
-            out,
-            "
-    jmp @target_{}
-        ",
-            target
-        ),
-        PaxTerm::LoopLeave(target) | PaxTerm::LoopIf0(target) => {
+        PaxTerm::LoopLeave(target) | PaxTerm::JumpElse(target) => {
             gb_output!(
                 out,
                 "
+    jmp @target_{}
+            ",
+                target
+            )
+        }
+        PaxTerm::LoopIf0(target) => {
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    dex
+    dex
+    lda $02,x
+    ora $03,x
+    bne *+5
+    jmp @target_{}
+                    ",
+                    target
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     sta TEMP
 
     pla
@@ -260,14 +399,29 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
     jmp @target_{}
 
     lda TEMP2
-        ",
-                target
-            )
+                    ",
+                    target
+                )
+            }
         }
         PaxTerm::JumpIf0(target) => {
-            gb_output!(
-                out,
-                "
+            if DATA_STACK_IN_ZERO_PAGE {
+                gb_output!(
+                    out,
+                    "
+    dex
+    dex
+    lda $02,x
+    ora $03,x
+    bne *+5
+    jmp @target_{}
+                    ",
+                    target
+                )
+            } else {
+                gb_output!(
+                    out,
+                    "
     sta TEMP
     tya
     ora TEMP
@@ -285,22 +439,14 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
     jmp @target_{}
 
     lda TEMP2
-        ",
-                target
-            )
+                    ",
+                    target
+                )
+            }
         }
 
-        PaxTerm::LoopTarget(n) | PaxTerm::JumpTarget(n) => {}
+        PaxTerm::LoopTarget(_n) | PaxTerm::JumpTarget(_n) => {}
 
-        //         Pax::Metadata(s) => gb_output!(
-        //             out,
-        //             "
-        //     ; [metadata] {:?}
-        // PAX_FN_{}:
-        //         ",
-        //             s,
-        //             name_slug(&s)
-        //         ),
         PaxTerm::Exit => {
             gb_output!(
                 out,

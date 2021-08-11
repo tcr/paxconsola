@@ -1,0 +1,31 @@
+( fn "main" )
+    Block(0)
+        PushLiteral(1)                 // acid-test4.pax:6:1 in `main`
+        JumpIf0(2)                     // acid-test4.pax:6:3 in `main`
+    Block(1)
+        PushLiteral(65)                // acid-test4.pax:6:6 in `main`
+        JumpElse(3)                    // acid-test4.pax:6:9 in `main`
+    Block(2)
+        PushLiteral(66)                // acid-test4.pax:6:14 in `main`
+        JumpTarget(2)                  // acid-test4.pax:6:17 in `main`
+    Block(3)
+        PushLiteral(0)                 // acid-test4.pax:6:22 in `main`
+        PushLiteral(1024)              // acid-test4.pax:6:24 in `main`
+        Add                            // acid-test4.pax:6:33 in `main`
+        Store8                         // acid-test4.pax:6:35 in `main`
+        PushLiteral(0)                 // acid-test4.pax:7:1 in `main`
+        JumpIf0(5)                     // acid-test4.pax:7:3 in `main`
+    Block(4)
+        PushLiteral(65)                // acid-test4.pax:7:6 in `main`
+        JumpElse(6)                    // acid-test4.pax:7:9 in `main`
+    Block(5)
+        PushLiteral(66)                // acid-test4.pax:7:14 in `main`
+        JumpTarget(5)                  // acid-test4.pax:7:17 in `main`
+    Block(6)
+        PushLiteral(1)                 // acid-test4.pax:7:22 in `main`
+        PushLiteral(1024)              // acid-test4.pax:7:24 in `main`
+        Add                            // acid-test4.pax:7:33 in `main`
+        Store8                         // acid-test4.pax:7:35 in `main`
+        Exit                           // :0:0 in ``
+
+

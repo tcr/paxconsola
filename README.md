@@ -46,3 +46,7 @@ Documentation:
 
 * [CS 331 Spring 2016: A Quick Introduction to
   Forth](https://www.cs.uaf.edu/~chappell/class/2016_spr/cs331/docs/forth_quick.html)
+
+Reading:
+
+* https://www.bradrodriguez.com/papers/moving1.htm

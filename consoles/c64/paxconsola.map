@@ -1,7 +1,7 @@
 Modules list:
 -------------
 paxconsola.o:
-    CODE              Offs=000000  Size=00425B  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=004222  Align=00001  Fill=0000
 /usr/local/Cellar/cc65/2.18/share/cc65/lib/c64.lib(exehdr.o):
     EXEHDR            Offs=000000  Size=00000C  Align=00001  Fill=0000
 /usr/local/Cellar/cc65/2.18/share/cc65/lib/c64.lib(loadaddr.o):
@@ -14,7 +14,7 @@ Name                   Start     End    Size  Align
 ----------------------------------------------------
 LOADADDR              0007FF  000800  000002  00001
 EXEHDR                000801  00080C  00000C  00001
-CODE                  00080D  004A67  00425B  00001
+CODE                  00080D  004A2E  004222  00001
 
 
 Exports list by name:

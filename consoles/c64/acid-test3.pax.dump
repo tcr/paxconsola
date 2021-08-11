@@ -1,0 +1,56 @@
+( fn "main" )
+    Block(0)
+        PushLiteral(211)               // acid-test3.pax:9:1 in `main`
+        PushLiteral(1024)              // acid-test3.pax:9:5 in `main`
+        PushLiteral(5)                 // acid-test3.pax:9:14 in `main`
+        PushLiteral(5)                 // acid-test3.pax:9:16 in `main`
+        Add                            // acid-test3.pax:9:18 in `main`
+        Add                            // acid-test3.pax:9:20 in `main`
+        Store8                         // acid-test3.pax:9:22 in `main`
+        PushLiteral(95)                // acid-test3.pax:10:1 in `main`
+        PushLiteral(1024)              // acid-test3.pax:10:4 in `main`
+        PushLiteral(6)                 // acid-test3.pax:10:13 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        TempStore                      // src/prelude.fth:6:10 in `dup`
+        TempLoad                       // src/prelude.fth:6:16 in `dup`
+        TempLoad                       // src/prelude.fth:6:22 in `dup`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // acid-test3.pax:10:19 in `main`
+        Add                            // acid-test3.pax:10:21 in `main`
+        Store8                         // acid-test3.pax:10:23 in `main`
+        PushLiteral(211)               // acid-test3.pax:13:1 in `main`
+        PushLiteral(1024)              // acid-test3.pax:13:5 in `main`
+        Store8                         // acid-test3.pax:13:14 in `main`
+        PushLiteral(212)               // acid-test3.pax:15:1 in `main`
+        PushLiteral(1024)              // acid-test3.pax:15:5 in `main`
+        PushLiteral(1)                 // acid-test3.pax:15:14 in `main`
+        Add                            // acid-test3.pax:15:16 in `main`
+        Store8                         // acid-test3.pax:15:18 in `main`
+        PushLiteral(193)               // acid-test3.pax:17:1 in `main`
+        AltPush                        // acid-test3.pax:17:5 in `main`
+        PushLiteral(0)                 // acid-test3.pax:17:8 in `main`
+        AltPush                        // acid-test3.pax:17:10 in `main`
+        AltPop                         // acid-test3.pax:17:13 in `main`
+        AltPop                         // acid-test3.pax:17:16 in `main`
+        PushLiteral(1024)              // acid-test3.pax:17:19 in `main`
+        PushLiteral(2)                 // acid-test3.pax:17:28 in `main`
+        Add                            // acid-test3.pax:17:30 in `main`
+        Store8                         // acid-test3.pax:17:32 in `main`
+        Drop                           // acid-test3.pax:17:35 in `main`
+        PushLiteral(210)               // acid-test3.pax:19:1 in `main`
+        PushLiteral(1024)              // acid-test3.pax:19:5 in `main`
+        PushLiteral(-1)                // acid-test3.pax:19:14 in `main`
+        PushLiteral(-4)                // acid-test3.pax:19:20 in `main`
+        Nand                           // acid-test3.pax:19:26 in `main`
+        Add                            // acid-test3.pax:19:31 in `main`
+        Store8                         // acid-test3.pax:19:33 in `main`
+        PushLiteral(212)               // acid-test3.pax:21:1 in `main`
+        PushLiteral(1024)              // acid-test3.pax:21:5 in `main`
+        PushLiteral(4)                 // acid-test3.pax:21:14 in `main`
+        Add                            // acid-test3.pax:21:16 in `main`
+        Store8                         // acid-test3.pax:21:18 in `main`
+        Exit                           // :0:0 in ``
+
+

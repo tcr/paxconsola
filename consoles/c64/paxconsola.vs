@@ -8,3 +8,7 @@ ll "./paxconsola.lbl"
 ; break exec .@OPCODE_39
 ; break exec .@OPCODE_80
 ; break exec .@OPCODE_33
+
+; break exec .@OPCODE_7
+
+; break exec .@OPCODE_12
