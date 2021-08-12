@@ -1,3 +1,4 @@
+use maplit::hashset;
 use paxforth::*;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -114,7 +115,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             }
             Target::TOM => {
                 let mut program = program.clone();
-                inline_into_function(&mut program, "main");
+                inline_into_function(&mut program, "main", &hashset! {});
                 let result = Tom1ForthCompiler::compile(&program);
                 println!("{}", &result);
             }

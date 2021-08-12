@@ -3,6 +3,7 @@ use crate::program::inline::*;
 use crate::program::{constants, dead_code};
 use crate::*;
 use log::*;
+use maplit::hashset;
 
 pub struct OptimizeProgram {
     program: PaxProgram,
@@ -21,12 +22,18 @@ impl OptimizeProgram {
     }
 
     pub fn function_instruction_count(&mut self, name: &str) -> usize {
-        let blocks = self.program.get("main").unwrap().clone();
+        let blocks = self.program.get(name).unwrap().clone();
         instruction_count(&blocks)
     }
 
     pub fn function_inline_into(&mut self, name: &str) {
-        inline_into_function(&mut self.program, name);
+        inline_into_function(
+            &mut self.program,
+            name,
+            &hashset! {
+                "*".to_string(),
+            },
+        );
     }
 
     pub fn function_dump_regs(&mut self, name: &str) {

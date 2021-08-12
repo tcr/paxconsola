@@ -1,4 +1,5 @@
 use crate::*;
+use std::collections::HashSet;
 
 /**
  * When a function is inlined, we need a magic value to replace the function ptr we would otherwise
@@ -6,14 +7,7 @@ use crate::*;
  */
 const INLINED_FN_PTR: PaxLiteral = 7777;
 
-/**
- * Hacky method for determining whether to inline a method.
- */
-fn should_inline(method: &str) -> bool {
-    method != "*"
-}
-
-pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
+pub fn inline_into_function(program: &mut PaxProgram, method: &str, skip_method: &HashSet<String>) {
     let mut continue_pass = true;
     'pass_loop: while continue_pass {
         continue_pass = false;
@@ -33,9 +27,9 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 _ => continue,
             };
 
-            // if !should_inline(target) {
-            //     continue;
-            // }
+            if skip_method.contains(target) {
+                continue;
+            }
 
             // Flag that this pass succeeded.
             continue_pass = true;

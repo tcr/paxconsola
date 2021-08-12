@@ -1,3 +1,130 @@
+( fn "swap" )
+    Block(0)
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        TempStore                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        TempLoad                       // src/prelude.fth:3:22 in `swap`
+        Exit                           // src/prelude.fth:3:28 in `swap`
+
+
+( fn "over" )
+    Block(0)
+        AltPush                        // src/prelude.fth:4:10 in `over`
+        TempStore                      // src/prelude.fth:4:13 in `over`
+        TempLoad                       // src/prelude.fth:4:19 in `over`
+        AltPop                         // src/prelude.fth:4:25 in `over`
+        TempLoad                       // src/prelude.fth:4:28 in `over`
+        Exit                           // src/prelude.fth:4:34 in `over`
+
+
+( fn "2dup" )
+    Block(0)
+        Call("over")                   // src/prelude.fth:8:10 in `2dup`
+    Block(1)
+        Call("over")                   // src/prelude.fth:8:15 in `2dup`
+    Block(2)
+        Exit                           // src/prelude.fth:8:20 in `2dup`
+
+
+( fn "invert" )
+    Block(0)
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        Exit                           // src/prelude.fth:14:20 in `invert`
+
+
+( fn "negate" )
+    Block(0)
+        Call("invert")                 // src/prelude.fth:15:12 in `negate`
+    Block(1)
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        Exit                           // src/prelude.fth:15:23 in `negate`
+
+
+( fn "-" )
+    Block(0)
+        Call("negate")                 // src/prelude.fth:16:12 in `-`
+    Block(1)
+        Add                            // src/prelude.fth:16:19 in `-`
+        Exit                           // src/prelude.fth:16:21 in `-`
+
+
+( fn "1+" )
+    Block(0)
+        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
+        Add                            // src/prelude.fth:18:10 in `1+`
+        Exit                           // src/prelude.fth:18:12 in `1+`
+
+
+( fn "0=" )
+    Block(0)
+        JumpIf0(2)                     // src/prelude.fth:21:8 in `0=`
+    Block(1)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(3)                    // src/prelude.fth:21:13 in `0=`
+    Block(2)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(2)                  // src/prelude.fth:21:21 in `0=`
+    Block(3)
+        Exit                           // src/prelude.fth:21:26 in `0=`
+
+
+( fn "=" )
+    Block(0)
+        Call("-")                      // src/prelude.fth:22:8 in `=`
+    Block(1)
+        Call("0=")                     // src/prelude.fth:22:10 in `=`
+    Block(2)
+        Exit                           // src/prelude.fth:22:13 in `=`
+
+
+( fn "loopimpl" )
+    Block(0)
+        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
+        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
+        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
+        Call("1+")                     // src/prelude.fth:33:21 in `loopimpl`
+    Block(1)
+        Call("2dup")                   // src/prelude.fth:33:24 in `loopimpl`
+    Block(2)
+        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
+        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
+        Call("=")                      // src/prelude.fth:33:35 in `loopimpl`
+    Block(3)
+        Call("swap")                   // src/prelude.fth:33:37 in `loopimpl`
+    Block(4)
+        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
+        Exit                           // src/prelude.fth:33:45 in `loopimpl`
+
+
+( fn "*" )
+    Block(0)
+        AltPush                        // src/prelude.fth:44:5 in `*`
+        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
+        AltPop                         // src/prelude.fth:44:10 in `*`
+        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
+        AltPush                        // src/prelude.fth:44:15 in `*`
+        AltPush                        // src/prelude.fth:44:15 in `*`
+        LoopTarget(0)                  // src/prelude.fth:44:15 in `*`
+    Block(1)
+        Call("over")                   // src/prelude.fth:44:18 in `*`
+    Block(2)
+        Add                            // src/prelude.fth:44:23 in `*`
+        Call("loopimpl")               // src/prelude.fth:44:25 in `*`
+    Block(3)
+        LoopIf0(1)                     // src/prelude.fth:44:25 in `*`
+    Block(4)
+        AltPop                         // src/prelude.fth:44:25 in `*`
+        Drop                           // src/prelude.fth:44:25 in `*`
+        AltPop                         // src/prelude.fth:44:25 in `*`
+        Drop                           // src/prelude.fth:44:25 in `*`
+        Call("swap")                   // src/prelude.fth:44:30 in `*`
+    Block(5)
+        Drop                           // src/prelude.fth:44:35 in `*`
+        Exit                           // src/prelude.fth:44:40 in `*`
+
+
 ( fn "main" )
     Block(0)
         PushLiteral(500)               // snake.pax:23:1 in `main`
@@ -42,7 +169,7 @@
     Block(3)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(55)                    // snake.pax:212:18 in `main`
+        JumpIf0(47)                    // snake.pax:212:18 in `main`
     Block(4)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -289,128 +416,14 @@
         Add                            // src/prelude.fth:16:19 in `-`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(14)                 // src/prelude.fth:44:15 in `*`
+        Call("*")                      // snake.pax:69:22 in `draw-walls`
     Block(15)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(17)                    // src/prelude.fth:21:8 in `0=`
-    Block(16)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(18)                   // src/prelude.fth:21:13 in `0=`
-    Block(17)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(17)                 // src/prelude.fth:21:21 in `0=`
-    Block(18)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(15)                    // src/prelude.fth:44:25 in `*`
-    Block(19)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:70:5 in `draw-walls`
         PushLiteral(0)                 // snake.pax:70:11 in `draw-walls`
         AltPush                        // snake.pax:70:13 in `draw-walls`
         AltPush                        // snake.pax:70:13 in `draw-walls`
-        LoopTarget(19)                 // snake.pax:70:13 in `draw-walls`
-    Block(20)
+        LoopTarget(15)                 // snake.pax:70:13 in `draw-walls`
+    Block(16)
         PushLiteral(230)               // snake.pax:71:9 in `draw-walls`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -498,14 +511,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(22)                    // src/prelude.fth:21:8 in `0=`
-    Block(21)
+        JumpIf0(18)                    // src/prelude.fth:21:8 in `0=`
+    Block(17)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(23)                   // src/prelude.fth:21:13 in `0=`
-    Block(22)
+        JumpElse(19)                   // src/prelude.fth:21:13 in `0=`
+    Block(18)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(22)                 // src/prelude.fth:21:21 in `0=`
-    Block(23)
+        JumpTarget(18)                 // src/prelude.fth:21:21 in `0=`
+    Block(19)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -521,8 +534,8 @@
         AltPush                        // src/prelude.fth:33:42 in `loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(20)                    // snake.pax:72:5 in `draw-walls`
-    Block(24)
+        LoopIf0(16)                    // snake.pax:72:5 in `draw-walls`
+    Block(20)
         AltPop                         // snake.pax:72:5 in `draw-walls`
         Drop                           // snake.pax:72:5 in `draw-walls`
         AltPop                         // snake.pax:72:5 in `draw-walls`
@@ -532,8 +545,8 @@
         PushLiteral(0)                 // snake.pax:76:11 in `draw-walls`
         AltPush                        // snake.pax:76:13 in `draw-walls`
         AltPush                        // snake.pax:76:13 in `draw-walls`
-        LoopTarget(24)                 // snake.pax:76:13 in `draw-walls`
-    Block(25)
+        LoopTarget(20)                 // snake.pax:76:13 in `draw-walls`
+    Block(21)
         PushLiteral(230)               // snake.pax:77:9 in `draw-walls`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -611,14 +624,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(27)                    // src/prelude.fth:21:8 in `0=`
-    Block(26)
+        JumpIf0(23)                    // src/prelude.fth:21:8 in `0=`
+    Block(22)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(28)                   // src/prelude.fth:21:13 in `0=`
-    Block(27)
+        JumpElse(24)                   // src/prelude.fth:21:13 in `0=`
+    Block(23)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(27)                 // src/prelude.fth:21:21 in `0=`
-    Block(28)
+        JumpTarget(23)                 // src/prelude.fth:21:21 in `0=`
+    Block(24)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -634,8 +647,8 @@
         AltPush                        // src/prelude.fth:33:42 in `loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(25)                    // snake.pax:78:5 in `draw-walls`
-    Block(29)
+        LoopIf0(21)                    // snake.pax:78:5 in `draw-walls`
+    Block(25)
         AltPop                         // snake.pax:78:5 in `draw-walls`
         Drop                           // snake.pax:78:5 in `draw-walls`
         AltPop                         // snake.pax:78:5 in `draw-walls`
@@ -663,8 +676,8 @@
         PushLiteral(0)                 // snake.pax:82:12 in `draw-walls`
         AltPush                        // snake.pax:82:14 in `draw-walls`
         AltPush                        // snake.pax:82:14 in `draw-walls`
-        LoopTarget(29)                 // snake.pax:82:14 in `draw-walls`
-    Block(30)
+        LoopTarget(25)                 // snake.pax:82:14 in `draw-walls`
+    Block(26)
         PushLiteral(230)               // snake.pax:83:9 in `draw-walls`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -740,14 +753,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(32)                    // src/prelude.fth:21:8 in `0=`
-    Block(31)
+        JumpIf0(28)                    // src/prelude.fth:21:8 in `0=`
+    Block(27)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(33)                   // src/prelude.fth:21:13 in `0=`
-    Block(32)
+        JumpElse(29)                   // src/prelude.fth:21:13 in `0=`
+    Block(28)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(32)                 // src/prelude.fth:21:21 in `0=`
-    Block(33)
+        JumpTarget(28)                 // src/prelude.fth:21:21 in `0=`
+    Block(29)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -763,8 +776,8 @@
         AltPush                        // src/prelude.fth:33:42 in `loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(30)                    // snake.pax:85:5 in `draw-walls`
-    Block(34)
+        LoopIf0(26)                    // snake.pax:85:5 in `draw-walls`
+    Block(30)
         AltPop                         // snake.pax:85:5 in `draw-walls`
         Drop                           // snake.pax:85:5 in `draw-walls`
         AltPop                         // snake.pax:85:5 in `draw-walls`
@@ -775,8 +788,8 @@
         PushLiteral(0)                 // snake.pax:90:12 in `draw-walls`
         AltPush                        // snake.pax:90:14 in `draw-walls`
         AltPush                        // snake.pax:90:14 in `draw-walls`
-        LoopTarget(34)                 // snake.pax:90:14 in `draw-walls`
-    Block(35)
+        LoopTarget(30)                 // snake.pax:90:14 in `draw-walls`
+    Block(31)
         PushLiteral(230)               // snake.pax:91:9 in `draw-walls`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -852,14 +865,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(37)                    // src/prelude.fth:21:8 in `0=`
-    Block(36)
+        JumpIf0(33)                    // src/prelude.fth:21:8 in `0=`
+    Block(32)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(38)                   // src/prelude.fth:21:13 in `0=`
-    Block(37)
+        JumpElse(34)                   // src/prelude.fth:21:13 in `0=`
+    Block(33)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(37)                 // src/prelude.fth:21:21 in `0=`
-    Block(38)
+        JumpTarget(33)                 // src/prelude.fth:21:21 in `0=`
+    Block(34)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -875,8 +888,8 @@
         AltPush                        // src/prelude.fth:33:42 in `loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(35)                    // snake.pax:93:5 in `draw-walls`
-    Block(39)
+        LoopIf0(31)                    // snake.pax:93:5 in `draw-walls`
+    Block(35)
         AltPop                         // snake.pax:93:5 in `draw-walls`
         Drop                           // snake.pax:93:5 in `draw-walls`
         AltPop                         // snake.pax:93:5 in `draw-walls`
@@ -896,8 +909,8 @@
         PushLiteral(0)                 // snake.pax:99:16 in `initialize-snake`
         AltPush                        // snake.pax:99:18 in `initialize-snake`
         AltPush                        // snake.pax:99:18 in `initialize-snake`
-        LoopTarget(39)                 // snake.pax:99:18 in `initialize-snake`
-    Block(40)
+        LoopTarget(35)                 // snake.pax:99:18 in `initialize-snake`
+    Block(36)
         PushLiteral(8)                 // snake.pax:100:5 in `initialize-snake`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -1050,14 +1063,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(42)                    // src/prelude.fth:21:8 in `0=`
-    Block(41)
+        JumpIf0(38)                    // src/prelude.fth:21:8 in `0=`
+    Block(37)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(43)                   // src/prelude.fth:21:13 in `0=`
-    Block(42)
+        JumpElse(39)                   // src/prelude.fth:21:13 in `0=`
+    Block(38)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(42)                 // src/prelude.fth:21:21 in `0=`
-    Block(43)
+        JumpTarget(38)                 // src/prelude.fth:21:21 in `0=`
+    Block(39)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -1073,8 +1086,8 @@
         AltPush                        // src/prelude.fth:33:42 in `loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(40)                    // snake.pax:102:3 in `initialize-snake`
-    Block(44)
+        LoopIf0(36)                    // snake.pax:102:3 in `initialize-snake`
+    Block(40)
         AltPop                         // snake.pax:102:3 in `initialize-snake`
         Drop                           // snake.pax:102:3 in `initialize-snake`
         AltPop                         // snake.pax:102:3 in `initialize-snake`
@@ -1105,8 +1118,8 @@
         PushLiteral(0)                 // snake.pax:110:12 in `draw-full-snake`
         AltPush                        // snake.pax:110:14 in `draw-full-snake`
         AltPush                        // snake.pax:110:14 in `draw-full-snake`
-        LoopTarget(44)                 // snake.pax:110:14 in `draw-full-snake`
-    Block(45)
+        LoopTarget(40)                 // snake.pax:110:14 in `draw-full-snake`
+    Block(41)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         AltPop                         // src/prelude.fth:38:5 in `i`
@@ -1223,122 +1236,8 @@
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:48:34 in `convert-x-y`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(45)                 // src/prelude.fth:44:15 in `*`
-    Block(46)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(48)                    // src/prelude.fth:21:8 in `0=`
-    Block(47)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(49)                   // src/prelude.fth:21:13 in `0=`
-    Block(48)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(48)                 // src/prelude.fth:21:21 in `0=`
-    Block(49)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(46)                    // src/prelude.fth:44:25 in `*`
-    Block(50)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        Call("*")                      // snake.pax:48:37 in `convert-x-y`
+    Block(42)
         Add                            // snake.pax:48:39 in `convert-x-y`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -1409,14 +1308,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(52)                    // src/prelude.fth:21:8 in `0=`
-    Block(51)
+        JumpIf0(44)                    // src/prelude.fth:21:8 in `0=`
+    Block(43)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(53)                   // src/prelude.fth:21:13 in `0=`
-    Block(52)
+        JumpElse(45)                   // src/prelude.fth:21:13 in `0=`
+    Block(44)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(52)                 // src/prelude.fth:21:21 in `0=`
-    Block(53)
+        JumpTarget(44)                 // src/prelude.fth:21:21 in `0=`
+    Block(45)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -1432,8 +1331,8 @@
         AltPush                        // src/prelude.fth:33:42 in `loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(45)                    // snake.pax:112:3 in `draw-full-snake`
-    Block(54)
+        LoopIf0(41)                    // snake.pax:112:3 in `draw-full-snake`
+    Block(46)
         AltPop                         // snake.pax:112:3 in `draw-full-snake`
         Drop                           // snake.pax:112:3 in `draw-full-snake`
         AltPop                         // snake.pax:112:3 in `draw-full-snake`
@@ -1442,8 +1341,8 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpTarget(54)                 // snake.pax:212:32 in `main`
-    Block(55)
+        JumpTarget(46)                 // snake.pax:212:32 in `main`
+    Block(47)
         PushLiteral(1)                 // snake.pax:213:1 in `main`
         PushLiteral(-28672)            // snake.pax:213:3 in `main`
         Store                          // snake.pax:213:15 in `main`
@@ -1541,122 +1440,8 @@
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:48:34 in `convert-x-y`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(55)                 // src/prelude.fth:44:15 in `*`
-    Block(56)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(58)                    // src/prelude.fth:21:8 in `0=`
-    Block(57)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(59)                   // src/prelude.fth:21:13 in `0=`
-    Block(58)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(58)                 // src/prelude.fth:21:21 in `0=`
-    Block(59)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(56)                    // src/prelude.fth:44:25 in `*`
-    Block(60)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        Call("*")                      // snake.pax:48:37 in `convert-x-y`
+    Block(48)
         Add                            // snake.pax:48:39 in `convert-x-y`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -1765,122 +1550,8 @@
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:48:34 in `convert-x-y`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(60)                 // src/prelude.fth:44:15 in `*`
-    Block(61)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(63)                    // src/prelude.fth:21:8 in `0=`
-    Block(62)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(64)                   // src/prelude.fth:21:13 in `0=`
-    Block(63)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(63)                 // src/prelude.fth:21:21 in `0=`
-    Block(64)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(61)                    // src/prelude.fth:44:25 in `*`
-    Block(65)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        Call("*")                      // snake.pax:48:37 in `convert-x-y`
+    Block(49)
         Add                            // snake.pax:48:39 in `convert-x-y`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -1955,122 +1626,8 @@
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:48:34 in `convert-x-y`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(65)                 // src/prelude.fth:44:15 in `*`
-    Block(66)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(68)                    // src/prelude.fth:21:8 in `0=`
-    Block(67)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(69)                   // src/prelude.fth:21:13 in `0=`
-    Block(68)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(68)                 // src/prelude.fth:21:21 in `0=`
-    Block(69)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(66)                    // src/prelude.fth:44:25 in `*`
-    Block(70)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        Call("*")                      // snake.pax:48:37 in `convert-x-y`
+    Block(50)
         Add                            // snake.pax:48:39 in `convert-x-y`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -2124,20 +1681,20 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(72)                    // src/prelude.fth:21:8 in `0=`
-    Block(71)
+        JumpIf0(52)                    // src/prelude.fth:21:8 in `0=`
+    Block(51)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(73)                   // src/prelude.fth:21:13 in `0=`
-    Block(72)
+        JumpElse(53)                   // src/prelude.fth:21:13 in `0=`
+    Block(52)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(72)                 // src/prelude.fth:21:21 in `0=`
-    Block(73)
+        JumpTarget(52)                 // src/prelude.fth:21:21 in `0=`
+    Block(53)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(83)                    // snake.pax:160:15 in `change-direction`
-    Block(74)
+        JumpIf0(63)                    // snake.pax:160:15 in `change-direction`
+    Block(54)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -2173,14 +1730,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(76)                    // src/prelude.fth:21:8 in `0=`
-    Block(75)
+        JumpIf0(56)                    // src/prelude.fth:21:8 in `0=`
+    Block(55)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(77)                   // src/prelude.fth:21:13 in `0=`
-    Block(76)
+        JumpElse(57)                   // src/prelude.fth:21:13 in `0=`
+    Block(56)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(76)                 // src/prelude.fth:21:21 in `0=`
-    Block(77)
+        JumpTarget(56)                 // src/prelude.fth:21:21 in `0=`
+    Block(57)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -2215,14 +1772,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(79)                    // src/prelude.fth:21:8 in `0=`
-    Block(78)
+        JumpIf0(59)                    // src/prelude.fth:21:8 in `0=`
+    Block(58)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(80)                   // src/prelude.fth:21:13 in `0=`
-    Block(79)
+        JumpElse(60)                   // src/prelude.fth:21:13 in `0=`
+    Block(59)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(79)                 // src/prelude.fth:21:21 in `0=`
-    Block(80)
+        JumpTarget(59)                 // src/prelude.fth:21:21 in `0=`
+    Block(60)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -2254,17 +1811,17 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(82)                    // snake.pax:155:27 in `turn-left`
-    Block(81)
+        JumpIf0(62)                    // snake.pax:155:27 in `turn-left`
+    Block(61)
         PushLiteral(37)                // snake.pax:155:30 in `turn-left`
         PushLiteral(-26660)            // snake.pax:155:35 in `turn-left`
         Store                          // snake.pax:155:45 in `turn-left`
-        JumpTarget(81)                 // snake.pax:155:47 in `turn-left`
-    Block(82)
+        JumpTarget(61)                 // snake.pax:155:47 in `turn-left`
+    Block(62)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpElse(125)                  // snake.pax:160:28 in `change-direction`
-    Block(83)
+        JumpElse(105)                  // snake.pax:160:28 in `change-direction`
+    Block(63)
         PushLiteral(38)                // snake.pax:161:3 in `change-direction`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -2275,6 +1832,269 @@
         TempLoad                       // src/prelude.fth:4:28 in `over`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // src/prelude.fth:16:19 in `-`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(65)                    // src/prelude.fth:21:8 in `0=`
+    Block(64)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(66)                   // src/prelude.fth:21:13 in `0=`
+    Block(65)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(65)                 // src/prelude.fth:21:21 in `0=`
+    Block(66)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(76)                    // snake.pax:161:13 in `change-direction`
+    Block(67)
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-26660)            // snake.pax:146:18 in `is-horizontal`
+        Load                           // snake.pax:146:28 in `is-horizontal`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        TempStore                      // src/prelude.fth:6:10 in `dup`
+        TempLoad                       // src/prelude.fth:6:16 in `dup`
+        TempLoad                       // src/prelude.fth:6:22 in `dup`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(37)                // snake.pax:147:3 in `is-horizontal`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // src/prelude.fth:16:19 in `-`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(69)                    // src/prelude.fth:21:8 in `0=`
+    Block(68)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(70)                   // src/prelude.fth:21:13 in `0=`
+    Block(69)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(69)                 // src/prelude.fth:21:21 in `0=`
+    Block(70)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        TempStore                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        TempLoad                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(39)                // snake.pax:148:3 in `is-horizontal`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // src/prelude.fth:16:19 in `-`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(72)                    // src/prelude.fth:21:8 in `0=`
+    Block(71)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(73)                   // src/prelude.fth:21:13 in `0=`
+    Block(72)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(72)                 // src/prelude.fth:21:21 in `0=`
+    Block(73)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        TempStore                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        TempLoad                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Nand                           // src/prelude.fth:26:27 in `or`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(75)                    // snake.pax:154:29 in `turn-up`
+    Block(74)
+        PushLiteral(38)                // snake.pax:154:32 in `turn-up`
+        PushLiteral(-26660)            // snake.pax:154:35 in `turn-up`
+        Store                          // snake.pax:154:45 in `turn-up`
+        JumpTarget(74)                 // snake.pax:154:47 in `turn-up`
+    Block(75)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpElse(104)                  // snake.pax:161:24 in `change-direction`
+    Block(76)
+        PushLiteral(39)                // snake.pax:162:3 in `change-direction`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:4:10 in `over`
+        TempStore                      // src/prelude.fth:4:13 in `over`
+        TempLoad                       // src/prelude.fth:4:19 in `over`
+        AltPop                         // src/prelude.fth:4:25 in `over`
+        TempLoad                       // src/prelude.fth:4:28 in `over`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // src/prelude.fth:16:19 in `-`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(78)                    // src/prelude.fth:21:8 in `0=`
+    Block(77)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(79)                   // src/prelude.fth:21:13 in `0=`
+    Block(78)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(78)                 // src/prelude.fth:21:21 in `0=`
+    Block(79)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(89)                    // snake.pax:162:16 in `change-direction`
+    Block(80)
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-26660)            // snake.pax:150:16 in `is-vertical`
+        Load                           // snake.pax:150:26 in `is-vertical`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        TempStore                      // src/prelude.fth:6:10 in `dup`
+        TempLoad                       // src/prelude.fth:6:16 in `dup`
+        TempLoad                       // src/prelude.fth:6:22 in `dup`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(38)                // snake.pax:151:3 in `is-vertical`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // src/prelude.fth:16:19 in `-`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(82)                    // src/prelude.fth:21:8 in `0=`
+    Block(81)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(83)                   // src/prelude.fth:21:13 in `0=`
+    Block(82)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(82)                 // src/prelude.fth:21:21 in `0=`
+    Block(83)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        TempStore                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        TempLoad                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(40)                // snake.pax:152:3 in `is-vertical`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -2308,8 +2128,89 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(96)                    // snake.pax:161:13 in `change-direction`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        TempStore                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        TempLoad                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Nand                           // src/prelude.fth:26:27 in `or`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(88)                    // snake.pax:157:27 in `turn-right`
     Block(87)
+        PushLiteral(39)                // snake.pax:157:30 in `turn-right`
+        PushLiteral(-26660)            // snake.pax:157:36 in `turn-right`
+        Store                          // snake.pax:157:46 in `turn-right`
+        JumpTarget(87)                 // snake.pax:157:48 in `turn-right`
+    Block(88)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpElse(103)                  // snake.pax:162:30 in `change-direction`
+    Block(89)
+        PushLiteral(40)                // snake.pax:163:3 in `change-direction`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:4:10 in `over`
+        TempStore                      // src/prelude.fth:4:13 in `over`
+        TempLoad                       // src/prelude.fth:4:19 in `over`
+        AltPop                         // src/prelude.fth:4:25 in `over`
+        TempLoad                       // src/prelude.fth:4:28 in `over`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
+        Add                            // src/prelude.fth:15:21 in `negate`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Add                            // src/prelude.fth:16:19 in `-`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        JumpIf0(91)                    // src/prelude.fth:21:8 in `0=`
+    Block(90)
+        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
+        JumpElse(92)                   // src/prelude.fth:21:13 in `0=`
+    Block(91)
+        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
+        JumpTarget(91)                 // src/prelude.fth:21:21 in `0=`
+    Block(92)
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(102)                   // snake.pax:163:15 in `change-direction`
+    Block(93)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -2345,14 +2246,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(89)                    // src/prelude.fth:21:8 in `0=`
-    Block(88)
+        JumpIf0(95)                    // src/prelude.fth:21:8 in `0=`
+    Block(94)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(90)                   // src/prelude.fth:21:13 in `0=`
-    Block(89)
+        JumpElse(96)                   // src/prelude.fth:21:13 in `0=`
+    Block(95)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(89)                 // src/prelude.fth:21:21 in `0=`
-    Block(90)
+        JumpTarget(95)                 // src/prelude.fth:21:21 in `0=`
+    Block(96)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -2366,87 +2267,6 @@
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(39)                // snake.pax:148:3 in `is-horizontal`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(92)                    // src/prelude.fth:21:8 in `0=`
-    Block(91)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(93)                   // src/prelude.fth:21:13 in `0=`
-    Block(92)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(92)                 // src/prelude.fth:21:21 in `0=`
-    Block(93)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Nand                           // src/prelude.fth:26:27 in `or`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        JumpIf0(95)                    // snake.pax:154:29 in `turn-up`
-    Block(94)
-        PushLiteral(38)                // snake.pax:154:32 in `turn-up`
-        PushLiteral(-26660)            // snake.pax:154:35 in `turn-up`
-        Store                          // snake.pax:154:45 in `turn-up`
-        JumpTarget(94)                 // snake.pax:154:47 in `turn-up`
-    Block(95)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        JumpElse(124)                  // snake.pax:161:24 in `change-direction`
-    Block(96)
-        PushLiteral(39)                // snake.pax:162:3 in `change-direction`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -2480,313 +2300,50 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(109)                   // snake.pax:162:16 in `change-direction`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        AltPush                        // src/prelude.fth:3:10 in `swap`
+        TempStore                      // src/prelude.fth:3:13 in `swap`
+        AltPop                         // src/prelude.fth:3:19 in `swap`
+        TempLoad                       // src/prelude.fth:3:22 in `swap`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        PushLiteral(7777)              // <inline>:0:0 in `main`
+        AltPush                        // <inline>:0:0 in `main`
+        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
+        Nand                           // src/prelude.fth:14:15 in `invert`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        Nand                           // src/prelude.fth:26:27 in `or`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        AltPop                         // <inline>:0:0 in `main`
+        Drop                           // <inline>:0:0 in `main`
+        JumpIf0(101)                   // snake.pax:156:29 in `turn-down`
     Block(100)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-26660)            // snake.pax:150:16 in `is-vertical`
-        Load                           // snake.pax:150:26 in `is-vertical`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        TempStore                      // src/prelude.fth:6:10 in `dup`
-        TempLoad                       // src/prelude.fth:6:16 in `dup`
-        TempLoad                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(38)                // snake.pax:151:3 in `is-vertical`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(102)                   // src/prelude.fth:21:8 in `0=`
-    Block(101)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(103)                  // src/prelude.fth:21:13 in `0=`
-    Block(102)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(102)                // src/prelude.fth:21:21 in `0=`
-    Block(103)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(40)                // snake.pax:152:3 in `is-vertical`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(105)                   // src/prelude.fth:21:8 in `0=`
-    Block(104)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(106)                  // src/prelude.fth:21:13 in `0=`
-    Block(105)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(105)                // src/prelude.fth:21:21 in `0=`
-    Block(106)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Nand                           // src/prelude.fth:26:27 in `or`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        JumpIf0(108)                   // snake.pax:157:27 in `turn-right`
-    Block(107)
-        PushLiteral(39)                // snake.pax:157:30 in `turn-right`
-        PushLiteral(-26660)            // snake.pax:157:36 in `turn-right`
-        Store                          // snake.pax:157:46 in `turn-right`
-        JumpTarget(107)                // snake.pax:157:48 in `turn-right`
-    Block(108)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        JumpElse(123)                  // snake.pax:162:30 in `change-direction`
-    Block(109)
-        PushLiteral(40)                // snake.pax:163:3 in `change-direction`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(111)                   // src/prelude.fth:21:8 in `0=`
-    Block(110)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(112)                  // src/prelude.fth:21:13 in `0=`
-    Block(111)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(111)                // src/prelude.fth:21:21 in `0=`
-    Block(112)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        JumpIf0(122)                   // snake.pax:163:15 in `change-direction`
-    Block(113)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-26660)            // snake.pax:146:18 in `is-horizontal`
-        Load                           // snake.pax:146:28 in `is-horizontal`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        TempStore                      // src/prelude.fth:6:10 in `dup`
-        TempLoad                       // src/prelude.fth:6:16 in `dup`
-        TempLoad                       // src/prelude.fth:6:22 in `dup`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(37)                // snake.pax:147:3 in `is-horizontal`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(115)                   // src/prelude.fth:21:8 in `0=`
-    Block(114)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(116)                  // src/prelude.fth:21:13 in `0=`
-    Block(115)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(115)                // src/prelude.fth:21:21 in `0=`
-    Block(116)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(39)                // snake.pax:148:3 in `is-horizontal`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(118)                   // src/prelude.fth:21:8 in `0=`
-    Block(117)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(119)                  // src/prelude.fth:21:13 in `0=`
-    Block(118)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(118)                // src/prelude.fth:21:21 in `0=`
-    Block(119)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Nand                           // src/prelude.fth:26:27 in `or`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        JumpIf0(121)                   // snake.pax:156:29 in `turn-down`
-    Block(120)
         PushLiteral(40)                // snake.pax:156:32 in `turn-down`
         PushLiteral(-26660)            // snake.pax:156:37 in `turn-down`
         Store                          // snake.pax:156:47 in `turn-down`
-        JumpTarget(120)                // snake.pax:156:49 in `turn-down`
-    Block(121)
+        JumpTarget(100)                // snake.pax:156:49 in `turn-down`
+    Block(101)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpTarget(121)                // snake.pax:164:3 in `change-direction`
-    Block(122)
-        JumpTarget(122)                // snake.pax:164:8 in `change-direction`
-    Block(123)
-        JumpTarget(123)                // snake.pax:164:13 in `change-direction`
-    Block(124)
-        JumpTarget(124)                // snake.pax:164:18 in `change-direction`
-    Block(125)
+        JumpTarget(101)                // snake.pax:164:3 in `change-direction`
+    Block(102)
+        JumpTarget(102)                // snake.pax:164:8 in `change-direction`
+    Block(103)
+        JumpTarget(103)                // snake.pax:164:13 in `change-direction`
+    Block(104)
+        JumpTarget(104)                // snake.pax:164:18 in `change-direction`
+    Block(105)
         Drop                           // snake.pax:164:23 in `change-direction`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -2802,8 +2359,8 @@
         Load                           // snake.pax:140:13 in `move-snake-tail`
         AltPush                        // snake.pax:140:15 in `move-snake-tail`
         AltPush                        // snake.pax:140:15 in `move-snake-tail`
-        LoopTarget(125)                // snake.pax:140:15 in `move-snake-tail`
-    Block(126)
+        LoopTarget(105)                // snake.pax:140:15 in `move-snake-tail`
+    Block(106)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         AltPop                         // src/prelude.fth:38:5 in `i`
@@ -3042,14 +2599,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(128)                   // src/prelude.fth:21:8 in `0=`
-    Block(127)
+        JumpIf0(108)                   // src/prelude.fth:21:8 in `0=`
+    Block(107)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(129)                  // src/prelude.fth:21:13 in `0=`
-    Block(128)
+        JumpElse(109)                  // src/prelude.fth:21:13 in `0=`
+    Block(108)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(128)                // src/prelude.fth:21:21 in `0=`
-    Block(129)
+        JumpTarget(108)                // src/prelude.fth:21:21 in `0=`
+    Block(109)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -3065,8 +2622,8 @@
         AltPush                        // src/prelude.fth:35:57 in `-loopimpl`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        LoopIf0(126)                   // snake.pax:143:5 in `move-snake-tail`
-    Block(130)
+        LoopIf0(106)                   // snake.pax:143:5 in `move-snake-tail`
+    Block(110)
         AltPop                         // snake.pax:143:5 in `move-snake-tail`
         Drop                           // snake.pax:143:5 in `move-snake-tail`
         AltPop                         // snake.pax:143:5 in `move-snake-tail`
@@ -3108,20 +2665,20 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(132)                   // src/prelude.fth:21:8 in `0=`
-    Block(131)
+        JumpIf0(112)                   // src/prelude.fth:21:8 in `0=`
+    Block(111)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(133)                  // src/prelude.fth:21:13 in `0=`
-    Block(132)
+        JumpElse(113)                  // src/prelude.fth:21:13 in `0=`
+    Block(112)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(132)                // src/prelude.fth:21:21 in `0=`
-    Block(133)
+        JumpTarget(112)                // src/prelude.fth:21:21 in `0=`
+    Block(113)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(135)                   // snake.pax:132:16 in `move-snake-head`
-    Block(134)
+        JumpIf0(115)                   // snake.pax:132:16 in `move-snake-head`
+    Block(114)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(-1)                // snake.pax:127:14 in `move-left`
@@ -3144,8 +2701,8 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpElse(153)                  // snake.pax:132:29 in `move-snake-head`
-    Block(135)
+        JumpElse(133)                  // snake.pax:132:29 in `move-snake-head`
+    Block(115)
         PushLiteral(38)                // snake.pax:133:3 in `move-snake-head`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -3177,20 +2734,20 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(137)                   // src/prelude.fth:21:8 in `0=`
-    Block(136)
+        JumpIf0(117)                   // src/prelude.fth:21:8 in `0=`
+    Block(116)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(138)                  // src/prelude.fth:21:13 in `0=`
-    Block(137)
+        JumpElse(118)                  // src/prelude.fth:21:13 in `0=`
+    Block(117)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(137)                // src/prelude.fth:21:21 in `0=`
-    Block(138)
+        JumpTarget(117)                // src/prelude.fth:21:21 in `0=`
+    Block(118)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(140)                   // snake.pax:133:16 in `move-snake-head`
-    Block(139)
+        JumpIf0(120)                   // snake.pax:133:16 in `move-snake-head`
+    Block(119)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(-1)                // snake.pax:126:12 in `move-up`
@@ -3213,8 +2770,8 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpElse(152)                  // snake.pax:133:27 in `move-snake-head`
-    Block(140)
+        JumpElse(132)                  // snake.pax:133:27 in `move-snake-head`
+    Block(120)
         PushLiteral(39)                // snake.pax:134:3 in `move-snake-head`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -3246,20 +2803,20 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(142)                   // src/prelude.fth:21:8 in `0=`
-    Block(141)
+        JumpIf0(122)                   // src/prelude.fth:21:8 in `0=`
+    Block(121)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(143)                  // src/prelude.fth:21:13 in `0=`
-    Block(142)
+        JumpElse(123)                  // src/prelude.fth:21:13 in `0=`
+    Block(122)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(142)                // src/prelude.fth:21:21 in `0=`
-    Block(143)
+        JumpTarget(122)                // src/prelude.fth:21:21 in `0=`
+    Block(123)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(145)                   // snake.pax:134:16 in `move-snake-head`
-    Block(144)
+        JumpIf0(125)                   // snake.pax:134:16 in `move-snake-head`
+    Block(124)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(1)                 // snake.pax:129:15 in `move-right`
@@ -3282,8 +2839,8 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpElse(151)                  // snake.pax:134:30 in `move-snake-head`
-    Block(145)
+        JumpElse(131)                  // snake.pax:134:30 in `move-snake-head`
+    Block(125)
         PushLiteral(40)                // snake.pax:135:3 in `move-snake-head`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
@@ -3315,20 +2872,20 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(147)                   // src/prelude.fth:21:8 in `0=`
-    Block(146)
+        JumpIf0(127)                   // src/prelude.fth:21:8 in `0=`
+    Block(126)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(148)                  // src/prelude.fth:21:13 in `0=`
-    Block(147)
+        JumpElse(128)                  // src/prelude.fth:21:13 in `0=`
+    Block(127)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(147)                // src/prelude.fth:21:21 in `0=`
-    Block(148)
+        JumpTarget(127)                // src/prelude.fth:21:21 in `0=`
+    Block(128)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(150)                   // snake.pax:135:16 in `move-snake-head`
-    Block(149)
+        JumpIf0(130)                   // snake.pax:135:16 in `move-snake-head`
+    Block(129)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(1)                 // snake.pax:128:14 in `move-down`
@@ -3351,14 +2908,14 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpTarget(149)                // snake.pax:136:3 in `move-snake-head`
-    Block(150)
-        JumpTarget(150)                // snake.pax:136:8 in `move-snake-head`
-    Block(151)
-        JumpTarget(151)                // snake.pax:136:13 in `move-snake-head`
-    Block(152)
-        JumpTarget(152)                // snake.pax:136:18 in `move-snake-head`
-    Block(153)
+        JumpTarget(129)                // snake.pax:136:3 in `move-snake-head`
+    Block(130)
+        JumpTarget(130)                // snake.pax:136:8 in `move-snake-head`
+    Block(131)
+        JumpTarget(131)                // snake.pax:136:13 in `move-snake-head`
+    Block(132)
+        JumpTarget(132)                // snake.pax:136:18 in `move-snake-head`
+    Block(133)
         Drop                           // snake.pax:136:23 in `move-snake-head`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -3389,14 +2946,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(155)                   // src/prelude.fth:21:8 in `0=`
-    Block(154)
+        JumpIf0(135)                   // src/prelude.fth:21:8 in `0=`
+    Block(134)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(156)                  // src/prelude.fth:21:13 in `0=`
-    Block(155)
+        JumpElse(136)                  // src/prelude.fth:21:13 in `0=`
+    Block(135)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(155)                // src/prelude.fth:21:21 in `0=`
-    Block(156)
+        JumpTarget(135)                // src/prelude.fth:21:21 in `0=`
+    Block(136)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -3426,14 +2983,14 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(158)                   // src/prelude.fth:21:8 in `0=`
-    Block(157)
+        JumpIf0(138)                   // src/prelude.fth:21:8 in `0=`
+    Block(137)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(159)                  // src/prelude.fth:21:13 in `0=`
-    Block(158)
+        JumpElse(139)                  // src/prelude.fth:21:13 in `0=`
+    Block(138)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(158)                // src/prelude.fth:21:21 in `0=`
-    Block(159)
+        JumpTarget(138)                // src/prelude.fth:21:21 in `0=`
+    Block(139)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
@@ -3449,8 +3006,8 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(182)                   // snake.pax:186:7 in `check-apple`
-    Block(160)
+        JumpIf0(158)                   // snake.pax:186:7 in `check-apple`
+    Block(140)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(-26664)            // snake.pax:177:3 in `move-apple`
@@ -3509,122 +3066,8 @@
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:48:34 in `convert-x-y`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(160)                // src/prelude.fth:44:15 in `*`
-    Block(161)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(163)                   // src/prelude.fth:21:8 in `0=`
-    Block(162)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(164)                  // src/prelude.fth:21:13 in `0=`
-    Block(163)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(163)                // src/prelude.fth:21:21 in `0=`
-    Block(164)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(161)                   // src/prelude.fth:44:25 in `*`
-    Block(165)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        Call("*")                      // snake.pax:48:37 in `convert-x-y`
+    Block(141)
         Add                            // snake.pax:48:39 in `convert-x-y`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -3686,8 +3129,8 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        LoopTarget(165)                // src/prelude.fth:48:34 in `%`
-    Block(166)
+        LoopTarget(141)                // src/prelude.fth:48:34 in `%`
+    Block(142)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -3744,22 +3187,22 @@
         Nand                           // src/prelude.fth:14:15 in `invert`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(168)                   // src/prelude.fth:47:26 in `0<`
-    Block(167)
+        JumpIf0(144)                   // src/prelude.fth:47:26 in `0<`
+    Block(143)
         PushLiteral(-1)                // src/prelude.fth:47:29 in `0<`
-        JumpElse(169)                  // src/prelude.fth:47:32 in `0<`
-    Block(168)
+        JumpElse(145)                  // src/prelude.fth:47:32 in `0<`
+    Block(144)
         PushLiteral(0)                 // src/prelude.fth:47:37 in `0<`
-        JumpTarget(168)                // src/prelude.fth:47:39 in `0<`
-    Block(169)
+        JumpTarget(144)                // src/prelude.fth:47:39 in `0<`
+    Block(145)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(171)                   // src/prelude.fth:48:54 in `%`
-    Block(170)
+        JumpIf0(147)                   // src/prelude.fth:48:54 in `%`
+    Block(146)
         Add                            // src/prelude.fth:48:57 in `%`
         PushLiteral(-1)                // src/prelude.fth:48:59 in `%`
-        JumpElse(172)                  // src/prelude.fth:48:62 in `%`
-    Block(171)
+        JumpElse(148)                  // src/prelude.fth:48:62 in `%`
+    Block(147)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         AltPush                        // src/prelude.fth:5:10 in `rot`
@@ -3792,10 +3235,10 @@
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(0)                 // src/prelude.fth:48:81 in `%`
-        JumpTarget(171)                // src/prelude.fth:48:83 in `%`
-    Block(172)
-        LoopIf0(166)                   // src/prelude.fth:48:88 in `%`
-    Block(173)
+        JumpTarget(147)                // src/prelude.fth:48:83 in `%`
+    Block(148)
+        LoopIf0(142)                   // src/prelude.fth:48:88 in `%`
+    Block(149)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         AltPush                        // src/prelude.fth:3:10 in `swap`
@@ -3860,8 +3303,8 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        LoopTarget(173)                // src/prelude.fth:48:34 in `%`
-    Block(174)
+        LoopTarget(149)                // src/prelude.fth:48:34 in `%`
+    Block(150)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -3918,22 +3361,22 @@
         Nand                           // src/prelude.fth:14:15 in `invert`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(176)                   // src/prelude.fth:47:26 in `0<`
-    Block(175)
+        JumpIf0(152)                   // src/prelude.fth:47:26 in `0<`
+    Block(151)
         PushLiteral(-1)                // src/prelude.fth:47:29 in `0<`
-        JumpElse(177)                  // src/prelude.fth:47:32 in `0<`
-    Block(176)
+        JumpElse(153)                  // src/prelude.fth:47:32 in `0<`
+    Block(152)
         PushLiteral(0)                 // src/prelude.fth:47:37 in `0<`
-        JumpTarget(176)                // src/prelude.fth:47:39 in `0<`
-    Block(177)
+        JumpTarget(152)                // src/prelude.fth:47:39 in `0<`
+    Block(153)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(179)                   // src/prelude.fth:48:54 in `%`
-    Block(178)
+        JumpIf0(155)                   // src/prelude.fth:48:54 in `%`
+    Block(154)
         Add                            // src/prelude.fth:48:57 in `%`
         PushLiteral(-1)                // src/prelude.fth:48:59 in `%`
-        JumpElse(180)                  // src/prelude.fth:48:62 in `%`
-    Block(179)
+        JumpElse(156)                  // src/prelude.fth:48:62 in `%`
+    Block(155)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         AltPush                        // src/prelude.fth:5:10 in `rot`
@@ -3966,10 +3409,10 @@
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(0)                 // src/prelude.fth:48:81 in `%`
-        JumpTarget(179)                // src/prelude.fth:48:83 in `%`
-    Block(180)
-        LoopIf0(174)                   // src/prelude.fth:48:88 in `%`
-    Block(181)
+        JumpTarget(155)                // src/prelude.fth:48:83 in `%`
+    Block(156)
+        LoopIf0(150)                   // src/prelude.fth:48:88 in `%`
+    Block(157)
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         AltPush                        // src/prelude.fth:3:10 in `swap`
@@ -4019,8 +3462,8 @@
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpTarget(181)                // snake.pax:189:3 in `check-apple`
-    Block(182)
+        JumpTarget(157)                // snake.pax:189:3 in `check-apple`
+    Block(158)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
@@ -4032,122 +3475,8 @@
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
         PushLiteral(40)                // snake.pax:48:34 in `convert-x-y`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:44:5 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:8 in `*`
-        AltPop                         // src/prelude.fth:44:10 in `*`
-        PushLiteral(0)                 // src/prelude.fth:44:13 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        AltPush                        // src/prelude.fth:44:15 in `*`
-        LoopTarget(182)                // src/prelude.fth:44:15 in `*`
-    Block(183)
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:44:23 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPop                         // src/prelude.fth:33:12 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:15 in `loopimpl`
-        AltPop                         // src/prelude.fth:33:18 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:18:8 in `1+`
-        Add                            // src/prelude.fth:18:10 in `1+`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:4:10 in `over`
-        TempStore                      // src/prelude.fth:4:13 in `over`
-        TempLoad                       // src/prelude.fth:4:19 in `over`
-        AltPop                         // src/prelude.fth:4:25 in `over`
-        TempLoad                       // src/prelude.fth:4:28 in `over`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:29 in `loopimpl`
-        AltPush                        // src/prelude.fth:33:32 in `loopimpl`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        PushLiteral(-1)                // src/prelude.fth:14:12 in `invert`
-        Nand                           // src/prelude.fth:14:15 in `invert`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(1)                 // src/prelude.fth:15:19 in `negate`
-        Add                            // src/prelude.fth:15:21 in `negate`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Add                            // src/prelude.fth:16:19 in `-`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(185)                   // src/prelude.fth:21:8 in `0=`
-    Block(184)
-        PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(186)                  // src/prelude.fth:21:13 in `0=`
-    Block(185)
-        PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(185)                // src/prelude.fth:21:21 in `0=`
-    Block(186)
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:33:42 in `loopimpl`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        LoopIf0(183)                   // src/prelude.fth:44:25 in `*`
-    Block(187)
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        AltPop                         // src/prelude.fth:44:25 in `*`
-        Drop                           // src/prelude.fth:44:25 in `*`
-        PushLiteral(7777)              // <inline>:0:0 in `main`
-        AltPush                        // <inline>:0:0 in `main`
-        AltPush                        // src/prelude.fth:3:10 in `swap`
-        TempStore                      // src/prelude.fth:3:13 in `swap`
-        AltPop                         // src/prelude.fth:3:19 in `swap`
-        TempLoad                       // src/prelude.fth:3:22 in `swap`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
-        Drop                           // src/prelude.fth:44:35 in `*`
-        AltPop                         // <inline>:0:0 in `main`
-        Drop                           // <inline>:0:0 in `main`
+        Call("*")                      // snake.pax:48:37 in `convert-x-y`
+    Block(159)
         Add                            // snake.pax:48:39 in `convert-x-y`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
@@ -4176,29 +3505,29 @@
         Drop                           // <inline>:0:0 in `main`
         PushLiteral(7777)              // <inline>:0:0 in `main`
         AltPush                        // <inline>:0:0 in `main`
-        JumpIf0(189)                   // src/prelude.fth:21:8 in `0=`
-    Block(188)
+        JumpIf0(161)                   // src/prelude.fth:21:8 in `0=`
+    Block(160)
         PushLiteral(0)                 // src/prelude.fth:21:11 in `0=`
-        JumpElse(190)                  // src/prelude.fth:21:13 in `0=`
-    Block(189)
+        JumpElse(162)                  // src/prelude.fth:21:13 in `0=`
+    Block(161)
         PushLiteral(-1)                // src/prelude.fth:21:18 in `0=`
-        JumpTarget(189)                // src/prelude.fth:21:21 in `0=`
-    Block(190)
+        JumpTarget(161)                // src/prelude.fth:21:21 in `0=`
+    Block(162)
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
         AltPop                         // <inline>:0:0 in `main`
         Drop                           // <inline>:0:0 in `main`
-        JumpIf0(192)                   // snake.pax:224:1 in `main`
-    Block(191)
-        JumpElse(193)                  // snake.pax:224:4 in `main`
-    Block(192)
+        JumpIf0(164)                   // snake.pax:224:1 in `main`
+    Block(163)
+        JumpElse(165)                  // snake.pax:224:4 in `main`
+    Block(164)
         PushLiteral(0)                 // snake.pax:224:9 in `main`
         PushLiteral(-28672)            // snake.pax:224:11 in `main`
         Store                          // snake.pax:224:23 in `main`
-        JumpTarget(192)                // snake.pax:224:25 in `main`
-    Block(193)
+        JumpTarget(164)                // snake.pax:224:25 in `main`
+    Block(165)
         Exit                           // :0:0 in ``
 
 
