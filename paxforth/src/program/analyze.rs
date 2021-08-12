@@ -291,13 +291,14 @@ impl PaxAnalyzerWalker {
             .collect();
     }
 
-    fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState) {
+    fn apply_phi_to_info(&mut self, source: &RegState, apply: &RegState, loc: &Pos) {
         if source.size() != apply.size() {
             error!(
                 "Phi applied to mismatched source: {:?} apply: {:?}",
                 source.size(),
                 apply.size()
             );
+            error!("   ^-> location: {}", loc);
         }
 
         // Populate phi.
@@ -474,7 +475,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                     info!(" ↳ {:?}", exit_state);
                     for apply in &results_reg {
                         info!("   ↳ {:?}", apply);
-                        self.apply_phi_to_info(&exit_state, apply);
+                        self.apply_phi_to_info(&exit_state, apply, &terminator.1);
                     }
                 }
             }
@@ -496,7 +497,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                     "Applying loop pre-entry as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
-                self.apply_phi_to_info(&self.reg_state.clone(), &previous_state);
+                self.apply_phi_to_info(&self.reg_state.clone(), &previous_state, &terminator.1);
             }
             PaxTerm::LoopLeave(_) => {
                 // Leave loop.
@@ -530,7 +531,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                     "Applying loop entry as phi... ({:?}, {})",
                     terminator.0, terminator.1
                 );
-                self.apply_phi_to_info(&entry_state, &result_state);
+                self.apply_phi_to_info(&entry_state, &result_state, &terminator.1);
 
                 // If loop has any "leave" statement, we also inject a phi node after the loop.
                 if self.result_cache[current].len() > 1 {
@@ -543,7 +544,7 @@ impl PaxWalker for PaxAnalyzerWalker {
                         terminator.0, terminator.1
                     );
                     for apply in &self.result_cache[current].clone() {
-                        self.apply_phi_to_info(source, apply);
+                        self.apply_phi_to_info(source, apply, &terminator.1);
                     }
                 }
             }

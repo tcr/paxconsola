@@ -64,14 +64,7 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
 
         // Parse the program.
         let mut program = parse_to_pax(&test.contents, Some(&test.path.display().to_string()));
-
-        if inline {
-            inline_into_function(&mut program, "main");
-        }
-        if optimize {
-            program = propagate_registers(program, "main");
-            // strip_branches(&mut source_program, "main");
-        }
+        program = optimize_main(program, inline, optimize);
 
         eprintln!("[forth] running '{}'", test.path.display());
 

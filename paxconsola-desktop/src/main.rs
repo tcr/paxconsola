@@ -26,16 +26,7 @@ impl MainState {
 
         // Main must be inlined before evaluating in WebAssembly.
         let mut program = source_program.clone();
-
-        // if arg_inline {
-        inline_into_function(&mut program, "main");
-        // }
-        // if arg_optimize {
-        let proram = propagate_registers(program.clone(), "main");
-        // program.remove("main");
-        // program.insert("main".to_string(), main_opt);
-        // strip_branches(&mut source_program, "main");
-        // }
+        let program = optimize_main(program.clone(), true, true);
 
         let wat = WasmForthCompiler::compile(&program);
 

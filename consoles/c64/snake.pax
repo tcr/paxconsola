@@ -65,26 +65,33 @@ variable length
    ;
 
 : draw-walls
-    \ Calculate end row
+    \ Draw bottom wall
     width height 1 - *
     width 0 do
         0xE6 over i + draw-index
     loop
     drop
+
+    \ Draw top wall
     width 0 do
         0xE6 i draw-index
     loop
 
+    \ Draw right wall
     width 1 -
     height 0 do
         0xE6 over draw-index
         width +
     loop
+    drop
+
+    \ Draw left wall
     0
     height 0 do
         0xE6 over draw-index
         width +
     loop
+    drop
     ;
 
 : initialize-snake

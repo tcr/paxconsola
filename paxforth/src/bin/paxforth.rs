@@ -4,7 +4,7 @@ use structopt::StructOpt;
 
 use crate::check::*;
 use crate::debug::*;
-use crate::program::optimize::*;
+use crate::program::optimize;
 use crate::program::*;
 use crate::runner::wasm::run_wasm;
 use crate::targets::c64::*;
@@ -93,14 +93,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     let mut program = parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
 
     // Inline arguments.
-    if arg_inline {
-        inline_into_function(&mut program, "main");
-        // inline_into_function(&mut source_program, "*");
-    }
-    if arg_optimize {
-        program = propagate_registers(program.clone(), "main");
-        // strip_branches(&mut source_program, "main");
-    }
+    program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
 
     // Strip unneeded values from source_program.
     strip(&mut program);
