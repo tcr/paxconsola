@@ -6,6 +6,13 @@ use crate::*;
  */
 const INLINED_FN_PTR: PaxLiteral = 7777;
 
+/**
+ * Hacky method for determining whether to inline a method.
+ */
+fn should_inline(method: &str) -> bool {
+    method != "*"
+}
+
 pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
     let mut continue_pass = true;
     'pass_loop: while continue_pass {
@@ -25,6 +32,10 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str) {
                 (PaxTerm::Call(target), ..) => target,
                 _ => continue,
             };
+
+            // if !should_inline(target) {
+            //     continue;
+            // }
 
             // Flag that this pass succeeded.
             continue_pass = true;

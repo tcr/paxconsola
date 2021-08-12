@@ -73,7 +73,7 @@ pax_start:
     lda #0
     ldy #0
 
-    .include "generated.asm"
+    jsr PAX_FN_main
 
     ; restore stack
     ldx STACK_RESERVE
@@ -146,3 +146,5 @@ draw_loop:
     cpx #$28
     bne draw_loop
     rts
+
+    .include "generated.asm"

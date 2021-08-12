@@ -80,7 +80,6 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Dump { file, .. } |
         Command::Check { file, .. } |
         Command::Run { file, .. } |
-        Command::Inlineup { file, .. } |
         Command::Debug { file, .. } => file,
     };
 
@@ -91,39 +90,37 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
     // Read the file into a Vec<u8>
     let code = std::fs::read_to_string(&arg_file).expect("could not read file");
-    let mut source_program =
-        parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
+    let mut program = parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
 
     // Inline arguments.
     if arg_inline {
-        inline_into_function(&mut source_program, "main");
+        inline_into_function(&mut program, "main");
+        // inline_into_function(&mut source_program, "*");
     }
     if arg_optimize {
-        let main_opt = propagate_registers(&source_program, "main");
-        source_program.remove("main");
-        source_program.insert("main".to_string(), main_opt);
+        program = propagate_registers(program.clone(), "main");
         // strip_branches(&mut source_program, "main");
     }
 
     // Strip unneeded values from source_program.
-    strip(&mut source_program);
+    strip(&mut program);
 
     match args.cmd {
         Command::Compile { target, .. } => match target {
             Target::Commodore64 => {
-                let result = C64ForthCompiler::compile(&source_program);
+                let result = C64ForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::Gameboy => {
-                let result = GameboyForthCompiler::compile(&source_program);
+                let result = GameboyForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::WebAssembly => {
-                let result = WasmForthCompiler::compile(&source_program);
+                let result = WasmForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::TOM => {
-                let mut program = source_program.clone();
+                let mut program = program.clone();
                 inline_into_function(&mut program, "main");
                 let result = Tom1ForthCompiler::compile(&program);
                 println!("{}", &result);
@@ -131,7 +128,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         },
 
         Command::Dump { .. } => {
-            dump_program(&source_program);
+            dump_program(&program);
         }
 
         // Check the program output
@@ -139,7 +136,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
             if !check_program(
                 &arg_file.display().to_string(),
                 &code,
-                &source_program,
+                &program,
                 CheckMode::Wasm,
             ) {
                 std::process::exit(1);
@@ -148,7 +145,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Run the program directly
         Command::Run { .. } => {
-            let wat = WasmForthCompiler::compile(&source_program);
+            let wat = WasmForthCompiler::compile(&program);
 
             // Run as WASM.
             let wasm = wat::parse_str(&wat).unwrap();
@@ -156,7 +153,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         }
 
         Command::Debug { .. } => {
-            if !debug_program(&code, &source_program) {
+            if !debug_program(&code, &program) {
                 std::process::exit(1);
             }
         }

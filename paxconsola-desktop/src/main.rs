@@ -31,9 +31,9 @@ impl MainState {
         inline_into_function(&mut program, "main");
         // }
         // if arg_optimize {
-        let main_opt = propagate_registers(&program, "main");
-        program.remove("main");
-        program.insert("main".to_string(), main_opt);
+        let proram = propagate_registers(program.clone(), "main");
+        // program.remove("main");
+        // program.insert("main".to_string(), main_opt);
         // strip_branches(&mut source_program, "main");
         // }
 

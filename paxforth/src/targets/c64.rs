@@ -451,8 +451,8 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
             gb_output!(
                 out,
                 "
-    ;rts
-
+    rts
+.endproc
 
 
 
@@ -481,9 +481,17 @@ impl ForthCompiler for C64ForthCompiler {
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
-            if name != "main" {
-                continue;
-            }
+            // if name != "main" {
+            //     continue;
+            // }
+
+            gb_output!(
+                out,
+                "
+.proc PAX_FN_{}
+            ",
+                name_slug(&name)
+            );
 
             let mut result = vec![];
             for (block_index, block) in code.iter().enumerate() {

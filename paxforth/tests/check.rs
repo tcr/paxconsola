@@ -69,9 +69,7 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
             inline_into_function(&mut program, "main");
         }
         if optimize {
-            let main_opt = propagate_registers(&program, "main");
-            program.remove("main");
-            program.insert("main".to_string(), main_opt);
+            program = propagate_registers(program, "main");
             // strip_branches(&mut source_program, "main");
         }
 

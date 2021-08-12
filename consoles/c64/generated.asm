@@ -1,3 +1,4 @@
+.proc PAX_FN_main
 @target_0:
 
 ; snake.pax:205:1 in `main`
@@ -16692,8 +16693,8 @@
 
 ; :0:0 in ``
 @OPCODE_2014:   ; [c64_ir] Exit
-    ;rts
-
+    rts
+.endproc
 
 
 
