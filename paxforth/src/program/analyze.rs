@@ -551,8 +551,15 @@ impl PaxWalker for PaxAnalyzerWalker {
 
             // Function calls
             PaxTerm::Call(ref s) => {
-                // TODO reform this call method
-                panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
+                if s == "*" {
+                    let a = self.data_consume();
+                    let b = self.data_consume();
+                    let new_reg = self.data_push();
+                    self.get_reg_info_mut(&new_reg).origin = RegOrigin::Consumes(hashset! {a, b});
+                } else {
+                    // TODO reform this call method
+                    panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
+                }
             }
         }
 
