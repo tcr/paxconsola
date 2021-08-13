@@ -463,13 +463,39 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
             );
         }
         PaxTerm::Call(label) => {
-            gb_output!(
-                out,
-                "
-    jsr PAX_FN_{}
-            ",
-                name_slug(&label)
-            );
+            if label == "*" {
+                gb_output!(
+                    out,
+                    "
+        jsr replace_PAX_FN_{}
+                ",
+                    name_slug(&label)
+                );
+            } else if label == "-" {
+                gb_output!(
+                    out,
+                    "
+    ; http://www.obelisk.me.uk/6502/algorithms.html
+    dex
+    dex
+    sec
+    lda $00,x
+    sbc $02,x 
+    sta $00,x
+    lda $01,x
+    sbc $03,x
+    sta $01,x
+                ",
+                );
+            } else {
+                gb_output!(
+                    out,
+                    "
+        jsr PAX_FN_{}
+                ",
+                    name_slug(&label)
+                );
+            }
         }
     }
     out
@@ -481,9 +507,10 @@ impl ForthCompiler for C64ForthCompiler {
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
-            // if name != "main" {
-            //     continue;
-            // }
+            // @nocommit
+            if name == "*" {
+                continue;
+            }
 
             gb_output!(
                 out,

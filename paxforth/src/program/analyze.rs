@@ -551,7 +551,7 @@ impl PaxWalker for PaxAnalyzerWalker {
 
             // Function calls
             PaxTerm::Call(ref s) => {
-                if s == "*" {
+                if s == "*" || s == "-" {
                     let a = self.data_consume();
                     let b = self.data_consume();
                     let new_reg = self.data_push();
