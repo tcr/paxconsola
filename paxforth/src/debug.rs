@@ -40,12 +40,16 @@ enum DebugMode {
 pub fn read_line() -> Result<String> {
     let mut line = String::new();
     while let Event::Key(KeyEvent { code, .. }) = event::read()? {
-        eprintln!("what {:?}", code);
+        // eprintln!("what {:?}", code);
         match code {
-            KeyCode::Enter | KeyCode::Char('\r') => {
+            KeyCode::Enter => {
                 break;
             }
             KeyCode::Char(c) => {
+                // if c == 'c' && modifiers.contains(KeyModifiers::CONTROL) {
+                //     std::process::exit(1)
+                // }
+                // eprint!("{}", c);
                 line.push(c);
             }
             _ => {}
@@ -310,7 +314,7 @@ fn debug_program_function(
                 PaxTerm::Exit => {
                     return;
                 }
-                PaxTerm::InlineCall(f) => {
+                PaxTerm::InlineCall(_f) => {
                     vm.alt_push(0);
                 }
                 PaxTerm::InlineExit => {

@@ -1,12 +1,6 @@
 use crate::*;
 use std::collections::HashSet;
 
-/**
- * When a function is inlined, we need a magic value to replace the function ptr we would otherwise
- * be calling. The magic literal for this should be recognizable.
- */
-const INLINED_FN_PTR: PaxLiteral = 7777;
-
 pub fn inline_into_function(program: &mut PaxProgram, method: &str, skip_method: &HashSet<String>) {
     let mut continue_pass = true;
     'pass_loop: while continue_pass {
@@ -37,14 +31,6 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str, skip_method:
             // We want to inline this function. First grab our offsets.
             let mut inlined_blocks = program.get(target).unwrap().clone();
             assert!(!inlined_blocks.is_empty());
-            // dump_blocks(&inlined_blocks);
-
-            // Inline code length (trim off start and end block).
-            let inlined_blocks_len = if inlined_blocks.len() >= 2 {
-                inlined_blocks.len() - 2
-            } else {
-                0
-            };
 
             // Rewrite the sequence we're inlining.
             for (_i, inline_block) in inlined_blocks.iter_mut().enumerate() {
@@ -55,7 +41,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str, skip_method:
                     | (PaxTerm::JumpIf0(ref mut target), ..)
                     | (PaxTerm::JumpElse(ref mut target), ..)
                     | (PaxTerm::JumpTarget(ref mut target), ..) => {
-                        *target += j - 1;
+                        *target += j;
                     }
                     _ => {}
                 }
@@ -63,7 +49,7 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str, skip_method:
 
             // Refetch a mutable version of this method.
             let main_mut = program.get_mut(method).unwrap();
-            // Now rewrite all targets inside this block.
+            // Now rewrite all targets that are after the inlined block.
             for (_i, main_block) in main_mut.iter_mut().enumerate() {
                 match main_block.terminator_mut() {
                     (PaxTerm::LoopIf0(ref mut target), ..)
@@ -73,114 +59,35 @@ pub fn inline_into_function(program: &mut PaxProgram, method: &str, skip_method:
                     | (PaxTerm::JumpElse(ref mut target), ..)
                     | (PaxTerm::JumpTarget(ref mut target), ..) => {
                         if *target >= j {
-                            *target += inlined_blocks_len;
+                            *target += inlined_blocks.len();
                         }
                     }
                     _ => {}
                 }
             }
 
-            let inline_pos = Pos {
-                filename: "<inline>".to_string(),
-                function: method.to_string(),
-                col: 0,
-                line: 0,
-            };
-
-            let return_stack_enter = vec![
-                (Pax::PushLiteral(INLINED_FN_PTR), inline_pos.clone()),
-                (Pax::AltPush, inline_pos.clone()),
-            ];
-            let return_stack_exit = vec![
-                (Pax::AltPop, inline_pos.clone()),
-                (Pax::Drop, inline_pos.clone()),
-            ];
-
-            if inlined_blocks.len() == 1 {
-                // Rest of next block
-                let function_commands = inlined_blocks[0]
-                    .opcodes()
-                    .to_owned()
-                    .into_iter()
-                    // .skip(1)
-                    .chain(return_stack_exit.into_iter());
-                // Generate enter block.
-                let enter_commands = block
-                    .opcodes()
-                    .to_owned()
-                    .into_iter()
-                    .chain(return_stack_enter.into_iter())
-                    .chain(function_commands);
-
-                // eprintln!("-----> {:?}", enter_commands.clone().collect::<Vec<_>>());
-
-                // Combine current block, fn block, and next block.
-                let mut next_block = main_mut.remove(j);
-                next_block.opcodes_mut().splice(0..0, enter_commands);
-
-                // Combine current block.
-                main_mut[j - 1] = next_block;
-
-                // Rewrite all targets after this.
-                for (_i, main_block) in main_mut.iter_mut().enumerate().skip(j) {
-                    match main_block.terminator_mut() {
-                        (PaxTerm::LoopIf0(ref mut target), ..)
-                        | (PaxTerm::LoopTarget(ref mut target), ..)
-                        | (PaxTerm::LoopLeave(ref mut target), ..)
-                        | (PaxTerm::JumpIf0(ref mut target), ..)
-                        | (PaxTerm::JumpElse(ref mut target), ..)
-                        | (PaxTerm::JumpTarget(ref mut target), ..) => {
-                            if *target >= j {
-                                *target -= 1;
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-
-                // Now rewrite all targets before this.
-                for (_i, main_block) in main_mut.iter_mut().enumerate().take(j) {
-                    match main_block.terminator_mut() {
-                        (PaxTerm::LoopIf0(ref mut target), ..)
-                        | (PaxTerm::LoopTarget(ref mut target), ..)
-                        | (PaxTerm::LoopLeave(ref mut target), ..)
-                        | (PaxTerm::JumpIf0(ref mut target), ..)
-                        | (PaxTerm::JumpElse(ref mut target), ..)
-                        | (PaxTerm::JumpTarget(ref mut target), ..) => {
-                            if *target >= j {
-                                *target -= 1;
-                            }
-                        }
-                        _ => {}
-                    }
-                }
+            // Generate enter block.
+            let call_label = if let (PaxTerm::Call(label), _) = main_mut[j - 1].terminator() {
+                label.clone()
             } else {
-                // Generate enter block.
-                let mut enter_block = inlined_blocks[0].clone();
-                let enter_commands = block
-                    .opcodes()
-                    .to_owned()
-                    .into_iter()
-                    .chain(return_stack_enter.into_iter());
-                enter_block.opcodes_mut().splice(0..0, enter_commands);
-                // Generate exit block.
-                let exit_commands = inlined_blocks[inlined_blocks.len() - 1]
-                    .opcodes()
-                    .to_owned()
-                    .into_iter()
-                    .chain(return_stack_exit.into_iter());
-                let mut exit_block = main_mut[j].clone();
-                exit_block.opcodes_mut().splice(0..0, exit_commands);
-                // Remove first + last blocks from our inline sequence.
-                let inline_seq = inlined_blocks[1..inlined_blocks.len() - 1].to_owned();
-
-                // Combine current block.
-                main_mut[j - 1] = enter_block;
-                // Combine next block.
-                main_mut[j] = exit_block;
-                // Splice in new chunk.
-                main_mut.splice(j..j, inline_seq.clone());
+                unreachable!();
+            };
+            if let (ref mut term @ PaxTerm::Call(_), _) = main_mut[j - 1].terminator_mut() {
+                *term = PaxTerm::InlineCall(call_label);
+            } else {
+                unreachable!();
             }
+            // Generate exit block.
+            if let (ref mut term @ PaxTerm::Exit, _) =
+                inlined_blocks.last_mut().unwrap().terminator_mut()
+            {
+                *term = PaxTerm::InlineExit;
+            } else {
+                unreachable!();
+            }
+
+            // Splice in new chunk.
+            main_mut.splice(j..j, inlined_blocks.clone());
 
             // Restart inlining into this function.
             continue 'pass_loop;

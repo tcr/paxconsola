@@ -95,7 +95,7 @@ variable length
     ;
 
 : initialize-snake
-  16 length !
+  4 length !
   length @ 1 + 0 do
     8 i - i snake-x !
     8 i snake-y !

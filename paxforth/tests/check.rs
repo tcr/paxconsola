@@ -1,7 +1,6 @@
 use glob::glob;
 use paxforth::check::*;
 use paxforth::program::optimize::*;
-use paxforth::program::*;
 use paxforth::*;
 use std::path::PathBuf;
 
@@ -98,17 +97,17 @@ static OPT_IGNORE_LIST: &[&str] = &[
     // roll cannot be optimized unless inlined yet
     "roll.fth",
     // crashing tests
-    // "json-parse.fth",
-    // "modulus.fth",
-    // // failing tests
-    // "invert.fth",
-    // "loop.fth",
-    // "type-simple.fth",
-    // "type.fth",
-    // "multiply.fth",
-    // "loopimpl2.fth",
-    // "loopimpl.fth",
-    // "loop-do.fth",
+    "json-parse.fth",
+    "modulus.fth",
+    // failing tests
+    "invert.fth",
+    "loop.fth",
+    "type-simple.fth",
+    "type.fth",
+    "multiply.fth",
+    "loopimpl2.fth",
+    "loopimpl.fth",
+    "loop-do.fth",
 ];
 
 #[test]

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILE=snake.fth
-OPTS=""
+OPTS="--inline"
 
 paxforth dump $FILE $OPTS > $FILE.dump
 
