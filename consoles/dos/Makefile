@@ -1,5 +1,8 @@
-build:
-	nasm -f bin -o myfile.com myfile.asm
+clean:
+	rm -rf build
+
+build: paxconsola.asm
+	nasm -f bin -o build/paxconsola.com paxconsola.asm
 
 run: build
-	/applications/dosbox.app/contents/macos/dosbox -c "mount c \"$$(pwd)\"" -c "c:" -c "myfile.com"
+	/applications/dosbox.app/contents/macos/dosbox -c "mount c \"$$(pwd)/build\"" -c "c:" -c "PAXCON~1.com"
