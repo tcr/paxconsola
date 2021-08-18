@@ -198,4 +198,4 @@ draw_loop:
 
 ; Generated code
 
-    .include "generated.asm"
+    .include "paxconsola_generated.asm"

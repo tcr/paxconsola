@@ -3,15 +3,15 @@ AS = ca65
 CFLAGS =
 AFLAGS =
 
-all: paxconsola.prg
+all: build/paxconsola.prg
 
 clean:
-	rm -f paxconsola.o paxconsola.lst paxconsola.prg
+	rm -f build
 
 # Review: https://cc65.github.io/doc/c64.html#s10
 
-paxconsola.prg: paxconsola.o
-	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg -g paxconsola.o -o $@ -Ln paxconsola.lbl -l paxconsola.lst -m paxconsola.map
+build/paxconsola.prg: build/paxconsola.o
+	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg -g build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -l build/paxconsola.lst -m build/paxconsola.map
 
-paxconsola.o: paxconsola.s generated.asm
-	$(AS) $(CFLAGS) -t c64 -g paxconsola.s -l paxconsola.lst -o $@
+build/paxconsola.o: paxconsola.s paxconsola_generated.asm
+	$(AS) $(CFLAGS) -t c64 -g paxconsola.s -l build/paxconsola.lst -o $@

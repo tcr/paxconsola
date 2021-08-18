@@ -2475,15 +2475,15 @@
 @target_0:
 
 ; snake.fth:98:3 in `initialize-snake`
-@OPCODE_1:   ; [c64_ir] PushLiteral(16)
+@OPCODE_1:   ; [c64_ir] PushLiteral(4)
     inx
     inx
-    lda #16
+    lda #4
     sta $00,x
     lda #0
     sta $01,x
 
-; snake.fth:98:6 in `initialize-snake`
+; snake.fth:98:5 in `initialize-snake`
 @OPCODE_2:   ; [c64_ir] PushLiteral(-26658)
     inx
     inx
@@ -2492,7 +2492,7 @@
     lda #151
     sta $01,x
 
-; snake.fth:98:13 in `initialize-snake`
+; snake.fth:98:12 in `initialize-snake`
 @OPCODE_3:   ; [c64_ir] Store
     dex
     dex
