@@ -127,14 +127,24 @@ fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
         ],
         // ( cond -- )
         PaxTerm::JumpElse(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
-        // ( address -- )
-        PaxTerm::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
-        // ( -- )
-        PaxTerm::Exit => vec![GbIr::Ret],
         // ( -- )
         PaxTerm::LoopTarget(n) | PaxTerm::JumpTarget(n) => {
             vec![GbIr::Label(format!(".target_{}", n))]
         }
+
+        // ( address -- )
+        PaxTerm::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
+        // ( -- )
+        PaxTerm::Exit => vec![GbIr::Ret],
+        // ( address -- )
+        PaxTerm::InlineCall(_target) => vec![
+            GbIr::Dup,
+            GbIr::ReplaceLiteral(7777),
+            GbIr::AltDupFromTOS,
+            GbIr::Pop,
+        ],
+        // ( -- )
+        PaxTerm::InlineExit => vec![GbIr::Dup, GbIr::AltPop, GbIr::Pop],
     }
 }
 

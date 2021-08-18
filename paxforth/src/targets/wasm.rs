@@ -107,11 +107,19 @@ impl PaxWalker for WasmForthCompilerWalker {
     ) {
         self.push(&format!(";; {:?}", &terminator.0));
         match &terminator.0 {
-            PaxTerm::Exit => {}
             PaxTerm::Call(ref s) => {
                 self.push(&format!("    i32.const {}", 0)); // dummy value
                 self.push(&format!("    call $return_push"));
                 self.push(&format!("    call $fn_{}", name_slug(s)));
+                self.push(&format!("    call $return_pop"));
+                self.push(&format!("    call $drop"));
+            }
+            PaxTerm::Exit => {}
+            PaxTerm::InlineCall(ref _s) => {
+                self.push(&format!("    i32.const {}", 0)); // dummy value
+                self.push(&format!("    call $return_push"));
+            }
+            PaxTerm::InlineExit => {
                 self.push(&format!("    call $return_pop"));
                 self.push(&format!("    call $drop"));
             }

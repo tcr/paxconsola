@@ -81,10 +81,10 @@ jump_if_0(target_{})",
         }
 
         // Pax::Metadata(_s) => tom_output!(out, "start()"),
-        PaxTerm::Exit => {
+        PaxTerm::Call(_label) | PaxTerm::InlineCall(_label) => {
             tom_output!(out, "");
         }
-        PaxTerm::Call(_label) => {
+        PaxTerm::Exit | PaxTerm::InlineExit => {
             tom_output!(out, "");
         }
     }

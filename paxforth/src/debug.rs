@@ -286,6 +286,16 @@ fn debug_program_function(
             }
             match &terminator.0 {
                 PaxTerm::LoopTarget(_n) | PaxTerm::JumpTarget(_n) => {}
+                PaxTerm::LoopLeave(n) | PaxTerm::JumpElse(n) => {
+                    i = *n;
+                }
+                PaxTerm::JumpIf0(n) | PaxTerm::LoopIf0(n) => {
+                    let v = vm.data_pop();
+                    if v == 0 {
+                        i = *n;
+                    }
+                }
+
                 PaxTerm::Call(f) => {
                     vm.alt_push(0);
                     if *debug_mode == DebugMode::Step {
@@ -300,14 +310,11 @@ fn debug_program_function(
                 PaxTerm::Exit => {
                     return;
                 }
-                PaxTerm::LoopLeave(n) | PaxTerm::JumpElse(n) => {
-                    i = *n;
+                PaxTerm::InlineCall(f) => {
+                    vm.alt_push(0);
                 }
-                PaxTerm::JumpIf0(n) | PaxTerm::LoopIf0(n) => {
-                    let v = vm.data_pop();
-                    if v == 0 {
-                        i = *n;
-                    }
+                PaxTerm::InlineExit => {
+                    vm.alt_pop();
                 }
             }
         }

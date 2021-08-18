@@ -38,8 +38,10 @@ pub enum Pax {
 // Pax opcodes for terminating a block.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum PaxTerm {
-    Exit,
     Call(String),
+    Exit,
+    InlineCall(String),
+    InlineExit,
 
     LoopTarget(usize),
     LoopLeave(usize),

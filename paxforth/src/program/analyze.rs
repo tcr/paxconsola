@@ -340,13 +340,13 @@ impl PaxWalker for PaxAnalyzerWalker {
             Pax::PushLiteral(lit) => {
                 self.data_push_literal(*lit);
             }
-            Pax::AltPop => {
-                let reg = self.ret_pop();
-                self.data_push_reg(reg);
-            }
             Pax::AltPush => {
                 let reg = self.data_pop();
                 self.ret_push(reg);
+            }
+            Pax::AltPop => {
+                let reg = self.ret_pop();
+                self.data_push_reg(reg);
             }
             Pax::TempStore => {
                 self.store_temp();
@@ -397,8 +397,6 @@ impl PaxWalker for PaxAnalyzerWalker {
         }
 
         match &terminator.0 {
-            PaxTerm::Exit => {}
-
             /* branches */
             PaxTerm::JumpIf0(_) => {
                 // Enter if branch.
@@ -560,6 +558,15 @@ impl PaxWalker for PaxAnalyzerWalker {
                     // TODO reform this call method
                     panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
                 }
+            }
+            PaxTerm::Exit => {}
+
+            PaxTerm::InlineCall(_) => {
+                let reg = self.new_reg_with_origin(RegOrigin::PushLiteral(7777));
+                self.ret_push(reg);
+            }
+            PaxTerm::InlineExit => {
+                self.ret_pop();
             }
         }
 

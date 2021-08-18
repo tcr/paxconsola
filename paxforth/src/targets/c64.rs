@@ -447,21 +447,6 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
 
         PaxTerm::LoopTarget(_n) | PaxTerm::JumpTarget(_n) => {}
 
-        PaxTerm::Exit => {
-            gb_output!(
-                out,
-                "
-    rts
-.endproc
-
-
-
-
-
-; function start
-            "
-            );
-        }
         PaxTerm::Call(label) => {
             if label == "*" {
                 gb_output!(
@@ -496,6 +481,42 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
                     name_slug(&label)
                 );
             }
+        }
+        PaxTerm::Exit => {
+            gb_output!(
+                out,
+                "
+    rts
+.endproc
+
+
+
+
+
+; function start
+            "
+            );
+        }
+        PaxTerm::InlineCall(label) => {
+            gb_output!(
+                out,
+                "
+    ; inline call({})
+    pha
+    pha
+                ",
+                label,
+            );
+        }
+        PaxTerm::InlineExit => {
+            gb_output!(
+                out,
+                "
+    ; inline exit
+    pla
+    pla
+                "
+            );
         }
     }
     out

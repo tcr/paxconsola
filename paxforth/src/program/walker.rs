@@ -48,6 +48,12 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
         // Iterate the terminator opcode.
         let terminator = block.terminator();
         match &terminator.0 {
+            PaxTerm::Call(_) => {
+                let block = block_stack.last().unwrap();
+
+                // Don't assert any block level.
+                walker.terminator(&terminator, block, &block_stack);
+            }
             PaxTerm::Exit => {
                 let block = block_stack.last().unwrap();
 
@@ -55,7 +61,13 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
                 block.to_root();
                 walker.terminator(&terminator, block, &block_stack);
             }
-            PaxTerm::Call(_) => {
+            PaxTerm::InlineCall(_) => {
+                let block = block_stack.last().unwrap();
+
+                // Don't assert any block level.
+                walker.terminator(&terminator, block, &block_stack);
+            }
+            PaxTerm::InlineExit => {
                 let block = block_stack.last().unwrap();
 
                 // Don't assert any block level.
