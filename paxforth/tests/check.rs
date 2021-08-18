@@ -1,7 +1,6 @@
 use glob::glob;
 use paxforth::check::*;
 use paxforth::program::optimize::*;
-use paxforth::program::*;
 use paxforth::*;
 use std::path::PathBuf;
 

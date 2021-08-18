@@ -149,7 +149,7 @@ draw_loop:
 
 
 ; http://forum.6502.org/viewtopic.php?f=9&t=689
-.proc replace_PAX_FN_2A
+.proc NATIVE_FN_2A
     dex
     dex
 

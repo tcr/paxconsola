@@ -467,7 +467,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
                 gb_output!(
                     out,
                     "
-        jsr replace_PAX_FN_{}
+        jsr NATIVE_FN_{}
                 ",
                     name_slug(&label)
                 );
