@@ -21,6 +21,8 @@ STACK_RESERVE = $97
 X_START = $02
 X_END = $7f
 
+    .org $80d
+
 .code
     ; Make screen black and text white
     lda #$00
@@ -29,8 +31,14 @@ X_END = $7f
     lda #$01
     sta $0286
 
-    ; Select charset
-    lda #23
+    ; lda $DD00
+    ; and #%11111100
+    ; ora #%00000011 ;<- your desired VIC bank value, see above
+    ; sta $DD00
+
+    ; Custom charset
+    ;  lda #%00011000
+    lda #%00011000
     sta $d018
 
     ; Clear the screen
@@ -199,3 +207,9 @@ draw_loop:
 ; Generated code
 
     .include "paxconsola_generated.asm"
+
+    .res $1ffe-*
+
+FONT_EMBED:
+    .incbin "cav_of_sillahc.64c"
+FONT_EMBED_END:
