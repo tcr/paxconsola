@@ -6,11 +6,18 @@ $9800 constant graphics
 32 constant screen-row-width
 18 constant screen-height
 
+37 constant left
+38 constant up
+39 constant right
+40 constant down
+
 : random random-register @ 255 and swap % ;
 
-\ ---
-
 0x02 constant TILE_WALL
+
+0x00 constant color-white
+
+\ ---
 
 variable initialized
 variable frame
@@ -23,13 +30,6 @@ variable snake-y-head
 
 variable apple-x
 variable apple-y
-
-0x00 constant color-white
-
-37 constant left
-38 constant up
-39 constant right
-40 constant down
 
 variable direction
 variable length
@@ -105,20 +105,19 @@ variable length
 
 : initialize-apple  8 13 set-apple-position ;
 
+: draw-full-snake
+    length @ 0 do
+        i snake-x @ i snake-y @ draw-snake-tile
+    loop
+    ;
+
 : initialize
     draw-background
     draw-walls
     initialize-snake
     initialize-apple
+    draw-full-snake
     ;
-
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
-
-
-
 
 
 \ game runtime
@@ -208,7 +207,7 @@ initialized @ 0= if initialize then
     convert-x-y graphics + c@
 
     \ leave boolean flag on stack
-    0 =
+    color-white =
     ;
 
 : draw-snake-head-tail
@@ -223,11 +222,9 @@ initialized @ 0= if initialize then
     ;
 
 
-
-
-
-
-\ game loop
+\ Initialize only once
+initialized @ 0= if initialize then
+1 initialized !
 
 \ Game loop
 draw-snake-head-tail
@@ -239,39 +236,3 @@ check-apple
 
 check-collision
 if else 0 initialized ! then
-
-\ end frameskip
-\ then
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(
-
-: move-right 23 graphics 67 + c! ;
-: move-left 21 graphics 65 + c! ;
-: move-up 22 graphics 34 + c! ;
-: move-down 24 graphics 98 + c! ;
-
-last-key @
-  left over = if move-left else
-  up over    = if move-up else
-  right over  = if move-right else
-  down over = if move-down
-  then then then then
-
-)
-
-

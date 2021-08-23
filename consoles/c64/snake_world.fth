@@ -5,6 +5,10 @@
 
 0xE6 constant TILE_WALL
 
+0x20 constant color-white
+
+\ ---
+
 variable initialized
 variable frame \ unused
 
@@ -16,8 +20,6 @@ variable snake-y-head
 
 variable apple-x
 variable apple-y
-
-0x20 constant color-white
 
 variable direction
 variable length
