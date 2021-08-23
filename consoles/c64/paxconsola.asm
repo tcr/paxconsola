@@ -45,7 +45,7 @@ X_END = $7f
     jsr $e544
 
     ; draw some helpful text
-    jsr draw_text
+    ; jsr draw_text
 
     lda #00
     ldx #(X_END-X_START)
@@ -89,15 +89,52 @@ pax_start:
     ; re-enable interrupts
     cli
 
-
+    ; random register
     LDA #5
     STA $7f
+
+    clc
+    lda $dc01
+    lsr
+    bcc UP
+    lsr
+    bcc DOWN
+    lsr
+    bcc LEFT
+    lsr
+    bcc RIGHT
+ 
+; input_fire_check:
+;   lda #$10                ; mask left movement (16 == bit 5 == %0001 0000)
+;   bit $DC01               ; bitwise "and" with joystick port 1
+;   bne next_after_input   ; if not active (==1), go back to .input_left_check
+  
+  ; else print F (for FIRE)
+  ;lda #$46                ; load character 'F' into register A
+  ;jsr $FFD2               ; print character to screen
+
+input_none:
+  lda #0
+  sta $7e
+  
+  jmp pax_finished
+  
+
+    ; altternative: scan keycodes
 
     JSR SCNKEY      ;SCAN KEYBOARD
     JSR GETIN       ;GET CHARACTER
     CMP #0          ;IS IT NULL?
-    BEQ pax_finished  ;no? skip
+    BNE pax_keys    ;no? parse the key
 
+    ; clear the key
+    lda #0
+    sta $7e
+    
+    jmp pax_finished
+
+
+pax_keys:
 
 START	:        
     CMP #87		;W - up

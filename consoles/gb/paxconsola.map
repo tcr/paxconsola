@@ -1,0 +1,308 @@
+ROM Bank #0 (HOME):
+  SECTION: $0028-$0038 ($0011 bytes) ["Copy Data"]
+           $002E = COPY_DATA.copy_data_loop
+           $0028 = COPY_DATA
+  SECTION: $0040-$0042 ($0003 bytes) ["VBlank IRQ"]
+  SECTION: $0048-$0048 ($0001 bytes) ["LCD IRQ Vector"]
+           $0048 = LCD_VECT
+  SECTION: $0050-$0050 ($0001 bytes) ["Timer IRQ Vector"]
+           $0050 = TIMER_VECT
+  SECTION: $0058-$0058 ($0001 bytes) ["Serial IRQ Vector"]
+           $0058 = SERIAL_VECT
+  SECTION: $0060-$0060 ($0001 bytes) ["Joypad IRQ Vector"]
+           $0060 = JOYPAD_VECT
+  SECTION: $0100-$014F ($0050 bytes) ["Start"]
+  SECTION: $0E4E-$3ADD ($2C90 bytes) ["Tiles"]
+           $0E4E = TILE_DATA
+  SECTION: $3ADE-$3EDD ($0400 bytes) ["Map"]
+           $3ADE = MAP_DATA
+  SECTION: $0150-$0E4D ($0CFE bytes) ["Program Start"]
+           $0D2B = VBLANK_IRQ
+           $0150 = START
+           $0D5F = CLEAR_MAP
+           $0D6E = LOAD_TILES
+           $0D92 = CLEAR_RAM
+           $0DA1 = READ_JOYPAD
+           $0DD1 = JOY_RIGHT
+           $0DE0 = JOY_LEFT
+           $0DEF = JOY_UP
+           $0DFD = JOY_DOWN
+           $0D37 = WAIT_VBLANK
+           $01B7 = PAX_VM
+           $0E35 = RandomNumber
+           $018E = LOOP
+           $0360 = PAX_FN_03D
+           $01D8 = PAX_VM.target_3
+           $07E8 = PAX_FN_initialize
+           $0330 = PAX_FN_12B
+           $02E7 = PAX_FN_dup
+           $0383 = PAX_FN_3D
+           $0269 = PAX_VM.target_19
+           $0C8C = PAX_FN_draw2Dsnake
+           $0D0A = PAX_FN_draw2Dapple
+           $0B54 = PAX_FN_check2Dinput
+           $094A = PAX_FN_move2Dsnake2Dtail
+           $08B3 = PAX_FN_move2Dsnake2Dhead
+           $0BFB = PAX_FN_check2Dapple
+           $0C50 = PAX_FN_check2Dcollision
+           $0251 = PAX_VM.target_17
+           $0269 = PAX_VM.target_18
+           $026A = PAX_FN_drop
+           $027C = PAX_FN_swap
+           $02A6 = PAX_FN_over
+           $0319 = PAX_FN_invert
+           $0320 = PAX_FN_negate
+           $0379 = PAX_FN_03D.target_3
+           $0382 = PAX_FN_03D.target_4
+           $0325 = PAX_FN_2D
+           $0307 = PAX_FN_2dup
+           $03EE = PAX_FN_loopimpl.target_7
+           $0271 = PAX_FN_2drop
+           $03F9 = PAX_FN_loopimpl.target_8
+           $02D2 = PAX_FN_rot
+           $0444 = PAX_FN_2Dloopimpl.target_9
+           $044F = PAX_FN_2Dloopimpl.target_10
+           $03B4 = PAX_FN_loopimpl
+           $0514 = PAX_FN_2A.target_1
+           $055E = PAX_FN_03C.target_4
+           $0567 = PAX_FN_03C.target_5
+           $0535 = PAX_FN_03C
+           $059A = PAX_FN_25.target_10
+           $05AC = PAX_FN_25.target_14
+           $0568 = PAX_FN_25.target_1
+           $03A2 = PAX_FN_and
+           $0568 = PAX_FN_25
+           $030E = PAX_FN_cells
+           $04F2 = PAX_FN_2A
+           $05EF = PAX_FN_convert2Dx2Dy
+           $0612 = PAX_FN_draw.wait
+           $0603 = PAX_FN_draw
+           $045A = PAX_FN_i
+           $0634 = PAX_FN_draw2Dblack
+           $068D = PAX_FN_draw2Dwalls.target_1
+           $06E7 = PAX_FN_draw2Dwalls.target_9
+           $05DB = PAX_FN_snake2Dx
+           $05E5 = PAX_FN_snake2Dy
+           $0754 = PAX_FN_initialize2Dsnake.target_1
+           $07B5 = PAX_FN_set2Dapple2Dposition
+           $0498 = PAX_FN_j
+           $0621 = PAX_FN_draw2Dwhite
+           $0828 = PAX_FN_initialize.target_2
+           $0808 = PAX_FN_initialize.target_1
+           $066D = PAX_FN_draw2Dwalls
+           $0722 = PAX_FN_initialize2Dsnake
+           $07D2 = PAX_FN_initialize2Dapple
+           $0332 = PAX_FN_2B21
+           $08E3 = PAX_FN_move2Dsnake2Dhead.target_6
+           $0871 = PAX_FN_move2Dleft
+           $0946 = PAX_FN_move2Dsnake2Dhead.target_26
+           $0905 = PAX_FN_move2Dsnake2Dhead.target_12
+           $085B = PAX_FN_move2Dup
+           $0946 = PAX_FN_move2Dsnake2Dhead.target_25
+           $0927 = PAX_FN_move2Dsnake2Dhead.target_18
+           $089D = PAX_FN_move2Dright
+           $0946 = PAX_FN_move2Dsnake2Dhead.target_24
+           $0946 = PAX_FN_move2Dsnake2Dhead.target_23
+           $0887 = PAX_FN_move2Ddown
+           $0404 = PAX_FN_2Dloopimpl
+           $096F = PAX_FN_move2Dsnake2Dtail.target_1
+           $038A = PAX_FN_or
+           $09C7 = PAX_FN_is2Dhorizontal
+           $0A4F = PAX_FN_turn2Dup.target_3
+           $09F7 = PAX_FN_is2Dvertical
+           $0A78 = PAX_FN_turn2Dleft.target_3
+           $0AA1 = PAX_FN_turn2Ddown.target_3
+           $0ACA = PAX_FN_turn2Dright.target_3
+           $0AED = PAX_FN_change2Ddirection.target_6
+           $0A50 = PAX_FN_turn2Dleft
+           $0B50 = PAX_FN_change2Ddirection.target_26
+           $0B0F = PAX_FN_change2Ddirection.target_12
+           $0A27 = PAX_FN_turn2Dup
+           $0B50 = PAX_FN_change2Ddirection.target_25
+           $0B31 = PAX_FN_change2Ddirection.target_18
+           $0AA2 = PAX_FN_turn2Dright
+           $0B50 = PAX_FN_change2Ddirection.target_24
+           $0B50 = PAX_FN_change2Ddirection.target_23
+           $0A79 = PAX_FN_turn2Ddown
+           $0ACB = PAX_FN_change2Ddirection
+           $05BA = PAX_FN_random
+           $0B7E = PAX_FN_random2Dx2Dposition
+           $0B9D = PAX_FN_random2Dy2Dposition
+           $0C4F = PAX_FN_check2Dapple.target_7
+           $0BBC = PAX_FN_move2Dapple
+           $0BE5 = PAX_FN_grow2Dsnake
+           $0C75 = PAX_FN_check2Dcollision.wait
+           $0647 = PAX_FN_draw2Dsnake2Dtile
+           $0CB1 = PAX_FN_draw2Dsnake.target_1
+           $065A = PAX_FN_draw2Dapple2Dtile
+           $0D3A = WAIT_VBLANK.wait_vblank_loop
+           $0D65 = CLEAR_MAP.clear_map_loop
+           $0D77 = LOAD_TILES.load_tiles_loop
+           $0D89 = LOAD_MAP.load_map_loop
+           $0D98 = CLEAR_RAM.loop
+           $0E33 = JOY_FALSE
+           $0360 = PAX_FN_03D.target_0
+           $04F2 = PAX_FN_2A.target_0
+           $08B3 = PAX_FN_move2Dsnake2Dhead.target_0
+           $0A50 = PAX_FN_turn2Dleft.target_0
+           $0325 = PAX_FN_2D.target_0
+           $07B5 = PAX_FN_set2Dapple2Dposition.target_0
+           $0722 = PAX_FN_initialize2Dsnake.target_0
+           $02D2 = PAX_FN_rot.target_0
+           $0E15 = JOY_B
+           $0E0B = JOY_A
+           $089D = PAX_FN_move2Dright.target_0
+           $0320 = PAX_FN_negate.target_0
+           $0B9D = PAX_FN_random2Dy2Dposition.target_0
+           $0634 = PAX_FN_draw2Dblack.target_0
+           $09F7 = PAX_FN_is2Dvertical.target_0
+           $0887 = PAX_FN_move2Ddown.target_0
+           $05DB = PAX_FN_snake2Dx.target_0
+           $0A79 = PAX_FN_turn2Ddown.target_0
+           $02A6 = PAX_FN_over.target_0
+           $026A = PAX_FN_drop.target_0
+           $0621 = PAX_FN_draw2Dwhite.target_0
+           $0568 = PAX_FN_25.target_0
+           $0404 = PAX_FN_2Dloopimpl.target_0
+           $0332 = PAX_FN_2B21.target_0
+           $0BE5 = PAX_FN_grow2Dsnake.target_0
+           $0B7E = PAX_FN_random2Dx2Dposition.target_0
+           $0C8C = PAX_FN_draw2Dsnake.target_0
+           $07D2 = PAX_FN_initialize2Dapple.target_0
+           $0647 = PAX_FN_draw2Dsnake2Dtile.target_0
+           $045A = PAX_FN_i.target_0
+           $0AA2 = PAX_FN_turn2Dright.target_0
+           $0D4B = DMA_COPY
+           $0E1F = JOY_SELECT
+           $0D0A = PAX_FN_draw2Dapple.target_0
+           $05BA = PAX_FN_random.target_0
+           $0603 = PAX_FN_draw.target_0
+           $02E7 = PAX_FN_dup.target_0
+           $027C = PAX_FN_swap.target_0
+           $0871 = PAX_FN_move2Dleft.target_0
+           $05E5 = PAX_FN_snake2Dy.target_0
+           $0A27 = PAX_FN_turn2Dup.target_0
+           $03B4 = PAX_FN_loopimpl.target_0
+           $085B = PAX_FN_move2Dup.target_0
+           $07E8 = PAX_FN_initialize.target_0
+           $05EF = PAX_FN_convert2Dx2Dy.target_0
+           $066D = PAX_FN_draw2Dwalls.target_0
+           $0307 = PAX_FN_2dup.target_0
+           $0BBC = PAX_FN_move2Dapple.target_0
+           $0498 = PAX_FN_j.target_0
+           $03A2 = PAX_FN_and.target_0
+           $0B54 = PAX_FN_check2Dinput.target_0
+           $0ACB = PAX_FN_change2Ddirection.target_0
+           $0C50 = PAX_FN_check2Dcollision.target_0
+           $0E29 = JOY_START
+           $0E4C = randomness
+           $0383 = PAX_FN_3D.target_0
+           $094A = PAX_FN_move2Dsnake2Dtail.target_0
+           $0271 = PAX_FN_2drop.target_0
+           $09C7 = PAX_FN_is2Dhorizontal.target_0
+           $0D80 = LOAD_MAP
+           $0BFB = PAX_FN_check2Dapple.target_0
+           $0330 = PAX_FN_12B.target_0
+           $0535 = PAX_FN_03C.target_0
+           $0319 = PAX_FN_invert.target_0
+           $038A = PAX_FN_or.target_0
+           $030E = PAX_FN_cells.target_0
+           $065A = PAX_FN_draw2Dapple2Dtile.target_0
+    SLACK: $020A bytes
+
+WRAM Bank #0:
+  SECTION: $C000-$C007 ($0008 bytes) ["RAM Vars"]
+           $C005 = Seed
+           $C004 = vblank_temp
+           $C000 = vblank_flag
+           $C001 = vblank_count
+           $C002 = joypad_down
+           $C003 = joypad_pressed
+  SECTION: $C020-$C023 ($0004 bytes) ["Pax System Vars"]
+           $C022 = pax_var_random
+           $C020 = pax_var_last_key
+  SECTION: $C040 ($0 bytes) ["Pax User Vars"]
+           $C040 = pax_user_vars
+    SLACK: $0FF4 bytes
+
+WRAM Bank #1:
+  EMPTY
+
+WRAM Bank #2:
+  EMPTY
+
+WRAM Bank #3:
+  EMPTY
+
+WRAM Bank #4:
+  EMPTY
+
+WRAM Bank #5:
+  EMPTY
+
+WRAM Bank #6:
+  EMPTY
+
+WRAM Bank #7:
+  EMPTY
+
+VRAM Bank #0:
+  EMPTY
+
+VRAM Bank #1:
+  EMPTY
+
+OAM:
+  EMPTY
+
+HRAM:
+  EMPTY
+
+SRAM Bank #0:
+  EMPTY
+
+SRAM Bank #1:
+  EMPTY
+
+SRAM Bank #2:
+  EMPTY
+
+SRAM Bank #3:
+  EMPTY
+
+SRAM Bank #4:
+  EMPTY
+
+SRAM Bank #5:
+  EMPTY
+
+SRAM Bank #6:
+  EMPTY
+
+SRAM Bank #7:
+  EMPTY
+
+SRAM Bank #8:
+  EMPTY
+
+SRAM Bank #9:
+  EMPTY
+
+SRAM Bank #10:
+  EMPTY
+
+SRAM Bank #11:
+  EMPTY
+
+SRAM Bank #12:
+  EMPTY
+
+SRAM Bank #13:
+  EMPTY
+
+SRAM Bank #14:
+  EMPTY
+
+SRAM Bank #15:
+  EMPTY
+

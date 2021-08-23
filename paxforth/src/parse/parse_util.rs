@@ -202,8 +202,12 @@ pub enum ParseMode {
 
 #[derive(Debug, Clone)]
 pub struct PaxProgramBuilder {
-    pub _current_function: String, // TODO not pub
+    _current_function: String, // TODO not pub
     pub program: IndexMap<String, BlockBuilder>,
+
+    pub constants: IndexMap<String, PaxLiteral>, // only u16 literals
+    pub variables: IndexMap<String, usize>,      // stack-pushed positions
+    pub variable_offset: usize,
 }
 
 impl PaxProgramBuilder {
@@ -213,6 +217,9 @@ impl PaxProgramBuilder {
             program: indexmap![
                 MAIN_FUNCTION.to_string() => BlockBuilder::new(),
             ],
+            constants: IndexMap::new(),
+            variables: IndexMap::new(),
+            variable_offset: BASE_VARIABLE_OFFSET,
         }
     }
 
@@ -252,6 +259,10 @@ impl PaxProgramBuilder {
     }
 
     /* BlockBuilder methods */
+
+    pub fn current_function(&self) -> &str {
+        &self._current_function
+    }
 
     pub fn current(&'_ mut self) -> &'_ mut BlockBuilder {
         &mut self.program[&self._current_function]

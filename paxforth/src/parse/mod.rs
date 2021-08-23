@@ -5,7 +5,6 @@ pub mod put_back;
 pub mod tokenizer;
 
 use crate::*;
-use indexmap::IndexMap;
 pub use parse_util::*;
 pub use tokenizer::*;
 
@@ -13,11 +12,6 @@ pub use tokenizer::*;
  * Internal parse logic for code (whether it is prelude, code, etc.)
  */
 fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filename: Option<&str>) {
-    // Definition maps.
-    let mut constants: IndexMap<String, isize> = IndexMap::new(); // only u16 literals
-    let mut variables: IndexMap<String, usize> = IndexMap::new(); // stack-pushed positions
-    let mut variable_offset: usize = BASE_VARIABLE_OFFSET;
-
     // Block references.
     let mut block_refs: Vec<BlockReference> = vec![];
 
@@ -39,7 +33,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
     }
 
     while let Some((token, mut pos)) = parser_iter.next() {
-        pos.function = program._current_function.clone();
+        pos.function = program.current_function().to_string();
 
         // eprintln!("[token] {:?} at {:?}", token, pos);
         previous_tokens.push(token.clone());
@@ -49,8 +43,10 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             ParseMode::Variable => {
                 match token {
                     Token::Word(ref word) => {
-                        variables.insert(word.to_string(), variable_offset);
-                        variable_offset += 2;
+                        program
+                            .variables
+                            .insert(word.to_string(), program.variable_offset);
+                        program.variable_offset += 2;
                     }
                     _ => panic!("expected variable name"),
                 }
@@ -70,7 +66,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             ParseMode::ConstantName(value) => {
                 match token {
                     Token::Word(ref word) => {
-                        constants.insert(word.to_string(), value);
+                        program
+                            .constants
+                            .insert(word.to_string(), value as PaxLiteral);
                     }
                     _ => panic!("expected constant name"),
                 }
@@ -113,7 +111,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 let raw_str = parser_iter.iter.consume_string_end();
                 parser_iter.iter.move_forward(1); // Skip last quote
 
-                let str_offset = variable_offset;
+                let str_offset = program.variable_offset;
                 let s = snailquote::unescape(&format!("\"{}\"", raw_str)).unwrap();
 
                 if word == ".\"" {
@@ -135,13 +133,13 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         &pos,
                         &[
                             Token::Literal(c as isize),
-                            Token::Literal(variable_offset as isize),
+                            Token::Literal(program.variable_offset as isize),
                             Token::Word("!".to_string()),
                         ],
                     );
-                    variable_offset += 1;
+                    program.variable_offset += 1;
                 }
-                variable_offset += 1; // null byte
+                program.variable_offset += 1; // null byte
             }
 
             // Parse mode for variables
@@ -164,10 +162,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             }
 
             // Constants (shadows all terms)
-            word if constants.contains_key(word) => {
-                program
-                    .current()
-                    .op(&(Pax::PushLiteral(constants[word] as PaxLiteral), pos));
+            word if program.constants.contains_key(word) => {
+                let value = program.constants[word] as PaxLiteral;
+                program.current().op(&(Pax::PushLiteral(value), pos));
             }
             // Functions (shadows all terms)
             word if program.program.contains_key(word) => {
@@ -176,10 +173,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     .exit_block((PaxTerm::Call(word.to_string()), pos));
             }
             // Variables (shadows all terms)
-            word if variables.contains_key(word) => {
-                program
-                    .current()
-                    .op(&(Pax::PushLiteral(variables[word] as PaxLiteral), pos));
+            word if program.variables.contains_key(word) => {
+                let value = program.variables[word] as PaxLiteral;
+                program.current().op(&(Pax::PushLiteral(value), pos));
             }
 
             // Compiler keywords
@@ -192,7 +188,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                             // eprintln!("allocating {}", cells);
                             program.current().current_block.pop(); // "cells"
                             program.current().current_block.pop(); // value
-                            variable_offset += (*cells as usize) * 2;
+                            program.variable_offset += (*cells as usize) * 2;
                             program.current().op(&(Pax::Drop, pos)); // value
                         }
                     }
@@ -448,6 +444,8 @@ pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
 
     // Parse PRELUDE.
     parse_forth_inner(&mut stack, PRELUDE, Some("src/prelude.fth"));
+    // Parse PRELUDE.
+    parse_forth_inner(&mut stack, PRELUDE_C64, Some("src/prelude-c64.fth"));
     // Parse contents.
     parse_forth_inner(&mut stack, contents, filename);
 
