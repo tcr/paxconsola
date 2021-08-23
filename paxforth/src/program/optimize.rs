@@ -31,8 +31,8 @@ impl OptimizeProgram {
             &mut self.program,
             name,
             &hashset! {
-                "*".to_string(),
-                "-".to_string(),
+                // "*".to_string(),
+                // "-".to_string(),
             },
         );
     }

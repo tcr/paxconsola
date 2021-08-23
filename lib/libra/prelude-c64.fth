@@ -8,4 +8,5 @@ $0400 constant graphics
 40 constant down
 
 40 constant screen-width
+40 constant screen-row-width
 25 constant screen-height

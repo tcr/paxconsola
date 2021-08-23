@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILE=sword_world.fth
+FILE=snake_world.fth
 OPTS=""
 
 paxforth dump $FILE $OPTS > build/$FILE.dump

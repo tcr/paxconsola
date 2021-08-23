@@ -13,9 +13,9 @@ const MAIN_FUNCTION: &'static str = "main";
 // Value for WebAssembly
 // pub const BASE_VARIABLE_OFFSET: usize = 10000;
 // Value for Gameboy
-// const BASE_VARIABLE_OFFSET: usize = 49216;
+pub const BASE_VARIABLE_OFFSET: usize = 49216;
 // Value for C64
-pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
+// pub const BASE_VARIABLE_OFFSET: usize = 0x9000;
 
 /**
  * BlockBuilder

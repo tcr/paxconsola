@@ -1,12 +1,19 @@
-\ #1 tile at pos 0
-\ 64 graphics c!
+$C020 constant last-key
+$C022 constant random-register
+$9800 constant graphics
+
+20 constant screen-width
+32 constant screen-row-width
+18 constant screen-height
 
 : random random-register @ 255 and swap % ;
 
-0xE6 constant TILE_WALL
+\ ---
+
+0x02 constant TILE_WALL
 
 variable initialized
-variable frame \ unused
+variable frame
 
 variable snake-x-head
 500 cells allot
@@ -17,29 +24,34 @@ variable snake-y-head
 variable apple-x
 variable apple-y
 
-0x20 constant color-white
+0x00 constant color-white
+
+37 constant left
+38 constant up
+39 constant right
+40 constant down
 
 variable direction
 variable length
 
 : snake-x ( offset -- address )
-  cells snake-x-head +
+  cells snake-x-head + 
   ;
 
 : snake-y ( offset -- address )
-  cells snake-y-head +
+  cells snake-y-head + 
   ;
 
 \ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  40 * + ;
+: convert-x-y ( x y -- offset )  32 * + ;
 : draw-index ( color index -- )  graphics + c! ;
 : draw ( color x y -- )  convert-x-y draw-index ;
 : draw-white ( x y -- )  color-white rot rot draw ;
-: draw-black ( x y -- )  0xE6 rot rot draw ;
-: draw-snake-tile ( x y -- )  182 rot rot draw ;
-: draw-apple-tile ( x y -- )  0xE9 rot rot draw ;
+: draw-black ( x y -- )  2 rot rot draw ;
+: draw-snake-tile ( x y -- )  3 rot rot draw ;
+: draw-apple-tile ( x y -- )  4 rot rot draw ;
 
-: draw-background ( -- )
+: draw-background
     0
     screen-height 0 do
         screen-width 0 do
@@ -93,22 +105,24 @@ variable length
 
 : initialize-apple  8 13 set-apple-position ;
 
-: draw-full-snake
-    length @ 0 do
-        i snake-x @ i snake-y @ draw-snake-tile
-    loop
-    ;
-
 : initialize
     draw-background
     draw-walls
     initialize-snake
     initialize-apple
-    draw-full-snake
     ;
+
+\ Initialize only once
+initialized @ 0= if initialize then
+1 initialized !
+
+
+
+
 
 
 \ game runtime
+
 
 : move-up  -1 snake-y-head +! ;
 : move-left  -1 snake-x-head +! ;
@@ -120,7 +134,8 @@ variable length
     up over    = if move-up else
     right over = if move-right else
     down over  = if move-down
-    then then then then drop ;
+    then then then then drop
+    ;
 
 \ Move each segment of the snake forward by one
 : move-snake-tail
@@ -161,15 +176,18 @@ variable length
 \ get random x or y position within playable area
 
 : random-x-position ( -- pos )
-    screen-width 4 - random 2 + ;
+    screen-width 4 - random 2 +
+    ;
 
 : random-y-position ( -- pos )
-    screen-height 4 - random 2 + ;
+    screen-height 4 - random 2 +
+    ;
 
 : move-apple
     apple-x @ apple-y @ draw-white
     random-x-position random-y-position
-    set-apple-position ;
+    set-apple-position
+    ;
 
 : grow-snake  1 length +! ;
 
@@ -179,7 +197,8 @@ variable length
     and if
         move-apple
         grow-snake
-    then ;
+    then
+    ;
 
 : check-collision ( -- flag )
     \ get current x/y position
@@ -189,7 +208,7 @@ variable length
     convert-x-y graphics + c@
 
     \ leave boolean flag on stack
-    color-white =
+    0 =
     ;
 
 : draw-snake-head-tail
@@ -204,9 +223,11 @@ variable length
     ;
 
 
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
+
+
+
+
+\ game loop
 
 \ Game loop
 draw-snake-head-tail
@@ -218,3 +239,39 @@ check-apple
 
 check-collision
 if else 0 initialized ! then
+
+\ end frameskip
+\ then
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(
+
+: move-right 23 graphics 67 + c! ;
+: move-left 21 graphics 65 + c! ;
+: move-up 22 graphics 34 + c! ;
+: move-down 24 graphics 98 + c! ;
+
+last-key @
+  left over = if move-left else
+  up over    = if move-up else
+  right over  = if move-right else
+  down over = if move-down
+  then then then then
+
+)
+
+

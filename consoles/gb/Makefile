@@ -15,8 +15,8 @@ all : build/tiles.bin build/pax_generated.asm $(OBJS)
 	$(FIX) -v $(OBJ_NAME).gb
 	rm $(OBJS_NAME).obj
 
-#generated/pax_generated.asm: snake.pax
-#	cargo run -- compile snake.pax > generated/pax_generated.asm
+build/pax_generated.asm: snake.fth
+	paxforth compile snake.fth --target=gb > build/pax_generated.asm
 
 build/tiles.bin: tiles.png
 	rgbgfx -o build/tiles.bin tiles.png

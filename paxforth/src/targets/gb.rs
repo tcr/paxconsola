@@ -132,8 +132,8 @@ fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
         // ( -- )
         PaxTerm::Exit => vec![GbIr::Ret],
         // ( -- )
-        PaxTerm::LoopTarget(n) | PaxTerm::JumpTarget(n) => {
-            vec![GbIr::Label(format!(".target_{}", n))]
+        PaxTerm::LoopTarget(_n) | PaxTerm::JumpTarget(_n) => {
+            vec![]
         }
     }
 }
@@ -291,10 +291,10 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-.wait:
-    ld   a,[$0FF41]
-    bit  1,a       ; Wait until Mode is 0 or 1
-    jr   nz,.wait
+; .wait:
+; ld   a,[$0FF41]
+; bit  1,a       ; Wait until Mode is 0 or 1
+; jr   nz,.wait
 
     ld a, [hl]
     ld l, a
@@ -308,10 +308,10 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-.wait:
-    ld   a,[$0FF41]
-    bit  1,a       ; Wait until Mode is 0 or 1
-    jr   nz,.wait
+; .wait:
+; ld   a,[$0FF41]
+; bit  1,a       ; Wait until Mode is 0 or 1
+; jr   nz,.wait
 
     ld a, e
     ld [hl],a
@@ -450,9 +450,12 @@ pub struct GameboyForthCompiler {}
 impl ForthCompiler for GameboyForthCompiler {
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
-        for (_name, code) in program {
+        for (name, code) in program {
             let mut result = vec![];
+
+            result.push(GbIr::Label(format!("PAX_FN_{}", name_slug(name))));
             for (i, block) in code.iter().enumerate() {
+                result.push(GbIr::Label(format!(".target_{}", i)));
                 for (op, _pos) in block.opcodes() {
                     result.extend(translate_to_gb(i, op.to_owned()));
                 }

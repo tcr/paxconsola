@@ -76,7 +76,7 @@ LOOP:
 	; Set forth stack to end of zero page RAM
 	ld c, $fe
 	ld hl, $0
-	call PAX_VM
+	call PAX_FN_main
 
 	; store random number in pax_var_random
 	call RandomNumber
@@ -92,9 +92,7 @@ LOOP:
 ; Pax Forth VM
 ;-------------
 
-PAX_VM:
-	INCLUDE "generated/pax_generated.asm"
-	ret
+	INCLUDE "build/pax_generated.asm"
 
 ;-------------
 ; Subroutines
