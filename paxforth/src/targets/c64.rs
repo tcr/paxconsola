@@ -4,6 +4,8 @@ use crate::*;
 use lazy_static::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
+use maplit::btreemap;
+use std::collections::BTreeMap;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -504,14 +506,16 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
 pub struct C64ForthCompiler {}
 
 impl ForthCompiler for C64ForthCompiler {
+    fn preludes() -> Vec<(PathBuf, String)> {
+        vec![
+            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
+            (PathBuf::from("../../lib/prelude-c64.fth"), PRELUDE_C64.to_string()),
+        ]
+    }
+
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
-            // @nocommit
-            if name == "*" {
-                continue;
-            }
-
             gb_output!(
                 out,
                 "

@@ -1,7 +1,8 @@
 use glob::glob;
 use paxforth::check::*;
 use paxforth::program::optimize::*;
-use paxforth::*;
+use paxforth::targets::wasm::WasmForthCompiler;
+use paxforth::ForthCompiler;
 use std::path::PathBuf;
 
 #[ctor::ctor]
@@ -62,7 +63,7 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
         );
 
         // Parse the program.
-        let mut program = parse_to_pax(&test.contents, Some(&test.path.display().to_string()));
+        let mut program = WasmForthCompiler::parse(&test.contents, Some(&test.path));
         program = optimize_main(program, inline, optimize);
 
         eprintln!("[forth] running '{}'", test.path.display());

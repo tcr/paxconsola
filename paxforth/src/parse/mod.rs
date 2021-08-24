@@ -439,13 +439,16 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
     assert!(!program.in_function(), "did not finish all functions");
 }
 
-pub fn parse_to_pax(contents: &str, filename: Option<&str>) -> PaxProgram {
+pub fn parse_to_pax(contents: &str, filename: Option<&str>, preludes: Vec<(PathBuf, String)>) -> PaxProgram {
     let mut stack = PaxProgramBuilder::new();
 
-    // Parse PRELUDE.
-    parse_forth_inner(&mut stack, PRELUDE, Some("src/prelude.fth"));
-    // Parse PRELUDE.
-    parse_forth_inner(&mut stack, PRELUDE_C64, Some("src/prelude-c64.fth"));
+    // Parse preludes.
+    for (key, prelude) in preludes {
+        let arg_str = key.to_string_lossy().to_string();
+        dbg!(key);
+        parse_forth_inner(&mut stack, &prelude, Some(arg_str.as_str()));
+    }
+
     // Parse contents.
     parse_forth_inner(&mut stack, contents, filename);
 

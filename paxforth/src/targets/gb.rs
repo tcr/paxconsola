@@ -4,6 +4,8 @@ use crate::*;
 use lazy_static::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
+use maplit::btreemap;
+use std::collections::BTreeMap;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -448,6 +450,13 @@ PAX_FN_{}:
 pub struct GameboyForthCompiler {}
 
 impl ForthCompiler for GameboyForthCompiler {
+    fn preludes() -> Vec<(PathBuf, String)> {
+        vec![
+            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
+            (PathBuf::from("../../lib/prelude-gameboy.fth"), PRELUDE_GB.to_string()),
+        ]
+    }
+
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {

@@ -3,6 +3,7 @@ use crate::program::inline::*;
 use crate::program::{constants, dead_code};
 use crate::*;
 use log::*;
+use crate::program::strip;
 use maplit::hashset;
 
 pub struct OptimizeProgram {
@@ -91,5 +92,8 @@ pub fn optimize_main(program: PaxProgram, inline: bool, optimize: bool) -> PaxPr
         );
     }
 
-    optimizer.result()
+    // Strip unneeded values from source_program.
+    let mut program = optimizer.result();
+    strip(&mut program);
+    program
 }

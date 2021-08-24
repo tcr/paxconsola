@@ -9,7 +9,7 @@ LINK = rgblink
 
 FIX = rgbfix
 
-all : build/tiles.bin build/pax_generated.asm $(OBJS)
+paxconsola.gb: build/tiles.bin build/pax_generated.asm $(OBJS)
 	$(ASM) -E -o$(OBJS_NAME).obj $(OBJS)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJS_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb
@@ -21,10 +21,9 @@ build/pax_generated.asm: snake.fth
 build/tiles.bin: tiles.png
 	rgbgfx -o build/tiles.bin tiles.png
 
-run:
-	make
+run: paxconsola.gb
 	rboy -x 6 paxconsola.gb
 
-debug:
-	make
-	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 paxconsola.gb
+debug: paxconsola.gb
+	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 paxconsola.gb &
+	osascript -e 'activate application "SameBoy"' 

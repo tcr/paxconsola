@@ -1,26 +1,5 @@
-$C020 constant last-key
-$C022 constant random-register
-$9800 constant graphics
-
-20 constant screen-width
-32 constant screen-row-width
-18 constant screen-height
-
-37 constant left
-38 constant up
-39 constant right
-40 constant down
-
-: random random-register @ 255 and swap % ;
-
-0x02 constant TILE_WALL
-
-0x00 constant color-white
-
-\ ---
-
 variable initialized
-variable frame
+variable frame \ unused
 
 variable snake-x-head
 500 cells allot
@@ -35,23 +14,23 @@ variable direction
 variable length
 
 : snake-x ( offset -- address )
-  cells snake-x-head + 
+  cells snake-x-head +
   ;
 
 : snake-y ( offset -- address )
-  cells snake-y-head + 
+  cells snake-y-head +
   ;
 
 \ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  32 * + ;
+: convert-x-y ( x y -- offset )  screen-row-width * + ;
 : draw-index ( color index -- )  graphics + c! ;
 : draw ( color x y -- )  convert-x-y draw-index ;
 : draw-white ( x y -- )  color-white rot rot draw ;
-: draw-black ( x y -- )  2 rot rot draw ;
-: draw-snake-tile ( x y -- )  3 rot rot draw ;
-: draw-apple-tile ( x y -- )  4 rot rot draw ;
+: draw-black ( x y -- )  color-black rot rot draw ;
+: draw-snake-tile ( x y -- )  color-green rot rot draw ;
+: draw-apple-tile ( x y -- )  color-red rot rot draw ;
 
-: draw-background
+: draw-background ( -- )
     0
     screen-height 0 do
         screen-width 0 do
@@ -122,7 +101,6 @@ variable length
 
 \ game runtime
 
-
 : move-up  -1 snake-y-head +! ;
 : move-left  -1 snake-x-head +! ;
 : move-down  1 snake-y-head +! ;
@@ -175,8 +153,7 @@ variable length
 \ get random x or y position within playable area
 
 : random-x-position ( -- pos )
-    screen-width 4 - random 2 +
-    ;
+    screen-width 4 - random 2 + ;
 
 : random-y-position ( -- pos )
     screen-height 4 - random 2 +

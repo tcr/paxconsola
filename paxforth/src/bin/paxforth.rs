@@ -91,30 +91,30 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
     // Read the file into a Vec<u8>
     let code = std::fs::read_to_string(&arg_file).expect("could not read file");
-    let mut program = parse_to_pax(&code, Some(arg_file.to_string_lossy().to_string().as_str()));
-
-    // Inline arguments.
-    program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
-
-    // Strip unneeded values from source_program.
-    strip(&mut program);
 
     match args.cmd {
         Command::Compile { target, .. } => match target {
             Target::Commodore64 => {
+                let mut program = C64ForthCompiler::parse(&code, Some(&arg_file));
+                program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = C64ForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::Gameboy => {
+                let mut program = GameboyForthCompiler::parse(&code, Some(&arg_file));
+                program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = GameboyForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::WebAssembly => {
+                let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+                program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = WasmForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::TOM => {
-                let mut program = program.clone();
+                let mut program = Tom1ForthCompiler::parse(&code, Some(&arg_file));
+                program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 inline_into_function(&mut program, "main", &hashset! {});
                 let result = Tom1ForthCompiler::compile(&program);
                 println!("{}", &result);
@@ -122,11 +122,16 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         },
 
         Command::Dump { .. } => {
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
             dump_program(&program);
         }
 
         // Check the program output
         Command::Check { .. } => {
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
+
             if !check_program(
                 &arg_file.display().to_string(),
                 &code,
@@ -139,6 +144,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Run the program directly
         Command::Run { .. } => {
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
             let wat = WasmForthCompiler::compile(&program);
 
             // Run as WASM.
@@ -147,6 +154,8 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         }
 
         Command::Debug { .. } => {
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
             if !debug_program(&code, &program) {
                 std::process::exit(1);
             }

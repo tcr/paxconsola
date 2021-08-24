@@ -4,6 +4,8 @@ use crate::*;
 use lazy_static::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
+use maplit::btreemap;
+use std::collections::BTreeMap;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -94,6 +96,12 @@ jump_if_0(target_{})",
 pub struct Tom1ForthCompiler {}
 
 impl ForthCompiler for Tom1ForthCompiler {
+    fn preludes() -> Vec<(PathBuf, String)> {
+        vec![
+            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
+        ]
+    }
+
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {

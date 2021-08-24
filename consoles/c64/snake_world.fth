@@ -1,14 +1,3 @@
-\ #1 tile at pos 0
-\ 64 graphics c!
-
-: random random-register @ 255 and swap % ;
-
-0xE6 constant TILE_WALL
-
-0x20 constant color-white
-
-\ ---
-
 variable initialized
 variable frame \ unused
 
@@ -33,13 +22,13 @@ variable length
   ;
 
 \ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  40 * + ;
+: convert-x-y ( x y -- offset )  screen-row-width * + ;
 : draw-index ( color index -- )  graphics + c! ;
 : draw ( color x y -- )  convert-x-y draw-index ;
 : draw-white ( x y -- )  color-white rot rot draw ;
-: draw-black ( x y -- )  0xE6 rot rot draw ;
-: draw-snake-tile ( x y -- )  182 rot rot draw ;
-: draw-apple-tile ( x y -- )  0xE9 rot rot draw ;
+: draw-black ( x y -- )  color-black rot rot draw ;
+: draw-snake-tile ( x y -- )  color-green rot rot draw ;
+: draw-apple-tile ( x y -- )  color-red rot rot draw ;
 
 : draw-background ( -- )
     0
@@ -122,7 +111,8 @@ variable length
     up over    = if move-up else
     right over = if move-right else
     down over  = if move-down
-    then then then then drop ;
+    then then then then drop
+    ;
 
 \ Move each segment of the snake forward by one
 : move-snake-tail
@@ -166,12 +156,14 @@ variable length
     screen-width 4 - random 2 + ;
 
 : random-y-position ( -- pos )
-    screen-height 4 - random 2 + ;
+    screen-height 4 - random 2 +
+    ;
 
 : move-apple
     apple-x @ apple-y @ draw-white
     random-x-position random-y-position
-    set-apple-position ;
+    set-apple-position
+    ;
 
 : grow-snake  1 length +! ;
 
@@ -181,7 +173,8 @@ variable length
     and if
         move-apple
         grow-snake
-    then ;
+    then
+    ;
 
 : check-collision ( -- flag )
     \ get current x/y position
