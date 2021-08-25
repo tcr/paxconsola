@@ -4,8 +4,6 @@ use crate::*;
 use lazy_static::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
-use maplit::btreemap;
-use std::collections::BTreeMap;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -130,7 +128,7 @@ fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
         // ( cond -- )
         PaxTerm::JumpElse(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
         // ( address -- )
-        PaxTerm::Call(target) => vec![GbIr::Call(format!("PAX_FN_{}", name_slug(&target)))],
+        PaxTerm::Call(target) => vec![GbIr::Call(target)],
         // ( -- )
         PaxTerm::Exit => vec![GbIr::Ret],
         // ( -- )
@@ -293,11 +291,6 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-; .wait:
-; ld   a,[$0FF41]
-; bit  1,a       ; Wait until Mode is 0 or 1
-; jr   nz,.wait
-
     ld a, [hl]
     ld l, a
     xor a
@@ -310,11 +303,6 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-; .wait:
-; ld   a,[$0FF41]
-; bit  1,a       ; Wait until Mode is 0 or 1
-; jr   nz,.wait
-
     ld a, e
     ld [hl],a
             "
@@ -435,13 +423,23 @@ PAX_FN_{}:
             );
         }
         GbIr::Call(label) => {
-            gb_output!(
-                out,
-                "
+            if label == "read-index" || label == "draw-index" {
+                gb_output!(
+                    out,
+                    "
     call {}
-            ",
-                label
-            );
+                    ",
+                    format!("PAX_NATIVE_{}", name_slug(&label))
+                );
+            } else {
+                gb_output!(
+                    out,
+                    "
+    call {}
+                    ",
+                    format!("PAX_FN_{}", name_slug(&label))
+                );
+            }
         }
     }
     out
@@ -453,13 +451,20 @@ impl ForthCompiler for GameboyForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)> {
         vec![
             (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-            (PathBuf::from("../../lib/prelude-gameboy.fth"), PRELUDE_GB.to_string()),
+            (
+                PathBuf::from("../../lib/prelude-gameboy.fth"),
+                PRELUDE_GB.to_string(),
+            ),
         ]
     }
 
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {
+            if name == "draw-index" || name == "read-index" {
+                continue;
+            }
+
             let mut result = vec![];
 
             result.push(GbIr::Label(format!("PAX_FN_{}", name_slug(name))));

@@ -21,3 +21,11 @@ $9800 constant graphics
 0x02 constant color-black
 0x03 constant color-green
 0x04 constant color-red
+
+: draw-index ( color index -- )
+    graphics + c!
+    ;
+
+: read-index ( index -- color )
+    graphics + c@
+    ;

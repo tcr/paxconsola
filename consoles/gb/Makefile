@@ -25,5 +25,5 @@ run: paxconsola.gb
 	rboy -x 6 paxconsola.gb
 
 debug: paxconsola.gb
-	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 paxconsola.gb &
-	osascript -e 'activate application "SameBoy"' 
+	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 paxconsola.gb
+

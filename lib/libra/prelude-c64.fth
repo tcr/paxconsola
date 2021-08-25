@@ -19,3 +19,11 @@ $0400 constant graphics
 0xE6 constant color-black
 182 constant color-green
 0xE9 constant color-red
+
+: draw-index ( color index -- )
+    graphics + c!
+    ;
+
+: read-index ( index -- color )
+    graphics + c@
+    ;

@@ -13,9 +13,8 @@ pub mod targets;
 pub use ast::*;
 pub use parse::*;
 
-use std::path::{Path, PathBuf};
-use std::collections::BTreeMap;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
+use std::path::{Path, PathBuf};
 
 pub const PRELUDE: &str = include_str!("../../lib/prelude.fth");
 pub const PRELUDE_C64: &str = include_str!("../../lib/libra/prelude-c64.fth");
@@ -24,7 +23,6 @@ pub const PRELUDE_GB: &str = include_str!("../../lib/libra/prelude-gameboy.fth")
 pub trait ForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)>;
     fn compile(program: &PaxProgram) -> String;
-    
     fn parse(code: &str, arg_file: Option<&Path>) -> PaxProgram {
         if let Some(arg) = arg_file {
             let arg_str = arg.to_string_lossy().to_string();

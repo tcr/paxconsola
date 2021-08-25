@@ -23,7 +23,6 @@ variable length
 
 \ TODO should be multiplying 32 by `cells`
 : convert-x-y ( x y -- offset )  screen-row-width * + ;
-: draw-index ( color index -- )  graphics + c! ;
 : draw ( color x y -- )  convert-x-y draw-index ;
 : draw-white ( x y -- )  color-white rot rot draw ;
 : draw-black ( x y -- )  color-black rot rot draw ;
@@ -181,7 +180,7 @@ variable length
     snake-x-head @ snake-y-head @
 
     \ get color at current position
-    convert-x-y graphics + c@
+    convert-x-y read-index
 
     \ leave boolean flag on stack
     color-white =

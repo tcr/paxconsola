@@ -2,10 +2,6 @@ variable initialized
 variable player-y
 variable player-x
 
-: draw-index ( tile index -- )
-    graphics + c!
-    ;
-
 : draw-2x2 ( d c b a -- )
     screen-width player-y @ * player-x @ + 
     swap over draw-index

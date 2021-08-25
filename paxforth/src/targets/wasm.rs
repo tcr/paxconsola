@@ -1,7 +1,5 @@
 use crate::program::walker::*;
 use crate::*;
-use maplit::btreemap;
-use std::collections::BTreeMap;
 
 const WAT_TEMPLATE: &'static str = include_str!("wasm_template.wat");
 
@@ -191,9 +189,7 @@ pub struct WasmForthCompiler {}
 
 impl ForthCompiler for WasmForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)> {
-        vec![
-            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-        ]
+        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
     }
 
     /// Returns a compiled WAT file

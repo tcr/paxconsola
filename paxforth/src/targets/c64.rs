@@ -4,8 +4,6 @@ use crate::*;
 use lazy_static::*;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
-use maplit::btreemap;
-use std::collections::BTreeMap;
 
 fn name_slug(name: &str) -> String {
     const NON_ALPHA: AsciiSet = NON_ALPHANUMERIC.remove(b'_');
@@ -509,7 +507,10 @@ impl ForthCompiler for C64ForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)> {
         vec![
             (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-            (PathBuf::from("../../lib/prelude-c64.fth"), PRELUDE_C64.to_string()),
+            (
+                PathBuf::from("../../lib/prelude-c64.fth"),
+                PRELUDE_C64.to_string(),
+            ),
         ]
     }
 
