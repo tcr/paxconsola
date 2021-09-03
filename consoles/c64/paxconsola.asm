@@ -25,8 +25,10 @@ X_END = $7f
 
 .code
     ; Make screen black and text white
-    lda #$00
+    ; http://sta.c64.org/cbm64mem.html
+    lda #$0C
     sta $d020
+    lda #$0f
     sta $d021
     lda #$01
     sta $0286
@@ -36,13 +38,40 @@ X_END = $7f
     ; ora #%00000011 ;<- your desired VIC bank value, see above
     ; sta $DD00
 
+    ; Clear the screen
+    jsr $e544
+
+    ; custom graphics mode?
+    ; https://www.c64-wiki.com/wiki/Graphics_Modes
+    lda $d011
+    and #%10011111
+    ora #%00000000
+    sta $d011
+    lda $d016
+    and #%11101111
+    ora #%00010000
+    sta $d016
+
     ; Custom charset
     ;  lda #%00011000
     lda #%00011000
     sta $d018
 
-    ; Clear the screen
-    jsr $e544
+    ; Custom colors
+    lda #$00
+    sta $D022
+    lda #$01
+    sta $D023
+
+    ; Copy one attribute a bunch of times tho
+    ldx #$ff
+CopyColorRAMLoop:
+    lda charset_attrib_data+2
+    sta $d800,x
+    sta $d900,x
+    sta $da00,x
+    dex
+    bne CopyColorRAMLoop
 
     ; draw some helpful text
     ; jsr draw_text
@@ -245,8 +274,8 @@ draw_loop:
 
     .include "paxconsola_generated.asm"
 
-    .res $1ffe-*
+    .res $2000-*
 
 FONT_EMBED:
-    .incbin "cav_of_sillahc.64c"
+    .include "../examples/gfx/libra-gfx.asm"
 FONT_EMBED_END:

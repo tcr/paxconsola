@@ -12,3 +12,4 @@ ll "./build/paxconsola.lbl"
 ; break exec .@OPCODE_7
 
 ; break exec .@OPCODE_12
+; break .AfterCopyColorRAM
