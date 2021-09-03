@@ -1,0 +1,16 @@
+/* Format code blocks in Opcodes list */
+
+.opcodes tr td:nth-child(1),
+.opcodes tr td:nth-child(2) code {
+    white-space: pre;
+}
+
+/* Shrink sidebar when it isn't large */
+
+.sidebar, .sidebar-scrollbox {
+    max-width: 33vw !important;
+}
+
+.sidebar-visible .page-wrapper {
+	margin-left: calc(min(33vw, var(--sidebar-width))) !important;
+}

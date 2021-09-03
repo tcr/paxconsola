@@ -1,0 +1,40 @@
+# Introduction
+
+Pax Consola is a development environment for games that run on vintage computers and video game
+consoles.
+
+Using the online IDE at http://paxconsola.com, you can write a game that runs on a bunch of many
+early home computers and consoles at once. Currently Pax Consola makes it easy to write a game for
+these platforms:
+
+* Commodore 64
+* Gameboy
+* DOS (PLANNED)
+* Apple ][ (PLANNED)
+* Atari 2600 (PLANNED)
+
+Pax Consola also supports an in-browser environment targeting WebAssembly.
+
+## Coding with Pax Forth
+
+Pax Consola uses its own version of Forth ("Pax Forth") that it compiles to each target. Forth is a stack-based
+language popular in the 80's programming for its powerful abstraction capabilities and low overhead.
+
+Pax Forth is an ahead-of-time compiler, and you can consider it like a 16-bit VM for old CPUs. Its
+primary feature, being a stack-based language, are that arithmetic is in reverse polish notation:
+
+```fth
+4 6 * print \ this will print "24"
+```
+
+Most of the functions in Forth can also be implemented in Forth, including operators:
+
+```forth
+
+\ define a function "*" to multiply two numbers
+: * >r 0 r> 0 do over + loop swap drop ;
+```
+
+Where possible, expensive functions (like multiplication) are implemented natively in assembly
+language. However, Pax Forth is designed to be bootstrapped easily on new platforms and only
+requires the implementation of a small number of opcodes. See `ast.rs` for more details.

@@ -1,147 +1,79 @@
 variable initialized
-variable frame \ unused
+variable player-y
+variable player-x
 
-variable snake-x-head
-500 cells allot
-
-variable snake-y-head
-500 cells allot
-
-variable apple-x
-variable apple-y
-
-variable direction
-variable length
-
-: snake-x ( offset -- address )
-  cells snake-x-head +
-  ;
-
-: snake-y ( offset -- address )
-  cells snake-y-head +
-  ;
-
-\ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  screen-row-width * + ;
-: draw ( color x y -- )  convert-x-y draw-index ;
-: draw-white ( x y -- )  color-white rot rot draw ;
-: draw-black ( x y -- )  color-black rot rot draw ;
-: draw-snake-tile ( x y -- )  color-green rot rot draw ;
-: draw-apple-tile ( x y -- )  color-red rot rot draw ;
+: draw-2x2 ( d c b a -- )
+    screen-row-width player-y @ * player-x @ + 
+    swap over draw-index
+    swap over 1+ draw-index
+    swap over screen-row-width + draw-index
+    swap over screen-row-width + 1+ draw-index
+    drop
+    ;
 
 : draw-background ( -- )
-    0
-    screen-height 0 do
-        screen-width 0 do
-            color-white over i + draw-index
+    10 0 do
+        i 48 + i 2 + draw-index
+    loop
+    6 0 do
+        i 1 + i 12 + draw-index
+    loop
+
+    screen-row-width 2 *
+    10 0 do
+        i 48 + over draw-index
+        screen-row-width +
+    loop
+    drop
+    screen-row-width 12 *
+    6 0 do
+        i 1 + over draw-index
+        screen-row-width +
+    loop
+    drop
+
+    2 screen-row-width + screen-row-width +
+    16 0 do
+        16 0 do
+            i j 16 * +      ( -- tile )
+            over i +        ( pos tile -- pos tile offset )
+            draw-index      ( tile offset --  )
         loop
         screen-row-width +
     loop
     drop
     ;
 
-: draw-walls
-    \ Draw bottom wall
-    screen-height 1 - screen-row-width *
-    screen-width 0 do
-        TILE_WALL over i + draw-index
-    loop
-    drop
-
-    \ Draw top wall
-    screen-width 0 do
-        TILE_WALL i draw-index
-    loop
-
-    \ Draw right wall
-    screen-width 1 -
-    screen-height 0 do
-        TILE_WALL over draw-index
-        screen-row-width +
-    loop
-    drop
-
-    \ Draw left wall
-    0
-    screen-height 0 do
-        TILE_WALL over draw-index
-        screen-row-width +
-    loop
-    drop
-    ;
-
-: initialize-snake
-    4 length !
-    length @ 1 + 0 do
-        8 i - i snake-x !
-        8 i snake-y !
-    loop
-    right direction !
-    ;
-
-: set-apple-position apple-x ! apple-y ! ;
-
-: initialize-apple  8 13 set-apple-position ;
-
-: draw-full-snake
-    length @ 0 do
-        i snake-x @ i snake-y @ draw-snake-tile
-    loop
-    ;
-
-: initialize
+: initialize ( -- )
     draw-background
-    draw-walls
-    initialize-snake
-    initialize-apple
-    draw-full-snake
+    10 player-y !
+    30 player-x !
+    \ $E0 0 draw-index
+    \ $E0 1 draw-index
+    \ $E0 0 screen-width + draw-index
+    \ $E0 1 screen-width + draw-index
     ;
 
+\ Initialize only once
+initialized @ 0= if initialize then
+1 initialized !
 
-\ game runtime
-
-: move-up  -1 snake-y-head +! ;
-: move-left  -1 snake-x-head +! ;
-: move-down  1 snake-y-head +! ;
-: move-right  1 snake-x-head +! ;
-
-: move-snake-head  direction @
-    left over  = if move-left else
-    up over    = if move-up else
-    right over = if move-right else
-    down over  = if move-down
-    then then then then drop
-    ;
-
-\ Move each segment of the snake forward by one
-: move-snake-tail
-    -1 length @ do
-        i drop i snake-x @ i 1 + snake-x !
-        i snake-y @ i 1 + snake-y !
-    1 -loop
-    ;
-
-: is-horizontal  direction @ dup
-    left = swap
-    right = or
-    ;
-
-: is-vertical  direction @ dup
-    up = swap
-    down = or
-    ;
-
-: turn-up     is-horizontal if up direction ! then ;
-: turn-left   is-vertical if left direction ! then ;
-: turn-down   is-horizontal if down direction ! then ;
-: turn-right  is-vertical if right direction ! then ;
+: go-up ( -- ) player-y @ 1- player-y ! ;
+: go-down ( -- ) player-y @ 1+ player-y ! ;
+: go-left ( -- ) player-x @ 1- player-x ! ;
+: go-right ( -- ) player-x @ 1+ player-x ! ;
 
 : change-direction ( key -- )
-    left over = if turn-left else
-    up over = if turn-up else
-    right over = if turn-right else
-    down over = if turn-down
-    then then then then drop
+    dup 
+    0= if else 
+        $20 $20 $20 $20 draw-2x2
+    then
+    begin
+        left of go-left endof
+        up of go-up endof
+        right of go-right endof
+        down of go-down endof
+    endcase
     ;
 
 : check-input
@@ -149,66 +81,9 @@ variable length
     0 last-key !
     ;
 
-\ get random x or y position within playable area
 
-: random-x-position ( -- pos )
-    screen-width 4 - random 2 + ;
-
-: random-y-position ( -- pos )
-    screen-height 4 - random 2 +
-    ;
-
-: move-apple
-    apple-x @ apple-y @ draw-white
-    random-x-position random-y-position
-    set-apple-position
-    ;
-
-: grow-snake  1 length +! ;
-
-: check-apple
-    snake-x-head @ apple-x @ =
-    snake-y-head @ apple-y @ =
-    and if
-        move-apple
-        grow-snake
-    then
-    ;
-
-: check-collision ( -- flag )
-    \ get current x/y position
-    snake-x-head @ snake-y-head @
-
-    \ get color at current position
-    convert-x-y read-index
-
-    \ leave boolean flag on stack
-    color-white =
-    ;
-
-: draw-snake-head-tail
-    0 snake-x @ 0 snake-y @ draw-snake-tile
-    length @ snake-x @
-    length @ snake-y @
-    draw-white
-    ;
-
-: draw-apple
-    apple-x @ apple-y @ draw-apple-tile
-    ;
-
-
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
-\ Game loop
-draw-snake-head-tail
-draw-apple
 check-input
-move-snake-tail
-move-snake-head
-check-apple
 
-check-collision
-if else 0 initialized ! then
+$05 $04 $03 $02 draw-2x2
+
+40 0 do loop

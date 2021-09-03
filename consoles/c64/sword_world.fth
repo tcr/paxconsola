@@ -3,11 +3,11 @@ variable player-y
 variable player-x
 
 : draw-2x2 ( d c b a -- )
-    screen-width player-y @ * player-x @ + 
+    screen-row-width player-y @ * player-x @ + 
     swap over draw-index
     swap over 1+ draw-index
-    swap over screen-width + draw-index
-    swap over screen-width + 1+ draw-index
+    swap over screen-row-width + draw-index
+    swap over screen-row-width + 1+ draw-index
     drop
     ;
 
@@ -19,27 +19,27 @@ variable player-x
         i 1 + i 12 + draw-index
     loop
 
-    screen-width 2 *
+    screen-row-width 2 *
     10 0 do
         i 48 + over draw-index
-        screen-width +
+        screen-row-width +
     loop
     drop
-    screen-width 12 *
+    screen-row-width 12 *
     6 0 do
         i 1 + over draw-index
-        screen-width +
+        screen-row-width +
     loop
     drop
 
-    2 screen-width + screen-width +
+    2 screen-row-width + screen-row-width +
     16 0 do
         16 0 do
             i j 16 * +      ( -- tile )
             over i +        ( pos tile -- pos tile offset )
             draw-index      ( tile offset --  )
         loop
-        screen-width +
+        screen-row-width +
     loop
     drop
     ;
@@ -64,6 +64,10 @@ initialized @ 0= if initialize then
 : go-right ( -- ) player-x @ 1+ player-x ! ;
 
 : change-direction ( key -- )
+    dup 
+    0= if else 
+        $20 $20 $20 $20 draw-2x2
+    then
     begin
         left of go-left endof
         up of go-up endof
@@ -74,11 +78,10 @@ initialized @ 0= if initialize then
 
 : check-input
     last-key @ change-direction
-    \ 0 last-key !
+    0 last-key !
     ;
 
-$20 $20 $20 $20 draw-2x2
 
 check-input
 
-$9c $99 $49 $47 draw-2x2
+$05 $04 $03 $02 draw-2x2

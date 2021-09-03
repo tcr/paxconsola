@@ -32,7 +32,7 @@ START:
 	; bit 7, h
 	; jr nz,.loop_clear
 
-	ld  a,%11100100  ;shade palette (11 10 01 00)
+	ld  a,%00011011  ;shade palette (11 10 01 00)
 	ldh [rBGP],a 	 ;setup palettes
 	ldh [rOCPD],a
 	ldh [rOBP0],a
