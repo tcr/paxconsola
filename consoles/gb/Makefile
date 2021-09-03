@@ -1,7 +1,9 @@
-OBJS = src/paxconsola.asm
-OBJS_NAME = paxconsola
+FILE = snake_world.fth
 
-OBJ_NAME = paxconsola
+OBJS = src/paxconsola.asm
+OBJS_NAME = build/paxconsola
+
+OBJ_NAME = build/paxconsola
 
 ASM = rgbasm
 
@@ -15,8 +17,8 @@ paxconsola.gb: build/tiles.bin build/pax_generated.asm $(OBJS) src/*.asm
 	$(FIX) -v $(OBJ_NAME).gb
 	rm $(OBJS_NAME).obj
 
-build/pax_generated.asm: snake.fth
-	paxforth compile snake.fth --target=gb > build/pax_generated.asm
+build/pax_generated.asm: $(FILE)
+	paxforth compile $(FILE) --target=gb > build/pax_generated.asm
 
 build/tiles.bin: tiles.png
 	rgbgfx -o build/tiles.bin tiles.png
