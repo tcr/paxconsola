@@ -24,12 +24,15 @@ X_END = $7f
     .org $80d
 
 .code
-    ; Make screen black and text white
     ; http://sta.c64.org/cbm64mem.html
-    lda #$0C
+
+    ; Border color
+    lda #$00
     sta $d020
+    ; Background color
     lda #$0f
     sta $d021
+    ; Cursor color
     lda #$01
     sta $0286
 
@@ -272,7 +275,7 @@ draw_loop:
 
 ; Generated code
 
-    .include "paxconsola_generated.asm"
+    .include "build/paxconsola_generated.asm"
 
     .res $2000-*
 
