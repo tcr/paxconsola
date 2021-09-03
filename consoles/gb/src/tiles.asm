@@ -2,7 +2,7 @@
 ; Tile Data
 ;-------------
 
-TILE_COUNT EQU 31*16 ;16 bytes each
+TILE_COUNT EQU 256*16 ;16 bytes each
 
 SECTION "Tiles",ROM0
 TILE_DATA:

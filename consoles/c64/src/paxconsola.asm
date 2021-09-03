@@ -275,10 +275,10 @@ draw_loop:
 
 ; Generated code
 
-    .include "build/paxconsola_generated.asm"
+    .include "../build/paxconsola_generated.asm"
 
     .res $2000-*
 
 FONT_EMBED:
-    .include "../examples/gfx/libra-gfx.asm"
+    .include "../../examples/gfx/libra-gfx.asm"
 FONT_EMBED_END:

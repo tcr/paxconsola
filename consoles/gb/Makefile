@@ -1,5 +1,5 @@
-OBJS = kernel/bank0.asm
-OBJS_NAME = bank0
+OBJS = src/paxconsola.asm
+OBJS_NAME = paxconsola
 
 OBJ_NAME = paxconsola
 
@@ -9,7 +9,7 @@ LINK = rgblink
 
 FIX = rgbfix
 
-paxconsola.gb: build/tiles.bin build/pax_generated.asm $(OBJS)
+paxconsola.gb: build/tiles.bin build/pax_generated.asm $(OBJS) src/*.asm
 	$(ASM) -E -o$(OBJS_NAME).obj $(OBJS)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJS_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb

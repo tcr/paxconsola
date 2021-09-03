@@ -4,10 +4,10 @@
 ; Includes
 ;-------------
 
-	INCLUDE "kernel/hardware.asm"
-  	INCLUDE "kernel/header.asm"
-	INCLUDE "kernel/tiles.asm"
-  	INCLUDE "kernel/map.asm"
+	INCLUDE "src/hardware.asm"
+  	INCLUDE "src/header.asm"
+	INCLUDE "src/tiles.asm"
+  	INCLUDE "src/map.asm"
 
 ;-------------
 ; Start

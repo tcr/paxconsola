@@ -20,13 +20,13 @@ build/paxconsola_generated.asm: $(FILE)
 build/paxconsola.prg: build/paxconsola.o
 	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg -g build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -l build/paxconsola.lst -m build/paxconsola.map
 
-build/paxconsola.o: paxconsola.asm build/paxconsola_generated.asm
-	$(AS) $(CFLAGS) -t c64 -g paxconsola.asm -l build/paxconsola.lst -o $@
+build/paxconsola.o: src/paxconsola.asm build/paxconsola_generated.asm
+	$(AS) $(CFLAGS) -t c64 -g src/paxconsola.asm -l build/paxconsola.lst -o $@
 
 # Interactive
 
 run: all
-	x64sc -moncommands "paxconsola.vs" -nativemonitor build/paxconsola.prg
+	x64sc -moncommands "vice-debugger.vs" -nativemonitor build/paxconsola.prg
 
 # Debugging
 
