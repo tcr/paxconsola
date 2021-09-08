@@ -1,8 +1,13 @@
+INPUT = src/paxconsola.asm
+OUT = build/PAXCNSLA.COM
+
+all: $(OUT)
+
 clean:
 	rm -rf build
 
-build: paxconsola.asm
-	nasm -f bin -o build/paxconsola.com paxconsola.asm
+$(OUT): $(INPUT)
+	nasm -f bin -o $(OUT) $(INPUT) -l build/paxconsola.lst
 
-run: build
-	/applications/dosbox.app/contents/macos/dosbox -c "mount c \"$$(pwd)/build\"" -c "c:" -c "PAXCON~1.com"
+run: $(OUT)
+	dosbox -c "mount c \"$$(pwd)/build\"" -c "c:" -c $(notdir $(OUT))
