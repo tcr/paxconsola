@@ -30,7 +30,6 @@ primary feature, being a stack-based language, are that arithmetic is in reverse
 Most of the functions in Forth can also be implemented in Forth, including operators:
 
 ```forth
-
 \ define a function "*" to multiply two numbers
 : * >r 0 r> 0 do over + loop swap drop ;
 ```
