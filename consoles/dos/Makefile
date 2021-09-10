@@ -10,4 +10,4 @@ $(OUT): $(INPUT)
 	nasm -f bin -o $(OUT) $(INPUT) -l build/paxconsola.lst
 
 run: $(OUT)
-	dosbox -c "mount c \"$$(pwd)/build\"" -c "c:" -c $(notdir $(OUT))
+	dosbox-x -c "mount c \"$$(pwd)/build\"" -c "c:" -c $(notdir $(OUT))
