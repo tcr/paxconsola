@@ -94,12 +94,13 @@ BitmapFontEnd:
 	
     align 16
 BitmapTest:	
-	incbin "lib/SpriteTestEGA.RAW"
+	; incbin "lib/SpriteTestEGA.RAW"
+    incbin "lib/generated.raw"
 BitmapTestEnd:
 
 
 Palette:
-	dw 0250h;0  -GRB
+	dw 0250h;0  -GRB 
 	dw 0000h;1  -GRB
 	dw 0555h;2  -GRB
 	dw 0AAAh;3  -GRB
