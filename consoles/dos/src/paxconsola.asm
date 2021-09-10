@@ -13,8 +13,35 @@
 
     push ds
     push es
+
+        mov bx,0xF000
+        mov bp,bx
+
+; fake forth
+        push bx
+        mov bx,0x5
+
+        xchg sp,bp
+        push bx
+        xchg sp,bp
+        pop bx
+
+        push bx
+        mov bx,0x6
+
+        push bx
+        xchg sp,bp
+        pop bx
+        xchg sp,bp
+
+        pop ax
+        add bx,ax
+; end forth
+        pop ax ; get rid of first value
+
         mov bh,6	;X
         mov bl,11	;Y
+
         call GetScreenPos
         %ifdef DosCGA
             mov ch,12	;Width
