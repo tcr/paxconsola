@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 pub const PRELUDE: &str = include_str!("../../lib/prelude.fth");
 pub const PRELUDE_C64: &str = include_str!("../../lib/libra/prelude-c64.fth");
 pub const PRELUDE_GB: &str = include_str!("../../lib/libra/prelude-gameboy.fth");
+pub const PRELUDE_DOS: &str = include_str!("../../lib/libra/prelude-dos.fth");
 
 pub trait ForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)>;

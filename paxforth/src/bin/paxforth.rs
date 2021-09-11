@@ -9,6 +9,7 @@ use crate::program::optimize;
 use crate::program::*;
 use crate::runner::wasm::run_wasm;
 use crate::targets::c64::*;
+use crate::targets::dos::*;
 use crate::targets::gb::*;
 use crate::targets::parse_target;
 use crate::targets::tom1::*;
@@ -110,6 +111,12 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
                 program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = WasmForthCompiler::compile(&program);
+                println!("{}", &result);
+            }
+            Target::DOS => {
+                let mut program = DosForthCompiler::parse(&code, Some(&arg_file));
+                program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
+                let result = DosForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::TOM => {

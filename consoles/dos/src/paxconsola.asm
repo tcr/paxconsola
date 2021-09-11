@@ -14,33 +14,26 @@
     push ds
     push es
 
+    ; https://www.vcfed.org/forum/forum/technical-support/vintage-computer-programming/56910-vga-cga-graphics-library-for-dos-games
+
+        ; Setup return stack for Forth
         mov bx,0xF000
         mov bp,bx
 
-; fake forth
-        push bx
-        mov bx,0x5
-
+        ; Call Forth
         xchg sp,bp
-        push bx
-        xchg sp,bp
-        pop bx
-
-        push bx
-        mov bx,0x6
-
-        push bx
-        xchg sp,bp
-        pop bx
+        call PAX_FN_main
         xchg sp,bp
 
+        ; Extract values from Forth
+        mov ax, bx ; move TOS
+        mov bh, al
         pop ax
-        add bx,ax
-; end forth
+        mov bl, al
         pop ax ; get rid of first value
 
-        mov bh,6	;X
-        mov bl,11	;Y
+        ;mov bh,6	;X
+        ;mov bl,11	;Y
 
         call GetScreenPos
         %ifdef DosCGA
@@ -111,7 +104,14 @@ Paletteagain:
 	
 	jmp $
 	
+    ; Forth compilation
+%include "build/paxconsola_generated.asm"
 
+    ; Pop return address
+    xchg sp,bp
+    ret
+
+    align 16
 %include "src/bitmap.asm"
 
     align 16

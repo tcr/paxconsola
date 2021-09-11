@@ -1,4 +1,5 @@
 pub mod c64;
+pub mod dos;
 pub mod gb;
 pub mod tom1;
 pub mod wasm;
@@ -16,6 +17,9 @@ pub enum Target {
     #[enumeration(rename = "c64")]
     #[display(fmt = "c64")]
     Commodore64,
+    #[enumeration(rename = "dos")]
+    #[display(fmt = "dos")]
+    DOS,
     #[enumeration(rename = "tom")]
     #[display(fmt = "tom")]
     TOM,
