@@ -12,4 +12,6 @@ transpose = "*"
 itertools = "0.10.1"
 structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
+derive_more = "0.99.16"
+enum-utils = "0.1.2"
 

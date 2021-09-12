@@ -1,4 +1,4 @@
-use pixconsola::*;
+use pixconsola::ega::*;
 use std::fs::File;
 
 #[test]

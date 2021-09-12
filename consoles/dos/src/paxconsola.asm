@@ -122,7 +122,7 @@ BitmapFontEnd:
     align 16
 BitmapTest:	
 	; incbin "lib/SpriteTestEGA.RAW"
-    incbin "lib/generated.raw"
+    incbin "build/tiles.raw"
 BitmapTestEnd:
 
 

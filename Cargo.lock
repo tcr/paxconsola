@@ -2491,6 +2491,8 @@ name = "pixconsola"
 version = "0.1.0"
 dependencies = [
  "bitvec",
+ "derive_more",
+ "enum-utils",
  "itertools 0.10.1",
  "paw",
  "png 0.17.1",
