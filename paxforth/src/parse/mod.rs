@@ -166,6 +166,12 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 let value = program.constants[word] as PaxLiteral;
                 program.current().op(&(Pax::PushLiteral(value), pos));
             }
+            // Extern Functions (shadows all terms)
+            word if program.extern_calls.contains(word) => {
+                program
+                    .current()
+                    .exit_block((PaxTerm::ExternCall(word.to_string()), pos));
+            }
             // Functions (shadows all terms)
             word if program.program.contains_key(word) => {
                 program
@@ -205,6 +211,15 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
                         parse_mode = ParseMode::ConstantName(*value);
                     }
+                }
+            }
+            "extern" => {
+                // Parse following IS token.
+                match parser_iter.next() {
+                    Some((Token::Word(word), _defer_pos)) => {
+                        program.extern_function(word);
+                    }
+                    _ => panic!("Expected word to follow 'extern'"),
                 }
             }
 
@@ -439,7 +454,11 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
     assert!(!program.in_function(), "did not finish all functions");
 }
 
-pub fn parse_to_pax(contents: &str, filename: Option<&str>, preludes: Vec<(PathBuf, String)>) -> PaxProgram {
+pub fn parse_to_pax(
+    contents: &str,
+    filename: Option<&str>,
+    preludes: Vec<(PathBuf, String)>,
+) -> PaxProgram {
     let mut stack = PaxProgramBuilder::new();
 
     // Parse preludes.

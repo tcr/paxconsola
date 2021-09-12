@@ -561,6 +561,9 @@ impl PaxWalker for PaxAnalyzerWalker {
                     panic!("cannot handle PaxTerm::Call yet without fn arity {:?}", s);
                 }
             }
+            PaxTerm::ExternCall(ref _s) => {
+                unimplemented!();
+            }
         }
 
         // eprintln!("------> {:?} ({:?})", terminator.0, self.reg_state.size());

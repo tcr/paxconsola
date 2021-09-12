@@ -60,7 +60,7 @@ enum Command {
 #[derive(StructOpt, Debug)]
 struct FileOpts {
     #[structopt(name = "FILE", parse(from_os_str))]
-    file: PathBuf,
+    file: Vec<PathBuf>,
 
     /// Inline all functions into main.
     #[structopt(long)]
@@ -90,37 +90,43 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     let arg_inline = file_opts.inline;
     let arg_optimize = file_opts.optimize;
 
-    // Read the file into a Vec<u8>
-    let code = std::fs::read_to_string(&arg_file).expect("could not read file");
+    // Concatenate files into a Vec<u8>
+    let code = arg_file
+        .iter()
+        .map(|file| std::fs::read_to_string(&file).expect("could not read file"))
+        .collect::<Vec<_>>()
+        .join("\n\n");
+
+    // FIXME: parse each file independently, don't default to &arg_file[0]
 
     match args.cmd {
         Command::Compile { target, .. } => match target {
             Target::Commodore64 => {
-                let mut program = C64ForthCompiler::parse(&code, Some(&arg_file));
+                let mut program = C64ForthCompiler::parse(&code, Some(&arg_file[0]));
                 program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = C64ForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::Gameboy => {
-                let mut program = GameboyForthCompiler::parse(&code, Some(&arg_file));
+                let mut program = GameboyForthCompiler::parse(&code, Some(&arg_file[0]));
                 program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = GameboyForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::WebAssembly => {
-                let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+                let mut program = WasmForthCompiler::parse(&code, Some(&arg_file[0]));
                 program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = WasmForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::DOS => {
-                let mut program = DosForthCompiler::parse(&code, Some(&arg_file));
+                let mut program = DosForthCompiler::parse(&code, Some(&arg_file[0]));
                 program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 let result = DosForthCompiler::compile(&program);
                 println!("{}", &result);
             }
             Target::TOM => {
-                let mut program = Tom1ForthCompiler::parse(&code, Some(&arg_file));
+                let mut program = Tom1ForthCompiler::parse(&code, Some(&arg_file[0]));
                 program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                 inline_into_function(&mut program, "main", &hashset! {});
                 let result = Tom1ForthCompiler::compile(&program);
@@ -129,18 +135,18 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         },
 
         Command::Dump { .. } => {
-            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file[0]));
             program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
             dump_program(&program);
         }
 
         // Check the program output
         Command::Check { .. } => {
-            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file[0]));
             program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
 
             if !check_program(
-                &arg_file.display().to_string(),
+                &arg_file[0].display().to_string(),
                 &code,
                 &program,
                 CheckMode::Wasm,
@@ -151,7 +157,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
 
         // Run the program directly
         Command::Run { .. } => {
-            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file[0]));
             program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
             let wat = WasmForthCompiler::compile(&program);
 
@@ -161,7 +167,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         }
 
         Command::Debug { .. } => {
-            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file));
+            let mut program = WasmForthCompiler::parse(&code, Some(&arg_file[0]));
             program = optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
             if !debug_program(&code, &program) {
                 std::process::exit(1);

@@ -1,7 +1,7 @@
 //! Legacy parsing logic.
 
 use crate::*;
-use indexmap::{indexmap, IndexMap};
+use indexmap::{indexmap, IndexMap, IndexSet};
 
 /**
  * Constants
@@ -208,6 +208,7 @@ pub struct PaxProgramBuilder {
     pub constants: IndexMap<String, PaxLiteral>, // only u16 literals
     pub variables: IndexMap<String, usize>,      // stack-pushed positions
     pub variable_offset: usize,
+    pub extern_calls: IndexSet<String>,
 }
 
 impl PaxProgramBuilder {
@@ -220,6 +221,7 @@ impl PaxProgramBuilder {
             constants: IndexMap::new(),
             variables: IndexMap::new(),
             variable_offset: BASE_VARIABLE_OFFSET,
+            extern_calls: IndexSet::new(),
         }
     }
 
@@ -256,6 +258,10 @@ impl PaxProgramBuilder {
         self._current_function = name.to_string();
         let fun = self.program.remove(&previous_name).unwrap();
         self.program.insert(name, fun);
+    }
+
+    pub fn extern_function(&mut self, name: String) {
+        self.extern_calls.insert(name);
     }
 
     /* BlockBuilder methods */

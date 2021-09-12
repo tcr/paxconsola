@@ -61,6 +61,9 @@ pub fn structured_walk<W: PaxWalker>(walker: &mut W, blocks: &[Block]) {
                 // Don't assert any block level.
                 walker.terminator(&terminator, block, &block_stack);
             }
+            PaxTerm::ExternCall(_) => {
+                unimplemented!();
+            }
 
             /* branches */
             PaxTerm::JumpIf0(_target_index) => {

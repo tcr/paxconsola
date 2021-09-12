@@ -241,7 +241,19 @@ pub fn cross_compile_ir_term_dos(i: usize, op: Located<PaxTerm>) -> String {
                 "
     ; switch hardware stack to alt stack to push value
     xchg sp,bp
-    call PAX_FN_{}
+    call PAX_{}
+    xchg sp,bp
+                ",
+                name_slug(&label)
+            );
+        }
+        PaxTerm::ExternCall(label) => {
+            gb_output!(
+                out,
+                "
+    ; switch hardware stack to alt stack to push value
+    xchg sp,bp
+    call PAXEXT_{}
     xchg sp,bp
                 ",
                 name_slug(&label)
@@ -255,13 +267,7 @@ pub struct DosForthCompiler {}
 
 impl ForthCompiler for DosForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)> {
-        vec![
-            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-            (
-                PathBuf::from("../../lib/prelude-dos.fth"),
-                PRELUDE_DOS.to_string(),
-            ),
-        ]
+        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
     }
 
     fn compile(program: &PaxProgram) -> String {
@@ -270,7 +276,7 @@ impl ForthCompiler for DosForthCompiler {
             gb_output!(
                 out,
                 "
-PAX_FN_{}:
+PAX_{}:
     ; switch hardware stack back from alt stack
     xchg sp,bp
 

@@ -19,27 +19,46 @@
         mov ah,1
         int 10h
 
-        ; Move cursor
-        mov ah,02
-        mov bh,0
-        mov dh,1
-        mov dl,1
-        mov al,2
-        int 10h
+        ; ; Move cursor
+        ; mov ah,02
+        ; mov bh,0
+        ; mov dh,1
+        ; mov dl,1
+        ; mov al,2
+        ; int 10h
 
-        ; Write character
-        mov ah,0x0A
-        mov al,2
-        mov bh,0
-        mov bl,1
-        mov cx,1
-        int 10h
+        ; ; Write character
+        ; mov ah,0x0A
+        ; mov al,2
+        ; mov bh,0
+        ; mov bl,1
+        ; mov cx,1
+        ; int 10h
+
+
+        ; Setup return stack for Forth
+        mov bx,0xF000
+        mov bp,bx
+
+        ; Call Forth
+        xchg sp,bp
+        call PAX_main
+        xchg sp,bp
+
+        ; Drop remaining first value
+        pop ax
 
 
     pop es
     pop ds
 	
 	jmp $
+
+    ; Forth extern methods
+%include "src/taurus/dos-taurus.asm"
+
+    ; Forth compilation
+%include "build/paxconsola_generated.asm"
 
     section .data
 

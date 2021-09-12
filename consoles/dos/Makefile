@@ -1,8 +1,9 @@
+PAX_FILE=sword_world.fth
+PAX_OPTS=""
+PAX_ENGINE=taurus
+
 INPUT = src/paxconsola.asm
 OUT = build/PAXCNSLA.COM
-
-FILE=snake_world.fth
-OPTS=""
 
 all: $(OUT)
 
@@ -10,12 +11,9 @@ clean:
 	rm -rf build
 
 # Build files
-# Reference: https://cc65.github.io/doc/c64.html#s10
 
-
-
-build/paxconsola_generated.asm: $(FILE)
-	paxforth compile $(FILE) $(OPTS) --target dos > ./build/paxconsola_generated.asm
+build/paxconsola_generated.asm: $(PAX_FILE)
+	paxforth compile $(PAX_FILE) $(PAX_OPTS) --target dos > ./build/paxconsola_generated.asm
 
 build/tiles.raw: lib/tiles.png
 	pixconsola encode lib/tiles.png -o build/tiles.raw --format ega

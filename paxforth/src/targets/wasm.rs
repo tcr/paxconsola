@@ -115,6 +115,9 @@ impl PaxWalker for WasmForthCompilerWalker {
                 self.push(&format!("    call $return_pop"));
                 self.push(&format!("    call $drop"));
             }
+            PaxTerm::ExternCall(ref _s) => {
+                unimplemented!();
+            }
 
             /* branches */
             PaxTerm::JumpIf0(_target_index) => {

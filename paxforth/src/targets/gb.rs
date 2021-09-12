@@ -34,6 +34,8 @@ pub enum GbIr {
     // ( -- )
     Call(String),
     // ( -- )
+    ExternCall(String),
+    // ( -- )
     Ret,
     // ( addr -- value )
     ReplaceLoad,
@@ -129,6 +131,8 @@ fn translate_to_gb_term(_i: usize, op: PaxTerm) -> Vec<GbIr> {
         PaxTerm::JumpElse(offset) => vec![GbIr::JumpAlways(format!(".target_{}", offset))],
         // ( address -- )
         PaxTerm::Call(target) => vec![GbIr::Call(target)],
+        // ( address -- )
+        PaxTerm::ExternCall(target) => vec![GbIr::ExternCall(target)],
         // ( -- )
         PaxTerm::Exit => vec![GbIr::Ret],
         // ( -- )
@@ -440,6 +444,15 @@ PAX_FN_{}:
                     format!("PAX_FN_{}", name_slug(&label))
                 );
             }
+        }
+        GbIr::ExternCall(label) => {
+            gb_output!(
+                out,
+                "
+    call {}
+                ",
+                format!("PAXEXT_{}", name_slug(&label))
+            );
         }
     }
     out

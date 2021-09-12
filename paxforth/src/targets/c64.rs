@@ -462,6 +462,15 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
             "
             );
         }
+        PaxTerm::ExternCall(label) => {
+            gb_output!(
+                out,
+                "
+    jsr PAXEXT_{}
+                ",
+                name_slug(&label)
+            );
+        }
         PaxTerm::Call(label) => {
             if label == "*" {
                 gb_output!(
@@ -505,13 +514,7 @@ pub struct C64ForthCompiler {}
 
 impl ForthCompiler for C64ForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)> {
-        vec![
-            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-            (
-                PathBuf::from("../../lib/prelude-c64.fth"),
-                PRELUDE_C64.to_string(),
-            ),
-        ]
+        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
     }
 
     fn compile(program: &PaxProgram) -> String {

@@ -297,6 +297,9 @@ fn debug_program_function(
                     }
                     vm.alt_pop();
                 }
+                PaxTerm::ExternCall(_) => {
+                    unimplemented!();
+                }
                 PaxTerm::Exit => {
                     return;
                 }

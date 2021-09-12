@@ -87,6 +87,9 @@ jump_if_0(target_{})",
         PaxTerm::Call(_label) => {
             tom_output!(out, "");
         }
+        PaxTerm::ExternCall(_label) => {
+            tom_output!(out, "");
+        }
     }
     out
 }

@@ -40,6 +40,7 @@ pub enum Pax {
 pub enum PaxTerm {
     Exit,
     Call(String),
+    ExternCall(String),
 
     LoopTarget(usize),
     LoopLeave(usize),
