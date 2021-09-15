@@ -7,55 +7,55 @@
 	mov ax, $0		;ES points to our Code segment
     mov es, ax
 
-    push ds
-    push es
+    ; Switch to Mode 0
+    mov ax,0
+    int 10h
 
-        ; Switch to Mode 0
-        mov ax,0
-        int 10h
+    ; Disable cursor
+    mov cx,0xffff
+    mov ah,1
+    int 10h
 
-        ; Disable cursor
-        mov cx,0xffff
-        mov ah,1
-        int 10h
-
-        ; ; Move cursor
-        ; mov ah,02
-        ; mov bh,0
-        ; mov dh,1
-        ; mov dl,1
-        ; mov al,2
-        ; int 10h
-
-        ; ; Write character
-        ; mov ah,0x0A
-        ; mov al,2
-        ; mov bh,0
-        ; mov bl,1
-        ; mov cx,1
-        ; int 10h
+    jmp main_loop
 
 
-        ; Setup return stack for Forth
-        mov bx,0xF000
-        mov bp,bx
+main_loop:
+    call await_vblank
+    call await_vblank
+    call await_vblank
+    call await_vblank
 
-        ; Call Forth
-        xchg sp,bp
-        call PAX_main
-        xchg sp,bp
+    ; Setup return stack for Forth
+    mov bx,0xF000
+    mov bp,bx
 
-        ; Drop remaining first value
-        pop ax
+    ; Call Forth
+    xchg sp,bp
+    call PAX_main
+    xchg sp,bp
 
+    ; Drop remaining first value
+    ; pop ax
 
-    pop es
-    pop ds
-	
-	jmp $
+    ; call await_vblank
+	; jmp main_loop
+    
+    jmp main_loop
+
+await_vblank:
+    mov dx, 03dah ;wait for vertical retrace
+.wr1:
+    in al, dx
+    test al, 08h
+    jnz .wr1
+.wr2:
+    in al, dx
+    test al, 08h
+    jz .wr2
+    ret
 
     ; Forth extern methods
-%include "src/taurus/dos-taurus.asm"
+%include "src/engines/dos-taurus.asm"
 
     ; Forth compilation
 %include "build/paxconsola_generated.asm"

@@ -78,7 +78,7 @@ pub fn cross_compile_ir_dos(i: usize, op: Located<Pax>) -> String {
                 out,
                 "
     pop ax
-    add bx,ax
+    and bx,ax
     not bx
                 "
             )
