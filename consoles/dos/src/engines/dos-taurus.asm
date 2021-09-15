@@ -1,4 +1,4 @@
-    ; extern call "write-char-at"
+; extern call "write-char-at"
 PAXEXT_write2Dchar2Dat:
     ; switch hardware stack back from alt stack
     push cx
@@ -33,7 +33,7 @@ PAXEXT_write2Dchar2Dat:
     pop cx
     ret
 
-    ; extern call "read-char-at"
+; extern call "read-char-at"
 PAXEXT_read2Dchar2Dat:
     ; switch hardware stack back from alt stack
     xchg sp,bp

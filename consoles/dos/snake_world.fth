@@ -177,7 +177,7 @@ variable length
     read-char-at
 
     \ leave boolean flag on stack
-    color-white =
+    TILE_WALL =
     ;
 
 : draw-snake-head-tail
@@ -204,5 +204,5 @@ move-snake-tail
 move-snake-head
 check-apple
 
-\ check-collision
-\ if else 0 initialized ! then
+check-collision
+if 0 initialized ! then
