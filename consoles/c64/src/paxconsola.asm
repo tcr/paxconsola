@@ -26,6 +26,23 @@ X_END = $7f
 .code
     ; http://sta.c64.org/cbm64mem.html
 
+
+.ifdef ENGINE_TAURUS
+    ; Border color
+    lda #$00
+    sta $d020
+    ; Background color
+    lda #$00
+    sta $d021
+    ; Cursor color
+    lda #$01
+    sta $0286
+
+    ; Clear the screen
+    jsr $e544
+.endif
+
+.ifdef ENGINE_LIBRA
     ; Border color
     lda #$00
     sta $d020
@@ -75,6 +92,8 @@ CopyColorRAMLoop:
     sta $da00,x
     dex
     bne CopyColorRAMLoop
+
+.endif
 
     ; draw some helpful text
     ; jsr draw_text

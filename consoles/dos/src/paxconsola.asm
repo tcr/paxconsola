@@ -9,15 +9,24 @@ start:
 	mov ax, $0		;ES points to our Code segment
     mov es, ax
 
+%ifdef ENGINE_TAURUS
     ; Switch to Mode 0
-    mov ax,0
-    int 10h
+    mov al, 00h
+    call set_video_mode
 
     ; Disable cursor
     mov cx,0xffff
     mov ah,1
     int 10h
+%endif
 
+%ifdef ENGINE_LIBRA
+    ; Switch to Mode 13 (ega 320x200 16 color)
+    mov     al, 0Dh
+    call set_video_mode
+%endif
+
+%ifdef ENGINE_TAURUS
 main_loop:
     ; Setup return stack for Forth
     mov bx,0xF000
@@ -35,8 +44,6 @@ main_loop:
     call await_vblank
     call await_vblank
     call await_vblank
-    call await_vblank
-    call await_vblank
 
     ; Poll keyboards
     mov ax, 0x1100
@@ -46,6 +53,14 @@ main_loop:
     
     ; Loop
     jmp main_loop
+%endif
+
+%ifdef ENGINE_LIBRA
+main_loop:
+    call setup_palette
+    call draw_bitmap
+    jmp $
+%endif
 
 update_buffer:
     mov cx,0
@@ -78,22 +93,17 @@ CurNotRight:
     jmp main_loop
 
 
-; Await VBLANK signal, indicating the next frame.
-await_vblank:
-    mov dx, 03dah ;wait for vertical retrace
-.wr1:
-    in al, dx
-    test al, 08h
-    jnz .wr1
-.wr2:
-    in al, dx
-    test al, 08h
-    jz .wr2
-    ret
+    align 16
+%include "src/bitmap.asm"
 
 
 ; Forth extern methods
-%include "src/engines/dos-taurus.asm"
+%ifdef ENGINE_TAURUS
+    %include "src/engines/dos-taurus.asm"
+%endif
+%ifdef ENGINE_LIBRA
+    %include "src/engines/dos-libra.asm"
+%endif
 
 
 ; Forth compilation
