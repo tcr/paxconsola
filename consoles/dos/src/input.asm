@@ -1,6 +1,6 @@
 poll_keyboard:
         mov ax, 0
-        mov [0x007e],ax
+        mov [KEYBOARD_VALUE],ax
 
         mov ax, 0x1100
         int 16h
@@ -32,8 +32,7 @@ poll_keyboard:
     .not_right:
 
         ; Store latest value
-        mov bx,0x007e
-        mov [bx],cx
+        mov [KEYBOARD_VALUE],cx
 
         ; Jump to start of buffer
         ret

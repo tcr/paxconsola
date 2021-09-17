@@ -33,7 +33,7 @@ GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
 		
 		mov ah,0
 		mov al,bl		;Ypos * 40
-		mov bx,44
+		mov bx,ROW_WIDTH_IN_BYTES
 		mul bx			;AX*BX
 		add di,ax
 		
@@ -45,7 +45,7 @@ GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
 
 
 GetScreenNextLine:
-	add di,44		;Move down a line (40 bytes)
+	add di,ROW_WIDTH_IN_BYTES		;Move down a line (40 bytes)
 	ret
 
 	

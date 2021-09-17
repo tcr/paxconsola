@@ -24,6 +24,17 @@
 		%define CRTC_OVERFLOW     7
 		%define CRTC_MAXSCANLINE  9
 
+
+
+        ; Application defines
+
+        %define KEYBOARD_VALUE 0x7e
+
+        %define ROW_WIDTH_IN_BYTES 44
+        %define ROW_WIDTH 352
+        %define ASCII_RIGHT 39
+
+
         bits 16
         org 100h
 
@@ -31,6 +42,12 @@
 start:
         mov ax, $0		;ES points to our Code segment
         mov es, ax
+
+        ; Clear initial RAM
+        mov ax,0
+        mov [PelPanning],ax
+        mov [KEYBOARD_VALUE],ax
+
 
 %ifdef ENGINE_TAURUS
 
@@ -77,21 +94,18 @@ engine_start:
         call set_video_mode
 
         ; Set virtual line width higher to compensate for scroll
-		mov bx, 352
+		mov bx, ROW_WIDTH
 		call set_virtual_screen_width
 
 main_loop:
-        ; mov ax, 0
-        ; mov [0x007e], ax
-
         call setup_palette
 
-        mov ch,13
+        mov ch,14
     .draw_row:
         dec ch
         push cx
 
-        mov cl,21
+        mov cl,22
     .draw_tile:
         dec cl
         push cx
@@ -120,52 +134,38 @@ main_loop:
 	    mov si, BitmapTest
         call draw_bitmap
 
-        mov ax,0
-        mov [PelPanning],ax
-        mov [0x007e],ax
-
-
-    .inner_loop:
-        ; Wait for VBLANK.
-        call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-        ; call wait_vsync
-
-        ; Poll keyboards
-        call poll_keyboard
-
-        mov ax,[0x007e]
-        cmp al,39
-        jnz .inner_loop
-
-        ; Read our horizontal scrolling register
-        ; mov ax,[PelPanning]
-        ; cmp ax,7
-        ; jne .inner_loop_next
-
-        ; Shift video by 1 byte
-		mov ah,[PelPanning]
-        shr ah,3
+        ; Advance initial horizontal offset by one tile and one row.
+		mov ah, (2 + (44 * 16))
 		mov al, LOW_ADDRESS
 		mov dx, CRTC_INDEX
 		out dx, ax
 
-        ; mov ax,0
-        ; mov [PelPanning],ax
-        ; mov [0x007e],ax
+        mov ah, (2 + (44 * 16)) >> 8
+		mov al, HIGH_ADDRESS
+		mov dx, CRTC_INDEX
+		out dx, ax
 
-        ; mov bh,al
-        ; mov ax,0x1000
-        ; mov bl,PEL_PANNING
-        ; int 10h
 
-        ; jmp $
+; Wait for VSYNC and then redraw the screen.
+game_loop:
+        ; Wait for VSYNC.
+        call wait_vsync
+
+        ; Poll keyboards
+        call poll_keyboard
+
+        ; If the right key is held, start panning.
+        mov ax,[KEYBOARD_VALUE]
+        cmp al,ASCII_RIGHT
+        jnz game_loop
+
+        ; Shift video by 8 pixels.
+		mov ah,[PelPanning]
+        shr ah, 3
+        add ah, (2 + (44 * 16)) ; shift by one row and one tile
+		mov al, LOW_ADDRESS
+		mov dx, CRTC_INDEX
+		out dx, ax
     
     .inner_loop_after:
 
@@ -176,12 +176,10 @@ main_loop:
         int 10h
 
         ; Increase PEL Panning register
-        mov ax,[PelPanning]
-        inc ax
-        mov [PelPanning],ax
+        inc word [PelPanning]
 
         ; Loop
-        jmp .inner_loop
+        jmp game_loop
 
 %endif
 
@@ -207,7 +205,5 @@ main_loop:
 
 
     section .data
-
-UserRam times 256 db 0
 
 PelPanning db 0
