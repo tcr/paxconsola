@@ -21,7 +21,7 @@ pub fn ega_palette() -> Vec<RGB> {
     .collect()
 }
 
-pub fn decode_ega_to_png(source: &mut impl std::io::Read, dest: &mut impl std::io::Write) {
+pub fn encode_png_to_ega(source: &mut impl std::io::Read, dest: &mut impl std::io::Write) {
     let ref mut dest_buffered = BufWriter::new(dest);
 
     let decoder = png::Decoder::new(source);
@@ -57,10 +57,15 @@ pub fn bit_plane_from_byte(index: usize, byte: &[u8]) -> u8 {
     one.load::<u8>()
 }
 
-pub fn encode_png_to_ega(source: &mut impl std::io::Read, dest: &mut impl std::io::Write) {
+pub fn decode_ega_to_png(
+    source: &mut impl std::io::Read,
+    dest: &mut impl std::io::Write,
+    width: usize,
+    height: usize,
+) {
     let ref mut dest_buffered = BufWriter::new(dest);
 
-    let mut encoder = png::Encoder::new(dest_buffered, 48, 48); // Width is 2 pixels and height is 1.
+    let mut encoder = png::Encoder::new(dest_buffered, width as u32, height as u32); // Width is 2 pixels and height is 1.
     encoder.set_color(png::ColorType::Indexed);
 
     // Setup EGA palette.

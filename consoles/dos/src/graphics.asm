@@ -1,7 +1,27 @@
+; https://www.vcfed.org/forum/forum/technical-support/vintage-computer-programming/56910-vga-cga-graphics-library-for-dos-games
+; https://www.youtube.com/watch?v=roe22H744bM
+
+; %define DosVGA          1
+%define DosEGA          1
+; %define DosCGA          1
+
+
 set_video_mode:
 	mov     ah, 0       ;0=Set Video mode (AL=Mode)
     int     10h         ;bios int
 	ret
+
+
+; bx = width
+set_virtual_screen_width:
+		mov dx, CRTC_INDEX
+		mov al, LINE_OFFSET
+		out dx, al
+		mov dx, CRTC_DATA
+		shr bx, 4 ; width / 16
+		mov al, bl
+		out dx, al
+		ret
 
 
 GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
@@ -13,7 +33,7 @@ GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
 		
 		mov ah,0
 		mov al,bl		;Ypos * 40
-		mov bx,40
+		mov bx,44
 		mul bx			;AX*BX
 		add di,ax
 		
@@ -22,12 +42,12 @@ GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
 	pop ax
 	pop bx
 	ret
-	
+
+
 GetScreenNextLine:
-	add di,40		;Move down a line (40 bytes)
+	add di,44		;Move down a line (40 bytes)
 	ret
 
-%define DosEGA          1
 	
 SetPalette:	;AL=Pal Num ;dx=-GRB color
 	push di
@@ -78,19 +98,22 @@ SetPalette:	;AL=Pal Num ;dx=-GRB color
 	pop di
 	ret
 
-; Await VBLANK signal, indicating the next frame.
-await_vblank:
-    mov dx, 03dah ;wait for vertical retrace
-.wr1:
-    in al, dx
-    test al, 08h
-    jnz .wr1
-.wr2:
-    in al, dx
-    test al, 08h
-    jz .wr2
-    ret
 
+; Await VSYNC signal, indicating the next frame.
+wait_vsync:
+		pusha
+		mov dx, INPUT_STATUS
+	.l1:
+		in al,dx
+		test al, 08h
+		jz .l1
+		
+	.l2:
+		in al,dx
+		test al, 08h
+		jnz .l2
+		popa
+		ret
 
 
 
@@ -107,33 +130,16 @@ Paletteagain:
 	cmp ax,16		;Are we done?
 	jnz Paletteagain
 	ret
+	
 
-
-	; https://www.vcfed.org/forum/forum/technical-support/vintage-computer-programming/56910-vga-cga-graphics-library-for-dos-games
+; bh = x
+; bl = y
+; ch = width
+; cl = height
+; si = bitmap
 draw_bitmap:
-	mov bh,6	;X
-	mov bl,11	;Y
-
-	; bh = X
-	; bl = Y
 	call GetScreenPos
-	; es:di = destination bitplane
 
-	%ifdef DosCGA
-		mov ch,12	;Width
-	%endif
-	%ifdef DosEGA
-		mov ch,6	;Width
-	%endif
-	%ifdef DosVGA
-		mov ch,48	;Width
-	%endif
-	mov cl,48		;Height
-	mov si, BitmapTest
-	; bh = X
-	; bl = Y
-	; ch = Width
-	; cl = Height
 	; ds:si = source bitmap
 	; es:di = destination bitplane
 
@@ -204,3 +210,8 @@ BitmapTest:
 	; incbin "lib/SpriteTestEGA.RAW"
     incbin "build/tiles.raw"
 BitmapTestEnd:
+
+    align 16
+bitmap_linear:
+	; incbin "lib/SpriteTestEGA.RAW"
+    incbin "build/tiles-linear.raw"

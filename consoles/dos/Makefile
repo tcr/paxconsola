@@ -34,7 +34,10 @@ build/paxconsola_generated.asm: $(GAME)
 build/tiles.raw: lib/tiles.png
 	pixconsola encode lib/tiles.png -o build/tiles.raw --format ega
 
-$(OUT): $(INPUT) build/paxconsola_generated.asm build/tiles.raw
+build/tiles-linear.raw: lib/tiles-linear.png
+	pixconsola encode lib/tiles-linear.png -o build/tiles-linear.raw --format ega
+
+$(OUT): src/* build/paxconsola_generated.asm build/tiles.raw build/tiles-linear.raw
 	nasm -f bin -D $(ENGINE_FLAG)=1 -o $(OUT) $(INPUT) -l build/paxconsola.lst
 
 run: $(OUT)
