@@ -30,10 +30,12 @@
 
         %define KEYBOARD_VALUE 0x7e
 
-        %define ROW_WIDTH_IN_BYTES 44
+        %define ROWS_COUNT 14
+        %define COLUMNS_COUNT 22
+
+        %define ROW_WIDTH_IN_BYTES (COLUMNS_COUNT * 2)
         %define ROW_HEIGHT_IN_PIXELS 16
         %define PANNING_VRAM_OFFSET (2 + (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS))
-        %define ROW_WIDTH 352
         
         %define ASCII_LEFT 37
         %define ASCII_UP 38
@@ -41,6 +43,7 @@
         %define ASCII_DOWN 40
 
 
+        ; cpu 8086
         bits 16
         org 100h
 
@@ -51,7 +54,7 @@ start:
 
         ; Clear initial RAM
         mov ax,0
-        mov [PelPanning],ax
+        mov [PelPanning],al
         mov [VerticalOffset],ax
         mov [KEYBOARD_VALUE],ax
 
@@ -100,29 +103,30 @@ engine_start:
         mov al, 0Dh
         call set_video_mode
 
-        ; Set virtual line width higher to compensate for scroll
-		mov bx, ROW_WIDTH
+        ; Set EGA virtual line width higher to compensate for scroll
+		mov bx, (ROW_WIDTH_IN_BYTES * 8)
 		call set_virtual_screen_width
 
-main_loop:
+        ; Setup the color palette.
         call setup_palette
 
-        mov ch,14
+draw_background:
+        mov ch, ROWS_COUNT
     .draw_row:
         dec ch
         push cx
 
-        mov cl,22
+        mov cl, COLUMNS_COUNT
     .draw_tile:
         dec cl
         push cx
 
         ; draw individual tile
-        mov bh,cl	; X
+        mov bh,cl	    ; X
         shl bh,1
-        mov bl,ch	; Y
+        mov bl,ch	    ; Y
         shl bl,4
-        mov ch,2	; Width
+        mov ch,2	    ; Width
         mov cl,16		; Height
 	    mov si, bitmap_linear
         call draw_bitmap
@@ -137,6 +141,29 @@ main_loop:
         test ch,ch
         jnz .draw_row
 
+draw_second_buffer:
+        ; Store buffer size
+        mov cx, 0x3000
+
+        ; Set ds and es
+        mov ax, 0xA300
+        mov ds, ax
+        mov ax, 0xA000
+        mov es, ax
+        mov di, 0
+        mov si, 0
+
+    .copy_start:
+        movsw
+
+        ; test if we've reached 0 yet
+        dec cx
+        jnz .copy_start 
+
+        ret
+
+
+draw_overlay:
         ; Draw a big overlay sprite
         mov bh, 2	;X
         mov bl, 8	;Y
@@ -145,8 +172,12 @@ main_loop:
 	    mov si, BitmapTest
         call draw_bitmap
 
+        mov al,16
+        mov [PelPanning],al
+
         ; Compute initial VRAM offset: one column and one row
         mov ax, (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS)
+        add ax, 0x0000
         mov [VerticalOffset],ax
 
 ; Wait for VSYNC and then redraw the screen.
@@ -158,7 +189,6 @@ game_loop:
         mov bh, 0
 		mov bl, [PelPanning]
         shr bx, 3
-        add bx, 2
 		add bx, [VerticalOffset]
 
         ; Set VRAM offset.

@@ -37,15 +37,10 @@ GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
 		mul bx			;AX*BX
 		add di,ax
 		
-		mov ax,0A000h 	;Screen Base= A000h
+		mov ax,0xA300 	;Screen Base= A000h
 		mov es,ax
 	pop ax
 	pop bx
-	ret
-
-
-GetScreenNextLine:
-	add di,ROW_WIDTH_IN_BYTES		;Move down a line (40 bytes)
 	ret
 
 	
@@ -143,13 +138,17 @@ draw_bitmap:
 	; ds:si = source bitmap
 	; es:di = destination bitplane
 
+	%ifdef DosEGA
+		mov dx,SC_INDEX
+		mov al,02h
+	%endif
+
 DrawBitmap_Yagain:
 	push di
-	push cx
+	mov bl,ch			;Save width in BL
 DrawBitmap_Xagain:
 	%ifdef DosEGA
-		mov ax,0102h	;plane 0 (0102h)
-		mov dx,03c4h		
+		mov ah,01h	    ;plane 0 (0102h)
 		out dx,ax		;Apply plane mask
 		movsb			;DS:SI -> ES:DI
 		dec di			;Reset Dest Ram
@@ -177,11 +176,10 @@ DrawBitmap_Xagain:
 	dec ch
 	jnz DrawBitmap_Xagain
 
-	pop cx
+	mov ch,bl			; Restore width from BL
 	pop di
-	call GetScreenNextLine
+	add di,ROW_WIDTH_IN_BYTES		;Move down a line (40 bytes)
 
-	inc bl
 	dec cl
 	jnz DrawBitmap_Yagain
 
