@@ -138,9 +138,11 @@ draw_bitmap:
 	; ds:si = source bitmap
 	; es:di = destination bitplane
 
+	; http://www.minuszerodegrees.net/oa/OA%20-%20IBM%20Enhanced%20Graphics%20Adapter.pdf#page=22&zoom=auto,-29,597
+
 	%ifdef DosEGA
-		mov dx,SC_INDEX
-		mov al,02h
+		mov dx,SC_INDEX	; Sequencer Address Register
+		mov al,02h		; "02' selects Map Mask
 	%endif
 
 DrawBitmap_Yagain:
@@ -149,22 +151,22 @@ DrawBitmap_Yagain:
 DrawBitmap_Xagain:
 	%ifdef DosEGA
 		mov ah,01h	    ;plane 0 (0102h)
-		out dx,ax		;Apply plane mask
+		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
 		dec di			;Reset Dest Ram
 		
 		mov ah,2h		;plane 1 (0202h)
-		out dx,ax		;Apply plane mask
+		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
 		dec di			;Reset Dest Ram
 		
 		mov ah,4h		;plane 2 (0402h)
-		out dx,ax		;Apply plane mask
+		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
 		dec di			;Reset Dest Ram
 		
 		mov ah,8h		;plane 3 (0802h)
-		out dx,ax		;Apply plane mask
+		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
 	%endif
 	%ifdef DosCGA
