@@ -31,8 +31,14 @@
         %define KEYBOARD_VALUE 0x7e
 
         %define ROW_WIDTH_IN_BYTES 44
+        %define ROW_HEIGHT_IN_PIXELS 16
+        %define PANNING_VRAM_OFFSET (2 + (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS))
         %define ROW_WIDTH 352
+        
+        %define ASCII_LEFT 37
+        %define ASCII_UP 38
         %define ASCII_RIGHT 39
+        %define ASCII_DOWN 40
 
 
         bits 16
@@ -46,6 +52,7 @@ start:
         ; Clear initial RAM
         mov ax,0
         mov [PelPanning],ax
+        mov [VerticalOffset],ax
         mov [KEYBOARD_VALUE],ax
 
 
@@ -110,75 +117,108 @@ main_loop:
         dec cl
         push cx
 
-        mov bh,cl	;X
+        ; draw individual tile
+        mov bh,cl	; X
         shl bh,1
-        mov bl,ch	;Y
+        mov bl,ch	; Y
         shl bl,4
-        mov ch,2	;Width
-        mov cl,16		;Height
+        mov ch,2	; Width
+        mov cl,16		; Height
 	    mov si, bitmap_linear
         call draw_bitmap
 
+        ; loop .draw_tile
         pop cx
         test cl,cl
         jnz .draw_tile
 
+        ; loop .draw_row
         pop cx
         test ch,ch
         jnz .draw_row
 
-        mov bh,2	;X
-        mov bl,8	;Y
-        mov ch,6	;Width
-        mov cl,48		;Height
+        ; Draw a big overlay sprite
+        mov bh, 2	;X
+        mov bl, 8	;Y
+        mov ch, 6	;Width
+        mov cl, 48		;Height
 	    mov si, BitmapTest
         call draw_bitmap
 
-        ; Advance initial horizontal offset by one tile and one row.
-		mov ah, (2 + (44 * 16))
-		mov al, LOW_ADDRESS
-		mov dx, CRTC_INDEX
-		out dx, ax
-
-        mov ah, (2 + (44 * 16)) >> 8
-		mov al, HIGH_ADDRESS
-		mov dx, CRTC_INDEX
-		out dx, ax
-
+        ; Compute initial VRAM offset: one column and one row
+        mov ax, (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS)
+        mov [VerticalOffset],ax
 
 ; Wait for VSYNC and then redraw the screen.
 game_loop:
         ; Wait for VSYNC.
         call wait_vsync
 
-        ; Poll keyboards
-        call poll_keyboard
+        ; Calculate VRAM offset.
+        mov bh, 0
+		mov bl, [PelPanning]
+        shr bx, 3
+        add bx, 2
+		add bx, [VerticalOffset]
 
-        ; If the right key is held, start panning.
-        mov ax,[KEYBOARD_VALUE]
-        cmp al,ASCII_RIGHT
-        jnz game_loop
-
-        ; Shift video by 8 pixels.
-		mov ah,[PelPanning]
-        shr ah, 3
-        add ah, (2 + (44 * 16)) ; shift by one row and one tile
+        ; Set VRAM offset.
+        mov ah, bl
 		mov al, LOW_ADDRESS
 		mov dx, CRTC_INDEX
 		out dx, ax
-    
-    .inner_loop_after:
+        mov ah, bh
+		mov al, HIGH_ADDRESS
+		mov dx, CRTC_INDEX
+		out dx, ax
 
-        mov ax,[PelPanning]
-        mov bh,al
-        mov ax,0x1000
-        mov bl,PEL_PANNING
+        ; Set PEL_PANNING register.
+        mov ah, 0
+        mov al, [PelPanning]
+        mov bh, al
+        mov ax, 0x1000
+        mov bl, PEL_PANNING
         int 10h
 
+    .check_keys:
+        ; Poll keyboard
+        call poll_keyboard
+        mov ax, [KEYBOARD_VALUE]
+
+        ; Check keys.
+        cmp al, ASCII_RIGHT
+        jz .key_right
+        cmp al, ASCII_LEFT
+        jz .key_left
+        cmp al, ASCII_DOWN
+        jz .key_down
+        cmp al, ASCII_UP
+        jz .key_up
+
+        ; Continue game loop.
+        jmp game_loop
+    
+    .key_right:
         ; Increase PEL Panning register
         inc word [PelPanning]
-
-        ; Loop
+        jmp game_loop
+    
+    .key_left:
+        ; Decrease PEL Panning register
+        dec word [PelPanning]
+        jmp game_loop
+    
+    .key_down:
+        ; Decrease PEL Panning register
+        mov ax, [VerticalOffset]
+        add ax, ROW_WIDTH_IN_BYTES
+        mov [VerticalOffset], ax
+        jmp game_loop
+    
+    .key_up:
+        ; Decrease PEL Panning register
+        mov ax, [VerticalOffset]
+        sub ax, ROW_WIDTH_IN_BYTES
+        mov [VerticalOffset], ax
         jmp game_loop
 
 %endif
@@ -207,3 +247,4 @@ game_loop:
     section .data
 
 PelPanning db 0
+VerticalOffset dw 0
