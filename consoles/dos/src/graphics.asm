@@ -37,7 +37,9 @@ GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
 		mul bx			;AX*BX
 		add di,ax
 		
-		mov ax,0xA300 	;Screen Base= A000h
+		mov ax,[BufferOffscreen]
+		shr ax,4
+		add ax,0xA000
 		mov es,ax
 	pop ax
 	pop bx
@@ -187,6 +189,72 @@ DrawBitmap_Xagain:
 
 	ret
 
+; 
+; Copies VRAM buffer at 0xA300 to 0xA000
+; This is slow cause it uses EGA reads instead of an in-memory buffer; however DOSBox emulates an
+; infinitely fast graphics card so this is okay for a demo.
+;
+copy_buffer_to_screen:
+        push es
+        push ds
+
+        ; Set ds and es
+		mov ax, [BufferOffscreen]
+		shr ax, 4
+        add ax, 0xA000
+        mov ds, ax
+		mov ax, [BufferOnscreen]
+		shr ax, 4
+        add ax, 0xA000
+        mov es, ax
+
+		jmp copy_buffer
+
+copy_screen_to_buffer:
+        push es
+        push ds
+
+        ; Set ds and es
+		mov ax, [BufferOnscreen]
+		shr ax, 4
+        add ax, 0xA000
+        mov ds, ax
+		mov ax, [BufferOffscreen]
+		shr ax, 4
+        add ax, 0xA000
+        mov es, ax
+
+		jmp copy_buffer
+
+copy_buffer:
+
+%macro  copy_plane 1 
+        ; Copy plane
+        mov ax, 0004h + (%1 << 8)
+        mov dx,GC_INDEX
+        out dx,ax
+        mov ax, 0002h + ((1 << %1) << 8)
+        mov dx,SC_INDEX
+        out dx,ax
+
+        mov di, 0
+        mov si, 0
+        mov cx, SCREEN_IN_BYTES / 4
+    %%copy_plane:
+        movsd
+        dec cx
+        jnz %%copy_plane
+%endmacro
+
+        copy_plane 0
+        copy_plane 1
+        copy_plane 2
+        copy_plane 3
+
+        pop ds
+        pop es
+		ret
+
 Palette:
 	dw 0250h;0  -GRB 
 	dw 0000h;1  -GRB
@@ -213,5 +281,8 @@ BitmapTestEnd:
 
     align 16
 bitmap_linear:
-	; incbin "lib/SpriteTestEGA.RAW"
     incbin "build/tiles-linear.raw"
+
+    align 16
+bitmap_hero:
+    incbin "build/tiles-hero.raw"

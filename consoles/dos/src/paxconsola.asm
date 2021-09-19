@@ -37,6 +37,8 @@
         %define ROW_HEIGHT_IN_PIXELS 16
         %define PANNING_VRAM_OFFSET (2 + (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS))
         %define SCREEN_IN_BYTES ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS * ROWS_COUNT
+
+        %define VIDEO_BUFFER_OFFSET 0x3000
         
         %define ASCII_LEFT 37
         %define ASCII_UP 38
@@ -107,17 +109,30 @@ engine_start:
         mov al, 0Dh
         call set_video_mode
 
-        ; Switch to unchained mode
-        mov     dx,SC_INDEX
-        mov     ax,604h
-        out     dx,ax
+        ; Switch video to unchained mode
+        mov dx,SC_INDEX
+        mov ax,604h
+        out dx,ax
+
+        ; Setup the color palette.
+        call setup_palette
 
         ; Set EGA virtual line width higher to compensate for scroll
 		mov bx, (ROW_WIDTH_IN_BYTES * 8)
 		call set_virtual_screen_width
 
-        ; Setup the color palette.
-        call setup_palette
+        ; Setup buffer indexes. Offscreen buffer initially lives at VIDEO_BUFFER_OFFSET.
+        mov ax, VIDEO_BUFFER_OFFSET
+        mov [BufferOffscreen], ax
+        mov ax, 0
+        mov [BufferOnscreen], ax
+
+        ; Setup horizontal panning register.
+        mov al,16
+        mov [PelPanning],al
+        ; Compute initial VRAM offset: one column and one row
+        mov ax, (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS)
+        mov [VerticalOffset],ax
 
 draw_background:
         mov ch, ROWS_COUNT
@@ -150,70 +165,32 @@ draw_background:
         test ch,ch
         jnz .draw_row
 
-draw_overlay:
-        ; Draw a big overlay sprite
+draw_hero:
+        ; Draw hero sprite
         mov bh, 2	;X
-        mov bl, 8	;Y
-        mov ch, 6	;Width
-        mov cl, 48		;Height
-	    mov si, BitmapTest
+        mov bl, 16	;Y
+        mov ch, 2	;Width
+        mov cl, 16		;Height
+	    mov si, bitmap_hero
         call draw_bitmap
-
-        mov al,16
-        mov [PelPanning],al
-
-        ; Compute initial VRAM offset: one column and one row
-        mov ax, (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS)
-        ; add ax, 0x3000 ; Flip to second page
-        mov [VerticalOffset],ax
-
-draw_second_buffer:
-
-        push es
-        push ds
-
-        ; Set ds and es
-        mov ax, 0xA300
-        mov ds, ax
-        mov ax, 0xA000
-        mov es, ax
-
-%macro  copy_plane 1 
-        ; Copy plane
-        mov ax, 0004h + (%1 << 8)
-        mov dx,GC_INDEX
-        out dx,ax
-        mov ax, 0002h + ((1 << %1) << 8)
-        mov dx,SC_INDEX
-        out dx,ax
-
-        mov di, 0
-        mov si, 0
-        mov cx, SCREEN_IN_BYTES / 4
-    %%copy_plane:
-        movsd
-        dec cx
-        jnz %%copy_plane
-%endmacro
-
-        copy_plane 0
-        copy_plane 1
-        copy_plane 2
-        copy_plane 3
-
-        pop ds
-        pop es
 
 ; Wait for VSYNC and then redraw the screen.
 game_loop:
         ; Wait for VSYNC.
         call wait_vsync
 
+        ; Swap buffers
+        mov ax, [BufferOnscreen]
+        mov bx, [BufferOffscreen]
+        mov [BufferOffscreen], ax
+        mov [BufferOnscreen], bx
+
         ; Calculate VRAM offset.
         mov bh, 0
 		mov bl, [PelPanning]
         shr bx, 3
 		add bx, [VerticalOffset]
+        add bx, [BufferOnscreen]
 
         ; Set VRAM offset.
         mov ah, bl
@@ -249,30 +226,55 @@ game_loop:
         jz .key_up
 
         ; Continue game loop.
-        jmp game_loop
+        jmp frame_work
     
     .key_right:
         ; Increase PEL Panning register
         inc word [PelPanning]
-        jmp game_loop
+        jmp frame_work
     
     .key_left:
         ; Decrease PEL Panning register
         dec word [PelPanning]
-        jmp game_loop
+        jmp frame_work
     
     .key_down:
         ; Decrease PEL Panning register
         mov ax, [VerticalOffset]
         add ax, ROW_WIDTH_IN_BYTES
         mov [VerticalOffset], ax
-        jmp game_loop
+        jmp frame_work
     
     .key_up:
         ; Decrease PEL Panning register
         mov ax, [VerticalOffset]
         sub ax, ROW_WIDTH_IN_BYTES
         mov [VerticalOffset], ax
+        jmp frame_work
+    
+frame_work:
+        ; Copy frame buffer
+        call copy_screen_to_buffer
+
+        ; ; clear tile behind a sprite
+        ; mov bh,2	    ; X
+        ; mov bl,16	    ; Y
+        ; mov ch,2	    ; Width
+        ; mov cl,16		; Height
+	    ; mov si, bitmap_linear
+        ; call draw_bitmap ; draw to second buffer
+
+        ; ; draw sprite
+        ; mov bh,2	    ; X
+        ; mov bl,16	    ; Y
+        ; mov ch,2	    ; Width
+        ; mov cl,16		; Height
+	    ; mov si, bitmap_hero
+        ; call draw_bitmap ; draw to second buffer
+
+        ; Maybe draw new 1/2 column
+        ; Maybe draw new 1/2 row
+
         jmp game_loop
 
 %endif
@@ -302,3 +304,6 @@ game_loop:
 
 PelPanning db 0
 VerticalOffset dw 0
+
+BufferOffscreen     dw 0
+BufferOnscreen      dw 0
