@@ -1,10 +1,6 @@
 ; https://www.vcfed.org/forum/forum/technical-support/vintage-computer-programming/56910-vga-cga-graphics-library-for-dos-games
 ; https://www.youtube.com/watch?v=roe22H744bM
-
-; %define DosVGA          1
-%define DosEGA          1
-; %define DosCGA          1
-
+; http://www.minuszerodegrees.net/oa/OA%20-%20IBM%20Enhanced%20Graphics%20Adapter.pdf#page=22&zoom=auto,-29,597
 
 set_video_mode:
 	mov     ah, 0       ;0=Set Video mode (AL=Mode)
@@ -23,8 +19,10 @@ set_virtual_screen_width:
 		out dx, al
 		ret
 
-
-GetScreenPos:	;BH,BL = X,Y Returns ES:DI=Destination
+; bh = x
+; bl = y
+; out es:di = destination
+get_screen_pos:	
 	push bx
 	push ax
 		mov ah,0
@@ -86,7 +84,12 @@ SetPalette:	;AL=Pal Num ;dx=-GRB color
 ;Send to bios
 		mov ax,1000h ;Function 10 - subfunction 0 
 ; (Set Palette color) 	;Color BL ... BH=--rgbRGB
-		int 10h ;bios int 
+
+		; "Whenever an VGA function can be performed reasonably well through a BIOS function, 
+		; as it can in the case of setting palette RAM, it should be, both because there is no point
+		; in reinventing the wheel and because the BIOS may well mask incompatibilities between the
+		; IBM VGA and VGA clones." - Abrash
+		int 10h
 	pop ax
 	pop bx
 	pop cx
@@ -95,6 +98,29 @@ SetPalette:	;AL=Pal Num ;dx=-GRB color
 	pop di
 	ret
 
+setup_palette:
+	; Setup the palette
+	mov si,Palette
+	xor ax,ax
+Paletteagain:
+	mov dx,[si]
+	call SetPalette ;Set Color AL to DX (-GRB)
+	inc si			;Move down two bytes
+	inc si
+	inc ax
+	cmp ax,16		;Are we done?
+	jnz Paletteagain
+	ret
+
+
+; Await display enable.
+wait_display_enable:
+        mov dx, INPUT_STATUS
+	.l1:
+        in al, dx
+        and al, 01h
+        jnz .l1
+        ret
 
 ; Await VSYNC signal, indicating the next frame.
 wait_vsync:
@@ -113,45 +139,23 @@ wait_vsync:
 		ret
 
 
-
-setup_palette:
-	; Setup the palette
-	mov si,Palette
-	xor ax,ax
-Paletteagain:
-	mov dx,[si]
-	call SetPalette ;Set Color AL to DX (-GRB)
-	inc si			;Move down two bytes
-	inc si
-	inc ax
-	cmp ax,16		;Are we done?
-	jnz Paletteagain
-	ret
-	
-
 ; bh = x
 ; bl = y
 ; ch = width
 ; cl = height
-; si = bitmap
+; ds:si = bitmap
 draw_bitmap:
-	call GetScreenPos
+		call get_screen_pos
+		; ds:si = source bitmap
+		; es:di = destination bitplane
 
-	; ds:si = source bitmap
-	; es:di = destination bitplane
-
-	; http://www.minuszerodegrees.net/oa/OA%20-%20IBM%20Enhanced%20Graphics%20Adapter.pdf#page=22&zoom=auto,-29,597
-
-	%ifdef DosEGA
 		mov dx,SC_INDEX	; Sequencer Address Register
 		mov al,02h		; "02' selects Map Mask
-	%endif
 
-DrawBitmap_Yagain:
-	push di
-	mov bl,ch			;Save width in BL
-DrawBitmap_Xagain:
-	%ifdef DosEGA
+	.y_loop:
+		push di
+		mov bl,ch		; Save width in BL
+	.x_loop:
 		mov ah,01h	    ;plane 0 (0102h)
 		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
@@ -170,59 +174,110 @@ DrawBitmap_Xagain:
 		mov ah,8h		;plane 3 (0802h)
 		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
-	%endif
-	%ifdef DosCGA
+
+		dec ch
+		jnz .x_loop
+
+		; Restore width from BL
+		mov ch, bl
+		; Move down a line
+		pop di
+		add di, ROW_WIDTH_IN_BYTES		
+
+		dec cl
+		jnz .y_loop
+
+		ret
+
+
+; bl = byte skip
+; ch = width
+; cl = height
+; ds:si = source bitmap
+; es:di = destination bitplane
+draw_tile_half:
+		mov dx,SC_INDEX	; Sequencer Address Register
+		mov al,02h		; "02' selects Map Mask
+
+	.y_loop:
+		push di
+		push cx
+
+		mov bh, 0
+		add si, bx
+		dec ch
+	.x_loop:
+		mov ah,01h	    ;plane 0 (0102h)
+		out dx,ax		;Apply map mask
 		movsb			;DS:SI -> ES:DI
-	%endif
-	%ifdef DosVGA
-		movsb				;DS:SI -> ES:DI
-	%endif
-	dec ch
-	jnz DrawBitmap_Xagain
+		dec di			;Reset Dest Ram
+		
+		mov ah,2h		;plane 1 (0202h)
+		out dx,ax		;Apply map mask
+		movsb			;DS:SI -> ES:DI
+		dec di			;Reset Dest Ram
+		
+		mov ah,4h		;plane 2 (0402h)
+		out dx,ax		;Apply map mask
+		movsb			;DS:SI -> ES:DI
+		dec di			;Reset Dest Ram
+		
+		mov ah,8h		;plane 3 (0802h)
+		out dx,ax		;Apply map mask
+		movsb			;DS:SI -> ES:DI
 
-	mov ch,bl			; Restore width from BL
-	pop di
-	add di,ROW_WIDTH_IN_BYTES		;Move down a line (40 bytes)
+		dec ch
+		jnz .x_loop
 
-	dec cl
-	jnz DrawBitmap_Yagain
+		; Move down a line
+		pop cx
+		pop di
+		add di, ROW_WIDTH_IN_BYTES		
 
-	ret
+		dec cl
+		jnz .y_loop
+
+		ret
+
+
 
 ; 
 ; Copies VRAM buffer at 0xA300 to 0xA000
 ; This is slow cause it uses EGA reads instead of an in-memory buffer; however DOSBox emulates an
 ; infinitely fast graphics card so this is okay for a demo.
 ;
+; cx = buffer size to copy
 copy_buffer_to_screen:
         push es
         push ds
 
         ; Set ds and es
-		mov ax, [BufferOffscreen]
-		shr ax, 4
-        add ax, 0xA000
-        mov ds, ax
 		mov ax, [BufferOnscreen]
 		shr ax, 4
         add ax, 0xA000
         mov es, ax
+		mov ax, [BufferOffscreen]
+		shr ax, 4
+        add ax, 0xA000
+        mov ds, ax
 
 		jmp copy_buffer
 
+; cx = buffer size to copy
+; bx = destination offset
 copy_screen_to_buffer:
         push es
         push ds
 
         ; Set ds and es
-		mov ax, [BufferOnscreen]
-		shr ax, 4
-        add ax, 0xA000
-        mov ds, ax
 		mov ax, [BufferOffscreen]
 		shr ax, 4
         add ax, 0xA000
         mov es, ax
+		mov ax, [BufferOnscreen]
+		shr ax, 4
+        add ax, 0xA000
+        mov ds, ax
 
 		jmp copy_buffer
 
@@ -237,19 +292,26 @@ copy_buffer:
         mov dx,SC_INDEX
         out dx,ax
 
-        mov di, 0
+        mov di, bx
         mov si, 0
-        mov cx, SCREEN_IN_BYTES / 4
     %%copy_plane:
         movsd
         dec cx
         jnz %%copy_plane
 %endmacro
 
+		push cx
         copy_plane 0
+		pop cx
+		push cx
         copy_plane 1
+		pop cx
+		push cx
         copy_plane 2
+		pop cx
+		push cx
         copy_plane 3
+		pop cx
 
         pop ds
         pop es

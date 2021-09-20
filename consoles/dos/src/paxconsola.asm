@@ -31,14 +31,17 @@
         %define KEYBOARD_VALUE 0x7e
 
         %define ROWS_COUNT 14
-        %define COLUMNS_COUNT 22
+        %define COLUMNS_COUNT 21
 
         %define ROW_WIDTH_IN_BYTES (COLUMNS_COUNT * 2)
         %define ROW_HEIGHT_IN_PIXELS 16
-        %define PANNING_VRAM_OFFSET (2 + (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS))
         %define SCREEN_IN_BYTES ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS * ROWS_COUNT
 
-        %define VIDEO_BUFFER_OFFSET 0x3000
+        %define START_HORIZONTAL_OFFSET (8)
+        %define START_VERTICAL_OFFSET (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS / 2)
+
+        ; Have the next screen offset be four pixels adjusted
+        %define VIDEO_BUFFER_OFFSET ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS * (ROWS_COUNT + 4)
         
         %define ASCII_LEFT 37
         %define ASCII_UP 38
@@ -59,10 +62,13 @@ start:
         cld
 
         ; Clear initial RAM
-        mov ax,0
-        mov [PelPanning],al
-        mov [VerticalOffset],ax
-        mov [KEYBOARD_VALUE],ax
+        mov ax, 0
+        ; bytes
+        mov [PelPanning], al
+        ; words
+        mov [VerticalOffset], ax
+        mov [KEYBOARD_VALUE], ax
+        mov [RelativeYCoordinate], ax
 
 
 %ifdef ENGINE_TAURUS
@@ -128,11 +134,14 @@ engine_start:
         mov [BufferOnscreen], ax
 
         ; Setup horizontal panning register.
-        mov al,16
+        mov al, START_HORIZONTAL_OFFSET
         mov [PelPanning],al
+        mov [RelativeXCoordinate], al
         ; Compute initial VRAM offset: one column and one row
-        mov ax, (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS)
+        mov ax, START_VERTICAL_OFFSET
         mov [VerticalOffset],ax
+        mov ax, 8
+        mov [RelativeYCoordinate], al
 
 draw_background:
         mov ch, ROWS_COUNT
@@ -176,8 +185,7 @@ draw_hero:
 
 ; Wait for VSYNC and then redraw the screen.
 game_loop:
-        ; Wait for VSYNC.
-        call wait_vsync
+        call    wait_display_enable
 
         ; Swap buffers
         mov ax, [BufferOnscreen]
@@ -210,6 +218,9 @@ game_loop:
         mov bl, PEL_PANNING
         int 10h
 
+        ; Wait for VSYNC.
+        call wait_vsync
+
     .check_keys:
         ; Poll keyboard
         call poll_keyboard
@@ -230,12 +241,16 @@ game_loop:
     
     .key_right:
         ; Increase PEL Panning register
-        inc word [PelPanning]
+        inc byte [PelPanning]
         jmp frame_work
     
     .key_left:
+        ; Decrease relative coordinate
+        dec byte [RelativeXCoordinate]
         ; Decrease PEL Panning register
-        dec word [PelPanning]
+        dec byte [PelPanning]
+
+        js frame_work_left
         jmp frame_work
     
     .key_down:
@@ -246,14 +261,19 @@ game_loop:
         jmp frame_work
     
     .key_up:
+        ; Decrease relative coordinate
+        dec byte [RelativeYCoordinate]
         ; Decrease PEL Panning register
         mov ax, [VerticalOffset]
         sub ax, ROW_WIDTH_IN_BYTES
         mov [VerticalOffset], ax
+        js frame_work_up
         jmp frame_work
     
 frame_work:
         ; Copy frame buffer
+        mov bx, 0
+        mov cx, (SCREEN_IN_BYTES / 4)
         call copy_screen_to_buffer
 
         ; ; clear tile behind a sprite
@@ -274,6 +294,101 @@ frame_work:
 
         ; Maybe draw new 1/2 column
         ; Maybe draw new 1/2 row
+
+        jmp game_loop
+
+; Pan off left side, adjust buffer to draw left tile size
+frame_work_left:
+        ; Copy frame buffer
+        mov bx, 1
+        mov cx, (SCREEN_IN_BYTES / 4) - 1
+        call copy_screen_to_buffer
+
+        mov ah, 7
+        mov [PelPanning], ah
+
+        mov ch, ROWS_COUNT
+    .draw_row:
+        dec ch
+        push cx
+
+    ;     mov cl, COLUMNS_COUNT
+    ; .draw_tile:
+    ;     dec cl
+        ; push cx
+
+        mov si, bitmap_linear
+        test byte [RelativeXCoordinate], 0x8
+        jnz .right_tile
+        sub si,4
+    .right_tile:
+
+        ; draw individual tile
+        mov bh,0	    ; X
+        mov bl,ch	    ; Y
+        shl bl,4        ; * 8
+		call get_screen_pos
+
+        mov bl,4        ; skip
+        mov ch,2	    ; Width
+        mov cl,16		; Height
+        call draw_tile_half
+
+        ; loop .draw_tile
+        ; pop cx
+        ; test cl,cl
+        ; jnz .draw_tile
+
+        ; loop .draw_row
+        pop cx
+        test ch,ch
+        jnz .draw_row
+
+        jmp game_loop
+
+
+frame_work_up:
+        ; Copy frame buffer
+        mov bx, ROW_WIDTH_IN_BYTES * 8
+        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * 8)) / 4)
+        call copy_screen_to_buffer
+
+        mov ax, ROW_WIDTH_IN_BYTES * 7
+        mov [VerticalOffset], ax
+
+    ;     mov ch, 1
+    ; .draw_row:
+    ;     dec ch
+    ;     push cx
+
+        mov cl, COLUMNS_COUNT
+    .draw_tile:
+        dec cl
+        push cx
+
+        mov si, bitmap_linear
+        test byte [RelativeYCoordinate], 0x8
+        jz .top_tile
+        add si, 8*8
+    .top_tile:
+
+        ; draw individual tile
+        mov bh,cl	    ; X
+        shl bh,1
+        mov bl,0	    ; Y
+        mov ch,2	    ; Width
+        mov cl,8		; Height
+        call draw_bitmap
+
+        ; loop .draw_tile
+        pop cx
+        test cl,cl
+        jnz .draw_tile
+
+        ; ; loop .draw_row
+        ; pop cx
+        ; test ch,ch
+        ; jnz .draw_row
 
         jmp game_loop
 
@@ -302,6 +417,8 @@ frame_work:
 
     section .data
 
+RelativeXCoordinate db 0
+RelativeYCoordinate db 0
 PelPanning db 0
 VerticalOffset dw 0
 
