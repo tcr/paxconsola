@@ -30,18 +30,20 @@
 
         %define KEYBOARD_VALUE 0x7e
 
-        %define ROWS_COUNT 14
+        %define ROWS_COUNT 15
         %define COLUMNS_COUNT 21
 
-        %define ROW_WIDTH_IN_BYTES (COLUMNS_COUNT * 2)
-        %define ROW_HEIGHT_IN_PIXELS 16
-        %define SCREEN_IN_BYTES ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS * ROWS_COUNT
+        %define TILE_WIDTH 16
+        %define TILE_HEIGHT 16
 
-        %define START_HORIZONTAL_OFFSET (8)
-        %define START_VERTICAL_OFFSET (ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS / 2)
+        %define ROW_WIDTH_IN_BYTES (COLUMNS_COUNT * 2)
+        %define SCREEN_IN_BYTES ROW_WIDTH_IN_BYTES * TILE_HEIGHT * ROWS_COUNT
+
+        %define START_HORIZONTAL_OFFSET 8
+        %define START_VERTICAL_OFFSET 8
 
         ; Have the next screen offset be four pixels adjusted
-        %define VIDEO_BUFFER_OFFSET ROW_WIDTH_IN_BYTES * ROW_HEIGHT_IN_PIXELS * (ROWS_COUNT + 4)
+        %define VIDEO_BUFFER_OFFSET ROW_WIDTH_IN_BYTES * TILE_HEIGHT * (ROWS_COUNT + 4)
         
         %define ASCII_LEFT 37
         %define ASCII_UP 38
@@ -68,6 +70,7 @@ start:
         ; words
         mov [VerticalOffset], ax
         mov [KEYBOARD_VALUE], ax
+        mov [RelativeXCoordinate], ax
         mov [RelativeYCoordinate], ax
 
 
@@ -134,14 +137,14 @@ engine_start:
         mov [BufferOnscreen], ax
 
         ; Setup horizontal panning register.
-        mov al, START_HORIZONTAL_OFFSET
+        mov ax, START_HORIZONTAL_OFFSET
         mov [PelPanning],al
-        mov [RelativeXCoordinate], al
+        mov [RelativeXCoordinate], ax
         ; Compute initial VRAM offset: one column and one row
-        mov ax, START_VERTICAL_OFFSET
+        mov ax, START_VERTICAL_OFFSET * ROW_WIDTH_IN_BYTES
         mov [VerticalOffset],ax
-        mov ax, 8
-        mov [RelativeYCoordinate], al
+        mov ax, START_VERTICAL_OFFSET
+        mov [RelativeYCoordinate], ax
 
 draw_background:
         mov ch, ROWS_COUNT
@@ -224,6 +227,18 @@ game_loop:
     .check_keys:
         ; Poll keyboard
         call poll_keyboard
+        call pan_map
+        call redraw_sprites
+
+        jmp game_loop
+
+
+;
+; Panning the background in response to a keypress.
+;
+; ax = keyboard value
+pan_map:
+        ; Read from keyboard buffer
         mov ax, [KEYBOARD_VALUE]
 
         ; Check keys.
@@ -236,161 +251,256 @@ game_loop:
         cmp al, ASCII_UP
         jz .key_up
 
-        ; Continue game loop.
-        jmp frame_work
-    
-    .key_right:
-        ; Increase PEL Panning register
-        inc byte [PelPanning]
+        ; Continue redrawing frame.
         jmp frame_work
     
     .key_left:
         ; Decrease relative coordinate
-        dec byte [RelativeXCoordinate]
+        dec word [RelativeXCoordinate]
+
         ; Decrease PEL Panning register
         dec byte [PelPanning]
-
         js frame_work_left
         jmp frame_work
     
-    .key_down:
-        ; Decrease PEL Panning register
-        mov ax, [VerticalOffset]
-        add ax, ROW_WIDTH_IN_BYTES
-        mov [VerticalOffset], ax
+    .key_right:
+        ; Decrease relative coordinate
+        inc word [RelativeXCoordinate]
+
+        ; Increase PEL Panning register
+        inc byte [PelPanning]
+        mov al, [PelPanning]
+        cmp al,TILE_WIDTH
+        jge frame_work_right
         jmp frame_work
     
     .key_up:
         ; Decrease relative coordinate
-        dec byte [RelativeYCoordinate]
-        ; Decrease PEL Panning register
+        dec word [RelativeYCoordinate]
+
+        ; Decrease Vertical Offset
         mov ax, [VerticalOffset]
         sub ax, ROW_WIDTH_IN_BYTES
         mov [VerticalOffset], ax
         js frame_work_up
         jmp frame_work
+
+    .key_down:
+        ; Decrease relative coordinate
+        inc word [RelativeYCoordinate]
+
+        ; Decrease Vertical Offset
+        mov ax, [VerticalOffset]
+        add ax, ROW_WIDTH_IN_BYTES
+        mov [VerticalOffset], ax
+        cmp ax, (ROW_WIDTH_IN_BYTES * 16)
+        jge frame_work_down
+        jmp frame_work
     
 frame_work:
         ; Copy frame buffer
+        mov ax, 0
         mov bx, 0
         mov cx, (SCREEN_IN_BYTES / 4)
         call copy_screen_to_buffer
 
-        ; ; clear tile behind a sprite
-        ; mov bh,2	    ; X
-        ; mov bl,16	    ; Y
-        ; mov ch,2	    ; Width
-        ; mov cl,16		; Height
-	    ; mov si, bitmap_linear
-        ; call draw_bitmap ; draw to second buffer
+        ret
 
-        ; ; draw sprite
-        ; mov bh,2	    ; X
-        ; mov bl,16	    ; Y
-        ; mov ch,2	    ; Width
-        ; mov cl,16		; Height
-	    ; mov si, bitmap_hero
-        ; call draw_bitmap ; draw to second buffer
-
-        ; Maybe draw new 1/2 column
-        ; Maybe draw new 1/2 row
-
-        jmp game_loop
-
-; Pan off left side, adjust buffer to draw left tile size
+; Pan off left side, draw left column
 frame_work_left:
-        ; Copy frame buffer
+        ; if we only panned on the right side of a tile, don't redraw column
+        test word [RelativeXCoordinate], 0x8
+        jnz .new_column
+
+        ; Copy frame buffer right 8 pixels
+        mov ax, 0
         mov bx, 1
         mov cx, (SCREEN_IN_BYTES / 4) - 1
         call copy_screen_to_buffer
 
+        ; Update panning counter
         mov ah, 7
         mov [PelPanning], ah
 
+        ret
+
+    .new_column:
+        ; Copy frame buffer right 16 pixels
+        mov ax, 0
+        mov bx, 2
+        mov cx, (SCREEN_IN_BYTES / 4) - 2
+        call copy_screen_to_buffer
+
+        ; Update panning counter
+        mov ah, (TILE_WIDTH - 1)
+        mov [PelPanning], ah
+
         mov ch, ROWS_COUNT
-    .draw_row:
+    .draw_column:
         dec ch
         push cx
 
-    ;     mov cl, COLUMNS_COUNT
-    ; .draw_tile:
-    ;     dec cl
-        ; push cx
-
-        mov si, bitmap_linear
-        test byte [RelativeXCoordinate], 0x8
-        jnz .right_tile
-        sub si,4
-    .right_tile:
-
         ; draw individual tile
-        mov bh,0	    ; X
-        mov bl,ch	    ; Y
-        shl bl,4        ; * 8
-		call get_screen_pos
-
-        mov bl,4        ; skip
+        mov bh,0
+        mov bl,ch
+        shl bl,4
         mov ch,2	    ; Width
-        mov cl,16		; Height
-        call draw_tile_half
+        mov cl,TILE_HEIGHT		; Height
+	    call map_bitmap_lookup
+        call draw_bitmap
 
-        ; loop .draw_tile
-        ; pop cx
-        ; test cl,cl
-        ; jnz .draw_tile
-
-        ; loop .draw_row
+        ; loop .draw_column
         pop cx
         test ch,ch
-        jnz .draw_row
+        jnz .draw_column
 
-        jmp game_loop
+        ret
 
-
-frame_work_up:
-        ; Copy frame buffer
-        mov bx, ROW_WIDTH_IN_BYTES * 8
-        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * 8)) / 4)
+; Pan off right side, draw right column
+frame_work_right:
+        ; Copy frame buffer left 16 pixels
+        mov ax, 2
+        mov bx, 0
+        mov cx, (SCREEN_IN_BYTES / 4) - 1
         call copy_screen_to_buffer
 
-        mov ax, ROW_WIDTH_IN_BYTES * 7
+        ; Update panning counter
+        mov ah, 0
+        mov [PelPanning], ah
+
+        mov ch, ROWS_COUNT
+    .draw_column:
+        dec ch
+        push cx
+
+        ; draw individual tile
+        mov bh,(COLUMNS_COUNT - 1)*2
+        mov bl,ch
+        shl bl,4
+        mov ch,2	    ; Width
+        mov cl,TILE_HEIGHT		; Height
+	    call map_bitmap_lookup
+        call draw_bitmap
+
+        ; loop .draw_column
+        pop cx
+        test ch,ch
+        jnz .draw_column
+
+        ret
+
+frame_work_down:
+        ; Copy frame buffer
+        mov ax, ROW_WIDTH_IN_BYTES * TILE_HEIGHT
+        mov bx, 0
+        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 4)
+        call copy_screen_to_buffer
+
+        mov ax, 0
         mov [VerticalOffset], ax
 
-    ;     mov ch, 1
-    ; .draw_row:
-    ;     dec ch
-    ;     push cx
-
         mov cl, COLUMNS_COUNT
-    .draw_tile:
+    .draw_row:
         dec cl
         push cx
 
-        mov si, bitmap_linear
-        test byte [RelativeYCoordinate], 0x8
-        jz .top_tile
-        add si, 8*8
-    .top_tile:
-
         ; draw individual tile
-        mov bh,cl	    ; X
+        mov bh,cl
         shl bh,1
-        mov bl,0	    ; Y
+        mov bl, (ROWS_COUNT - 1) * ROW_WIDTH_IN_BYTES * TILE_HEIGHT
         mov ch,2	    ; Width
-        mov cl,8		; Height
+        mov cl,TILE_HEIGHT		; Height
+	    call map_bitmap_lookup
         call draw_bitmap
 
-        ; loop .draw_tile
+        ; loop .draw_row
         pop cx
         test cl,cl
-        jnz .draw_tile
+        jnz .draw_row
 
-        ; ; loop .draw_row
-        ; pop cx
-        ; test ch,ch
-        ; jnz .draw_row
+        ret
 
-        jmp game_loop
+frame_work_up:
+        ; Copy frame buffer
+        mov ax, 0
+        mov bx, ROW_WIDTH_IN_BYTES * TILE_HEIGHT
+        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 4)
+        call copy_screen_to_buffer
+
+        mov ax, (ROW_WIDTH_IN_BYTES * (TILE_HEIGHT - 1))
+        mov [VerticalOffset], ax
+
+        mov cl, COLUMNS_COUNT
+    .draw_row:
+        dec cl
+        push cx
+
+        ; draw individual tile
+        mov bh,cl
+        shl bh,1
+        mov bl,0
+        mov ch,2	    ; Width
+        mov cl,TILE_HEIGHT		; Height
+	    call map_bitmap_lookup
+        call draw_bitmap
+
+        ; loop .draw_row
+        pop cx
+        test cl,cl
+        jnz .draw_row
+
+        ret
+
+
+;
+; Method for redrawing on-screen sprites
+;
+redraw_sprites:
+        ; clear tile behind a sprite
+        mov bh,2	    ; X
+        mov bl,16	    ; Y
+        mov ch,2	    ; Width
+        mov cl,16		; Height
+	    call map_bitmap_lookup
+        call draw_bitmap ; draw to second buffer
+
+        ; draw sprite
+        mov bh,2	    ; X
+        mov bl,16	    ; Y
+        mov ch,2	    ; Width
+        mov cl,16		; Height
+	    mov si, bitmap_hero
+        call draw_bitmap ; draw to second buffer
+
+        ret
+
+
+;
+; sprite lookup
+;
+map_bitmap_lookup:
+        mov ax, 0
+        mov al, bh
+        shl al, 4
+        neg ax
+        add ax, word [RelativeXCoordinate]
+        test ax, ax
+        js .l1
+        mov si, bitmap_linear
+        ret
+    .l1:
+        mov ax, 0
+        mov al, bl
+        add ax, word [RelativeYCoordinate]
+        test ax, ax
+        js .l2
+        mov si, bitmap_linear
+        ret
+    .l2:
+        mov si, bitmap_block
+        ret
+
+
 
 %endif
 
@@ -417,8 +527,8 @@ frame_work_up:
 
     section .data
 
-RelativeXCoordinate db 0
-RelativeYCoordinate db 0
+RelativeXCoordinate dw 0
+RelativeYCoordinate dw 0
 PelPanning db 0
 VerticalOffset dw 0
 

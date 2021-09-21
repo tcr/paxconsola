@@ -2,8 +2,10 @@ GAME ?=
 PAX_OPTS=""
 ENGINE ?= 
 
+BUILD_DIR = build
+
 INPUT = src/paxconsola.asm
-OUT = build/PAXCNSLA.COM
+OUT = $(BUILD_DIR)/PAXCNSLA.COM
 
 # CC = cl65
 # AS = ca65
@@ -28,19 +30,13 @@ clean:
 
 # Build files
 
-build/paxconsola_generated.asm: $(GAME)
-	paxforth compile src/engines/dos-$(ENGINE).fth $(GAME) $(PAX_OPTS) --target dos > ./build/paxconsola_generated.asm
+$(BUILD_DIR)/paxconsola_generated.asm: $(GAME)
+	paxforth compile src/engines/dos-$(ENGINE).fth $(GAME) $(PAX_OPTS) --target dos > $(BUILD_DIR)/paxconsola_generated.asm
 
-build/tiles.raw: lib/tiles.png
-	pixconsola encode lib/tiles.png -o build/tiles.raw --format ega
+$(BUILD_DIR)/%.raw: lib/%.png
+	pixconsola encode $< -o $@ --format ega
 
-build/tiles-linear.raw: lib/tiles-linear.png
-	pixconsola encode lib/tiles-linear.png -o build/tiles-linear.raw --format ega
-
-build/tiles-hero.raw: lib/tiles-hero.png
-	pixconsola encode lib/tiles-hero.png -o build/tiles-hero.raw --format ega
-
-$(OUT): src/* build/paxconsola_generated.asm build/tiles.raw build/tiles-linear.raw
+$(OUT): src/* $(BUILD_DIR)/paxconsola_generated.asm $(BUILD_DIR)/tiles.raw $(BUILD_DIR)/tiles-linear.raw $(BUILD_DIR)/tiles-block.raw
 	nasm -f bin -D $(ENGINE_FLAG)=1 -o $(OUT) $(INPUT) -l build/paxconsola.lst
 
 run: $(OUT)

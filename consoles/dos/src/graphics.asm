@@ -242,34 +242,20 @@ draw_tile_half:
 
 
 ; 
-; Copies VRAM buffer at 0xA300 to 0xA000
+; Copies VRAM buffer from off-screen page to on-screen
 ; This is slow cause it uses EGA reads instead of an in-memory buffer; however DOSBox emulates an
 ; infinitely fast graphics card so this is okay for a demo.
 ;
-; cx = buffer size to copy
-copy_buffer_to_screen:
-        push es
-        push ds
 
-        ; Set ds and es
-		mov ax, [BufferOnscreen]
-		shr ax, 4
-        add ax, 0xA000
-        mov es, ax
-		mov ax, [BufferOffscreen]
-		shr ax, 4
-        add ax, 0xA000
-        mov ds, ax
-
-		jmp copy_buffer
-
-; cx = buffer size to copy
+; ax = source offset
 ; bx = destination offset
+; cx = buffer size to copy
 copy_screen_to_buffer:
         push es
         push ds
 
         ; Set ds and es
+		push ax
 		mov ax, [BufferOffscreen]
 		shr ax, 4
         add ax, 0xA000
@@ -278,22 +264,21 @@ copy_screen_to_buffer:
 		shr ax, 4
         add ax, 0xA000
         mov ds, ax
-
-		jmp copy_buffer
-
-copy_buffer:
+		pop ax
 
 %macro  copy_plane 1 
         ; Copy plane
+		push ax
         mov ax, 0004h + (%1 << 8)
         mov dx,GC_INDEX
         out dx,ax
         mov ax, 0002h + ((1 << %1) << 8)
         mov dx,SC_INDEX
         out dx,ax
+		pop ax
 
         mov di, bx
-        mov si, 0
+        mov si, ax
     %%copy_plane:
         movsd
         dec cx
@@ -348,3 +333,7 @@ bitmap_linear:
     align 16
 bitmap_hero:
     incbin "build/tiles-hero.raw"
+
+    align 16
+bitmap_block:
+    incbin "build/tiles-block.raw"

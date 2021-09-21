@@ -1,34 +1,40 @@
+
+%define K_UP    48h
+%define K_LEFT  4Bh
+%define K_RIGHT 4Dh
+%define K_DOWN  50h
+
 poll_keyboard:
         mov ax, 0
         mov [KEYBOARD_VALUE],ax
 
-        mov ax, 0x1100
-        int 16h
-        mov bx,ax
-        jnz .update_buffer
+        xor ax, ax
+        in al, 60h
+
+        test al, 0x80
+        jz .update_buffer
+
+        ; no key
         ret
 
     .update_buffer:
         mov cx,0
 
-        mov ah, 10h
-        int 16h
-
-        cmp ah,48h  ; Compare to UP
+        cmp al,K_UP
         jnz .not_up
-        mov cx,38
+        mov cx,ASCII_UP
     .not_up:
-        cmp ah,50h  ; Compare to Down
+        cmp al,K_DOWN
         jnz .not_down
-        mov cx,40
+        mov cx,ASCII_DOWN
     .not_down:
-        cmp ah,4Bh  ; Compare to Left
+        cmp al,K_LEFT
         jnz .not_left
-        mov cx,37
+        mov cx,ASCII_LEFT
     .not_left:
-        cmp ah,4Dh  ; Comapre to Right
+        cmp al,K_RIGHT
         jnz .not_right
-        mov cx,39
+        mov cx,ASCII_RIGHT
     .not_right:
 
         ; Store latest value
