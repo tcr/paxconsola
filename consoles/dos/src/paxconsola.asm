@@ -77,6 +77,8 @@ start:
         mov [KEYBOARD_VALUE], ax
         mov [RelativeXCoordinate], ax
         mov [RelativeYCoordinate], ax
+        mov [HeroSpriteX], ax
+        mov [HeroSpriteY], ax
 
 
 %ifdef ENGINE_TAURUS
@@ -188,15 +190,6 @@ draw_entire_map:
         test ch,ch
         jnz .draw_row
 
-draw_hero:
-        ; Draw hero sprite
-        mov bh, 2	;X
-        mov bl, 16	;Y
-        mov ch, 2	;Width
-        mov cl, 16		;Height
-	    mov si, bitmap_hero
-        call draw_bitmap
-
 ; Wait for VSYNC and then redraw the screen.
 game_loop:
         call    wait_display_enable
@@ -237,10 +230,9 @@ game_loop:
 
     .check_keys:
         ; Poll keyboard
-        ; call clear_sprites
         call poll_keyboard
         call pan_map
-        ; call redraw_sprites
+        call redraw_sprites
 
         jmp game_loop
 
@@ -366,6 +358,9 @@ frame_work_left:
         test ch,ch
         jnz .draw_column
 
+        inc word [HeroSpriteX]
+        inc word [HeroSpriteX]
+
         ret
 
 ; Pan off right side, draw right column
@@ -388,7 +383,7 @@ frame_work_right:
         ; draw individual tile
         mov bh,(COLUMNS_COUNT - 1)*2
         mov bl,ch
-        shl bl,4
+        shl bl,4        ; * 16
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
 	    call frame_map_bitmap_lookup
@@ -399,36 +394,8 @@ frame_work_right:
         test ch,ch
         jnz .draw_column
 
-        ret
-
-frame_work_down:
-        ; Copy frame buffer
-        mov ax, ROW_WIDTH_IN_BYTES * TILE_HEIGHT
-        mov bx, 0
-        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 4)
-        call copy_screen_to_buffer
-
-        mov ax, 0
-        mov [VerticalOffset], ax
-
-        mov cl, COLUMNS_COUNT
-    .draw_row:
-        dec cl
-        push cx
-
-        ; draw individual tile
-        mov bh,cl
-        shl bh,1
-        mov bl, (ROWS_COUNT - 1) * TILE_HEIGHT
-        mov ch,2	    ; Width
-        mov cl,TILE_HEIGHT		; Height
-	    call frame_map_bitmap_lookup
-        call draw_bitmap
-
-        ; loop .draw_row
-        pop cx
-        test cl,cl
-        jnz .draw_row
+        dec word [HeroSpriteX]
+        dec word [HeroSpriteX]
 
         ret
 
@@ -461,47 +428,109 @@ frame_work_up:
         test cl,cl
         jnz .draw_row
 
+        mov ax, word [HeroSpriteY]
+        add ax, TILE_HEIGHT
+        mov word [HeroSpriteY], ax
+
         ret
 
+frame_work_down:
+        ; Copy frame buffer
+        mov ax, ROW_WIDTH_IN_BYTES * TILE_HEIGHT
+        mov bx, 0
+        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 4)
+        call copy_screen_to_buffer
+
+        mov ax, 0
+        mov [VerticalOffset], ax
+
+        mov cl, COLUMNS_COUNT
+    .draw_row:
+        dec cl
+        push cx
+
+        ; draw individual tile
+        mov bh,cl
+        shl bh,1
+        mov bl, (ROWS_COUNT - 1) * TILE_HEIGHT
+        mov ch,2	    ; Width
+        mov cl,TILE_HEIGHT		; Height
+	    call frame_map_bitmap_lookup
+        call draw_bitmap
+
+        ; loop .draw_row
+        pop cx
+        test cl,cl
+        jnz .draw_row
+
+        mov ax, word [HeroSpriteY]
+        sub ax, TILE_HEIGHT
+        mov word [HeroSpriteY], ax
+
+        ret
 
 ;
 ; Method for redrawing on-screen sprites
 ;
-; clear_sprites:
-;         call frame_map_bitmap_lookup
+redraw_sprites:
+        ; FIXME definitely a bug here
+        mov ax, [HeroSpriteX]
+        mov bh,al
+        mov ax, [HeroSpriteY]
+        mov bl,al
+	    call frame_map_bitmap_lookup
 
-;         ; clear tile behind a sprite
-;         mov bh,10*2	    ; X
-;         mov bl,TILE_HEIGHT*6	    ; Y
-;         mov ch,2	    ; Width
-;         mov cl,16		; Height
-;         call draw_bitmap ; draw to second buffer
-;         ret
+        ; clear tile behind a sprite
+        mov bh, [HeroSpriteX]
+        mov bl, [HeroSpriteY]
+        mov ch, 2	    ; Width
+        mov cl, 16		; Height
+        call draw_bitmap ; draw to second buffer
 
-; redraw_sprites:
-;         ; draw sprite
-;         mov bh,10*2	    ; X
-;         mov bl,TILE_HEIGHT*6	    ; Y
-;         mov ch,2	    ; Width
-;         mov cl,16		; Height
-; 	    mov si, bitmap_hero
-;         call draw_bitmap ; draw to second buffer
+        mov word [HeroSpriteX], 10 * 2
+        mov word [HeroSpriteY], 6 * TILE_HEIGHT
 
-;         ret
+        ; draw sprite
+        mov bh, [HeroSpriteX]	    ; X
+        mov bl, [HeroSpriteY]	    ; Y
+        mov ch,2	    ; Width
+        mov cl,16		; Height
+	    mov si, bitmap_hero
+        call draw_bitmap ; draw to second buffer
 
 
-;
-; sprite lookup
-;
-frame_map_bitmap_lookup:
-        push cx
-        push bx
+        ret
 
+; ; bx = local X offset
+; ; cx = local Y offset
+; ; out bx = global X index
+; ; out cx = global Y index
+; get_global_offset:
+;     mov ax, 0
+;     mov al, bh
+;     shl ax, 3
+;     add ax, word [RelativeXCoordinate]
+;     sar ax, 4
+;     mov cx, ax
+
+;     mov ax, 0
+;     mov al, bl
+;     add ax, word [RelativeYCoordinate]
+;     sar ax, 4
+;     mov bx, ax
+
+;     ret
+
+; bh = local X offset
+; bl = local Y offset
+; out bx = global Y index
+; out cx = global X index
+get_panning_offset:
         mov ax, 0
         mov al, bh
-        shl ax, 3
+        shl ax, 3   ; bh * 8 
         add ax, word [RelativeXCoordinate]
-        sar ax, 4
+        sar ax, 4   ; / 16
         mov cx, ax
 
         mov ax, 0
@@ -510,6 +539,20 @@ frame_map_bitmap_lookup:
         sar ax, 4
         mov bx, ax
 
+        ret
+
+;
+; sprite lookup
+;
+; bh = local X offset
+; bl = local Y offset
+;
+; out ax = trashed
+frame_map_bitmap_lookup:
+        push cx
+        push bx
+
+        call get_panning_offset
         call map_bitmap_lookup
 
         pop bx
@@ -593,10 +636,15 @@ dosbox_break:
 
     section .data
 
+.data_start:
 RelativeXCoordinate dw 0
 RelativeYCoordinate dw 0
 PelPanning db 0
 VerticalOffset dw 0
 
+HeroSpriteX dw 0
+HeroSpriteY dw 0
+
 BufferOffscreen     dw 0
 BufferOnscreen      dw 0
+.data_end:
