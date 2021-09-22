@@ -341,3 +341,7 @@ bitmap_block:
     align 16
 bitmap_door:
     incbin "build/tiles-door.raw"
+
+    align 16
+bitmap_tilesheet:
+    incbin "build/tilesheet.raw"

@@ -36,6 +36,8 @@
         %define TILE_WIDTH 16
         %define TILE_HEIGHT 16
 
+        %define TILE_IN_BYTES 2 * TILE_HEIGHT * 4
+
         %define ROW_WIDTH_IN_BYTES (COLUMNS_COUNT * 2)
         %define SCREEN_IN_BYTES ROW_WIDTH_IN_BYTES * TILE_HEIGHT * ROWS_COUNT
 
@@ -49,6 +51,9 @@
         %define ASCII_UP 38
         %define ASCII_RIGHT 39
         %define ASCII_DOWN 40
+
+        %define MAP_WIDTH 32
+        %define MAP_HEIGHT 32
 
 
         ; cpu 8086
@@ -146,7 +151,7 @@ engine_start:
         mov ax, START_VERTICAL_OFFSET
         mov [RelativeYCoordinate], ax
 
-draw_background:
+draw_entire_map:
         mov ch, ROWS_COUNT
     .draw_row:
         dec ch
@@ -157,6 +162,13 @@ draw_background:
         dec cl
         push cx
 
+        push cx
+        mov bx, 0
+        mov bl, ch
+        mov ch, 0
+	    call map_bitmap_lookup
+        pop cx
+
         ; draw individual tile
         mov bh,cl	    ; X
         shl bh,1
@@ -164,7 +176,6 @@ draw_background:
         shl bl,4
         mov ch,2	    ; Width
         mov cl,16		; Height
-	    mov si, bitmap_linear
         call draw_bitmap
 
         ; loop .draw_tile
@@ -226,9 +237,10 @@ game_loop:
 
     .check_keys:
         ; Poll keyboard
+        ; call clear_sprites
         call poll_keyboard
         call pan_map
-        call redraw_sprites
+        ; call redraw_sprites
 
         jmp game_loop
 
@@ -346,7 +358,7 @@ frame_work_left:
         shl bl,4
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
-	    call map_bitmap_lookup
+	    call frame_map_bitmap_lookup
         call draw_bitmap
 
         ; loop .draw_column
@@ -379,7 +391,7 @@ frame_work_right:
         shl bl,4
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
-	    call map_bitmap_lookup
+	    call frame_map_bitmap_lookup
         call draw_bitmap
 
         ; loop .draw_column
@@ -405,13 +417,12 @@ frame_work_down:
         push cx
 
         ; draw individual tile
-        call dosbox_break
         mov bh,cl
         shl bh,1
         mov bl, (ROWS_COUNT - 1) * TILE_HEIGHT
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
-	    call map_bitmap_lookup
+	    call frame_map_bitmap_lookup
         call draw_bitmap
 
         ; loop .draw_row
@@ -442,7 +453,7 @@ frame_work_up:
         mov bl,0
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
-	    call map_bitmap_lookup
+	    call frame_map_bitmap_lookup
         call draw_bitmap
 
         ; loop .draw_row
@@ -456,64 +467,91 @@ frame_work_up:
 ;
 ; Method for redrawing on-screen sprites
 ;
-redraw_sprites:
-        ; clear tile behind a sprite
-        mov bh,2	    ; X
-        mov bl,16	    ; Y
-        mov ch,2	    ; Width
-        mov cl,16		; Height
-	    call map_bitmap_lookup
-        call draw_bitmap ; draw to second buffer
+; clear_sprites:
+;         call frame_map_bitmap_lookup
 
-        ; draw sprite
-        mov bh,2	    ; X
-        mov bl,16	    ; Y
-        mov ch,2	    ; Width
-        mov cl,16		; Height
-	    mov si, bitmap_hero
-        call draw_bitmap ; draw to second buffer
+;         ; clear tile behind a sprite
+;         mov bh,10*2	    ; X
+;         mov bl,TILE_HEIGHT*6	    ; Y
+;         mov ch,2	    ; Width
+;         mov cl,16		; Height
+;         call draw_bitmap ; draw to second buffer
+;         ret
 
-        ret
+; redraw_sprites:
+;         ; draw sprite
+;         mov bh,10*2	    ; X
+;         mov bl,TILE_HEIGHT*6	    ; Y
+;         mov ch,2	    ; Width
+;         mov cl,16		; Height
+; 	    mov si, bitmap_hero
+;         call draw_bitmap ; draw to second buffer
+
+;         ret
 
 
 ;
 ; sprite lookup
 ;
+frame_map_bitmap_lookup:
+        push cx
+        push bx
+
+        mov ax, 0
+        mov al, bh
+        shl ax, 3
+        add ax, word [RelativeXCoordinate]
+        sar ax, 4
+        mov cx, ax
+
+        mov ax, 0
+        mov al, bl
+        add ax, word [RelativeYCoordinate]
+        sar ax, 4
+        mov bx, ax
+
+        call map_bitmap_lookup
+
+        pop bx
+        pop cx
+        ret
+
+; cx = X coord
+; bx = Y coord
 map_bitmap_lookup:
+        test cx, cx
+        js .null
+        cmp cx, MAP_WIDTH
+        jge .null
+
+        test bx, bx
+        js .null
+        cmp bx, MAP_HEIGHT
+        jge .null
+
+    .lookup:
+        mov ax, bx
+        shl ax, 5 ; * MAP_WIDTH
+        add ax, cx
+        shl ax, 1
+        add ax, map_level_1
+        mov bx, ax
         mov ax, 0
-        mov al, bh
-        shl ax, 3
-        add ax, word [RelativeXCoordinate]
-        test ax, ax
-        jns .l1
-        mov si, bitmap_block
+        mov al, [bx]
+
+        mov bx, TILE_IN_BYTES
+        mul bx
+        add ax, bitmap_tilesheet
+
+        mov si, ax
+        jmp .end
+    
+    .null:
+        mov si, bitmap_tilesheet
+
+    .end:
         ret
-    .l1:
-        mov ax, 0
-        mov al, bl
-        add ax, word [RelativeYCoordinate]
-        test ax, ax
-        jns .l2
-        mov si, bitmap_block
-        ret
-    .l2:
-        mov ax, 0
-        mov al, bh
-        shl ax, 3
-        add ax, word [RelativeXCoordinate]
-        cmp ax, 16
-        jl .l4
-    .l3:
-        mov ax, 0
-        mov al, bl
-        add ax, word [RelativeYCoordinate]
-        cmp ax, 16
-        jl .l4
-        mov si, bitmap_linear
-        ret
-    .l4:
-        mov si, bitmap_door
-        ret
+
 
 
 
@@ -543,6 +581,8 @@ dosbox_break:
 %endif
 %ifdef ENGINE_LIBRA
     %include "src/engines/dos-libra.asm"
+
+    %include "build/level-1.asm"
 %endif
 
 
