@@ -182,7 +182,7 @@ draw_bitmap:
 		mov ch, bl
 		; Move down a line
 		pop di
-		add di, ROW_WIDTH_IN_BYTES		
+		add di, ROW_WIDTH_IN_BYTES
 
 		dec cl
 		jnz .y_loop
@@ -337,3 +337,7 @@ bitmap_hero:
     align 16
 bitmap_block:
     incbin "build/tiles-block.raw"
+
+    align 16
+bitmap_door:
+    incbin "build/tiles-door.raw"

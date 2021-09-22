@@ -405,9 +405,10 @@ frame_work_down:
         push cx
 
         ; draw individual tile
+        call dosbox_break
         mov bh,cl
         shl bh,1
-        mov bl, (ROWS_COUNT - 1) * ROW_WIDTH_IN_BYTES * TILE_HEIGHT
+        mov bl, (ROWS_COUNT - 1) * TILE_HEIGHT
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
 	    call map_bitmap_lookup
@@ -481,25 +482,50 @@ redraw_sprites:
 map_bitmap_lookup:
         mov ax, 0
         mov al, bh
-        shl al, 4
-        neg ax
+        shl ax, 3
         add ax, word [RelativeXCoordinate]
         test ax, ax
-        js .l1
-        mov si, bitmap_linear
+        jns .l1
+        mov si, bitmap_block
         ret
     .l1:
         mov ax, 0
         mov al, bl
         add ax, word [RelativeYCoordinate]
         test ax, ax
-        js .l2
-        mov si, bitmap_linear
-        ret
-    .l2:
+        jns .l2
         mov si, bitmap_block
         ret
+    .l2:
+        mov ax, 0
+        mov al, bh
+        shl ax, 3
+        add ax, word [RelativeXCoordinate]
+        cmp ax, 16
+        jl .l4
+    .l3:
+        mov ax, 0
+        mov al, bl
+        add ax, word [RelativeYCoordinate]
+        cmp ax, 16
+        jl .l4
+        mov si, bitmap_linear
+        ret
+    .l4:
+        mov si, bitmap_door
+        ret
 
+
+
+
+; Irrelevant interrupt you can break on in the monitor
+; BPINT 21 25
+dosbox_break:
+        push ax
+        mov ah, 25h
+        int 21h
+        pop ax
+        ret
 
 
 %endif
