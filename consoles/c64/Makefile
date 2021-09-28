@@ -38,7 +38,7 @@ build/paxconsola.prg: build/paxconsola.o
 # Interactive
 
 run: all
-	x64sc -moncommands "vice-debugger.vs" -nativemonitor build/paxconsola.prg
+	x64sc -moncommands "vice-debugger.vs" -nativemonitor -VICIIfilter 0 build/paxconsola.prg
 
 # Debugging
 

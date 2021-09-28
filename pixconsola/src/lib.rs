@@ -1,3 +1,4 @@
+pub mod c64;
 pub mod ega;
 
 use bitvec::prelude::*;

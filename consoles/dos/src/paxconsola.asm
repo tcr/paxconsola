@@ -319,7 +319,7 @@ frame_work_left:
         ; Copy frame buffer right 8 pixels
         mov ax, 0
         mov bx, 1
-        mov cx, (SCREEN_IN_BYTES / 4) - 1
+        mov cx, (SCREEN_IN_BYTES / 4)
         call copy_screen_to_buffer
 
         ; Update panning counter

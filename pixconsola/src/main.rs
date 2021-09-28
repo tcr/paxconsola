@@ -1,4 +1,5 @@
 use derive_more::*;
+use pixconsola::c64::*;
 use pixconsola::ega::*;
 use std::fs::File;
 use std::path::PathBuf;
@@ -9,6 +10,10 @@ pub enum Format {
     #[enumeration(rename = "ega")]
     #[display(fmt = "ega")]
     EGA,
+
+    #[enumeration(rename = "c64-multicolor")]
+    #[display(fmt = "c64-multicolor")]
+    C64Multicolor,
 }
 
 pub fn parse_format(value: &str) -> Result<Format, String> {
@@ -59,19 +64,37 @@ fn main(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             output,
             width,
             height,
-            ..
+            format,
         } => {
             let mut source = File::open(&input)?;
             let mut dest = File::create(&output)?;
 
-            decode_ega_to_png(&mut source, &mut dest, width, height);
+            match format {
+                Format::EGA => {
+                    decode_ega_to_png(&mut source, &mut dest, width, height);
+                }
+                Format::C64Multicolor => {
+                    unimplemented!();
+                }
+            }
             Ok(())
         }
-        Command::Encode { input, output, .. } => {
+        Command::Encode {
+            input,
+            output,
+            format,
+        } => {
             let mut source = File::open(&input).unwrap();
             let mut dest = File::create(&output).unwrap();
 
-            encode_png_to_ega(&mut source, &mut dest);
+            match format {
+                Format::EGA => {
+                    encode_png_to_ega(&mut source, &mut dest);
+                }
+                Format::C64Multicolor => {
+                    encode_png_to_c64_multicolor(&mut source, &mut dest);
+                }
+            }
             Ok(())
         }
     }

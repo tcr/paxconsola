@@ -376,6 +376,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     &mut parser_iter,
                     &pos,
                     &[
+                        Token::Word("swap".to_string()),
                         Token::Word("leave".to_string()),
                         Token::Word("then".to_string()),
                     ],
@@ -464,7 +465,7 @@ pub fn parse_to_pax(
     // Parse preludes.
     for (key, prelude) in preludes {
         let arg_str = key.to_string_lossy().to_string();
-        dbg!(key);
+        // dbg!(key);
         parse_forth_inner(&mut stack, &prelude, Some(arg_str.as_str()));
     }
 
