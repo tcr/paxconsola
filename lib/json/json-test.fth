@@ -444,8 +444,8 @@ is json-parse-array
 
 \ New test taht stuff
 
-\ s" 420" json-parse-number-digits print
-\ s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print
+s" 420" json-parse-number-digits print
+s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print
 
 s" \"beta\": \"str\", \"arr\": [1, 2, 99], \"nested\": {\"b\": \"sure\"}, \"a\": 55}" json-parse-object @ json-data \ print print print
 variable mymap

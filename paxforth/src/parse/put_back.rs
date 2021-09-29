@@ -26,17 +26,6 @@ impl<I: Iterator> PutBackN<I> {
     /// Puts x in front of the iterator.
     /// The values are yielded in order of the most recently put back
     /// values first.
-    ///
-    /// ```rust
-    /// use itertools::put_back_n;
-    ///
-    /// let mut it = put_back_n(1..5);
-    /// it.next();
-    /// it.put_back(1);
-    /// it.put_back(0);
-    ///
-    /// assert!(itertools::equal(it, 0..5));
-    /// ```
     #[inline]
     pub fn put_back(&mut self, x: I::Item) {
         self.top.push(x);

@@ -365,9 +365,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     &mut parser_iter,
                     &pos,
                     &[
+                        Token::Word("drop".to_string()),
                         Token::Literal(1),
                         Token::Word("until".to_string()),
-                        Token::Word("drop".to_string()),
                     ],
                 );
             }
@@ -376,7 +376,6 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     &mut parser_iter,
                     &pos,
                     &[
-                        Token::Word("swap".to_string()),
                         Token::Word("leave".to_string()),
                         Token::Word("then".to_string()),
                     ],
@@ -390,6 +389,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         Token::Word("over".to_string()),
                         Token::Word("=".to_string()),
                         Token::Word("if".to_string()),
+                        Token::Word("drop".to_string()),
                     ],
                 );
             }

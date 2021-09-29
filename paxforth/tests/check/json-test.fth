@@ -1,4 +1,4 @@
-( @check 55 )
+( @check 420 55 str 3 99 )
 
 
 
@@ -417,36 +417,43 @@ is json-parse-number
             0x22 <> if json-parse-error throw endif
             json-parse-object-member  \ c-addr u value key-addr key-u
             over 3 roll 3 roll 3 roll \ c-addr u key-addr value key-addr key-u
-            r@ debugger map-set r!        \ c-addr u key-addr
+            r@ map-set r!        \ c-addr u key-addr
             free throw
     repeat
     drop r> json-type-object json-make ;
 is json-parse-object
 
-\ :noname ( c-addr1 u1 -- c-addr2 u2 array )
-\     0 cellbuf-new { buf }
-\     begin json-trim dup 0x5d <>
-\     while
-\             json-ungetchar json-parse-value \ c-addr u value
-\             buf cellbuf-append to buf       \ c-addr u
-\             json-trim case
-\                 0x5d of 0x5d json-ungetchar endof
-\                 0x2c of endof
-\                 json-parse-error throw
-\             endcase
-\     repeat
-\     drop
-\     buf buf-count arrdup json-type-array json-2make
-\     buf free throw ;
-\ is json-parse-array
+:noname ( c-addr1 u1 -- c-addr2 u2 array )
+    0 cellbuf-new >r
+    begin json-trim dup 0x5d <>
+    while
+            json-ungetchar json-parse-value \ c-addr u value
+            r@ cellbuf-append r!       \ c-addr u
+            json-trim case
+                0x5d of 0x5d json-ungetchar endof
+                0x2c of endof
+                json-parse-error throw
+            endcase
+    repeat
+    drop
+    r@ buf-count arrdup json-type-array json-2make
+    r> free throw ;
+is json-parse-array
 
 
 
 \ New test taht stuff
 
-\ s" 420" json-parse-number-digits print
-\ s" apple\\bees\" no thanks" 2dup type cr json-parse-string-body print print print print
+s" 420" json-parse-number-digits print
 
-s" \"a\": 55}" json-parse-object @ json-data \ print print print
+s" \"beta\": \"str\", \"arr\": [1, 2, 99], \"nested\": {\"b\": \"sure\"}, \"a\": 55}"
+json-parse-object @ json-data
+variable mymap
+mymap !
 
+mymap @
 s" a" rot map-get throw json-data @ print
+mymap @
+s" beta" rot map-get throw json-data 2@ type cr
+mymap @
+s" arr" rot map-get throw json-data 2@ print 4 + @ @ print
