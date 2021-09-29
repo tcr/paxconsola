@@ -63,3 +63,19 @@ PAXEXT_read2Dchar2Dat:
     ; switch hardware stack to alt stack to pop value
     xchg sp,bp
     ret
+
+
+; extern call "random-word"
+PAXEXT_random2Dword:
+    ; switch hardware stack back from alt stack
+    xchg sp,bp
+
+    push bx
+
+    call rand_new
+    ; Move character into TOS
+    mov bx, ax
+
+    ; switch hardware stack to alt stack to pop value
+    xchg sp,bp
+    ret

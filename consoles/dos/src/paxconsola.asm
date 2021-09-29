@@ -80,6 +80,9 @@ start:
         mov [HeroSpriteX], ax
         mov [HeroSpriteY], ax
 
+        ; Setup random seed
+        call rand_seed
+
 
 %ifdef ENGINE_TAURUS
 
@@ -598,7 +601,6 @@ map_bitmap_lookup:
 
 
 
-
 ; Irrelevant interrupt you can break on in the monitor
 ; BPINT 21 25
 dosbox_break:
@@ -611,6 +613,27 @@ dosbox_break:
 
 %endif
 
+
+;https://stackoverflow.com/a/40709661
+
+; clobbers: AH, DX
+rand_seed:
+        mov     AH, 00h   ; interrupt to get system timer in CX:DX 
+        int     1AH
+        mov     [RandSeed], dx
+        ret
+
+; ----------------
+; inputs: none  (modifies RandSeed seed variable)
+; clobbers: DX.  returns: AX = next random number
+rand_new:
+        mov     ax, 25173               ; LCG Multiplier
+        mul     word [RandSeed]         ; DX:AX = LCG multiplier * seed
+        add     ax, 13849               ; Add LCG increment value
+        ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536
+        mov     [RandSeed], ax          ; Update seed = return value
+        shr     ax,5                    ; Discard 5 bits
+        ret
 
 
     align 16
@@ -647,4 +670,6 @@ HeroSpriteY dw 0
 
 BufferOffscreen     dw 0
 BufferOnscreen      dw 0
+
+RandSeed            dw 0
 .data_end:

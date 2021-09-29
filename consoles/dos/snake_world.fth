@@ -146,10 +146,10 @@ variable length
 \ get random x or y position within playable area
 
 : random-x-position ( -- pos )
-    screen-width 4 - random 2 + ;
+    screen-width 2 - random 1 + ;
 
 : random-y-position ( -- pos )
-    screen-height 4 - random 2 +
+    screen-height 2 - random 1 +
     ;
 
 : move-apple
