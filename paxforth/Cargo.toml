@@ -40,7 +40,7 @@ wasm-bindgen = { version = "0.2.78", optional = true }
 wasmtime = { version = "0.13.0", optional = true }
 
 [features]
-default = ["wasmtime"]
+default = ["wasmtime", "crossterm"]
 stdweb = ["js-sys", "web-sys", "wasm-bindgen"]
 
 [dev-dependencies]
