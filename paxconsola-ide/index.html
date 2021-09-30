@@ -7,80 +7,80 @@
   <link href="https://fonts.googleapis.com/css?family=Bungee+Inline&display=swap" rel="stylesheet" />
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" name="viewport" />
   <title>Pax Consola</title>
-</head>
 
-<style>
-  html,
-  body,
-  * {
-    box-sizing: border-box;
-  }
+  <style>
+    html,
+    body,
+    * {
+      box-sizing: border-box;
+    }
 
-  html,
-  body,
-  #CONTENT {
-    margin: 0;
-    height: 100%;
-    width: 100%;
-    padding: 0;
-  }
+    html,
+    body,
+    #CONTENT {
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      padding: 0;
+    }
 
-  #MONACO_INJECT {
-    /* height: 300px; */
-  }
+    #MONACO_INJECT {
+      /* height: 300px; */
+    }
 
-  #MONACO_TEXTAREA {
-    position: fixed;
-    left: -1000px;
-    top: -10000px;
-    visibility: hidden;
-  }
+    #MONACO_TEXTAREA {
+      position: fixed;
+      left: -1000px;
+      top: -10000px;
+      visibility: hidden;
+    }
 
-  .button-action {
-    font-size: 18px;
-    margin: 10px 8px;
-    padding: 4px 16px;
-    border: 1px solid inset;
-    background: #eef;
-  }
+    .button-action {
+      font-size: 18px;
+      margin: 10px 8px;
+      padding: 4px 16px;
+      border: 1px solid inset;
+      background: #eef;
+    }
 
-  #WASM_CANVAS {
-    cursor: pointer;
-    position: relative;
-  }
+    #WASM_CANVAS {
+      cursor: pointer;
+      position: relative;
+    }
 
-  #WASM_CANVAS::after {
-    content: "Click to start playing."
-  }
+    #WASM_CANVAS::after {
+      content: "Click to start playing."
+    }
 
-  #WASM_CANVAS:focus {
-    outline: 5px solid #0f0 !important;
-  }
+    #WASM_CANVAS:focus {
+      outline: 5px solid #0f0 !important;
+    }
 
-  #GAMEBOY_CANVAS {
-    width: 320px !important;
-    height: 288px !important;
-  }
+    #GAMEBOY_CANVAS {
+      width: 320px !important;
+      height: 288px !important;
+    }
 
-  #GAMEBOY_CANVAS:focus {
-    outline: 5px solid #0f0 !important;
-  }
-</style>
-
-<body>
-  <script src="/main.js"></script>
+    #GAMEBOY_CANVAS:focus {
+      outline: 5px solid #0f0 !important;
+    }
+  </style>
 
   <script type="text/javascript"
     src="https://unpkg.com/responsive-gamepad@1.2.1/dist/responsive-gamepad.umd.js"></script>
 
-  <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/editor/editor.main.js"></script>
-  <script type="text/javascript" src="https://unpkg.com/monaco-editor@0.20.0/min/vs/loader.js"></script>
-
   <script src="https://unpkg.com/wasmboy@0.5.1/dist/wasmboy.ts.iife.js"></script>
 
-  <script type="text/javascript" src="/rgbasm.js"></script>
-  <script type="text/javascript" src="/rgbfix.js"></script>
-  <script type="text/javascript" src="/rgblink.js"></script>
+  <script type="text/javascript" src="/static/rgbasm.js"></script>
+  <script type="text/javascript" src="/static/rgbfix.js"></script>
+  <script type="text/javascript" src="/static/rgblink.js"></script>
+
+  <link data-trunk rel="copy-dir" href="static" />
+  <link data-trunk rel="copy-dir" href="target/workers" />
+  <link data-trunk rel="rust" data-bin="app" />
+</head>
+
+<body>
   <script>
 
     // Wrapper around RGBDK
@@ -225,63 +225,70 @@
   </script>
 
   <script>
-    require.config({
-      paths: { 'vs': 'https://unpkg.com/monaco-editor@0.20.0/min/vs' },
-      // This is something you need for monaco to work
-      ignoreDuplicateModules: ['vs/editor/editor.main'],
-    });
+    const getLoaderScript = document.createElement('script')
+    getLoaderScript.src = 'https://www.typescriptlang.org/js/vs.loader.js'
+    getLoaderScript.async = true
+    getLoaderScript.onload = () => {
+      require.config({
+        paths: { 'vs': 'https://unpkg.com/monaco-editor@0.20.0/min/vs' },
+        // This is something you need for monaco to work
+        ignoreDuplicateModules: ['vs/editor/editor.main'],
+      });
 
-    // Before loading vs/editor/editor.main, define a global MonacoEnvironment that overwrites
-    // the default worker url location (used when creating WebWorkers). The problem here is that
-    // HTML5 does not allow cross-domain web workers, so we need to proxy the instantiation of
-    // a web worker through a same-domain script
-    window.MonacoEnvironment = {
-      getWorkerUrl: function (workerId, label) {
-        return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
-        self.MonacoEnvironment = {
-          baseUrl: 'https://unpkg.com/monaco-editor@0.20.0/min/'
-        };
-        importScripts('https://unpkg.com/monaco-editor@0.20.0/min/vs/base/worker/workerMain.js');`
-        )}`;
-      }
-    };
-
-    require([
-      'vs/editor/editor.main',
-    ], function () {
-      let handle = setInterval(() => {
-        if (!document.getElementById("MONACO_TEXTAREA")) {
-          return;
+      // Before loading vs/editor/editor.main, define a global MonacoEnvironment that overwrites
+      // the default worker url location (used when creating WebWorkers). The problem here is that
+      // HTML5 does not allow cross-domain web workers, so we need to proxy the instantiation of
+      // a web worker through a same-domain script
+      window.MonacoEnvironment = {
+        getWorkerUrl: function (workerId, label) {
+          return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+      self.MonacoEnvironment = {
+        baseUrl: 'https://unpkg.com/monaco-editor@0.20.0/min/'
+      };
+      importScripts('https://unpkg.com/monaco-editor@0.20.0/min/vs/base/worker/workerMain.js');`
+          )}`;
         }
+      };
 
-        const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
-          value: document.getElementById("MONACO_TEXTAREA").value,
-          language: "scheme",
-          fontSize: 14,
-          theme: "monokai"
-        });
+      require([
+        'vs/editor/editor.main',
+      ], function () {
+        let handle = setInterval(() => {
+          if (!document.getElementById("MONACO_TEXTAREA")) {
+            return;
+          }
 
-        // Awkward resize handler to work around rendering in a flexbox.
-        window.addEventListener('resize', () => {
-          requestAnimationFrame(() => {
-            editor.layout({
-              width: 10, height: 10,
-            });
-            editor.layout();
-          })
-        });
+          const editor = monaco.editor.create(document.getElementById("MONACO_INJECT"), {
+            value: document.getElementById("MONACO_TEXTAREA").value,
+            language: "scheme",
+            fontSize: 14,
+            theme: "monokai"
+          });
 
-        editor.getModel().onDidChangeContent(() => {
-          document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
-          document.getElementById("MONACO_TEXTAREA").dispatchEvent(new InputEvent('input'));
-        });
+          // Awkward resize handler to work around rendering in a flexbox.
+          window.addEventListener('resize', () => {
+            requestAnimationFrame(() => {
+              editor.layout({
+                width: 10, height: 10,
+              });
+              editor.layout();
+            })
+          });
+
+          editor.getModel().onDidChangeContent(() => {
+            document.getElementById("MONACO_TEXTAREA").value = editor.getValue();
+            document.getElementById("MONACO_TEXTAREA").dispatchEvent(new InputEvent('input'));
+          });
 
 
 
-        clearInterval(handle);
-      }, 100);
-    });
+          clearInterval(handle);
+        }, 100);
+      });
+    };
+    document.body.appendChild(getLoaderScript)
   </script>
+
 </body>
 
 </html>

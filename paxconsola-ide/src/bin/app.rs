@@ -1,4 +1,4 @@
-use paxconsola_ide::*;
+use ide::*;
 
 fn main() {
     yew::start_app::<App>();
