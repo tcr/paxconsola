@@ -1,210 +1,26 @@
 use crate::*;
 use include_dir::*;
 use indexmap::IndexMap;
-use paxforth::*;
+use js_sys::{Uint16Array, Uint8Array};
 use paxforth::runner::wasm::*;
 use paxforth::targets::wasm::*;
-use serde::*;
-use std::path::{PathBuf, Path};
-use wat;
-use web_sys;
-use yew::services::interval::*;
-use yew::worker::*;
+use paxforth::*;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use js_sys::{Uint8Array, Uint16Array};
-use yew::{html, MouseEvent, Component, ComponentLink, Html, InputData, ShouldRender};
+use yew::worker::*;
+use yew::{html, Component, ComponentLink, Html, InputData, MouseEvent, ShouldRender};
 
+// Relative to /
 static GB_DIR: Dir = include_dir!("./template/gb");
 
-const START_CODE: &str = r"$C020 constant last-key
-$C022 constant random-register
-$9800 constant graphics
-
-variable initialized
-variable frame \ unused
-
-: random random-register @ 255 and swap % ;
-
-variable snake-x-head
-500 cells allot
-
-variable snake-y-head
-500 cells allot
-
-variable apple-x
-variable apple-y
-
-37 constant left
-38 constant up
-39 constant right
-40 constant down
-
-\ 30 constant width
-\ 20 constant height
-
-20 constant width
-18 constant height
-
-variable direction
-variable length
-
-: snake-x ( offset -- address )
-  cells snake-x-head + ;
-
-: snake-y ( offset -- address )
-  cells snake-y-head + ;
-
-\ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  32 * + ;
-: draw ( color x y -- )  convert-x-y graphics + c! ;
-: draw-white ( x y -- )  0 rot rot draw ;
-: draw-black ( x y -- )  2 rot rot draw ;
-: draw-snake-tile ( x y -- )  3 rot rot draw ;
-: draw-apple-tile ( x y -- )  4 rot rot draw ;
-
-: draw-walls
-  width 0 do
-    i 0 draw-black
-    i height 1 - draw-black
-  loop
-  height 0 do
-    0 i draw-black
-    width 1 - i draw-black
-  loop ;
-
-: initialize-snake
-  4 length !
-  length @ 1 + 0 do
-    8 i - i snake-x !
-    8 i snake-y !
-  loop
-  right direction ! ;
-
-: set-apple-position apple-x ! apple-y ! ;
-
-: initialize-apple  8 13 set-apple-position ;
-
-: initialize
-  width 0 do
-    height 0 do
-      j i draw-white
-    loop
-  loop
-  draw-walls
-  initialize-snake
-  initialize-apple ;
-
-
-\ game runtime
-
-: move-up  -1 snake-y-head +! ;
-: move-left  -1 snake-x-head +! ;
-: move-down  1 snake-y-head +! ;
-: move-right  1 snake-x-head +! ;
-
-: move-snake-head  direction @
-  left over  = if move-left else
-  up over    = if move-up else
-  right over = if move-right else
-  down over  = if move-down
-  then then then then drop ;
-
-\ Move each segment of the snake forward by one
-: move-snake-tail  -1 length @ do
-    i drop i snake-x @ i 1 + snake-x !
-    i snake-y @ i 1 + snake-y !
-  1 -loop ;
-
-: is-horizontal  direction @ dup
-  left = swap
-  right = or ;
-
-: is-vertical  direction @ dup
-  up = swap
-  down = or ;
-
-: turn-up     is-horizontal if up direction ! then ;
-: turn-left   is-vertical if left direction ! then ;
-: turn-down   is-horizontal if down direction ! then ;
-: turn-right  is-vertical if right direction ! then ;
-
-: change-direction ( key -- )
-  left over = if turn-left else
-  up over = if turn-up else
-  right over = if turn-right else
-  down over = if turn-down
-  then then then then drop ;
-
-: check-input
-  last-key @ change-direction
-  0 last-key ! ;
-
-\ get random x or y position within playable area
-: random-x-position ( -- pos )
-  width 4 - random 2 + ;
-: random-y-position ( -- pos )
-  height 4 - random 2 + ;
-
-: move-apple
-  apple-x @ apple-y @ draw-white
-  random-x-position random-y-position
-  set-apple-position ;
-
-: grow-snake  1 length +! ;
-
-: check-apple
-  snake-x-head @ apple-x @ =
-  snake-y-head @ apple-y @ =
-  and if
-    move-apple
-    grow-snake
-  then ;
-
-: check-collision ( -- flag )
-  \ get current x/y position
-  snake-x-head @ snake-y-head @
-
-  \ get color at current position
-  convert-x-y graphics + c@
-
-  \ leave boolean flag on stack
-  0 = ;
-
-: draw-snake
-  length @ 0 do
-    i snake-x @ i snake-y @ draw-snake-tile
-  loop
-  length @ snake-x @
-  length @ snake-y @
-  draw-white ;
-
-: draw-apple
-  apple-x @ apple-y @ draw-apple-tile ;
-
-
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
-\ Game loop
-draw-snake
-draw-apple
-check-input
-move-snake-tail
-move-snake-head
-check-apple
-check-collision
-if else 0 initialized ! then
-
-";
+// Relative to src/
+const START_CODE: &str = include_str!("default_ui.fth");
 
 pub struct App {
     forth_input: String,
     program: PaxProgram,
     link: ComponentLink<Self>,
     method: Option<(String, Vec<Block>)>,
-    context: Box<dyn Bridge<CompilationWorker>>,
+    context: Box<dyn Bridge<workers::CompilationWorker>>,
     mem: Uint16Array,
     // game_tick: IntervalService,
     // game_handle: Option<IntervalTask>,
@@ -242,7 +58,7 @@ impl Component for App {
             Response::CompilationError(err) => Msg::CompilationError(err),
         });
         // `Worker::bridge` spawns an instance if no one is available
-        let context = CompilationWorker::bridge(callback); // Connected! :tada:
+        let context = workers::CompilationWorker::bridge(callback); // Connected! :tada:
 
         App {
             link,
@@ -260,8 +76,8 @@ impl Component for App {
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
         // Should only return "true" if new properties are different to
-        // previously received properties.        
-        // This component has no properties so we will always return "false".        
+        // previously received properties.
+        // This component has no properties so we will always return "false".
         false
     }
 

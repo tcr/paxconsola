@@ -9,11 +9,9 @@ these platforms:
 
 * Commodore 64
 * Gameboy
-* DOS (PLANNED)
-* Apple ][ (PLANNED)
-* Atari 2600 (PLANNED)
+* DOS
 
-Pax Consola also supports an in-browser environment targeting WebAssembly.
+More consoles may be supported in the future. Pax Consola also supports an in-browser environment targeting WebAssembly.
 
 ## Coding with Pax Forth
 

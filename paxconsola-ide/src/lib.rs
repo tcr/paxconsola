@@ -3,22 +3,9 @@
 pub mod ui;
 pub mod workers;
 
-use workers::*;
-use ui::*;
-
-use include_dir::*;
-use indexmap::IndexMap;
+use js_sys::Uint8Array;
 use paxforth::*;
-use paxforth::runner::wasm::*;
-use paxforth::targets::wasm::*;
 use serde::*;
-use std::path::{PathBuf, Path};
-use yew::services::interval::*;
-use yew::worker::*;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use js_sys::{Uint8Array, Uint16Array};
-use yew::{html, MouseEvent, Component, ComponentLink, Html, InputData, ShouldRender};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
