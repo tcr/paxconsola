@@ -71,17 +71,20 @@
 
   <script src="https://unpkg.com/wasmboy@0.5.1/dist/wasmboy.ts.iife.js"></script>
 
-  <script type="text/javascript" src="/static/rgbasm.js"></script>
-  <script type="text/javascript" src="/static/rgbfix.js"></script>
-  <script type="text/javascript" src="/static/rgblink.js"></script>
-
   <link data-trunk rel="copy-dir" href="static" />
-  <link data-trunk rel="copy-dir" href="../target/workers" />
+  <link data-trunk rel="copy-dir" href="build/crossconsola" />
+  <link data-trunk rel="copy-dir" href="build/workers" />
+
   <link data-trunk rel="copy-dir" href="../doc/book" />
+
+  <link data-trunk rel="copy-file" href="static/favicon.ico" />
+
   <link data-trunk rel="rust" data-bin="app" />
 </head>
 
 <body>
+  <h1 style="font-family: Helvetica, Arial; color: #333; margin: 1em">Loading Pax Consola...</h1>
+
   <script>
 
     // Wrapper around RGBDK

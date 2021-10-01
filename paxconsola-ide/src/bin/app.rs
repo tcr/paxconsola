@@ -1,5 +1,3 @@
-use ide::*;
-
 fn main() {
-    yew::start_app::<App>();
+    yew::start_app::<ide::ui::App>();
 }

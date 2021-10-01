@@ -1,16 +1,21 @@
-#![recursion_limit = "4096"]
-
+use crate::*;
 use include_dir::*;
 use indexmap::IndexMap;
-use paxconsola::*;
+use paxforth::*;
+use paxforth::runner::wasm::*;
+use paxforth::targets::wasm::*;
 use serde::*;
-use std::path::Path;
-use stdweb::js;
+use std::path::{PathBuf, Path};
+use wat;
+use web_sys;
 use yew::services::interval::*;
 use yew::worker::*;
-use yew::{html, ClickEvent, Component, ComponentLink, Html, InputData, ShouldRender};
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use js_sys::{Uint8Array, Uint16Array};
+use yew::{html, MouseEvent, Component, ComponentLink, Html, InputData, ShouldRender};
 
-static GB_DIR: Dir = include_dir!("../template/gb");
+static GB_DIR: Dir = include_dir!("./template/gb");
 
 const START_CODE: &str = r"$C020 constant last-key
 $C022 constant random-register
@@ -194,111 +199,37 @@ if else 0 initialized ! then
 
 ";
 
-pub struct Worker {
-    link: AgentLink<Worker>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Request {
-    Question(Vec<u8>, ExecutionTarget),
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum Response {
-    Answer(SuperPaxProgram, ExecutionTarget),
-    CompilationError(String),
-}
-
-impl Agent for Worker {
-    // Available:
-    // - `Job` (one per bridge on the main thread)
-    // - `Context` (shared in the main thread)
-    // - `Private` (one per bridge in a separate thread)
-    // - `Public` (shared in a separate thread)
-    type Reach = Public; // Spawn only one instance on the main thread (all components can share this agent)
-    type Message = Msg;
-    type Input = Request;
-    type Output = Response;
-
-    // Create an instance with a link to the agent.
-    fn create(link: AgentLink<Self>) -> Self {
-        Worker { link }
-    }
-
-    // Handle inner messages (from callbacks)
-    fn update(&mut self, _msg: Self::Message) { /* ... */
-    }
-
-    // Handle incoming messages from components of other agents.
-    fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
-        match msg {
-            Request::Question(input, execute) => {
-                let program = std::panic::catch_unwind(move || {
-                    let code = inject_prelude(&input);
-                    let program = parse_to_superpax(code);
-                    program
-                });
-                match program {
-                    Ok(mut program) => {
-                        match execute {
-                            ExecutionTarget::Wasm => {
-                                inline_into_function(&mut program, "main");
-                            }
-                            _ => {}
-                        }
-                        self.link.respond(who, Response::Answer(program, execute));
-                    }
-                    Err(err) => {
-                        self.link
-                            .respond(who, Response::CompilationError(format!("{:?}", err)));
-                    }
-                }
-            }
-        }
-    }
-
-    fn name_of_resource() -> &'static str {
-        "bin/compilation_worker.js"
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum ExecutionTarget {
-    Debug,
-    Gameboy,
-    Wasm,
-}
-
-pub enum Msg {
-    Click,
-    ChangeInput(String),
-    Reset(String),
-    Inline(String),
-    InlineAndOptimize(String),
-    ShowMethod(String),
-    RunInput,
-    CompileResult(SuperPaxProgram, ExecutionTarget),
-    CompilationError(String),
-    NextTick(Vec<u8>),
-    GameStop,
-    OnFocus,
-    OnBlur,
-    InputChange(usize),
-    CompileGameboy,
-    OnGameboyFocus,
-    OnGameboyBlur,
-}
-
 pub struct App {
     forth_input: String,
-    program: SuperPaxProgram,
+    program: PaxProgram,
     link: ComponentLink<Self>,
     method: Option<(String, Vec<Block>)>,
-    context: Box<dyn Bridge<Worker>>,
-    mem: stdweb::Value,
-    game_tick: IntervalService,
-    game_handle: Option<IntervalTask>,
-    wasm: Option<Vec<u8>>,
+    context: Box<dyn Bridge<CompilationWorker>>,
+    mem: Uint16Array,
+    // game_tick: IntervalService,
+    // game_handle: Option<IntervalTask>,
+    wasm: Option<Uint8Array>,
+}
+
+#[wasm_bindgen(inline_js = "
+
+export function wasmboy_play() {
+    WasmBoy.WasmBoy.play();
+}
+
+export function wasmboy_pause() {
+    WasmBoy.WasmBoy.pause();
+}
+
+export function alert(value) {
+    window.alert(value);
+}
+
+")]
+extern "C" {
+    fn wasmboy_play();
+    fn wasmboy_pause();
+    fn alert(value: &str);
 }
 
 impl Component for App {
@@ -311,7 +242,7 @@ impl Component for App {
             Response::CompilationError(err) => Msg::CompilationError(err),
         });
         // `Worker::bridge` spawns an instance if no one is available
-        let context = Worker::bridge(callback); // Connected! :tada:
+        let context = CompilationWorker::bridge(callback); // Connected! :tada:
 
         App {
             link,
@@ -321,61 +252,72 @@ impl Component for App {
             method: None,
             context,
             mem: wasm_memory_init(),
-            game_tick: IntervalService::new(),
-            game_handle: None,
+            // game_tick: IntervalService::new(),
+            // game_handle: None,
             wasm: None,
         }
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        // Should only return "true" if new properties are different to
+        // previously received properties.        
+        // This component has no properties so we will always return "false".        
+        false
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::OnGameboyFocus => {
-                js! {
-                    WasmBoy.WasmBoy.play();
-                }
+                wasmboy_play();
                 true
             }
             Msg::OnGameboyBlur => {
-                js! {
-                    WasmBoy.WasmBoy.pause();
-                }
+                wasmboy_pause();
                 true
             }
             Msg::InputChange(key) => {
                 let mem = &self.mem;
-                stdweb::console!(log, format!("input changing to {:?}", key));
-                js! {
-                    @{mem}[0xC020] = @{key as u32};
-                }
+                // stdweb::console!(log, format!("input changing to {:?}", key));
+                // js! {
+                //     @{mem}[0xC020] = @{key as u32};
+                // }
                 // TODO this didn't work!
                 true
             }
             Msg::CompileResult(program, execute) => {
                 self.program = program;
-                js! {
-                    // Clear the canvas
-                    const canvas = document.querySelector("canvas").getContext("2d");
-                    canvas.clearRect(0, 0, canvas.width, canvas.height);
-                }
+                // js! {
+                //     // Clear the canvas
+                //     const canvas = document.querySelector("canvas").getContext("2d");
+                //     canvas.clearRect(0, 0, canvas.width, canvas.height);
+                // }
 
-                stdweb::console!(log, "compilation done.");
+                // stdweb::console!(log, "compilation done.");
 
                 // Possibly run execution now that we've returned
                 match execute {
                     ExecutionTarget::Debug => {}
                     ExecutionTarget::Wasm => {
                         self.mem = wasm_memory_init();
-                        let wasm = eval_forth(&self.program, false);
+
+                        let wat = WasmForthCompiler::compile(&self.program);
+                        let wasm_buffer = wat::parse_str(&wat).unwrap();
+
+                        // run_wasm(&wasm, false).expect("run_wasm failed");
+                        // let wasm_buffer = eval_forth(&self.program, false);
+
+                        let mut wasm = Uint8Array::new_with_length(wasm_buffer.len() as _);
+                        wasm.copy_from(&wasm_buffer);
 
                         // Run first frame.
                         run_wasm_with_memory(&wasm, &self.mem);
-                        stdweb::console!(log, "first frame done.");
+                        // stdweb::console!(log, "first frame done.");
 
                         self.wasm = Some(wasm);
 
-                        js! {
-                            setTimeout(() => document.querySelector("#WASM_CANVAS").focus(), 1000);
-                        }
+                        // js! {
+                        //     setTimeout(() => document.querySelector("#WASM_CANVAS").focus(), 1000);
+                        // }
                     }
                     ExecutionTarget::Gameboy => {
                         // TODO need a better data type
@@ -396,33 +338,31 @@ impl Component for App {
                             .collect();
 
                         // Inject a compiled version of the game
-                        let pax_generated = cross_compile_forth_gb(self.program.clone());
-                        filetree.push("generated/pax_generated.asm".as_bytes().to_owned());
-                        filetree.push(pax_generated.as_bytes().to_owned());
+                        // let pax_generated = cross_compile_forth_gb(self.program.clone());
+                        // filetree.push("generated/pax_generated.asm".as_bytes().to_owned());
+                        // filetree.push(pax_generated.as_bytes().to_owned());
 
-                        stdweb::console!(log, format!("gameboy code: {}", pax_generated));
+                        // stdweb::console!(log, format!("gameboy code: {}", pax_generated));
 
-                        js! {
-                            CompileGameboy(@{filetree})
-                            .then(({ game }) => {
-                              console.log("success", game);
-                              return PlayGameboy(game);
-                            }).catch(err => {
-                              console.error("Error Configuring WasmBoy:", err);
-                            });
-                        }
+                        // js! {
+                        //     CompileGameboy(@{filetree})
+                        //     .then(({ game }) => {
+                        //       console.log("success", game);
+                        //       return PlayGameboy(game);
+                        //     }).catch(err => {
+                        //       console.error("Error Configuring WasmBoy:", err);
+                        //     });
+                        // }
 
-                        js! {
-                            setTimeout(() => document.querySelector("#GAMEBOY_CANVAS").focus(), 1000);
-                        }
+                        // js! {
+                        //     setTimeout(() => document.querySelector("#GAMEBOY_CANVAS").focus(), 1000);
+                        // }
                     }
                 }
                 true
             }
             Msg::CompilationError(err) => {
-                js! {
-                    alert("compile failed! " + @{err});
-                }
+                alert(&format!("compile failed! {}", err));
                 true
             }
             Msg::NextTick(wasm) => {
@@ -430,9 +370,9 @@ impl Component for App {
                 true
             }
             Msg::GameStop => {
-                if let Some(handle) = self.game_handle.take() {
-                    drop(handle);
-                }
+                // if let Some(handle) = self.game_handle.take() {
+                //     drop(handle);
+                // }
                 false
             }
 
@@ -471,23 +411,23 @@ impl Component for App {
 
                 true
             }
-            Msg::Inline(method) => {
-                let mut program = self.program.clone();
-                inline_into_function(&mut program, &method);
-                self.method = Some((method.clone(), program.get(&method).unwrap().clone()));
+            // Msg::Inline(method) => {
+            //     let mut program = self.program.clone();
+            //     inline_into_function(&mut program, &method);
+            //     self.method = Some((method.clone(), program.get(&method).unwrap().clone()));
 
-                true
-            }
-            Msg::InlineAndOptimize(method) => {
-                let mut mock_program = self.program.clone();
+            //     true
+            // }
+            // Msg::InlineAndOptimize(method) => {
+            //     let mut mock_program = self.program.clone();
 
-                inline_into_function(&mut mock_program, &method);
-                optimize_function(&mut mock_program, &method);
+            //     inline_into_function(&mut mock_program, &method);
+            //     optimize_function(&mut mock_program, &method);
 
-                self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
+            //     self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
 
-                true
-            }
+            //     true
+            // }
             Msg::ShowMethod(method) => {
                 self.method = self
                     .program
@@ -503,52 +443,50 @@ impl Component for App {
                     let input_closure = move |key: usize| {
                         input_callback.emit(key);
                     };
-                    js! {
-                        ResponsiveGamepad.ResponsiveGamepad.onInputsChange([
-                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_UP,
-                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_DOWN,
-                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_LEFT,
-                            ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_RIGHT,
-                        ], state => {
-                            const callback = @{input_closure};
-                            console.log("gamepad state", state);
-                            if (state.DPAD_UP) {
-                                callback(38);
-                            } else if (state.DPAD_DOWN) {
-                                callback(40);
-                            } else if (state.DPAD_LEFT) {
-                                callback(37);
-                            } else if (state.DPAD_RIGHT) {
-                                callback(39);
-                            }
-                        });
-                    }
+                    // js! {
+                    //     ResponsiveGamepad.ResponsiveGamepad.onInputsChange([
+                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_UP,
+                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_DOWN,
+                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_LEFT,
+                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_RIGHT,
+                    //     ], state => {
+                    //         const callback = @{input_closure};
+                    //         console.log("gamepad state", state);
+                    //         if (state.DPAD_UP) {
+                    //             callback(38);
+                    //         } else if (state.DPAD_DOWN) {
+                    //             callback(40);
+                    //         } else if (state.DPAD_LEFT) {
+                    //             callback(37);
+                    //         } else if (state.DPAD_RIGHT) {
+                    //             callback(39);
+                    //         }
+                    //     });
+                    // }
 
-                    js! {
-                        ResponsiveGamepad.ResponsiveGamepad.enable()
-                    }
-                    self.game_handle = Some(self.game_tick.spawn(
-                        std::time::Duration::from_millis(100),
-                        self.link.callback(move |_| Msg::NextTick(wasm.clone())),
-                    ));
+                    // js! {
+                    //     ResponsiveGamepad.ResponsiveGamepad.enable()
+                    // }
+                    // self.game_handle = Some(self.game_tick.spawn(
+                    //     std::time::Duration::from_millis(100),
+                    //     self.link.callback(move |_| Msg::NextTick(wasm.clone())),
+                    // ));
                 }
                 true
             }
             Msg::OnBlur => {
-                js! {
-                    ResponsiveGamepad.ResponsiveGamepad.disable()
-                }
-                if let Some(handle) = self.game_handle.take() {
-                    drop(handle);
-                }
+                // js! {
+                //     ResponsiveGamepad.ResponsiveGamepad.disable()
+                // }
+                // if let Some(handle) = self.game_handle.take() {
+                //     drop(handle);
+                // }
                 true
             }
         }
     }
 
     fn view(&self) -> Html {
-        return html! { <div>{"lol"}</div> };
-
         let blocks = self
             .method
             .iter()
@@ -561,22 +499,16 @@ impl Component for App {
                         <>
                             <button onclick={
                                 self.link
-                                    .callback(move |e: ClickEvent| Msg::Reset(k2.clone()))
+                                    .callback(move |e: MouseEvent| Msg::Reset(k2.clone()))
                             }>
                                 {"Original"}
                             </button>
-                            <button onclick={
-                                self.link
-                                    .callback(move |e: ClickEvent| Msg::Inline(k1.clone()))
-                            }>
-                                {"Inline"}
-                            </button>
-                            <button onclick={
-                                self.link
-                                    .callback(move |e: ClickEvent| Msg::InlineAndOptimize(k3.clone()))
-                            }>
-                                {"Inline And Optimize"}
-                            </button>
+                            // <button onclick={
+                            //     self.link
+                            //         .callback(move |e: MouseEvent| Msg::Inline(k1.clone()))
+                            // }>
+                            //     {"Inline"}
+                            // </button>
                         </>
                     }],
                     vec![html! {
@@ -584,20 +516,20 @@ impl Component for App {
                             {format!("{}:", k)}
                         </h3>
                     }],
-                    v.iter()
-                        .enumerate()
-                        .map(|(i, b)| {
-                            [
-                                vec![html! { <h5 style="margin: 0">{format!("block #{}", i)}</h5> }],
-                                b.commands()
-                                    .into_iter()
-                                    .map(|y| html! { <div>{format!("    {:?}", y.0)}</div> })
-                                    .collect::<Vec<_>>(),
-                            ]
-                            .concat()
-                        })
-                        .flatten()
-                        .collect::<Vec<_>>(),
+                    // v.iter()
+                    //     .enumerate()
+                    //     .map(|(i, b)| {
+                    //         [
+                    //             vec![html! { <h5 style="margin: 0">{format!("block #{}", i)}</h5> }],
+                    //             b.commands()
+                    //                 .into_iter()
+                    //                 .map(|y| html! { <div>{format!("    {:?}", y.0)}</div> })
+                    //                 .collect::<Vec<_>>(),
+                    //         ]
+                    //         .concat()
+                    //     })
+                    //     .flatten()
+                    //     .collect::<Vec<_>>(),
                 ]
                 .concat()
             })
@@ -649,6 +581,8 @@ impl Component for App {
             </div>
         };
 
+        let forth_input: String = self.forth_input.clone();
+
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
                 <div style="background: black; color: white; font-size: 24px; padding: 10px 0; text-align: center; font-family: Bungee Inline, Arial Black, sans-serif; text-transform: uppercase;">
@@ -658,7 +592,7 @@ impl Component for App {
                     <div style="flex: 1; flex-direction: column; display: flex; padding: 16px; overflow: hidden">
                         <div style="flex: 1; flex-direction: column; display: flex; border: 2px solid black">
                             <div id="MONACO_INJECT" style="flex: 1"></div>
-                            <textarea id="MONACO_TEXTAREA" rows="10" value=&self.forth_input oninput=oninput />
+                            <textarea id="MONACO_TEXTAREA" rows="10" value=forth_input oninput=oninput />
                         </div>
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
