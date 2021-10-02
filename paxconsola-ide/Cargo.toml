@@ -12,6 +12,7 @@ include_dir = "0.5.0"
 serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
 gloo-timers = "0.2.1"
+gloo-console = "0.1"
 js-sys = "0.3.51"
 web-sys = { version = "0.3", features = ["Window", "WorkerGlobalScope", "console", "WorkerLocation"] }
 wat = "1.0.38"

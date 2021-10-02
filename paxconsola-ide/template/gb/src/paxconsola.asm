@@ -4,10 +4,10 @@
 ; Includes
 ;-------------
 
-INCLUDE "kernel/hardware.asm"
-INCLUDE "kernel/header.asm"
-INCLUDE "kernel/tiles.asm"
-INCLUDE "kernel/map.asm"
+	INCLUDE "src/hardware.asm"
+  	INCLUDE "src/header.asm"
+	INCLUDE "src/tiles.asm"
+  	INCLUDE "src/map.asm"
 
 ;-------------
 ; Start
@@ -32,7 +32,7 @@ START:
 	; bit 7, h
 	; jr nz,.loop_clear
 
-	ld  a,%11100100  ;shade palette (11 10 01 00)
+	ld  a,%00011011  ;shade palette (11 10 01 00)
 	ldh [rBGP],a 	 ;setup palettes
 	ldh [rOCPD],a
 	ldh [rOBP0],a
@@ -76,7 +76,7 @@ LOOP:
 	; Set forth stack to end of zero page RAM
 	ld c, $fe
 	ld hl, $0
-	call PAX_VM
+	call PAX_FN_main
 
 	; store random number in pax_var_random
 	call RandomNumber
@@ -92,9 +92,7 @@ LOOP:
 ; Pax Forth VM
 ;-------------
 
-PAX_VM:
-	INCLUDE "generated/pax_generated.asm"
-	ret
+	INCLUDE "build/pax_generated.asm"
 
 ;-------------
 ; Subroutines
@@ -311,7 +309,7 @@ RandomNumber:
 
         ld      a,[$fff4]          ; get divider register to increase
 
-randomness
+randomness:
 
         add     [hl]
 
@@ -320,7 +318,75 @@ randomness
 
 
 
+; Native exported functions
 
+PAX_NATIVE_read2Dindex:
+    ; [gb_ir] CopyToDE
+    ld e,l
+    ld d,h
+
+    ; [gb_ir] ReplaceLiteral(38912)
+    ld hl,38912
+
+    ; [gb_ir] ReplaceAddWithDE
+    add hl, de
+
+	; Wait until VRAM mode is 0 or 1
+:   ld   a,[$0FF41]
+    bit  1,a
+    jr   nz, :-
+
+    ; [gb_ir] ReplaceLoad8
+    ld a, [hl]
+    ld l, a
+    xor a
+    ld h, a
+
+    ; [gb_ir] Ret
+    ret
+
+PAX_NATIVE_draw2Dindex:
+    ; [gb_ir] Label(".target_0")
+.target_0:
+
+    ; [gb_ir] CopyToDE
+    ld e,l
+    ld d,h
+
+    ; [gb_ir] ReplaceLiteral(38912)
+    ld hl,38912
+
+    ; [gb_ir] ReplaceAddWithDE
+    add hl, de
+
+    ; [gb_ir] NipIntoDE
+    ; Move second item to TOS
+    ld a, [c]
+    ld e, a
+    inc c
+    ld a, [c]
+    ld d, a
+    inc c
+
+	; Wait until VRAM mode is 0 or 1
+:   ld   a,[$0FF41]
+	bit  1,a
+	jr   nz, :-
+
+    ; [gb_ir] StoreDE8
+    ld a, e
+    ld [hl],a
+
+    ; [gb_ir] Pop
+    ld a, [c]
+    ld l, a
+    inc c
+    ld a, [c]
+    ld h, a
+    inc c
+
+    ; [gb_ir] Ret
+    ret
 
 
 SECTION "RAM Vars",WRAM0[$C000]

@@ -69,7 +69,7 @@
   <script type="text/javascript"
     src="https://unpkg.com/responsive-gamepad@1.2.1/dist/responsive-gamepad.umd.js"></script>
 
-  <script src="https://unpkg.com/wasmboy@0.5.1/dist/wasmboy.ts.iife.js"></script>
+  <script src="static/wasmboy.ts.umd.js"></script>
 
   <link data-trunk rel="copy-dir" href="static" />
   <link data-trunk rel="copy-dir" href="build/crossconsola" />
@@ -87,134 +87,155 @@
 
   <script>
 
-    // Wrapper around RGBDK
-    window.CompileGameboy = (filenamevaluelist) => {
-      const files = new Map();
-      while (filenamevaluelist.length) {
-        const contents = new Uint8Array(filenamevaluelist.pop());
-        const name = new TextDecoder("utf-8").decode(new Uint8Array(filenamevaluelist.pop()));
-        console.info('[rgbasm] writing file', name, 'with', new TextDecoder("utf-8").decode(contents));
-        files.set(name, contents);
-      }
+    // // Wrapper around RGBDK
+    // window.CompileGameboy = (filenamevaluelist) => {
+    //   const files = new Map();
+    //   while (filenamevaluelist.length) {
+    //     const contents = new Uint8Array(filenamevaluelist.pop());
+    //     const name = new TextDecoder("utf-8").decode(new Uint8Array(filenamevaluelist.pop()));
+    //     console.info('[rgbasm] writing file', name, 'with', new TextDecoder("utf-8").decode(contents));
+    //     files.set(name, contents);
+    //   }
 
-      function populate(FS) {
-        try {
-          for (const name of files.keys()) {
-            // mkdir -p
-            const cache = [];
-            for (const segment of name.split('/').slice(0, -1)) {
-              cache.push(segment);
-              try {
-                FS.mkdir(cache.join('/'));
-              } catch (e) {
-                // noop
-              }
-            }
+    //   function populate(FS) {
+    //     try {
+    //       for (const name of files.keys()) {
+    //         // mkdir -p
+    //         const cache = [];
+    //         for (const segment of name.split('/').slice(0, -1)) {
+    //           cache.push(segment);
+    //           try {
+    //             FS.mkdir(cache.join('/'));
+    //           } catch (e) {
+    //             // noop
+    //           }
+    //         }
 
-            FS.writeFile(name, files.get(name));
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
+    //         FS.writeFile(name, files.get(name));
+    //       }
+    //     } catch (e) {
+    //       console.error(e);
+    //     }
+    //   }
 
-      return new Promise((resolve, reject) => {
-        const MAIN = 'kernel/bank0.asm';
-        const OUT = 'bank0.obj';
+    //   return new Promise((resolve, reject) => {
+    //     const MAIN = 'kernel/bank0.asm';
+    //     const OUT = 'bank0.obj';
 
-        const stdout = [];
-        const stderr = [];
+    //     const stdout = [];
+    //     const stderr = [];
 
-        const settings = {
-          arguments: ['-E', '-o', OUT, MAIN],
-          onExit: function (errCode) {
-            // Call asynchronously.
-            if (errCode > 0) {
-              setTimeout(reject.bind(null, { stdout, stderr }), 0);
-            } else {
-              // Copy artifacts
-              files.set(OUT, new Uint8Array(settings.FS.readFile(OUT)));
+    //     const settings = {
+    //       arguments: ['-E', '-o', OUT, MAIN],
+    //       onExit: function (errCode) {
+    //         // Call asynchronously.
+    //         if (errCode > 0) {
+    //           setTimeout(reject.bind(null, { stdout, stderr }), 0);
+    //         } else {
+    //           // Copy artifacts
+    //           files.set(OUT, new Uint8Array(settings.FS.readFile(OUT)));
 
-              setTimeout(resolve.bind(null, { stdout, stderr }), 0);
-            }
-          },
-          print: function () {
-            stdout.push(Array.from(arguments).join(' '));
-          },
-          printErr: function () {
-            stderr.push(Array.from(arguments).join(' '));
-          },
-          totalDependencies: 0,
-        };
-        RGBASM(settings).then(_ => {
-          populate(settings.FS);
-        });
-      }).then(result => new Promise((resolve, reject) => {
-        const OBJ_NAME = 'paxconsola';
-        const OBJS_NAME = 'bank0';
+    //           setTimeout(resolve.bind(null, { stdout, stderr }), 0);
+    //         }
+    //       },
+    //       print: function () {
+    //         stdout.push(Array.from(arguments).join(' '));
+    //       },
+    //       printErr: function () {
+    //         stderr.push(Array.from(arguments).join(' '));
+    //       },
+    //       totalDependencies: 0,
+    //     };
+    //     RGBASM(settings).then(_ => {
+    //       populate(settings.FS);
+    //     });
+    //   }).then(result => new Promise((resolve, reject) => {
+    //     const OBJ_NAME = 'paxconsola';
+    //     const OBJS_NAME = 'bank0';
 
-        const stdout = [];
-        const stderr = [];
+    //     const stdout = [];
+    //     const stderr = [];
 
-        const settings = {
-          arguments: [`-m${OBJ_NAME}.map`, `-n${OBJ_NAME}.sym`, `-o${OBJ_NAME}.gb`, `${OBJS_NAME}.obj`],
-          onExit: function (errCode) {
-            // Call asynchronously.
-            if (errCode > 0) {
-              setTimeout(reject.bind(null, { stdout, stderr }), 0);
-            } else {
-              const game = settings.FS.readFile(`${OBJ_NAME}.gb`);
-              console.log('COMPILATION RESULT GAMEBOY:', game);
-              setTimeout(resolve.bind(null, { stdout, stderr, game, fs: settings.FS }), 0);
-            }
-          },
-          print: function () {
-            stdout.push(Array.from(arguments).join(' '));
-          },
-          printErr: function () {
-            stderr.push(Array.from(arguments).join(' '));
-          },
-          totalDependencies: 0,
-          FS: result.fs,
-        };
-        RGBLINK(settings).then(_ => {
-          populate(settings.FS);
-          console.log('RGBLINK READY');
-        })
-      }))
-    };
+    //     const settings = {
+    //       arguments: [`-m${OBJ_NAME}.map`, `-n${OBJ_NAME}.sym`, `-o${OBJ_NAME}.gb`, `${OBJS_NAME}.obj`],
+    //       onExit: function (errCode) {
+    //         // Call asynchronously.
+    //         if (errCode > 0) {
+    //           setTimeout(reject.bind(null, { stdout, stderr }), 0);
+    //         } else {
+    //           const game = settings.FS.readFile(`${OBJ_NAME}.gb`);
+    //           console.log('COMPILATION RESULT GAMEBOY:', game);
+    //           setTimeout(resolve.bind(null, { stdout, stderr, game, fs: settings.FS }), 0);
+    //         }
+    //       },
+    //       print: function () {
+    //         stdout.push(Array.from(arguments).join(' '));
+    //       },
+    //       printErr: function () {
+    //         stderr.push(Array.from(arguments).join(' '));
+    //       },
+    //       totalDependencies: 0,
+    //       FS: result.fs,
+    //     };
+    //     RGBLINK(settings).then(_ => {
+    //       populate(settings.FS);
+    //       console.log('RGBLINK READY');
+    //     })
+    //   }))
+    // };
 
     window.PlayGameboy = (binary) => {
-      // Get our HTML5 Canvas element
-      const canvasElement = document.querySelector('#GAMEBOY_CANVAS');
+      const loadWasmBoy = async () => {
+        // await mountPromise;
+        const wasmBoyCanvas = document.querySelector('#GAMEBOY_CANVAS');
+        // const EmbedPlugin = {
+        //     name: 'EmbedPlugin',
+        //     saveState: saveStateObject => {
+        //         if (wasmBoyCanvas) {
+        //             saveStateObject.screenshotCanvasDataURL = wasmBoyCanvas.toDataURL();
+        //         }
+        //     },
+        //     play: () => isPlaying.set(true),
+        //     pause: () => {
+        //         isPlaying.set(false);
+        //         setStatus('Paused', -1);
+        //     }
+        // };
 
-      const WasmBoyOptions = {
-        headless: false,
-        useGbcWhenOptional: true,
-        isAudioEnabled: true,
-        frameSkip: 1,
-        audioBatchProcessing: true,
-        timersBatchProcessing: false,
-        audioAccumulateSamples: true,
-        graphicsBatchProcessing: false,
-        graphicsDisableScanlineRendering: false,
-        tileRendering: true,
-        tileCaching: true,
-        gameboyFPSCap: 60,
-        updateGraphicsCallback: false,
-        updateAudioCallback: false,
-        saveStateCallback: false
-      }
-
-      return WasmBoy.WasmBoy.config(WasmBoyOptions, canvasElement)
-        .then(() => {
-          console.log('WasmBoy is configured!');
-          // You may now load games, or use other exported functions of the lib.
-          return WasmBoy.WasmBoy.loadROM(binary);
-        }).then(() => {
-          console.log('WasmBoy ROM loaded!');
+        await WasmBoy.WasmBoy.config({
+          isGbcEnabled: false,
+          isGbcColorizationEnabled: false,
+          isAudioEnabled: false,
+          gameboyFrameRate: 60,
+          maxNumberOfAutoSaveStates: 3
         });
-    }
+        await WasmBoy.WasmBoy.setCanvas(wasmBoyCanvas);
+        // WasmBoy.addPlugin(EmbedPlugin);
+        await WasmBoy.WasmBoy.loadROM(binary);
+        await WasmBoy.WasmBoy.play();
+      }
+      const wasmBoyPromise = loadWasmBoy().catch(error => {
+        console.error(error);
+        throw error;
+      });
+      // isPlaying.subscribe(async (value) => {
+      //     if (!WasmBoy.isPlaying() && value) {
+      //         await WasmBoy.play();
+      //     } else if (WasmBoy.isPlaying() && !value) {
+      //         await WasmBoy.pause();
+      //     }
+      // });
+      // saveState.subscribe(() => {
+      //     if ($isStarted && $isLoaded) {
+      //         WasmBoy.saveState().then(() => {
+      //             WasmBoy.play();
+      //             setStatus('State Saved!');
+      //         }).catch(() => {
+      //             setStatus('Error saving the state...')
+      //         });
+      //     }
+      // });
+    };
 
     // Simple example, should work
     // fetch('/test.asm').then(res => res.arrayBuffer())
@@ -226,7 +247,7 @@
     //     console.error('Error Configuring WasmBoy:', err);
     //   });
 
-  </script>
+  // </script>
 
   <script>
     const getLoaderScript = document.createElement('script')

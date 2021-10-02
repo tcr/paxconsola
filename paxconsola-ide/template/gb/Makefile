@@ -1,7 +1,9 @@
-OBJS = kernel/bank0.asm
-OBJS_NAME = bank0
+FILE = snake_world.fth
 
-OBJ_NAME = paxconsola
+OBJS = src/paxconsola.asm
+OBJS_NAME = build/paxconsola
+
+OBJ_NAME = build/paxconsola
 
 ASM = rgbasm
 
@@ -9,22 +11,21 @@ LINK = rgblink
 
 FIX = rgbfix
 
-all : generated/tiles.bin generated/pax_generated.asm $(OBJS)
+build/paxconsola.gb: build/tiles.bin build/pax_generated.asm $(OBJS) src/*.asm
 	$(ASM) -E -o$(OBJS_NAME).obj $(OBJS)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJS_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb
 	rm $(OBJS_NAME).obj
 
-generated/pax_generated.asm: snake.pax
-	cargo run -- compile snake.pax > generated/pax_generated.asm
+build/pax_generated.asm: $(FILE)
+	paxforth compile $(FILE) --target=gb > build/pax_generated.asm
 
-generated/tiles.bin: tiles.png
-	rgbgfx -o generated/tiles.bin tiles.png
+build/tiles.bin: tiles.png
+	rgbgfx -o build/tiles.bin tiles.png
 
-run:
-	make
-	rboy -x 6 paxconsola.gb
+run: build/paxconsola.gb
+	rboy -x 6 build/paxconsola.gb
 
-debug:
-	make
-	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 paxconsola.gb
+debug: build/paxconsola.gb
+	/Applications/SameBoy.app/Contents/MacOS/SameBoy --scale 6 build/paxconsola.gb
+

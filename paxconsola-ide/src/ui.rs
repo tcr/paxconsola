@@ -15,6 +15,9 @@ static GB_DIR: Dir = include_dir!("./template/gb");
 // Relative to src/
 const START_CODE: &str = include_str!("default_ui.fth");
 
+// Relative to src/
+const START_GAMEBOY_BINARY: &[u8] = include_bytes!("../static/bubble-ghost.gb");
+
 pub struct App {
     forth_input: String,
     program: PaxProgram,
@@ -27,24 +30,40 @@ pub struct App {
     wasm: Option<Uint8Array>,
 }
 
-#[wasm_bindgen(inline_js = "
+#[wasm_bindgen(inline_js = r##"
+
+export function wasmboy_setup(binary) {
+    window.PlayGameboy(binary);
+}
 
 export function wasmboy_play() {
-    WasmBoy.WasmBoy.play();
+    // WasmBoy.WasmBoy.play();
 }
 
 export function wasmboy_pause() {
-    WasmBoy.WasmBoy.pause();
+    // WasmBoy.WasmBoy.pause();
+}
+
+export function wasmboy_focus() {
+    setTimeout(() => document.querySelector("#GAMEBOY_CANVAS").focus(), 1000);
 }
 
 export function alert(value) {
     window.alert(value);
 }
 
-")]
+// export function play_gameboy() {
+//     window.PlayGameboyFixed();
+// }
+
+"##)]
 extern "C" {
+    fn wasmboy_setup(binary: Uint8Array);
     fn wasmboy_play();
     fn wasmboy_pause();
+    fn wasmboy_focus();
+    // fn play_gameboy();
+
     fn alert(value: &str);
 }
 
@@ -56,6 +75,7 @@ impl Component for App {
         let callback = link.callback(|res| match res {
             Response::Answer(program, execute) => Msg::CompileResult(program, execute),
             Response::CompilationError(err) => Msg::CompilationError(err),
+            Response::GameboyBinary(binary) => Msg::GameboyBinary(binary),
         });
         // `Worker::bridge` spawns an instance if no one is available
         let context = workers::CompilationWorker::bridge(callback); // Connected! :tada:
@@ -175,6 +195,15 @@ impl Component for App {
                         // }
                     }
                 }
+                true
+            }
+            Msg::GameboyBinary(binary) => {
+                let mut array = Uint8Array::new_with_length(binary.len() as u32);
+                array.copy_from(&binary);
+                wasmboy_setup(array);
+                wasmboy_focus();
+                // wasmboy_play();
+                // play_gameboy();
                 true
             }
             Msg::CompilationError(err) => {

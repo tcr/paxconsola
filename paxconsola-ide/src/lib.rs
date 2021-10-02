@@ -16,6 +16,7 @@ pub enum Request {
 pub enum Response {
     Answer(PaxProgram, ExecutionTarget),
     CompilationError(String),
+    GameboyBinary(Vec<u8>),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -43,4 +44,6 @@ pub enum Msg {
     CompileGameboy,
     OnGameboyFocus,
     OnGameboyBlur,
+
+    GameboyBinary(Vec<u8>),
 }
