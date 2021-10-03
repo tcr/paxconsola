@@ -1,9 +1,13 @@
 # Pax Consola IDE
 
-```
-RUST_BACKTRACE=1 cargo web start --verbose
-```
+To download dependencies, run:
 
 ```
-cargo web deploy --output build && now --prod
+make deps
+```
+
+For development, run `cargo install trunk`, then:
+
+```
+trunk serve
 ```

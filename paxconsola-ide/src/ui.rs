@@ -9,14 +9,8 @@ use wasm_bindgen::prelude::*;
 use yew::worker::*;
 use yew::{html, Component, ComponentLink, Html, InputData, MouseEvent, ShouldRender};
 
-// Relative to /
-static GB_DIR: Dir = include_dir!("./template/gb");
-
 // Relative to src/
 const START_CODE: &str = include_str!("default_ui.fth");
-
-// Relative to src/
-const START_GAMEBOY_BINARY: &[u8] = include_bytes!("../static/bubble-ghost.gb");
 
 pub struct App {
     forth_input: String,
@@ -56,13 +50,55 @@ export function alert(value) {
 //     window.PlayGameboyFixed();
 // }
 
+export function play_dos() {
+    console.info('Playing DOS!');
+    document.querySelector('#console-target').innerHTML = '\
+        <iframe src="/static/emulators/dos/" id="window-dos" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
+    ';
+    document.querySelector('#window-dos').onload = (e) => {
+        fetch('/static/emulators/dos/paxconsola.zip').then(res => res.arrayBuffer()).then(arr => {
+            let dos = document.querySelector('#window-dos').contentWindow;
+            dos.postMessage(new Uint8Array(arr));
+        });
+    };
+}
+
+export function play_gameboy() {
+    console.info('Playing Game Boy!');
+    document.querySelector('#console-target').innerHTML = '\
+        <iframe src="/static/emulators/gameboy/" id="window-gameboy" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
+    ';
+    document.querySelector('#window-gameboy').onload = (e) => {
+        fetch('/static/emulators/gameboy/paxconsola.gb').then(res => res.arrayBuffer()).then(arr => {
+            let dos = document.querySelector('#window-gameboy').contentWindow;
+            dos.postMessage(new Uint8Array(arr));
+        });
+    };
+}
+
+export function play_c64() {
+    console.info('Playing Commodore 64!');
+    document.querySelector('#console-target').innerHTML = '\
+        <iframe src="/static/emulators/c64/" id="window-c64" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
+    ';
+    document.querySelector('#window-c64').onload = (e) => {
+        fetch('/static/emulators/c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => {
+            let dos = document.querySelector('#window-c64').contentWindow;
+            dos.postMessage(new Uint8Array(arr));
+        });
+    };
+}
+
 "##)]
 extern "C" {
     fn wasmboy_setup(binary: Uint8Array);
     fn wasmboy_play();
     fn wasmboy_pause();
     fn wasmboy_focus();
-    // fn play_gameboy();
+
+    fn play_dos();
+    fn play_gameboy();
+    fn play_c64();
 
     fn alert(value: &str);
 }
@@ -157,21 +193,21 @@ impl Component for App {
                     }
                     ExecutionTarget::Gameboy => {
                         // TODO need a better data type
-                        let mut filetree: Vec<Vec<u8>> = GB_DIR
-                            .find("*")
-                            .expect("invalid glob")
-                            .filter_map(|file| match file {
-                                include_dir::DirEntry::File(f) => Some(f),
-                                _ => None,
-                            })
-                            .map(|file| {
-                                vec![
-                                    file.path().to_string_lossy().as_bytes().to_owned(),
-                                    file.contents().to_owned(),
-                                ]
-                            })
-                            .flatten()
-                            .collect();
+                        // let mut filetree: Vec<Vec<u8>> = GB_DIR
+                        //     .find("*")
+                        //     .expect("invalid glob")
+                        //     .filter_map(|file| match file {
+                        //         include_dir::DirEntry::File(f) => Some(f),
+                        //         _ => None,
+                        //     })
+                        //     .map(|file| {
+                        //         vec![
+                        //             file.path().to_string_lossy().as_bytes().to_owned(),
+                        //             file.contents().to_owned(),
+                        //         ]
+                        //     })
+                        //     .flatten()
+                        //     .collect();
 
                         // Inject a compiled version of the game
                         // let pax_generated = cross_compile_forth_gb(self.program.clone());
@@ -219,15 +255,6 @@ impl Component for App {
                 //     drop(handle);
                 // }
                 false
-            }
-
-            Msg::CompileGameboy => {
-                // Dispatch compile operation to Worker
-                self.context.send(Request::Question(
-                    self.forth_input.as_bytes().to_vec(),
-                    ExecutionTarget::Gameboy,
-                ));
-                true
             }
             Msg::Click => {
                 // Dispatch compile operation to Worker
@@ -328,6 +355,34 @@ impl Component for App {
                 // }
                 true
             }
+
+            Msg::CompileGameboy => {
+                play_gameboy();
+                // Dispatch compile operation to Worker
+                // self.context.send(Request::Question(
+                //     self.forth_input.as_bytes().to_vec(),
+                //     ExecutionTarget::Gameboy,
+                // ));
+                true
+            }
+            Msg::CompileDos => {
+                play_dos();
+                // Dispatch compile operation to Worker
+                // self.context.send(Request::Question(
+                //     self.forth_input.as_bytes().to_vec(),
+                //     ExecutionTarget::DOS,
+                // ));
+                true
+            }
+            Msg::CompileC64 => {
+                play_c64();
+                // Dispatch compile operation to Worker
+                // self.context.send(Request::Question(
+                //     self.forth_input.as_bytes().to_vec(),
+                //     ExecutionTarget::DOS,
+                // ));
+                true
+            }
         }
     }
 
@@ -385,44 +440,18 @@ impl Component for App {
             <pre>{blocks}</pre>
         };
 
-        let methods = html! {
-            <div>
-              {self.program.iter().map(|(k, v)| {
-                  let k2 = k.clone();
-                  let onclick = self.link.callback(move |_| Msg::ShowMethod(k2.clone()));
-                  html! { <pre style="cursor: pointer" onclick=onclick>{k}</pre> }
-              }).collect::<Html>()}
-            </div>
-        };
-
-        let mut method_inspect = html! {
-            <div style="flex: 1; overflow: auto; background: #eef; padding: 10px; flex-basis: 0;">
-                <h3>{ "Method" }</h3>
-                { dump }
-            </div>
-        };
-        method_inspect = html! { <></> }; // FIXME this is a hack
-
         let oninput = self
             .link
             .callback(|e: InputData| Msg::ChangeInput(e.value.clone()));
-        let onrun = self.link.callback(|_| Msg::RunInput);
 
-        let action_group = html! {
-            <div style="display: flex; flex-direction: row;">
-                <button style="flex: 1" class="button-action" onclick=onrun>{ "Run in Browser" }</button>
-            </div>
-        };
-
-        let onfocus = self.link.callback(|_| Msg::OnFocus);
-        let onblur = self.link.callback(|_| Msg::OnBlur);
-
-        let onclick = self.link.callback(|_| Msg::CompileGameboy);
-        let ongameboyfocus = self.link.callback(|_| Msg::OnGameboyFocus);
-        let ongameboyblur = self.link.callback(|_| Msg::OnGameboyBlur);
+        let on_play_dos = self.link.callback(|_| Msg::CompileDos);
+        let on_play_gameboy = self.link.callback(|_| Msg::CompileGameboy);
+        let on_play_c64 = self.link.callback(|_| Msg::CompileC64);
         let gameboy_action_group = html! {
             <div style="display: flex; flex-direction: row;">
-                <button style="flex: 1" class="button-action" onclick=onclick>{ "Run on Gameboy" }</button>
+                <button style="flex: 1" class="button-action" onclick=on_play_gameboy>{ "Game Boy" }</button>
+                <button style="flex: 1" class="button-action" onclick=on_play_dos>{ "DOS" }</button>
+                <button style="flex: 1" class="button-action" onclick=on_play_c64>{ "Commodore 64" }</button>
             </div>
         };
 
@@ -441,22 +470,9 @@ impl Component for App {
                         </div>
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
-                        <h3>{ "Browser" }</h3>
-                        { action_group }
-                        <canvas onfocus=onfocus onblur=onblur id="WASM_CANVAS" width="300" height="200" style="border: 1px solid black" tabIndex="0" />
-                        <div style=(if self.wasm.is_none() { "visibility: hidden" } else { "" })>{"Click to play."}</div>
-                        <h3>{ "Gameboy" }</h3>
-                        { gameboy_action_group }
-                        <div style="border: 1px solid black; display: inline-block">
-                            <canvas id="GAMEBOY_CANVAS" onfocus=ongameboyfocus onblur=ongameboyblur width="300" height="200" tabIndex="0" style="display: block;" />
-                        </div>
-                        <div>{"Click to play."}</div>
-                        <h3>{ "Print Output" }</h3>
-                        <textarea id="PRINT_OUTPUT" style="display: block; width: 100%; padding: 10px; border: 1px solid black;" rows="10" />
-                        <h3>{ "Method List" }</h3>
-                        { methods }
+                        <div>{gameboy_action_group}</div>
+                        <div style="background-color: #333; width: 700px; height: 444px" id="console-target"></div>
                     </div>
-                    {method_inspect}
                 </div>
             </div>
         }

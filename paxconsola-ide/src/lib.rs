@@ -41,9 +41,13 @@ pub enum Msg {
     OnFocus,
     OnBlur,
     InputChange(usize),
-    CompileGameboy,
+
     OnGameboyFocus,
     OnGameboyBlur,
+
+    CompileGameboy,
+    CompileDos,
+    CompileC64,
 
     GameboyBinary(Vec<u8>),
 }

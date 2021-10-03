@@ -2,10 +2,15 @@ html,
 body {
     margin: 0;
     padding: 0;
-    background: black;
+    background: #333;
     width: 100%;
     height: 100%;
     overflow: hidden;
+}
+
+body {
+    display: flex;
+    align-items: center;
 }
 
 #canvas.loaded {

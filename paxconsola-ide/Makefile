@@ -6,13 +6,25 @@ CARGO_MODE = --release
 CARGO_DIR = release
 endif
 
-all: crossconsola
+deps: crossconsola emulators
 
-.PHONY: crossconsola ci compile-workers serve book build trunk-build compile-workers netlify-setup
+.PHONY: crossconsola emulators ci compile-workers serve book build trunk-build compile-workers netlify-setup
 
 crossconsola:
 	mkdir -p build/crossconsola
 	wget -qO- https://github.com/tcr/crossconsola/releases/download/1.0.0/crossconsola.tar.gz | tar -xvf - -C ./build/crossconsola/
+
+emulators:
+	mkdir -p static/emulators/lib
+	cd static/emulators/lib; wget https://raw.githubusercontent.com/db48x/emularity/05390a4c915790825b67431803cada9ef66fa97f/browserfs.min.js
+	cd static/emulators/lib; wget https://archive.org/download/emularity_engine_v1/dosbox-sync.js.gz; gunzip dosbox-sync.js.gz
+	cd static/emulators/lib; wget https://archive.org/download/emularity_engine_v1/dosbox-sync.mem.gz; gunzip dosbox-sync.mem.gz
+	cd static/emulators/lib; wget https://raw.githubusercontent.com/db48x/emularity/05390a4c915790825b67431803cada9ef66fa97f/es6-promise.js
+	cd static/emulators/lib; wget https://raw.githubusercontent.com/db48x/emularity/05390a4c915790825b67431803cada9ef66fa97f/loader.js
+	mkdir -p static/emulators/lib/logo
+	cd static/emulators/lib/logo; wget https://raw.githubusercontent.com/db48x/emularity/05390a4c915790825b67431803cada9ef66fa97f/logo/emularity_color_small.png
+	cd static/emulators/lib; wget https://archive.org/download/emularity_engine_v1/vice-resid.js.gz; gunzip vice-resid.js.gz
+	cd static/emulators/lib; wget https://unpkg.com/wasmboy@0.7.0/dist/wasmboy.ts.umd.js
 
 compile-workers:
 	mkdir -p build/workers/
@@ -31,9 +43,9 @@ build: book compile-workers trunk-build
 
 # Deploy steps
 
-ci: crossconsola netlify-setup build
+ci: deps netlify-deps build
 
-netlify-setup:
+netlify-deps:
 ifeq ($(CI),"")
     $(error expected CI=true)
 endif

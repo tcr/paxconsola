@@ -28,7 +28,7 @@
         <tr>
             <td>
                 <h3>Game Boy</h3>
-                <iframe src="gameboy/?test" width="700" height="444" id="window-gameboy"></iframe>
+                <iframe src="gameboy/" width="700" height="444" id="window-gameboy"></iframe>
             </td>
         </tr>
     </table>
@@ -36,19 +36,19 @@
 
 <script>
     document.querySelector('#window-dos').onload = (e) => {
-        fetch('/dos/paxconsola.zip').then(res => res.arrayBuffer()).then(arr => {
+        fetch('dos/paxconsola.zip').then(res => res.arrayBuffer()).then(arr => {
             let dos = e.target.contentWindow;
             dos.postMessage(new Uint8Array(arr));
         });
     };
     document.querySelector('#window-c64').onload = (e) => {
-        fetch('/c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => {
+        fetch('c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => {
             let dos = e.target.contentWindow;
             dos.postMessage(new Uint8Array(arr));
         });
     };
     document.querySelector('#window-gameboy').onload = (e) => {
-        fetch('/gameboy/paxconsola.gb').then(res => res.arrayBuffer()).then(arr => {
+        fetch('gameboy/paxconsola.gb').then(res => res.arrayBuffer()).then(arr => {
             let dos = e.target.contentWindow;
             dos.postMessage(new Uint8Array(arr));
         });
