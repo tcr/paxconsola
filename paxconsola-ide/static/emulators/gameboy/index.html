@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <base href="../">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="emulator-style.css">
+    <title>Game Boy</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="0"></canvas>
+
+    <script src="lib/wasmboy.ts.umd.js"></script>
+
+    <script>
+        function play(binary) {
+            const loadWasmBoy = async () => {
+                const wasmBoyCanvas = document.querySelector('#canvas');
+                // const EmbedPlugin = {
+                //     name: 'EmbedPlugin',
+                //     saveState: saveStateObject => {
+                //         if (wasmBoyCanvas) {
+                //             saveStateObject.screenshotCanvasDataURL = wasmBoyCanvas.toDataURL();
+                //         }
+                //     },
+                //     play: () => isPlaying.set(true),
+                //     pause: () => {
+                //         isPlaying.set(false);
+                //         setStatus('Paused', -1);
+                //     }
+                // };
+
+                await WasmBoy.WasmBoy.config({
+                    isGbcEnabled: false,
+                    isGbcColorizationEnabled: false,
+                    isAudioEnabled: false,
+                    gameboyFrameRate: 60,
+                    maxNumberOfAutoSaveStates: 3
+                });
+                await WasmBoy.WasmBoy.setCanvas(wasmBoyCanvas);
+                // WasmBoy.addPlugin(EmbedPlugin);
+                await WasmBoy.WasmBoy.loadROM(binary);
+                await WasmBoy.WasmBoy.play();
+                wasmBoyCanvas.className = "loaded";
+                wasmBoyCanvas.style.height = '100%';
+            }
+            const wasmBoyPromise = loadWasmBoy().catch(error => {
+                console.error(error);
+                throw error;
+            });
+        };
+
+
+
+        if (!window.parent) {
+            fetch('gameboy/paxconsola.gb').then(res => res.arrayBuffer()).then(arr => play(arr));
+        }
+
+        window.onmessage = (e) => {
+            if (e.data instanceof Uint8Array) {
+                play(e.data);
+            }
+        };
+
+    </script>
+
+</body>
+
+</html>

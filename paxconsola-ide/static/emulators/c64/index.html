@@ -1,0 +1,89 @@
+<!--
+ The Emularity: An Example C64 Loader
+ For use with The Emularity, downloadable at http://www.emularity.com/
+
+ SIMPLE STEPS for trying an emulated computer using ViceJS 3.2
+ ("Comaland" for the C64).
+
+ * Check out this repository in your browser-accessible directory;
+   this file as well as es6-promise.js, browserfs.min.js and loader.js
+   are required. The logo and images directories are optional, but the
+   splash screen looks quite a lot better when they're available.
+
+ * Download the files that comprise the compiled ViceJS emulator:
+   https://archive.org/download/emularity_engine_v1/vice-resid.js.gz
+
+ * Download a copy of Comaland 100% from
+   https://archive.org/download/comaland_100/image{1..4}.d64
+
+ * Visit your example_vicejs.html file with a modern
+   Javascript-capable browser.
+
+ * For more information about the Vice Emscripten port, please see
+   https://github.com/rjanicek/vice.js/ (for Vice 2.4), or Sgeo's
+   repository for Vice 3.2 (once he publishes it, hint hint).
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base href="../">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Commodore 64</title>
+
+  <link rel="stylesheet" href="emulator-style.css">
+</head>
+
+<body>
+  <canvas id="canvas" width="0"></canvas>
+
+  <script type="text/javascript" src="lib/es6-promise.js"></script>
+  <script type="text/javascript" src="lib/browserfs.min.js"></script>
+  <script type="text/javascript" src="lib/loader.js"></script>
+
+  <script type="text/javascript">
+    function play(binary) {
+      var emulator = new Emulator(document.querySelector("#canvas"),
+        {
+          before_run: () => {
+            canvas.className = "loaded";
+            canvas.style.height = "100%";
+          }
+        },
+        new VICELoader(VICELoader.emulatorJS("lib/vice-resid.js"),
+          VICELoader.nativeResolution(768, 544),
+          VICELoader.extraArgs([
+            "-soundfragsize", "4",
+            "-soundrate", "48000",
+            "-soundsync", "2",
+            "-soundbufsize", "150",
+            "-residsamp", "0",
+            "-joydev1", "4",
+            "-VICIIfilter", "0",
+          ]),
+          VICELoader.mountFile("paxconsola.prg",
+            VICELoader.localFile("IDE Program",
+              binary)),
+          VICELoader.fliplist([["paxconsola.prg"]]),
+          VICELoader.autoLoad("paxconsola.prg")))
+        .setSplashImage('lib/logo/emularity_color_small.png');
+
+      emulator.start({ waitAfterDownloading: false });
+    }
+
+
+
+    if (!window.parent) {
+      fetch('c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => play(arr));
+    }
+
+    window.onmessage = (e) => {
+      if (e.data instanceof Uint8Array) {
+        play(e.data);
+      }
+    };
+  </script>
+</body>
+
+</html>

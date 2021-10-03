@@ -1,0 +1,70 @@
+<!--
+ The Emularity: An Example Console Loader
+ For use with The Emularity, downloadable at http://www.emularity.com/
+
+ Placeholder for other MESS emulators
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>example c64</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: black;
+            width: 100%;
+            height: 100%;
+        }
+
+        #canvas {
+            border: 6px solid #333;
+            height: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="0"></canvas>
+
+    <script type="text/javascript" src="es6-promise.js"></script>
+    <script type="text/javascript" src="browserfs.min.js"></script>
+    <script type="text/javascript" src="loader.js"></script>
+
+    <script type="text/javascript">
+        var emulator = new Emulator(document.querySelector("#canvas"),
+            null,
+            new JSMESSLoader(
+                JSMESSLoader.driver("gameboy"),
+
+                JSMAMELoader.nativeResolution(160, 144),
+                JSMAMELoader.scale(3),
+
+                JSMESSLoader.emulatorJS("mamegb.js"),
+
+                JSMESSLoader.peripheral("cart", "bubble-ghost.gb"),
+                JSMESSLoader.mountFile("bubble-ghost.gb",
+                    JSMESSLoader.fetchFile("Game File",
+                        "bubble-ghost.gb")),
+
+                JSMESSLoader.mountFile("gameboy.cfg",
+                    JSMESSLoader.fetchFile("Config File",
+                        "gameboy.cfg")),
+
+                JSMESSLoader.mountZip("gameboy.zip",
+                    JSMESSLoader.fetchFile("BIOS File",
+                        "gameboy.zip")),
+            )
+        )
+        emulator.start({ waitAfterDownloading: false });
+    </script>
+</body>
+
+</html>

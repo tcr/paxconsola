@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html>
+<style>
+    body {
+        background: #666;
+    }
+
+    iframe {
+        border: 0
+    }
+</style>
+
+<body>
+    <h1>Emulator demo</h1>
+    <table style="width: 100%; table-layout: fixed">
+        <tr>
+            <td>
+                <h3>Commodore 64</h3>
+                <iframe src="c64/" width="700" height="444" id="window-c64"></iframe>
+            </td>
+            <td>
+                <h3>DOS</h3>
+                <iframe src="dos/" width=" 700" height="444" id="window-dos"></iframe>
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                <h3>Game Boy</h3>
+                <iframe src="gameboy/?test" width="700" height="444" id="window-gameboy"></iframe>
+            </td>
+        </tr>
+    </table>
+</body>
+
+<script>
+    document.querySelector('#window-dos').onload = (e) => {
+        fetch('/dos/paxconsola.zip').then(res => res.arrayBuffer()).then(arr => {
+            let dos = e.target.contentWindow;
+            dos.postMessage(new Uint8Array(arr));
+        });
+    };
+    document.querySelector('#window-c64').onload = (e) => {
+        fetch('/c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => {
+            let dos = e.target.contentWindow;
+            dos.postMessage(new Uint8Array(arr));
+        });
+    };
+    document.querySelector('#window-gameboy').onload = (e) => {
+        fetch('/gameboy/paxconsola.gb').then(res => res.arrayBuffer()).then(arr => {
+            let dos = e.target.contentWindow;
+            dos.postMessage(new Uint8Array(arr));
+        });
+    };
+</script>
+
+</html>

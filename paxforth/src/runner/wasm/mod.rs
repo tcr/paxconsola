@@ -3,7 +3,7 @@ pub mod stdweb;
 #[cfg(feature = "stdweb")]
 pub use self::stdweb::*;
 
-#[cfg(feature = "wasmtime")]
+#[cfg(not(feature = "stdweb"))]
 pub mod wasmtime;
-#[cfg(feature = "wasmtime")]
+#[cfg(not(feature = "stdweb"))]
 pub use self::wasmtime::*;

@@ -1,0 +1,80 @@
+<!--
+ The Emularity: An Example Computer Loader
+ For use with The Emularity, downloadable at http://www.emularity.com/
+
+ SIMPLE STEPS for trying an emulated computer ("Doom (shareware
+ edition)" for the PC).
+
+ * Check out this repository in your browser-accessible directory;
+   this file as well as es6-promise.js, browserfs.min.js and loader.js
+   are required. The logo and images directories are optional, but the
+   splash screen looks quite a lot better when they're available.
+
+ * Download the two files that comprise the compiled DosBox emulator:
+   https://archive.org/download/emularity_engine_v1/dosbox-sync.js.gz,
+   and https://archive.org/download/emularity_engine_v1/dosbox-sync.mem.gz.
+
+ * Download a copy of Doom from https://archive.org/download/DoomsharewareEpisode/DoomV1.9sw1995idSoftwareInc.action.zip
+
+ * Visit your example_dosbox.html file with a modern
+   Javascript-capable browser.
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base href="../">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>DOS</title>
+
+    <link rel="stylesheet" href="emulator-style.css">
+</head>
+
+<body>
+    <canvas id="canvas" width="0"></canvas>
+
+    <script type="text/javascript" src="lib/es6-promise.js"></script>
+    <script type="text/javascript" src="lib/browserfs.min.js"></script>
+    <script type="text/javascript" src="lib/loader.js"></script>
+
+    <script type="text/javascript">
+        function play(binary) {
+            var canvas = document.querySelector("#canvas");
+            var emulator = new Emulator(canvas,
+                {
+                    before_run: () => {
+                        canvas.className = "loaded";
+                    }
+                },
+                new DosBoxLoader(DosBoxLoader.emulatorJS("lib/dosbox-sync.js"),
+                    DosBoxLoader.locateAdditionalEmulatorJS(locateAdditionalFiles),
+                    DosBoxLoader.nativeResolution(320, 200),
+                    DosBoxLoader.mountZip("c",
+                        DosBoxLoader.localFile("Game File",
+                            binary)),
+                    DosBoxLoader.startExe("PAXCNSLA.COM")))
+                .setSplashImage('lib/logo/emularity_color_small.png');
+            emulator.start({ waitAfterDownloading: false });
+
+            function locateAdditionalFiles(filename) {
+                if (filename === "dosbox.html.mem") {
+                    return "lib/dosbox-sync.mem";
+                }
+                return "lib/" + filename;
+            }
+        }
+
+        if (window.parent == window) {
+            fetch('dos/paxconsola.zip').then(res => res.arrayBuffer()).then(arr => play(arr));
+        }
+
+        window.onmessage = (e) => {
+            if (e.data instanceof Uint8Array) {
+                play(e.data);
+            }
+        };
+    </script>
+</body>
+
+</html>
