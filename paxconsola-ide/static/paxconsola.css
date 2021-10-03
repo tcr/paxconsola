@@ -1,0 +1,120 @@
+html,
+body,
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#CONTENT {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+}
+
+#MONACO_INJECT {
+    /* height: 300px; */
+}
+
+#MONACO_TEXTAREA {
+    position: fixed;
+    left: -1000px;
+    top: -10000px;
+    visibility: hidden;
+}
+
+.button-action {
+    font-size: 18px;
+    margin: 10px 8px;
+    padding: 4px 16px;
+    border: 1px solid inset;
+    background: #eef;
+}
+
+#WASM_CANVAS {
+    cursor: pointer;
+    position: relative;
+}
+
+#WASM_CANVAS::after {
+    content: "Click to start playing."
+}
+
+#WASM_CANVAS:focus {
+    outline: 5px solid #0f0 !important;
+}
+
+#GAMEBOY_CANVAS {
+    width: 320px !important;
+    height: 288px !important;
+}
+
+#GAMEBOY_CANVAS:focus {
+    outline: 5px solid #0f0 !important;
+}
+
+/* IDE header */
+
+#header {
+    background: black;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+#header h1 {
+    font-size: 24px;
+    margin: 0;
+    margin-right: 20px;
+    padding: 10px 0;
+    font-family: Bungee Inline, Arial Black, sans-serif;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+#subheader {
+    margin-left: 30px;
+    padding-left: 30px;
+    border-left: 1px solid #ddd;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#subheader a {
+    margin: 0 10px;
+    font-size: 20px;
+    font-weight: 300;
+    font-family: Helvetica, Arial, sans-serif;
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 12px 30px 8px;
+    border-radius: 5px;
+}
+
+#subheader a:hover {
+    background: #333;
+    text-decoration: underline;
+}
+
+
+/* About Page */
+
+#about-page {
+    margin: 0 auto 0;
+    padding: 20px 0 30px;
+    max-width: 40em;
+    font-size: 1.3em;
+    font-weight: 200;
+    font-family: Helvetica, Arial, sans-serif;
+    line-height: 1.2;
+}
+
+#about-page h2, #about-page h3, #about-page h4 {
+    margin-top: 1.5em;
+}

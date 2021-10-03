@@ -459,8 +459,13 @@ impl Component for App {
 
         html! {
             <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
-                <div style="background: black; color: white; font-size: 24px; padding: 10px 0; text-align: center; font-family: Bungee Inline, Arial Black, sans-serif; text-transform: uppercase;">
-                    {"Pax Consola"}
+                <div id="header">
+                    <h1>{"Pax Consola"}</h1>
+                    <div id="subheader">
+                        <a href="/static/about/">{"About"}</a>
+                        <a href="/book/">{"Docs"}</a>
+                        <a href="http://github.com/tcr/paxconsola">{"Github"}</a>
+                    </div>
                 </div>
                 <div style="display: flex; flex: 1; align-items: stretch; overflow: auto;">
                     <div style="flex: 1; flex-direction: column; display: flex; padding: 16px; overflow: hidden">
