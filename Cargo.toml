@@ -3,7 +3,6 @@
 members = [
     "paxforth",
     "paxconsola-ide",
-    # "paxconsola-desktop",
     "pixconsola",
 ]
 
