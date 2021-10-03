@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 yew = "0.18.0"
-paxforth = { path = "../paxforth", default-features = false, features = ["stdweb"] }
+paxforth = { path = "../paxforth", default-features = false, features = ["web"] }
 indexmap = "*"
 include_dir = "0.5.0"
 serde = { version = "1.0", features = ["derive"] }

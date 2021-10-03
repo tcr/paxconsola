@@ -1,9 +1,9 @@
 #![recursion_limit = "1024"]
 
 pub mod ast;
-#[cfg(feature = "wasmtime")]
+#[cfg(not(feature = "web"))]
 pub mod check;
-#[cfg(feature = "wasmtime")]
+#[cfg(not(feature = "web"))]
 pub mod debug;
 pub mod parse;
 pub mod program;
