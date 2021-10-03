@@ -393,6 +393,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     ],
                 );
             }
+            "?of" => {
+                push_tokens(&mut parser_iter, &pos, &[Token::Word("if".to_string())]);
+            }
 
             /* do .. loop/-loop (constructed) */
             "do" => {
