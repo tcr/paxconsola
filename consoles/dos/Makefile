@@ -16,6 +16,8 @@ ENGINE_FLAG=ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
 
 all: check $(OUT)
 
+.PHONY: check clean build run $(OUT) 
+
 check:
 ifeq ($(ENGINE),)
 	$(error ENGINE is a required argument)
@@ -26,11 +28,12 @@ endif
 	touch $(GAME)
 
 clean:
-	rm -f build
+	rm -rf build
 
 # Build files
 
 $(BUILD_DIR)/paxconsola_generated.asm: $(GAME)
+	mkdir -p $(BUILD_DIR)
 	paxforth compile src/engines/dos-$(ENGINE).fth $(GAME) $(PAX_OPTS) --target dos > $(BUILD_DIR)/paxconsola_generated.asm
 
 $(BUILD_DIR)/%.raw: lib/%.png
