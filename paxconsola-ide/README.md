@@ -9,5 +9,5 @@ make deps
 For development, run `cargo install trunk`, then:
 
 ```
-trunk serve
+make serve
 ```

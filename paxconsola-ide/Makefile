@@ -8,7 +8,7 @@ endif
 
 deps: crossconsola emulators
 
-.PHONY: crossconsola emulators ci compile-workers serve book build trunk-build compile-workers netlify-setup
+.PHONY: crossconsola emulators ci compile-workers serve book build trunk-build compile-workers netlify-setup serve
 
 crossconsola:
 	mkdir -p build/crossconsola
@@ -34,11 +34,11 @@ compile-workers:
 book:
 	cd ../doc; mdbook build
 
-trunk-build:
-	trunk build --release
+serve:
+	trunk serve
 
-build: book compile-workers trunk-build
-	make compile-workers
+build: book
+	trunk build --release
 
 
 # Deploy steps
