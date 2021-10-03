@@ -2,35 +2,54 @@
 
 An implementation of the Forth programming language intended for cross-compilation.
 
+```
+cargo install -p paxforth
+cargo install -p pixconsola
+```
+
+
 ### Tests
 
-```sh
-cd paxforth
-cargo test
-```
-
-Broken tests: `paxforth check paxforth/tests/check/invert.fs`
-
-### Compile Snake
+You can run all tests for the `paxforth` repository:
 
 ```sh
-cd paxforth
-cargo run -- run snake/gb/snake.pax
+./run_tests.sh
+./run_tests_opt.sh
 ```
 
-### Run snake on Gameboy
+
+### Run snake on Gameboy / DOS / C64
 
 ```sh
-cd paxconsola-ide/snake/gb
-make run
+cd consoles/gb/
+make run GAME=snake_world.fth ENGINE=taurus
 ```
+
 
 ### Run the paxconsola IDE
 
 ```sh
 cd paxconsola-ide
-./deploy.sh
+make serve
 ```
+
+
+### Pix Consola
+
+Convert graphics for different target systems using `pixconsola`.
+
+```
+pixconsola encode lib/sprite-hero.png -o build/sprite-hero.raw --format c64-multicolor
+```
+
+This program works especially well with PNGs authored with Aseprite.
+
+
+
+### License
+
+Pax Forth, Pax Consola, and Pix Consola are under the MIT License.
+
 
 ## Inspiration
 
