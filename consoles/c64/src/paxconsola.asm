@@ -133,7 +133,28 @@ ClearMemoryLoop:
         sta $9000,x
         dex
         bne ClearMemoryLoop
-    
+
+InitializeForth:
+        ; disable inerrupts
+        sei
+        ; store stack pointer, since execution might not be clean
+        tsx 
+        stx STACK_RESERVE
+
+        ; Set up PAX registers for execution
+        ; X=return stack pointer, Y = high byte of TOS, A = low byte of TOS
+        ldx #X_START
+        lda #0
+        ldy #0
+
+        jsr PAX_FN_main
+
+        ; restore stack
+        ldx STACK_RESERVE
+        txs
+        ; re-enable interrupts
+        cli
+
 
 before_mainloop:
         nop
@@ -154,13 +175,14 @@ pax_start:
         lda #0
         ldy #0
 
-        jsr PAX_FN_main
+        jsr PAX_FN_next2Dframe
 
         ; restore stack
         ldx STACK_RESERVE
         txs
         ; re-enable interrupts
         cli
+
 
         ; random register
         LDA #5

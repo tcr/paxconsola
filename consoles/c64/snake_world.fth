@@ -89,14 +89,6 @@ variable length
     loop
     ;
 
-: initialize
-    draw-background
-    draw-walls
-    initialize-snake
-    initialize-apple
-    draw-full-snake
-    ;
-
 
 \ game runtime
 
@@ -198,17 +190,27 @@ variable length
     ;
 
 
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
+: initialize
+    draw-background
+    draw-walls
+    initialize-snake
+    initialize-apple
+    draw-full-snake
+    ;
 
 \ Game loop
-draw-snake-head-tail
-draw-apple
-check-input
-move-snake-tail
-move-snake-head
-check-apple
+: next-frame
+    draw-snake-head-tail
+    draw-apple
+    check-input
+    move-snake-tail
+    move-snake-head
+    check-apple
 
-check-collision
-if else 0 initialized ! then
+    check-collision
+    if else initialize then
+    ;
+
+\ Initialize only once
+initialize
+next-frame
