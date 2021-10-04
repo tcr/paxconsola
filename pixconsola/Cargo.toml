@@ -2,13 +2,15 @@
 name = "pixconsola"
 version = "0.1.0"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+documentation = "http://paxconsola.com/book/"
+homepage = "http://paxconsola.com/"
+description = "Pix Consola is a CLI for converting image files to various vintage computer and console image formats."
 
 [dependencies]
-png = "*"
-bitvec = "*"
-transpose = "*"
+png = "0.17"
+bitvec = "0.22"
+transpose = "0.2"
 itertools = "0.10.1"
 structopt = { version = "0.3", features = [ "paw" ] }
 paw = "1.0"
