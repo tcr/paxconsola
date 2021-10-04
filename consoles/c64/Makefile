@@ -7,6 +7,7 @@ AS = ca65
 CFLAGS =
 AFLAGS =
 
+ENGINE=$(shell paxforth metadata fork_world.fth | jq -r -e '.directives.engine')
 ENGINE_FLAG=ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
 
 all: check build/paxconsola.prg

@@ -1,5 +1,6 @@
-use maplit::hashset;
+use maplit::{hashmap, hashset};
 use paxforth::*;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -55,6 +56,11 @@ enum Command {
         #[structopt(flatten)]
         file: FileOpts,
     },
+
+    Metadata {
+        #[structopt(flatten)]
+        file: FileOpts,
+    },
 }
 
 #[derive(StructOpt, Debug)]
@@ -82,6 +88,7 @@ fn main(args: Args) -> Result<(), std::io::Error> {
         Command::Dump { file, .. } |
         Command::Check { file, .. } |
         Command::Run { file, .. } |
+        Command::Metadata { file, .. } |
         Command::Debug { file, .. } => file,
     };
 
@@ -173,7 +180,30 @@ fn main(args: Args) -> Result<(), std::io::Error> {
                 std::process::exit(1);
             }
         }
+
+        Command::Metadata { .. } => {
+            println!(
+                "{:?}",
+                hashmap! {
+                    "directives" => extract_metdata(&code),
+                },
+            );
+        }
     }
 
     Ok(())
+}
+
+use lazy_static::*;
+use regex::*;
+
+fn extract_metdata(source: &str) -> HashMap<String, String> {
+    lazy_static! {
+        static ref RE_METADATA: Regex = Regex::new(r"\(\s*@(\w+)\s+([^)]+?)\s*\)").unwrap();
+    }
+    let mut all_values = HashMap::new();
+    for cap in RE_METADATA.captures_iter(&source) {
+        all_values.insert(cap[1].to_string(), cap[2].to_string());
+    }
+    all_values
 }

@@ -338,6 +338,27 @@ pub fn cross_compile_ir_c64(i: usize, op: Located<Pax>) -> String {
             }
         }
 
+        Pax::Emit => {
+            gb_output!(
+                out,
+                "
+    dex
+    dex
+    lda $02,x
+    jsr $FFD2
+                "
+            )
+        }
+
+        Pax::Abort => {
+            gb_output!(
+                out,
+                "
+    brk
+                "
+            )
+        }
+
         e => {
             unimplemented!("e {:?}", e);
         }
@@ -500,7 +521,7 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
                 gb_output!(
                     out,
                     "
-        jsr PAX_FN_{}
+        jsr PAX_{}
                 ",
                     name_slug(&label)
                 );
@@ -523,7 +544,7 @@ impl ForthCompiler for C64ForthCompiler {
             gb_output!(
                 out,
                 "
-.proc PAX_FN_{}
+.proc PAX_{}
             ",
                 name_slug(&name)
             );

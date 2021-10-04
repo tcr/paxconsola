@@ -147,7 +147,7 @@ InitializeForth:
         lda #0
         ldy #0
 
-        jsr PAX_FN_main
+        jsr PAX_main
 
         ; restore stack
         ldx STACK_RESERVE
@@ -175,7 +175,7 @@ pax_start:
         lda #0
         ldy #0
 
-        jsr PAX_FN_next2Dframe
+        jsr PAX_next2Dframe
 
         ; restore stack
         ldx STACK_RESERVE
