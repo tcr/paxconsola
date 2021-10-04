@@ -143,11 +143,14 @@ r-current o-chest object-move
 
 100 constant t-look
 101 constant t-take
+102 constant t-inventory
 
 : lookup-token ( name-addr name-u -- object )
     case
         2dup s" look" compare 0= ?of t-look endof
         2dup s" take" compare 0= ?of t-take endof
+        2dup s" inv" compare 0= ?of t-inventory endof
+        2dup s" inventory" compare 0= ?of t-inventory endof
         drop 0 swap
     endcase
     ;
@@ -262,42 +265,6 @@ r-current o-chest object-move
 ." Welcome to Fork!" cr cr
 ." What do you do?" cr cr
 
-
-." > inventory" cr
-v-inventory prsa_var !
-0 prso_var !
-0 prsi_var !
-perform-input
-
-
-." > take crowbar" cr
-v-take prsa_var !
-o-crowbar prso_var !
-0 prsi_var !
-perform-input
-
-\ assert
-\ r-current o-crowbar object-is-parent if throw then
-\ o-player o-crowbar object-is-parent if else throw then
-
-." > take crowbar" cr
-v-take prsa_var !
-o-crowbar prso_var !
-0 prsi_var !
-perform-input
-
-." > take chest" cr
-v-take prsa_var !
-o-chest prso_var !
-0 prsi_var !
-perform-input
-
-." > inventory" cr
-v-inventory prsa_var !
-0 prso_var !
-0 prsi_var !
-perform-input
-
 ." > look" cr
 v-look prsa_var !
 0 prso_var !
@@ -309,7 +276,7 @@ variable read-input-len
 variable read-input
 255 cells allot
 
-: json-isblank ( char -- flag )
+: char-is-whitespace ( char -- flag )
     case
         0x09 of true endof
         0x0a of true endof
@@ -318,7 +285,7 @@ variable read-input
         false swap
     endcase ;
 
-: json-isnotblank ( char -- flag )
+: char-is-not-whitespace ( char -- flag )
     case
         0x09 of false endof
         0x0a of false endof
@@ -327,42 +294,61 @@ variable read-input
         true swap
     endcase ;
 
-: json-getchar ( c-addr1 u1 -- c-addr2 u2 char )
-    1- swap dup 1+ -rot c@ ;
-
-: json-ungetchar ( c-addr1 u1 char -- c-addr2 u2 )
-    rot 1- tuck c! swap 1+ ;
-
-: json-trim ( c-addr1 u1 -- c-addr2 u2 )
+: str-left-trim ( c-addr1 u1 -- c-addr2 u2 )
     begin dup 0= if leave then
-        over c@ json-isblank
+        over c@ char-is-whitespace
     while
         1- swap 1+ swap
     repeat
     ;
 
-: json-next ( c-addr1 u1 -- c-addr1 u1 )
-    2dup
-    begin json-getchar dup json-isnotblank while drop repeat
-    json-ungetchar
+: str-next-whitespace ( c-addr1 u1 -- c-addr2 u2 )
+    begin dup 0= if leave then
+        over c@ char-is-not-whitespace
+    while
+        1- swap 1+ swap
+    repeat
+    ;
+
+\ Truncate the length to be only this word
+: str-truncate-word ( c-addr1 u1 -- c-addr1 u2)
+    2dup str-next-whitespace
     swap drop -
     ;
 
-
+variable current-word
+2 cells allot
 
 : next-frame
     ." > "
     read-input 255 accept read-input-len !
 
-    read-input read-input-len @ json-trim
-    lookup-object
-    dup 0= if
-        drop ." I don't understand \"" read-input read-input-len @ type ." \"." cr cr
-    else
+    read-input read-input-len @ str-left-trim str-truncate-word
+    current-word 2!
+
+    current-word 2@ lookup-object
+    dup if
         prso_var !
         v-take prsa_var !
         0 prsi_var !
         perform-input
+    else
+        current-word 2@ lookup-token
+        dup case
+            t-inventory of 
+                v-inventory prsa_var !
+                0 prso_var !
+                0 prsi_var !
+                perform-input
+            endof
+            t-look of 
+                v-look prsa_var !
+                0 prso_var !
+                0 prsi_var !
+                perform-input
+            endof
+            ." I don't understand \"" read-input read-input-len @ type ." \"." cr cr
+        endcase
     then
     ;
 
