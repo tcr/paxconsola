@@ -1157,7 +1157,7 @@ checksum = "7f0b59668fe80c5afe998f0c0bf93322bf2cd66cafeeb80581f291716f3467f2"
 
 [[package]]
 name = "paxforth"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "crossterm",
@@ -1217,7 +1217,7 @@ dependencies = [
 
 [[package]]
 name = "pixconsola"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bitvec",
  "derive_more",
