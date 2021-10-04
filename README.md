@@ -1,12 +1,21 @@
 # Pax Consola
 
-An implementation of the Forth programming language intended for cross-compilation.
+Pax Consola is a programming environment for retro consoles.
+
+<big>
+  [Documentation](http://paxconsola.com/book/) | 
+  [Website + IDE](http://paxconsola.com/)
+</big>
+
+
+## Installation
+
+You can install the command line binaries from this repo:
 
 ```
-cargo install -p paxforth
+cargo install --git https://github.com/tcr/paxconsola paxforth
 cargo install -p pixconsola
 ```
-
 
 ### Tests
 
@@ -22,7 +31,7 @@ You can run all tests for the `paxforth` repository:
 
 ```sh
 cd consoles/gb/
-make run GAME=snake_world.fth ENGINE=taurus
+make run GAME=snake_world.fth
 ```
 
 

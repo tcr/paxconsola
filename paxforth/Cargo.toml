@@ -2,6 +2,10 @@
 name = "paxforth"
 version = "0.1.0"
 edition = "2018"
+license = "MIT"
+documentation = "http://paxconsola.com/book/"
+homepage = "http://paxconsola.com/"
+description = "Pax Forth programming language for Pax Consola, a development environment for vintage computers and consoles."
 
 [dependencies]
 regex = "1"

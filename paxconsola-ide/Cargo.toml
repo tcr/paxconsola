@@ -3,6 +3,7 @@ name = "ide"
 version = "0.1.0"
 authors = ["Tim Ryan <trim@fb.com>"]
 edition = "2018"
+publish = false
 
 [dependencies]
 yew = "0.18.0"
