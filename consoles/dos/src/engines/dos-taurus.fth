@@ -21,3 +21,11 @@ extern random-word ( -- rand8bit )
 0 constant char-space
 1 constant color-green
 3 constant color-red
+
+\ on DOS cr is \r\n
+: cr 13 emit 10 emit ;
+
+: 2@ ( a-addr -- w1 w2 ) dup 2 + @ swap @ ;
+: 2! ( w1 w2 a-addr -- ) dup temp! ! temp@ 2 + ! ;
+
+extern accept ( c-addr c-n-max -- c-n )

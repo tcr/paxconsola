@@ -19,6 +19,7 @@ variable  temp \ first variable
 : 1-   -1 + ;
 : +!   dup >r @ + r> ! ;
 : 0=   if 0 else -1 then ;
+: 0<>  if -1 else 0 then ;
 : =    - 0= ;
 : <>   = 0= ;
 : ==   - 0= ;
@@ -49,7 +50,7 @@ variable  temp \ first variable
 
 : type ( c-addr u -- )
     0 do
-        dup i + @ emit
+        dup i + c@ emit
     loop
     drop
     ;
@@ -63,12 +64,14 @@ variable  temp \ first variable
 : throw 0 = if else abort then ;
 
 : ?dup ( w -- 0 | w w ) dup 0= if else dup then ;
-: 2@ ( a-addr -- w1 w2 ) dup 1+ @ swap @ ;
-: 2! ( w1 w2 a-addr -- ) dup temp! ! temp@ 1+ ! ;
 : 2over ( w1 w2 w3 w4 -- w1 w2 w3 w4 w1 w2 )
     rot >r rot dup r> swap >r >r -rot r@ -rot r> r> swap ;
 : 2swap ( w1 w2 w3 w4 -- w3 w4 w1 w2 )
     rot >r rot r> ;
+
+\ TODO involve "cells"
+: 2@ ( a-addr -- w1 w2 ) dup 1+ @ swap @ ;
+: 2! ( w1 w2 a-addr -- ) dup temp! ! temp@ 1+ ! ;
 
 : nip    >r temp! r> ;
 : <   2dup xor 0< if drop 0< else - 0< then ;
@@ -120,7 +123,7 @@ variable  temp \ first variable
         2dup
         or 0= if
             drop 0 1
-        else
+        else                            ( c-addr1 c-addr2)
             dup 0= if
                 drop -1 1
             else
@@ -128,7 +131,7 @@ variable  temp \ first variable
                     drop 1 1
                 else                    ( c-addr1 c-addr2 u2 u1 )
                     >r >r               ( c-addr1 c-addr2 )
-                    2dup @ swap @       ( c-addr1 c-addr2 c2 c1 )
+                    2dup c@ swap c@       ( c-addr1 c-addr2 c2 c1 )
                     -                   ( c-addr1 c-addr2 [c2 - c1] )
                     dup 0< if
                         \ less than 1

@@ -134,7 +134,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         &[
                             Token::Literal(c as isize),
                             Token::Literal(program.variable_offset as isize),
-                            Token::Word("!".to_string()),
+                            Token::Word("c!".to_string()),
                         ],
                     );
                     program.variable_offset += 1;

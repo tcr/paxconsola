@@ -79,3 +79,55 @@ PAXEXT_random2Dword:
     ; switch hardware stack to alt stack to pop value
     xchg sp,bp
     ret
+
+
+; extern call "accept"
+PAXEXT_accept:
+    ; switch hardware stack back from alt stack
+    xchg sp,bp
+
+    ; Enable cursor
+    mov cx,0x0607
+    mov ah,1
+    int 10h
+
+    mov cx,bx
+    pop bx
+    mov dx,0
+
+    ; ax = dummy
+    ; bx = char pointer
+    ; cx = max # of chars
+    ; dx = # of read chars
+
+.read:
+    mov ah, 1
+	int 21h
+    jz .read
+
+    ; Check newline
+    cmp al, 13
+    jz .done_read
+
+    inc dx
+
+    mov [bx], al
+    inc bx
+
+    ; Check char limit
+    cmp dx,cx
+    jnz .read
+
+.done_read:
+
+    ; Move # of characters read to TOS
+    mov bx, dx
+
+    ; Disable cursor
+    mov cx,0xffff
+    mov ah,1
+    int 10h
+
+    ; switch hardware stack to alt stack to pop value
+    xchg sp,bp
+    ret

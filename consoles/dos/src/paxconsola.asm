@@ -83,6 +83,16 @@ start:
         ; Setup random seed
         call rand_seed
 
+        ; Clear memory
+        mov ax, $1000
+    .clear_memory:
+        dec ax
+        mov bx,ax
+        add bx,0xc000
+        mov byte [bx],0
+        test ax,ax
+        jnz .clear_memory
+
 
 %ifdef ENGINE_TAURUS
 
@@ -96,7 +106,6 @@ engine_start:
         mov ah,1
         int 10h
 
-main_loop:
         ; Setup return stack for Forth
         mov bx,0xF000
         mov bp,bx
@@ -104,6 +113,16 @@ main_loop:
         ; Call Forth
         xchg sp,bp
         call PAX_main
+        xchg sp,bp
+
+main_loop:
+        ; Setup return stack for Forth
+        mov bx,0xF000
+        mov bp,bx
+
+        ; Call Forth
+        xchg sp,bp
+        call PAX_next2Dframe
         xchg sp,bp
 
         ; Wait for VBLANK.
@@ -600,6 +619,9 @@ map_bitmap_lookup:
 
 
 
+%endif
+
+
 
 ; Irrelevant interrupt you can break on in the monitor
 ; BPINT 21 25
@@ -609,9 +631,6 @@ dosbox_break:
         int 21h
         pop ax
         ret
-
-
-%endif
 
 
 ;https://stackoverflow.com/a/40709661

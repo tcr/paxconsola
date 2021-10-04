@@ -162,6 +162,25 @@ pub fn cross_compile_ir_dos(i: usize, op: Located<Pax>) -> String {
                 "
             )
         }
+        Pax::Emit => {
+            gb_output!(
+                out,
+                "
+    mov al, bl
+    mov ah, 0x0E
+    int 10h
+    pop bx
+                "
+            )
+        }
+        Pax::Abort => {
+            gb_output!(
+                out,
+                "
+    int 20h
+                "
+            )
+        }
 
         e => {
             unimplemented!("e {:?}", e);
