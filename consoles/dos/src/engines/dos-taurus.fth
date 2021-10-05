@@ -17,8 +17,8 @@ extern random-word ( -- rand8bit )
 
 2 constant TILE_WALL
 
-0x20 constant color-white
-0 constant char-space
+0 constant color-white
+2 constant color-black
 1 constant color-green
 3 constant color-red
 

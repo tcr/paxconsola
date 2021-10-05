@@ -1,3 +1,5 @@
+( @engine taurus )
+
 variable initialized
 variable frame \ unused
 
@@ -87,14 +89,6 @@ variable length
     length @ 0 do
         i snake-x @ i snake-y @ draw-snake-tile
     loop
-    ;
-
-: initialize
-    draw-background
-    draw-walls
-    initialize-snake
-    initialize-apple
-    draw-full-snake
     ;
 
 
@@ -198,17 +192,27 @@ variable length
     ;
 
 
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
 \ Game loop
-draw-snake-head-tail
-draw-apple
-check-input
-move-snake-tail
-move-snake-head
-check-apple
 
-check-collision
-if else 0 initialized ! then
+: initialize
+    draw-background
+    draw-walls
+    initialize-snake
+    initialize-apple
+    draw-full-snake
+    ;
+
+: next-frame
+    draw-snake-head-tail
+    draw-apple
+    check-input
+    move-snake-tail
+    move-snake-head
+    check-apple
+
+    check-collision
+    if else initialize then
+    ;
+
+initialize
+next-frame

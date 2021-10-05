@@ -1,22 +1,22 @@
+( @engine taurus )
+
 \ Fork: Not quite Zork
 
-(
-    struct
-        double% field object-name
-        cell% field object-parent
-        cell% field object-sibling
-        cell% field object-child
-        cell% field object-attributes
-    end-struct object%
-)
+\ struct
+\     double% field object-name
+\     cell% field object-parent
+\     cell% field object-sibling
+\     cell% field object-child
+\     cell% field object-attributes
+\ end-struct object%
 
 : object-name 0 + ;
-: object-parent 2 + ;
-: object-sibling 3 + ;
-: object-child 4 + ;
-: object-attributes 5 + ;
+: object-parent 4 + ;
+: object-sibling 6 + ;
+: object-child 8 + ;
+: object-attributes 10 + ;
 
-6 constant object-cells
+12 constant object-cells
 
 : object% ( -- align size ) 8 object-cells ;
 
@@ -64,7 +64,7 @@ variable prsa_var
         swap object-child !
         drop
     else
-        ." TODO: DETACH CHILD\n"
+        ." TODO: DETACH CHILD" cr
         2drop
     then
     ;
@@ -82,25 +82,28 @@ variable prsa_var
     =
     ;
 
+
 \ Setup "Living Room"
 variable r-living-room
-6 cells allot
+12 cells allot
 s" Living Room" r-living-room object-name 2!
+
 
 \ Set current room location
 variable r-current-var
 r-living-room r-current-var !
 : r-current r-current-var @ ;
 
+
 \ Setup player
 variable o-player
-6 cells allot
+12 cells allot
 s" you" o-player object-name 2!
 
 
 \ Setup crowbar
 variable o-crowbar
-6 cells allot
+12 cells allot
 s" crowbar" o-crowbar object-name 2!
 a-takeable o-crowbar object-attributes !
 
@@ -115,16 +118,13 @@ r-current o-crowbar object-is-parent if else throw then
     false
     ;
 
-
 \ Setup chest
 variable o-chest
-6 cells allot
+12 cells allot
 s" chest" o-chest object-name 2!
 
 \ Move chest into room.
 r-current o-chest object-move
-
-
 
 \ Object lookups
 
@@ -135,7 +135,7 @@ r-current o-chest object-move
     endcase
     ;
 
-: object-lookup ( name-addr name-u -- object )
+: lookup-object ( name-addr name-u -- object )
     case
         2dup s" chest" compare 0= ?of o-chest endof
         2dup s" crowbar" compare 0= ?of o-crowbar endof
@@ -143,6 +143,19 @@ r-current o-chest object-move
     endcase
     ;
 
+100 constant t-look
+101 constant t-take
+102 constant t-inventory
+
+: lookup-token ( name-addr name-u -- object )
+    case
+        2dup s" look" compare 0= ?of t-look endof
+        2dup s" take" compare 0= ?of t-take endof
+        2dup s" inv" compare 0= ?of t-inventory endof
+        2dup s" inventory" compare 0= ?of t-inventory endof
+        drop 0 swap
+    endcase
+    ;
 
 
 \ Verbs
@@ -155,20 +168,20 @@ r-current o-chest object-move
         endof
         \ parent is player
         prso object-parent @ o-player = ?of
-            ." You already possess the " prso-name type ." .\n" true
+            ." You already possess the " prso-name type ." ." cr true
         endof
         \ not in room
         prso object-parent @ r-current <> ?of
-            ." There is no " prso-name type ."  here.\n" true
+            ." There is no " prso-name type ."  here." cr true
         endof
         \ not takeable
         prso object-attributes @ a-takeable and 0= ?of
-            ." You can't take the " prso-name type ." .\n" true
+            ." You can't take the " prso-name type ." ." cr true
         endof
 
         \ Move object to player
         o-player prso object-move
-        ." Took the " prso object-name 2@ type ." .\n"
+        ." Took the " prso-name type ." ." cr
         true dup
     endcase
     ;
@@ -180,22 +193,22 @@ r-current o-chest object-move
 
 : verb-inventory ( -- success )
     o-player object-child @ if 
-        ." Your inventory contains:\n"
+        ." Your inventory contains:" cr
         o-player object-child @ print-siblings
         true
     else
-        ." Your inventory is empty.\n"
+        ." Your inventory is empty." cr
         true
     then
     ;
 
 : verb-look ( -- success )
     r-current object-child @ if 
-        ." The room contains:\n"
+        ." The room contains:" cr
         r-current object-child @ print-siblings
         true
     else
-        ." The room is empty.\n"
+        ." The room is empty." cr
         true
     then
     ;
@@ -233,7 +246,7 @@ r-current o-chest object-move
 
 : act-prsi
     prsi if
-        ." TODO: indirect action\n"
+        ." TODO: indirect action" cr
         true
     else false then
     ;
@@ -244,55 +257,101 @@ r-current o-chest object-move
         act-prsi if leave then
         act-prso if leave then
         act-prsa if leave then
-        ." I don't understand what you are trying to do.\n"
-        1
+        ." I don't understand what you are trying to do." cr
+        true
     until
     cr
     ;
 
 
+." Welcome to Fork!" cr cr
+." What do you do?" cr cr
 
-
-." Welcome to Fork!\n\n"
-." What do you do?\n\n"
-
-." > inventory\n"
-v-inventory prsa_var !
-0 prso_var !
-0 prsi_var !
-perform-input
-
-
-." > take crowbar\n"
-v-take prsa_var !
-o-crowbar prso_var !
-0 prsi_var !
-perform-input
-
-\ assert
-r-current o-crowbar object-is-parent if throw then
-o-player o-crowbar object-is-parent if else throw then
-
-." > take crowbar\n"
-v-take prsa_var !
-o-crowbar prso_var !
-0 prsi_var !
-perform-input
-
-." > take chest\n"
-v-take prsa_var !
-o-chest prso_var !
-0 prsi_var !
-perform-input
-
-." > inventory\n"
-v-inventory prsa_var !
-0 prso_var !
-0 prsi_var !
-perform-input
-
-." > look\n"
+." > look" cr
 v-look prsa_var !
 0 prso_var !
 0 prsi_var !
 perform-input
+
+\ Buffer for reading input
+variable read-input-len
+variable read-input
+255 cells allot
+
+: char-is-whitespace ( char -- flag )
+    case
+        0x09 of true endof
+        0x0a of true endof
+        0x0d of true endof
+        0x20 of true endof
+        false swap
+    endcase ;
+
+: char-is-not-whitespace ( char -- flag )
+    case
+        0x09 of false endof
+        0x0a of false endof
+        0x0d of false endof
+        0x20 of false endof
+        true swap
+    endcase ;
+
+: str-left-trim ( c-addr1 u1 -- c-addr2 u2 )
+    begin dup 0= if leave then
+        over c@ char-is-whitespace
+    while
+        1- swap 1+ swap
+    repeat
+    ;
+
+: str-next-whitespace ( c-addr1 u1 -- c-addr2 u2 )
+    begin dup 0= if leave then
+        over c@ char-is-not-whitespace
+    while
+        1- swap 1+ swap
+    repeat
+    ;
+
+\ Truncate the length to be only this word
+: str-truncate-word ( c-addr1 u1 -- c-addr1 u2)
+    2dup str-next-whitespace
+    swap drop -
+    ;
+
+variable current-word
+2 cells allot
+
+: next-frame
+    ." > "
+    read-input 255 accept read-input-len !
+
+    read-input read-input-len @ str-left-trim str-truncate-word
+    current-word 2!
+
+    current-word 2@ lookup-object
+    dup if
+        prso_var !
+        v-take prsa_var !
+        0 prsi_var !
+        perform-input
+    else
+        current-word 2@ lookup-token
+        dup case
+            t-inventory of 
+                v-inventory prsa_var !
+                0 prso_var !
+                0 prsi_var !
+                perform-input
+            endof
+            t-look of 
+                v-look prsa_var !
+                0 prso_var !
+                0 prsi_var !
+                perform-input
+            endof
+            ." I don't understand \"" read-input read-input-len @ type ." \"." cr cr
+        endcase
+    then
+    ;
+
+next-frame

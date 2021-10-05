@@ -100,7 +100,9 @@ fn main(args: Args) -> Result<(), std::io::Error> {
     // Concatenate files into a Vec<u8>
     let code = arg_file
         .iter()
-        .map(|file| std::fs::read_to_string(&file).expect("could not read file"))
+        .map(|file| {
+            std::fs::read_to_string(&file).expect(&format!("could not read file {:?}", file))
+        })
         .collect::<Vec<_>>()
         .join("\n\n");
 

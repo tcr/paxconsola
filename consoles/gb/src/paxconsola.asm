@@ -64,6 +64,11 @@ START:
 	ld a, $dd
 	ld [$ffff], a
 
+	; Set forth stack to end of zero page RAM
+	ld c, $fe
+	ld hl, $0
+	call PAX_FN_main
+
 LOOP:
 	call READ_JOYPAD
 	call JOY_RIGHT
@@ -76,7 +81,7 @@ LOOP:
 	; Set forth stack to end of zero page RAM
 	ld c, $fe
 	ld hl, $0
-	call PAX_FN_main
+	call PAX_FN_next2Dframe
 
 	; store random number in pax_var_random
 	call RandomNumber

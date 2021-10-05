@@ -1,3 +1,5 @@
+( @engine taurus )
+
 variable initialized
 variable frame \ unused
 
@@ -14,58 +16,52 @@ variable direction
 variable length
 
 : snake-x ( offset -- address )
-  cells snake-x-head +
-  ;
+    cells snake-x-head +
+    ;
 
 : snake-y ( offset -- address )
-  cells snake-y-head +
-  ;
+    cells snake-y-head +
+    ;
 
-\ TODO should be multiplying 32 by `cells`
-: convert-x-y ( x y -- offset )  screen-row-width * + ;
-: draw ( color x y -- )  convert-x-y draw-index ;
-: draw-white ( x y -- )  color-white rot rot draw ;
-: draw-black ( x y -- )  color-black rot rot draw ;
-: draw-snake-tile ( x y -- )  color-green rot rot draw ;
-: draw-apple-tile ( x y -- )  color-red rot rot draw ;
+: draw-white ( x y -- ) color-white write-char-at ;
+: draw-black ( x y -- ) color-black write-char-at ;
+: draw-snake-tile ( x y -- ) color-green write-char-at ;
+: draw-apple-tile ( x y -- ) color-red write-char-at ;
 
 : draw-background ( -- )
-    0
     screen-height 0 do
         screen-width 0 do
-            color-white over i + draw-index
+             i j color-white write-char-at
         loop
-        screen-row-width +
     loop
-    drop
     ;
 
 : draw-walls
     \ Draw bottom wall
-    screen-height 1 - screen-row-width *
+    screen-height 1 -
     screen-width 0 do
-        TILE_WALL over i + draw-index
+        i over TILE_WALL write-char-at
     loop
     drop
 
     \ Draw top wall
+    0
     screen-width 0 do
-        TILE_WALL i draw-index
+        i over TILE_WALL write-char-at
     loop
+    drop
 
     \ Draw right wall
     screen-width 1 -
     screen-height 0 do
-        TILE_WALL over draw-index
-        screen-row-width +
+        dup i TILE_WALL write-char-at
     loop
     drop
 
     \ Draw left wall
     0
     screen-height 0 do
-        TILE_WALL over draw-index
-        screen-row-width +
+        dup i TILE_WALL write-char-at
     loop
     drop
     ;
@@ -87,14 +83,6 @@ variable length
     length @ 0 do
         i snake-x @ i snake-y @ draw-snake-tile
     loop
-    ;
-
-: initialize
-    draw-background
-    draw-walls
-    initialize-snake
-    initialize-apple
-    draw-full-snake
     ;
 
 
@@ -152,10 +140,10 @@ variable length
 \ get random x or y position within playable area
 
 : random-x-position ( -- pos )
-    screen-width 4 - random 2 + ;
+    screen-width 2 - random 1 + ;
 
 : random-y-position ( -- pos )
-    screen-height 4 - random 2 +
+    screen-height 2 - random 1 +
     ;
 
 : move-apple
@@ -180,10 +168,10 @@ variable length
     snake-x-head @ snake-y-head @
 
     \ get color at current position
-    convert-x-y read-index
+    read-char-at
 
     \ leave boolean flag on stack
-    color-white =
+    TILE_WALL =
     ;
 
 : draw-snake-head-tail
@@ -198,17 +186,27 @@ variable length
     ;
 
 
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
 \ Game loop
-draw-snake-head-tail
-draw-apple
-check-input
-move-snake-tail
-move-snake-head
-check-apple
 
-check-collision
-if else 0 initialized ! then
+: initialize
+    draw-background
+    draw-walls
+    initialize-snake
+    initialize-apple
+    draw-full-snake
+    ;
+
+: next-frame
+    draw-snake-head-tail
+    draw-apple
+    check-input
+    move-snake-tail
+    move-snake-head
+    check-apple
+
+    check-collision
+    if initialize then
+    ;
+
+initialize
+next-frame

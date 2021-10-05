@@ -1,6 +1,5 @@
 GAME ?= 
 PAX_OPTS=""
-ENGINE ?= 
 
 BUILD_DIR = build
 
@@ -12,34 +11,32 @@ OUT = $(BUILD_DIR)/PAXCNSLA.COM
 # CFLAGS =
 # AFLAGS =
 
-ENGINE_FLAG=ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
+GAME_PATH=../../games/$(GAME)
 
 all: check $(OUT)
 
-.PHONY: check clean build run $(OUT) 
+.PHONY: $(GAME_PATH) check clean build run
 
 check:
-ifeq ($(ENGINE),)
-	$(error ENGINE is a required argument)
-endif
 ifeq ($(GAME),)
 	$(error GAME is a required argument)
 endif
-	touch $(GAME)
 
 clean:
 	rm -rf build
 
 # Build files
 
-$(BUILD_DIR)/paxconsola_generated.asm: $(GAME)
+$(BUILD_DIR)/paxconsola_generated.asm: $(GAME_PATH)
 	mkdir -p $(BUILD_DIR)
-	paxforth compile src/engines/dos-$(ENGINE).fth $(GAME) $(PAX_OPTS) --target dos > $(BUILD_DIR)/paxconsola_generated.asm
+	paxforth compile src/engines/dos-$(ENGINE).fth $(GAME_PATH) $(PAX_OPTS) --target dos > $(BUILD_DIR)/paxconsola_generated.asm
 
 $(BUILD_DIR)/%.raw: lib/%.png
 	pixconsola encode $< -o $@ --format ega
 
-$(OUT): src/* $(BUILD_DIR)/paxconsola_generated.asm $(BUILD_DIR)/tiles.raw $(BUILD_DIR)/tiles-linear.raw $(BUILD_DIR)/tiles-block.raw
+$(OUT): ENGINE = $(shell paxforth metadata $(GAME_PATH) | jq -r -e '.directives.engine')
+$(OUT): ENGINE_FLAG = ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
+$(OUT): check src/* $(BUILD_DIR)/paxconsola_generated.asm $(BUILD_DIR)/tiles.raw $(BUILD_DIR)/tiles-linear.raw $(BUILD_DIR)/tiles-block.raw
 	nasm -f bin -D $(ENGINE_FLAG)=1 -o $(OUT) $(INPUT) -l build/paxconsola.lst
 
 run: $(OUT)
