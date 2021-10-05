@@ -83,6 +83,9 @@ start:
         ; Setup random seed
         call rand_seed
 
+
+%ifdef ENGINE_TAURUS
+
         ; Clear memory
         mov ax, $1000
     .clear_memory:
@@ -92,9 +95,6 @@ start:
         mov byte [bx],0
         test ax,ax
         jnz .clear_memory
-
-
-%ifdef ENGINE_TAURUS
 
 engine_start:
         ; Switch to Mode 0

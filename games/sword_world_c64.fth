@@ -56,10 +56,6 @@ variable player-x
     \ $E0 1 screen-width + draw-index
     ;
 
-\ Initialize only once
-initialized @ 0= if initialize then
-1 initialized !
-
 : go-up ( -- ) player-y @ 1- player-y ! ;
 : go-down ( -- ) player-y @ 1+ player-y ! ;
 : go-left ( -- ) player-x @ 1- player-x ! ;
@@ -83,7 +79,11 @@ initialized @ 0= if initialize then
     0 last-key !
     ;
 
+: next-frame
+    check-input
 
-check-input
+    $05 $04 $03 $02 draw-2x2
+    ;
 
-$05 $04 $03 $02 draw-2x2
+initialize
+next-frame

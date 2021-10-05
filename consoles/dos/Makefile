@@ -34,9 +34,12 @@ $(BUILD_DIR)/paxconsola_generated.asm: $(GAME_PATH)
 $(BUILD_DIR)/%.raw: lib/%.png
 	pixconsola encode $< -o $@ --format ega
 
+build/level-1.asm:
+	cd lib; python tmx-to-asm.py > ../build/level-1.asm
+
 $(OUT): ENGINE = $(shell paxforth metadata $(GAME_PATH) | jq -r -e '.directives.engine')
 $(OUT): ENGINE_FLAG = ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
-$(OUT): check src/* $(BUILD_DIR)/paxconsola_generated.asm $(BUILD_DIR)/tiles.raw $(BUILD_DIR)/tiles-linear.raw $(BUILD_DIR)/tiles-block.raw
+$(OUT): check src/* $(BUILD_DIR)/paxconsola_generated.asm build/level-1.asm $(BUILD_DIR)/tiles.raw $(BUILD_DIR)/tiles-linear.raw $(BUILD_DIR)/tiles-block.raw
 	nasm -f bin -D $(ENGINE_FLAG)=1 -o $(OUT) $(INPUT) -l build/paxconsola.lst
 
 run: $(OUT)
