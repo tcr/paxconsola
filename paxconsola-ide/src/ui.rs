@@ -10,7 +10,7 @@ use yew::worker::*;
 use yew::{html, Component, ComponentLink, Html, InputData, MouseEvent, ShouldRender};
 
 // Relative to src/
-const START_CODE: &str = include_str!("default_ui.fth");
+const START_CODE: &str = include_str!("../../games/snake_world.fth");
 
 pub struct App {
     forth_input: String,
