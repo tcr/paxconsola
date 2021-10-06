@@ -3,7 +3,15 @@
 - [Introduction](./01-introduction.md)
 - [Game Examples](./02-game-examples.md)
 
-- [Engine: Libra](./engine/engine-libra.md)
-- [Pax Forth Opcodes](./03-annex.md)
+- [Components](./sec-components.md)
+    - [Pax Forth](./pax-forth.md)
+    - [Engines](./engines.md)
+    - [Pix Consola](./pix-consola.md)
 
-- [Forth on the Z80](./consoles/console-z80.md)
+- [Pax Forth Guide](./sec-pax-forth-guide.md)
+    - [Opcodes](./opcodes.md)
+
+- [CPUs](./sec-cpus.md)
+    - [Z80](./cpus/z80.md)
+    - [6502](./cpus/6502.md)
+    - [8086](./cpus/8086.md)
