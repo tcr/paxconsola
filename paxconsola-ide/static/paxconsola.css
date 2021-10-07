@@ -12,6 +12,10 @@ body {
     width: 100%;
 }
 
+body {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
 #ide {
     display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column;
 }
@@ -51,6 +55,7 @@ body {
     padding-left: 30px;
     border-left: 1px solid #ddd;
     height: 100%;
+    font-family: Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -60,7 +65,6 @@ body {
     margin: 0 10px;
     font-size: 20px;
     font-weight: 300;
-    font-family: Helvetica, Arial, sans-serif;
     color: white;
     text-decoration: none;
     display: block;
@@ -82,28 +86,6 @@ body {
     visibility: hidden;
 }
 
-.button-action {
-    flex: 1;
-    font-size: 18px;
-    margin: 10px 8px;
-    padding: 4px 16px;
-    border: 1px solid inset;
-    background: #eef;
-}
-
-#WASM_CANVAS {
-    cursor: pointer;
-    position: relative;
-}
-
-#WASM_CANVAS::after {
-    content: "Click to start playing."
-}
-
-#WASM_CANVAS:focus {
-    outline: 5px solid #0f0 !important;
-}
-
 /* Compilation pane */
 
 #console-target {
@@ -112,6 +94,28 @@ body {
 
 #console-target iframe {
     background: transparent; border: 0px none;
+}
+
+#console-advice {
+    margin: 1em 0;
+    text-align: center;
+}
+
+#console-target-actions {
+    display: flex;
+    flex-direction: row;
+}
+
+#console-target-actions .button-action {
+    flex: 1;
+}
+
+.button-action {
+    font-size: 18px;
+    margin: 10px 8px;
+    padding: 4px 16px;
+    border: 1px solid inset;
+    background: #eef;
 }
 
 /* About Page */

@@ -24,6 +24,7 @@ export function play_gameboy_binary(binary) {
     document.querySelector('#window-gameboy').onload = (e) => {
         let dos = document.querySelector('#window-gameboy').contentWindow;
         dos.postMessage(binary);
+        dos.focus();
     };
 }
 
@@ -35,6 +36,7 @@ export function play_dos_binary(binary) {
     document.querySelector('#window-dos').onload = (e) => {
         let dos = document.querySelector('#window-dos').contentWindow;
         dos.postMessage(binary);
+        dos.focus();
     };
 }
 
@@ -46,6 +48,7 @@ export function play_c64_binary(binary) {
     document.querySelector('#window-c64').onload = (e) => {
         let dos = document.querySelector('#window-c64').contentWindow;
         dos.postMessage(binary);
+        dos.focus();
     };
 }
 
@@ -283,7 +286,7 @@ impl Component for App {
         let on_play_gameboy = self.link.callback(|_| Msg::CompileGameboy);
         let on_play_c64 = self.link.callback(|_| Msg::CompileC64);
         let gameboy_action_group = html! {
-            <div style="display: flex; flex-direction: row;">
+            <div id="console-target-actions">
                 <button class="button-action" onclick=on_play_dos>{ "DOS" }</button>
                 <button class="button-action" onclick=on_play_c64>{ "Commodore 64" }</button>
                 <button class="button-action" onclick=on_play_gameboy>{ "Game Boy" }</button>
@@ -291,6 +294,13 @@ impl Component for App {
         };
 
         let forth_input: String = self.forth_input.clone();
+
+        let advice = match self.current_target {
+            CurrentTarget::None => "",
+            CurrentTarget::Gameboy | CurrentTarget::Dos | CurrentTarget::Commodore64 => {
+                "Controls: Focus the emulator and use the keypad arrows"
+            }
+        };
 
         html! {
             <div id="ide">
@@ -312,6 +322,7 @@ impl Component for App {
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
                         <div>{gameboy_action_group}</div>
                         <div id="console-target"><iframe src="/static/emulators/none/" width="700" height="444"></iframe></div>
+                        <div id="console-advice">{advice}</div>
                     </div>
                 </div>
             </div>
