@@ -1,6 +1,7 @@
 # Summary
 
 - [Introduction](./01-introduction.md)
+- [About](./about.md)
 - [Game Examples](./02-game-examples.md)
 
 - [Components](./sec-components.md)

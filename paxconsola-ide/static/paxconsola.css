@@ -123,19 +123,3 @@ body {
     padding: 6px;
     min-width: 15em;
 }
-
-/* About Page */
-
-#about-page {
-    margin: 0 auto 0;
-    padding: 20px 0 30px;
-    max-width: 40em;
-    font-size: 1.3em;
-    font-weight: 200;
-    font-family: Helvetica, Arial, sans-serif;
-    line-height: 1.2;
-}
-
-#about-page h2, #about-page h3, #about-page h4 {
-    margin-top: 1.5em;
-}
