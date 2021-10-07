@@ -6,6 +6,7 @@ use crate::*;
 use gloo_console::log;
 use include_dir::*;
 use maplit::*;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -14,7 +15,9 @@ use wasm_bindgen::JsCast;
 use yew::worker::*;
 
 // Relative to /
-static GB_DIR: Dir = include_dir!("./template/gb");
+static GB_DIR: Dir = include_dir!("../consoles/gb");
+static C64_DIR: Dir = include_dir!("../consoles/c64");
+static DOS_DIR: Dir = include_dir!("../consoles/dos");
 
 fn recursive_setup_filesystem(fs: &FS, root_dir: &Dir) {
     // Setup template
@@ -43,6 +46,7 @@ extern "C" {
     fn rgbasm(this: &JsValue) -> js_sys::Promise;
     fn rgblink(this: &JsValue) -> js_sys::Promise;
     fn ca65(this: &JsValue) -> js_sys::Promise;
+    fn ld65(this: &JsValue) -> js_sys::Promise;
 }
 
 #[wasm_bindgen]
@@ -161,6 +165,7 @@ struct RgbasmCompiler {
     link: AgentLink<workers::CompilationWorker>,
     who: HandlerId,
     initial_files: HashMap<String, Vec<u8>>,
+    engine: Engine,
 }
 
 impl EmscriptenBinary for RgbasmCompiler {
@@ -181,6 +186,8 @@ impl EmscriptenBinary for RgbasmCompiler {
             format!("-E"),
             format!("-o"),
             format!("build/paxconsola.obj"),
+            format!("-D"),
+            format!("ENGINE_{}=1", self.engine.0.to_uppercase()),
             format!("src/paxconsola.asm"),
         ]
     }
@@ -195,13 +202,16 @@ impl EmscriptenBinary for RgbasmCompiler {
     fn exit(&self, fs: &FS, code: usize) {
         self.link.respond(
             self.who,
-            Response::RgbasmCompilerResult(if code != 0 {
-                Err(code)
-            } else {
-                Ok(hashmap![
-                    "build/paxconsola.obj".to_string() => fs.readFile("build/paxconsola.obj"),
-                ])
-            }),
+            Response::RgbasmCompilerResult(
+                if code != 0 {
+                    Err(code)
+                } else {
+                    Ok(hashmap![
+                        "build/paxconsola.obj".to_string() => fs.readFile("build/paxconsola.obj"),
+                    ])
+                },
+                self.engine.clone(),
+            ),
         )
     }
 }
@@ -214,6 +224,7 @@ struct RgblinkCompiler {
     link: AgentLink<workers::CompilationWorker>,
     who: HandlerId,
     initial_files: HashMap<String, Vec<u8>>,
+    engine: Engine,
 }
 
 impl EmscriptenBinary for RgblinkCompiler {
@@ -239,7 +250,7 @@ impl EmscriptenBinary for RgblinkCompiler {
     }
 
     fn setup_filesystem(&self, fs: &FS) {
-        recursive_setup_filesystem(fs, &GB_DIR);
+        recursive_setup_filesystem(fs, &C64_DIR);
         for (path, file) in &self.initial_files {
             fs.writeFile(path, file);
         }
@@ -248,13 +259,210 @@ impl EmscriptenBinary for RgblinkCompiler {
     fn exit(&self, fs: &FS, code: usize) {
         self.link.respond(
             self.who,
-            Response::RgblinkCompilerResult(if code != 0 {
-                Err(code)
-            } else {
-                Ok(hashmap![
-                    "build/paxconsola.gb".to_string() => fs.readFile("build/paxconsola.gb"),
-                ])
-            }),
+            Response::RgblinkCompilerResult(
+                if code != 0 {
+                    Err(code)
+                } else {
+                    Ok(hashmap![
+                        "build/paxconsola.gb".to_string() => fs.readFile("build/paxconsola.gb"),
+                    ])
+                },
+                self.engine.clone(),
+            ),
+        )
+    }
+}
+
+/**
+ * `nasm` binary.
+ */
+#[derive(Clone)]
+struct NasmCompiler {
+    link: AgentLink<workers::CompilationWorker>,
+    who: HandlerId,
+    initial_files: HashMap<String, Vec<u8>>,
+    engine: Engine,
+}
+
+impl EmscriptenBinary for NasmCompiler {
+    fn import() {
+        import_crossconsola("nasm.js");
+    }
+
+    fn locate_file(&self, filename: &str) -> String {
+        format!("{}/crossconsola/{}", get_origin(), filename)
+    }
+
+    fn invoke(&self, settings: &JsValue) {
+        let _ = nasm(settings);
+    }
+
+    fn args(&self) -> Vec<String> {
+        // nasm -f bin -D $(ENGINE_FLAG)=1 -o $(OUT) $(INPUT) -l build/paxconsola.lst
+        vec![
+            format!("-f"),
+            format!("bin"),
+            format!("-D"),
+            format!("ENGINE_{}=1", self.engine.0.to_uppercase()),
+            format!("-o"),
+            format!("build/PAXCNSLA.COM"),
+            format!("src/paxconsola.asm"),
+            format!("-l"),
+            format!("build/paxconsola.lst"),
+        ]
+    }
+
+    fn setup_filesystem(&self, fs: &FS) {
+        recursive_setup_filesystem(fs, &DOS_DIR);
+        for (path, file) in &self.initial_files {
+            fs.writeFile(path, file);
+        }
+    }
+
+    fn exit(&self, fs: &FS, code: usize) {
+        self.link.respond(
+            self.who,
+            Response::NasmCompilerResult(
+                if code != 0 {
+                    Err(code)
+                } else {
+                    Ok(hashmap![
+                        "build/PAXCNSLA.COM".to_string() => fs.readFile("build/PAXCNSLA.COM"),
+                    ])
+                },
+                self.engine.clone(),
+            ),
+        )
+    }
+}
+
+/**
+ * `ca65` binary.
+ */
+#[derive(Clone)]
+struct Ca65Compiler {
+    link: AgentLink<workers::CompilationWorker>,
+    who: HandlerId,
+    initial_files: HashMap<String, Vec<u8>>,
+    engine: Engine,
+}
+
+impl EmscriptenBinary for Ca65Compiler {
+    fn import() {
+        import_crossconsola("ca65.js");
+    }
+
+    fn locate_file(&self, filename: &str) -> String {
+        format!("{}/crossconsola/{}", get_origin(), filename)
+    }
+
+    fn invoke(&self, settings: &JsValue) {
+        let _ = ca65(settings);
+    }
+
+    fn args(&self) -> Vec<String> {
+        // $(AS) -t c64 -D $(ENGINE_FLAG)=1 -g src/paxconsola.asm -l build/paxconsola.lst -o $@
+        vec![
+            format!("-t"),
+            format!("c64"),
+            format!("-D"),
+            format!("ENGINE_{}=1", self.engine.0.to_uppercase()),
+            format!("-g"),
+            format!("src/paxconsola.asm"),
+            format!("-l"),
+            format!("build/paxconsola.lst"),
+            format!("-o"),
+            format!("build/paxconsola.o"),
+        ]
+    }
+
+    fn setup_filesystem(&self, fs: &FS) {
+        recursive_setup_filesystem(fs, &C64_DIR);
+        for (path, file) in &self.initial_files {
+            fs.writeFile(path, file);
+        }
+    }
+
+    fn exit(&self, fs: &FS, code: usize) {
+        self.link.respond(
+            self.who,
+            Response::Ca65CompilerResult(
+                if code != 0 {
+                    Err(code)
+                } else {
+                    Ok(hashmap![
+                        "build/paxconsola.o".to_string() => fs.readFile("build/paxconsola.o"),
+                    ])
+                },
+                self.engine.clone(),
+            ),
+        )
+    }
+}
+
+/**
+ * `ld65` binary.
+ */
+#[derive(Clone)]
+struct Ld65Compiler {
+    link: AgentLink<workers::CompilationWorker>,
+    who: HandlerId,
+    initial_files: HashMap<String, Vec<u8>>,
+    engine: Engine,
+}
+
+impl EmscriptenBinary for Ld65Compiler {
+    fn import() {
+        import_crossconsola("ld65.js");
+    }
+
+    fn locate_file(&self, filename: &str) -> String {
+        format!("{}/crossconsola/{}", get_origin(), filename)
+    }
+
+    fn invoke(&self, settings: &JsValue) {
+        let _ = ld65(settings);
+    }
+
+    fn args(&self) -> Vec<String> {
+        // $(LD) --lib c64.lib -C c64-asm.cfg -u __EXEHDR__ build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -m build/paxconsola.map
+        vec![
+            format!("--lib"),
+            format!("c64.lib"),
+            format!("-C"),
+            format!("c64-asm.cfg"),
+            format!("-u"),
+            format!("__EXEHDR__"),
+            format!("build/paxconsola.o"),
+            format!("-o"),
+            format!("build/paxconsola.prg"),
+            format!("-Ln"),
+            format!("build/paxconsola.lbl"),
+            format!("-m"),
+            format!("build/paxconsola.map"),
+        ]
+    }
+
+    fn setup_filesystem(&self, fs: &FS) {
+        recursive_setup_filesystem(fs, &C64_DIR);
+        for (path, file) in &self.initial_files {
+            fs.writeFile(path, file);
+        }
+    }
+
+    fn exit(&self, fs: &FS, code: usize) {
+        self.link.respond(
+            self.who,
+            Response::Ld65CompilerResult(
+                if code != 0 {
+                    Err(code)
+                } else {
+                    Ok(hashmap![
+                        "build/paxconsola.prg".to_string() => fs.readFile("build/paxconsola.prg"),
+                    ])
+                },
+                self.engine.clone(),
+            ),
         )
     }
 }
@@ -281,8 +489,12 @@ impl Agent for CompilationWorker {
 
     // Create an instance with a link to the agent.
     fn create(link: AgentLink<Self>) -> Self {
+        // Import WASM dependencies.
         RgbasmCompiler::import();
         RgblinkCompiler::import();
+        NasmCompiler::import();
+        Ca65Compiler::import();
+        Ld65Compiler::import();
 
         CompilationWorker { link }
     }
@@ -295,19 +507,48 @@ impl Agent for CompilationWorker {
     // Handle incoming messages from components of other agents.
     fn handle_input(&mut self, msg: Self::Input, who: HandlerId) {
         match msg {
-            Request::RgbasmCompile(initial_files) => {
+            Request::RgbasmCompile(initial_files, engine) => {
                 let binary = RgbasmCompiler {
                     link: self.link.clone(),
                     who,
                     initial_files,
+                    engine,
                 };
                 binary.run();
             }
-            Request::RgblinkCompile(initial_files) => {
+            Request::RgblinkCompile(initial_files, engine) => {
                 let binary = RgblinkCompiler {
                     link: self.link.clone(),
                     who,
                     initial_files,
+                    engine,
+                };
+                binary.run();
+            }
+            Request::NasmCompile(initial_files, engine) => {
+                let binary = NasmCompiler {
+                    link: self.link.clone(),
+                    who,
+                    initial_files,
+                    engine,
+                };
+                binary.run();
+            }
+            Request::Ca65Compile(initial_files, engine) => {
+                let binary = Ca65Compiler {
+                    link: self.link.clone(),
+                    who,
+                    initial_files,
+                    engine,
+                };
+                binary.run();
+            }
+            Request::Ld65Compile(initial_files, engine) => {
+                let binary = Ld65Compiler {
+                    link: self.link.clone(),
+                    who,
+                    initial_files,
+                    engine,
                 };
                 binary.run();
             }
@@ -318,10 +559,43 @@ impl Agent for CompilationWorker {
 
                 let file = PathBuf::from("main.fth");
 
+                // Lookup engine from the code sample.
+                let engine = get_engine_from_code(&code).expect(
+                    "Expected a comment in your source code matching ( @engine <taurus|libra> )",
+                );
+                // Prepend to existing source code.
+                let engine_prefix = match target {
+                    CurrentTarget::None => unreachable!(),
+                    CurrentTarget::Commodore64 => "c64",
+                    CurrentTarget::Gameboy => "gb",
+                    CurrentTarget::Dos => "dos",
+                };
+                let engine_dir = match target {
+                    CurrentTarget::None => unreachable!(),
+                    CurrentTarget::Commodore64 => C64_DIR,
+                    CurrentTarget::Gameboy => GB_DIR,
+                    CurrentTarget::Dos => DOS_DIR,
+                };
+                let engine_and_code = [
+                    engine_dir
+                        .get_file(&PathBuf::from(&format!(
+                            "src/engines/{}-{}.fth",
+                            engine_prefix, engine
+                        )))
+                        .expect(&format!(
+                            "Could not find {:?} engine {:?}",
+                            engine_prefix, engine
+                        ))
+                        .contents_utf8()
+                        .unwrap(),
+                    &code,
+                ]
+                .join("\n\n");
+
                 let result = std::panic::catch_unwind(move || match target {
                     CurrentTarget::None => unreachable!(),
                     CurrentTarget::Commodore64 => {
-                        let mut program = C64ForthCompiler::parse(&code, Some(&file));
+                        let mut program = C64ForthCompiler::parse(&engine_and_code, Some(&file));
                         program =
                             optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                         let result = C64ForthCompiler::compile(&program);
@@ -329,7 +603,8 @@ impl Agent for CompilationWorker {
                         result
                     }
                     CurrentTarget::Gameboy => {
-                        let mut program = GameboyForthCompiler::parse(&code, Some(&file));
+                        let mut program =
+                            GameboyForthCompiler::parse(&engine_and_code, Some(&file));
                         program =
                             optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                         let result = GameboyForthCompiler::compile(&program);
@@ -337,7 +612,7 @@ impl Agent for CompilationWorker {
                         result
                     }
                     CurrentTarget::Dos => {
-                        let mut program = DosForthCompiler::parse(&code, Some(&file));
+                        let mut program = DosForthCompiler::parse(&engine_and_code, Some(&file));
                         program =
                             optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
                         let result = DosForthCompiler::compile(&program);
@@ -350,6 +625,7 @@ impl Agent for CompilationWorker {
                     Response::PaxForthCompilerResult(
                         result.map_err(|x| format!("{:?}", x)),
                         target,
+                        Engine(engine),
                     ),
                 );
             }
@@ -358,39 +634,17 @@ impl Agent for CompilationWorker {
                 unimplemented!("{:?}", e);
             }
         }
-
-        // let mut res = format!("LOL lol");
-        // res = format!("{:?}", js_sys::Reflect::get(&out, &JsValue::from_str("arguments")));
-
-        // match msg {
-        //     Request::Question(input, execute) => {
-        // let program = std::panic::catch_unwind(move || {
-        //     let code = inject_prelude(&input);
-        //     let program = parse_to_superpax(code);
-        // let path = PathBuf::from("main.fth");
-        // let mut program = WasmForthCompiler::parse(&self.program, Some(&path));
-        //     program
-        // });
-        // match program {
-        //     Ok(mut program) => {
-        //         match execute {
-        //             ExecutionTarget::Wasm => {
-        //                 inline_into_function(&mut program, "main");
-        //             }
-        //             _ => {}
-        //         }
-        //         self.link.respond(who, Response::Answer(program, execute));
-        //     }
-        //     Err(err) => {
-        // self.link
-        //     .respond(who, Response::CompilationError(res));
-        //     }
-        // }
-        // }
-        // }
     }
 
     fn name_of_resource() -> &'static str {
         "workers/compilation_worker.js"
     }
+}
+
+// This uses a different mechanism than `paxforth metadata` so maybe they should be unified.
+fn get_engine_from_code(code: &str) -> Option<String> {
+    let re_engine = Regex::new(r"\(\s*@engine\s+(\w+)\s*\)").unwrap();
+    re_engine
+        .captures(code)
+        .map(|x| x.get(1).unwrap().as_str().to_string())
 }

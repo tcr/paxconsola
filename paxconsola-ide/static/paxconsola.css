@@ -83,6 +83,7 @@ body {
 }
 
 .button-action {
+    flex: 1;
     font-size: 18px;
     margin: 10px 8px;
     padding: 4px 16px;

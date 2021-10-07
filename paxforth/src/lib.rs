@@ -17,7 +17,6 @@ use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use std::path::{Path, PathBuf};
 
 pub const PRELUDE: &str = include_str!("../lib/prelude.fth");
-pub const PRELUDE_GB: &str = include_str!("../lib/libra/prelude-gameboy.fth");
 
 pub trait ForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)>;

@@ -3,36 +3,34 @@
 pub mod ui;
 pub mod workers;
 
-use js_sys::Uint8Array;
 use paxforth::*;
 use serde::*;
 use std::collections::HashMap;
+
+// Engine newtype wrapper (until this is formalized)
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Engine(String);
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
     PaxForthCompile(String, CurrentTarget),
 
-    RgbasmCompile(HashMap<String, Vec<u8>>),
-    RgblinkCompile(HashMap<String, Vec<u8>>),
+    RgbasmCompile(HashMap<String, Vec<u8>>, Engine),
+    RgblinkCompile(HashMap<String, Vec<u8>>, Engine),
+    NasmCompile(HashMap<String, Vec<u8>>, Engine),
+    Ca65Compile(HashMap<String, Vec<u8>>, Engine),
+    Ld65Compile(HashMap<String, Vec<u8>>, Engine),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Response {
-    Answer(PaxProgram, ExecutionTarget),
-    CompilationError(String),
-    GameboyBinary(Vec<u8>),
+    PaxForthCompilerResult(Result<String, String>, CurrentTarget, Engine),
 
-    PaxForthCompilerResult(Result<String, String>, CurrentTarget),
-
-    RgbasmCompilerResult(Result<HashMap<String, Vec<u8>>, usize>),
-    RgblinkCompilerResult(Result<HashMap<String, Vec<u8>>, usize>),
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum ExecutionTarget {
-    Debug,
-    Gameboy,
-    Wasm,
+    RgbasmCompilerResult(Result<HashMap<String, Vec<u8>>, usize>, Engine),
+    RgblinkCompilerResult(Result<HashMap<String, Vec<u8>>, usize>, Engine),
+    NasmCompilerResult(Result<HashMap<String, Vec<u8>>, usize>, Engine),
+    Ca65CompilerResult(Result<HashMap<String, Vec<u8>>, usize>, Engine),
+    Ld65CompilerResult(Result<HashMap<String, Vec<u8>>, usize>, Engine),
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]

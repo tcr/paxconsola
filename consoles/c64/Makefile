@@ -6,7 +6,7 @@ BUILD_DIR = build
 INPUT = src/paxconsola.asm
 OUT = $(BUILD_DIR)/paxconsola.prg
 
-CC = cl65
+LD = ld65
 AS = ca65
 CFLAGS =
 AFLAGS =
@@ -32,12 +32,13 @@ build/paxconsola_generated.asm: $(GAME_PATH)
 	paxforth compile src/engines/c64-$(ENGINE).fth $(GAME_PATH) $(PAX_OPTS) --target c64 > ./build/paxconsola_generated.asm
 
 build/paxconsola.o: src/paxconsola.asm build/paxconsola_generated.asm
-	$(AS) $(CFLAGS) -t c64 -D $(ENGINE_FLAG)=1 -g src/paxconsola.asm -l build/paxconsola.lst -o $@
+	$(AS) -t c64 -D $(ENGINE_FLAG)=1 -g src/paxconsola.asm -l build/paxconsola.lst -o $@
 
+# https://stackoverflow.com/questions/51790718/ca65-assembler-and-ld65-linker
 $(OUT): ENGINE = $(shell paxforth metadata $(GAME_PATH) | jq -r -e '.directives.engine')
 $(OUT): ENGINE_FLAG = ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
 $(OUT): check build/paxconsola.o
-	$(CC) $(CFLAGS) -u __EXEHDR__ -t c64 -C c64-asm.cfg -g build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -l build/paxconsola.lst -m build/paxconsola.map
+	$(LD) --verbose --lib c64.lib -C c64-asm.cfg -u __EXEHDR__ build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -m build/paxconsola.map
 
 # Interactive
 

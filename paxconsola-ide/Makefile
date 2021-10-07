@@ -12,7 +12,7 @@ deps: crossconsola emulators
 
 crossconsola:
 	mkdir -p build/crossconsola
-	wget -qO- https://github.com/tcr/crossconsola/releases/download/1.1.0/crossconsola.tar.gz | tar -xvf - -C ./build/crossconsola/
+	wget -qO- https://github.com/tcr/crossconsola/releases/download/1.3.0/crossconsola.tar.gz | tar -xvf - -C ./build/crossconsola/
 
 emulators:
 # TODO move to build dir

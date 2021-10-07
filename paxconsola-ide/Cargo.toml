@@ -18,6 +18,8 @@ js-sys = "0.3.51"
 web-sys = { version = "0.3", features = ["Window", "WorkerGlobalScope", "console", "WorkerLocation"] }
 wat = "1.0.38"
 maplit = "1.0.2"
+regex = "1"
+zip = { version = "0.5.13", default-features = false }
 
 [[bin]]
 name = "app"

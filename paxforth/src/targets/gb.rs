@@ -464,10 +464,6 @@ impl ForthCompiler for GameboyForthCompiler {
     fn preludes() -> Vec<(PathBuf, String)> {
         vec![
             (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-            (
-                PathBuf::from("../../lib/prelude-gameboy.fth"),
-                PRELUDE_GB.to_string(),
-            ),
         ]
     }
 
