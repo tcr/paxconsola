@@ -345,7 +345,7 @@ impl Component for App {
                 <div id="header">
                     <h1><a href="/">{"Pax Consola"}</a></h1>
                     <div id="subheader">
-                        <a href="/static/about/">{"About"}</a>
+                        <a href="/book/about.html">{"About"}</a>
                         <a href="/book/">{"Docs"}</a>
                         <a href="http://github.com/tcr/paxconsola">{"Github"}</a>
                     </div>
