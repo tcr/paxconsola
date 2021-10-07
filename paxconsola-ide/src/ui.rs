@@ -1,7 +1,8 @@
 use crate::*;
-use include_dir::*;
+use gloo_console::log;
 use indexmap::IndexMap;
 use js_sys::{Uint16Array, Uint8Array};
+use maplit::*;
 use paxforth::runner::wasm::*;
 use paxforth::targets::wasm::*;
 use paxforth::*;
@@ -12,22 +13,16 @@ use yew::{html, Component, ComponentLink, Html, InputData, MouseEvent, ShouldRen
 // Relative to src/
 const START_CODE: &str = include_str!("../../games/snake_world.fth");
 
-pub struct App {
-    forth_input: String,
-    program: PaxProgram,
-    link: ComponentLink<Self>,
-    method: Option<(String, Vec<Block>)>,
-    context: Box<dyn Bridge<workers::CompilationWorker>>,
-    mem: Uint16Array,
-    // game_tick: IntervalService,
-    // game_handle: Option<IntervalTask>,
-    wasm: Option<Uint8Array>,
-}
-
 #[wasm_bindgen(inline_js = r##"
 
 export function wasmboy_setup(binary) {
-    window.PlayGameboy(binary);
+    document.querySelector('#console-target').innerHTML = '\
+        <iframe src="/static/emulators/gameboy/" id="window-gameboy" width="700" height="444"></iframe>\
+    ';
+    document.querySelector('#window-gameboy').onload = (e) => {
+        let dos = document.querySelector('#window-gameboy').contentWindow;
+        dos.postMessage(binary);
+    };
 }
 
 export function wasmboy_play() {
@@ -36,10 +31,6 @@ export function wasmboy_play() {
 
 export function wasmboy_pause() {
     // WasmBoy.WasmBoy.pause();
-}
-
-export function wasmboy_focus() {
-    setTimeout(() => document.querySelector("#GAMEBOY_CANVAS").focus(), 1000);
 }
 
 export function alert(value) {
@@ -94,13 +85,47 @@ extern "C" {
     fn wasmboy_setup(binary: Uint8Array);
     fn wasmboy_play();
     fn wasmboy_pause();
-    fn wasmboy_focus();
 
     fn play_dos();
     fn play_gameboy();
     fn play_c64();
 
     fn alert(value: &str);
+}
+
+pub enum Msg {
+    Noop,
+
+    ChangeInput(String),
+    Reset(String),
+
+    CompileResult(PaxProgram, ExecutionTarget),
+    CompilationError(String),
+    GameStop,
+
+    OnGameboyFocus,
+    OnGameboyBlur,
+
+    CompileGameboy,
+    CompileDos,
+    CompileC64,
+
+    PaxForthCompilerResult(String, CurrentTarget),
+    RgbasmCompilerResult(HashMap<String, Vec<u8>>),
+
+    GameboyBinary(Vec<u8>),
+}
+
+pub struct App {
+    forth_input: String,
+    program: PaxProgram,
+    link: ComponentLink<Self>,
+    method: Option<(String, Vec<Block>)>,
+    context: Box<dyn Bridge<workers::CompilationWorker>>,
+    mem: Uint16Array,
+    wasm: Option<Uint8Array>,
+
+    current_target: CurrentTarget,
 }
 
 impl Component for App {
@@ -112,21 +137,40 @@ impl Component for App {
             Response::Answer(program, execute) => Msg::CompileResult(program, execute),
             Response::CompilationError(err) => Msg::CompilationError(err),
             Response::GameboyBinary(binary) => Msg::GameboyBinary(binary),
+
+            Response::PaxForthCompilerResult(result, target) => {
+                let program = result.expect("Failed to compile Forth program");
+                log!("paxforth succeeded.");
+                Msg::PaxForthCompilerResult(program, target)
+            }
+
+            Response::RgbasmCompilerResult(result) => {
+                let files = result.expect("`rgbasm` with non-zero status code");
+
+                log!("rgbasm succeeded.");
+                Msg::RgbasmCompilerResult(files)
+            }
+            Response::RgblinkCompilerResult(result) => {
+                let files = result.expect("`rgblink` with non-zero status code");
+
+                log!("rgblink succeeded.");
+                Msg::GameboyBinary(files.get("build/paxconsola.gb").unwrap().to_vec())
+            }
         });
+
         // `Worker::bridge` spawns an instance if no one is available
-        let context = workers::CompilationWorker::bridge(callback); // Connected! :tada:
+        let context = workers::CompilationWorker::bridge(callback);
 
         App {
             link,
-            // forth_input: "5 5 1 + * print".to_string(),
             forth_input: START_CODE.to_string(),
             program: IndexMap::new(),
             method: None,
             context,
             mem: wasm_memory_init(),
-            // game_tick: IntervalService::new(),
-            // game_handle: None,
             wasm: None,
+
+            current_target: CurrentTarget::None,
         }
     }
 
@@ -139,23 +183,8 @@ impl Component for App {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::OnGameboyFocus => {
-                wasmboy_play();
-                true
-            }
-            Msg::OnGameboyBlur => {
-                wasmboy_pause();
-                true
-            }
-            Msg::InputChange(key) => {
-                let mem = &self.mem;
-                // stdweb::console!(log, format!("input changing to {:?}", key));
-                // js! {
-                //     @{mem}[0xC020] = @{key as u32};
-                // }
-                // TODO this didn't work!
-                true
-            }
+            Msg::Noop => false,
+
             Msg::CompileResult(program, execute) => {
                 self.program = program;
                 // js! {
@@ -233,43 +262,34 @@ impl Component for App {
                 }
                 true
             }
-            Msg::GameboyBinary(binary) => {
-                let mut array = Uint8Array::new_with_length(binary.len() as u32);
-                array.copy_from(&binary);
-                wasmboy_setup(array);
-                wasmboy_focus();
-                // wasmboy_play();
-                // play_gameboy();
-                true
-            }
             Msg::CompilationError(err) => {
                 alert(&format!("compile failed! {}", err));
                 true
             }
-            Msg::NextTick(wasm) => {
-                run_wasm_with_memory(&wasm, &self.mem);
+
+            Msg::GameboyBinary(binary) => {
+                let mut array = Uint8Array::new_with_length(binary.len() as u32);
+                array.copy_from(&binary);
+                wasmboy_setup(array);
+                // wasmboy_focus();
+                // wasmboy_play();
+                // play_gameboy();
                 true
             }
+
             Msg::GameStop => {
                 // if let Some(handle) = self.game_handle.take() {
                 //     drop(handle);
                 // }
                 false
             }
-            Msg::Click => {
-                // Dispatch compile operation to Worker
-                self.context.send(Request::Question(
-                    self.forth_input.as_bytes().to_vec(),
-                    ExecutionTarget::Debug,
-                ));
+
+            Msg::OnGameboyFocus => {
+                wasmboy_play();
                 true
             }
-            Msg::RunInput => {
-                // Dispatch compile operation to Worker
-                self.context.send(Request::Question(
-                    self.forth_input.as_bytes().to_vec(),
-                    ExecutionTarget::Wasm,
-                ));
+            Msg::OnGameboyBlur => {
+                wasmboy_pause();
                 true
             }
 
@@ -278,94 +298,33 @@ impl Component for App {
 
                 true
             }
+
             Msg::Reset(method) => {
                 self.method = Some((method.clone(), self.program.get(&method).unwrap().clone()));
 
                 true
             }
-            // Msg::Inline(method) => {
-            //     let mut program = self.program.clone();
-            //     inline_into_function(&mut program, &method);
-            //     self.method = Some((method.clone(), program.get(&method).unwrap().clone()));
-
-            //     true
-            // }
-            // Msg::InlineAndOptimize(method) => {
-            //     let mut mock_program = self.program.clone();
-
-            //     inline_into_function(&mut mock_program, &method);
-            //     optimize_function(&mut mock_program, &method);
-
-            //     self.method = Some((method.clone(), mock_program.get(&method).unwrap().clone()));
-
-            //     true
-            // }
-            Msg::ShowMethod(method) => {
-                self.method = self
-                    .program
-                    .get(&method)
-                    .map(|x| (method.clone(), x.clone()));
-
-                true
-            }
-            Msg::OnFocus => {
-                if let Some(wasm) = self.wasm.clone() {
-                    // Register gamepad listener.
-                    let input_callback = self.link.callback(|e: usize| Msg::InputChange(e));
-                    let input_closure = move |key: usize| {
-                        input_callback.emit(key);
-                    };
-                    // js! {
-                    //     ResponsiveGamepad.ResponsiveGamepad.onInputsChange([
-                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_UP,
-                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_DOWN,
-                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_LEFT,
-                    //         ResponsiveGamepad.ResponsiveGamepad.RESPONSIVE_GAMEPAD_INPUTS.DPAD_RIGHT,
-                    //     ], state => {
-                    //         const callback = @{input_closure};
-                    //         console.log("gamepad state", state);
-                    //         if (state.DPAD_UP) {
-                    //             callback(38);
-                    //         } else if (state.DPAD_DOWN) {
-                    //             callback(40);
-                    //         } else if (state.DPAD_LEFT) {
-                    //             callback(37);
-                    //         } else if (state.DPAD_RIGHT) {
-                    //             callback(39);
-                    //         }
-                    //     });
-                    // }
-
-                    // js! {
-                    //     ResponsiveGamepad.ResponsiveGamepad.enable()
-                    // }
-                    // self.game_handle = Some(self.game_tick.spawn(
-                    //     std::time::Duration::from_millis(100),
-                    //     self.link.callback(move |_| Msg::NextTick(wasm.clone())),
-                    // ));
-                }
-                true
-            }
-            Msg::OnBlur => {
-                // js! {
-                //     ResponsiveGamepad.ResponsiveGamepad.disable()
-                // }
-                // if let Some(handle) = self.game_handle.take() {
-                //     drop(handle);
-                // }
-                true
-            }
 
             Msg::CompileGameboy => {
-                play_gameboy();
+                self.current_target = CurrentTarget::Gameboy;
+
+                self.context.send(Request::PaxForthCompile(
+                    self.forth_input.clone(),
+                    self.current_target,
+                ));
+
+                // play_gameboy();
                 // Dispatch compile operation to Worker
-                // self.context.send(Request::Question(
+                // self.context.send(Request::RgbasmCompile(
                 //     self.forth_input.as_bytes().to_vec(),
-                //     ExecutionTarget::Gameboy,
                 // ));
+                // self.context.send(Request::RgblinkCompile(HashMap::new()));
                 true
             }
+
             Msg::CompileDos => {
+                self.current_target = CurrentTarget::Dos;
+
                 play_dos();
                 // Dispatch compile operation to Worker
                 // self.context.send(Request::Question(
@@ -374,7 +333,10 @@ impl Component for App {
                 // ));
                 true
             }
+
             Msg::CompileC64 => {
+                self.current_target = CurrentTarget::Commodore64;
+
                 play_c64();
                 // Dispatch compile operation to Worker
                 // self.context.send(Request::Question(
@@ -383,63 +345,27 @@ impl Component for App {
                 // ));
                 true
             }
+
+            Msg::PaxForthCompilerResult(program, target) => match target {
+                CurrentTarget::Gameboy => {
+                    self.context.send(Request::RgbasmCompile(hashmap![
+                        "build/pax_generated.asm".to_string() => program.as_bytes().to_vec(),
+                    ]));
+                    true
+                }
+                _ => {
+                    unimplemented!();
+                }
+            },
+
+            Msg::RgbasmCompilerResult(files) => {
+                self.context.send(Request::RgblinkCompile(files));
+                true
+            }
         }
     }
 
     fn view(&self) -> Html {
-        let blocks = self
-            .method
-            .iter()
-            .map(|(k, v)| {
-                let k1 = k.clone();
-                let k2 = k.clone();
-                let k3 = k.clone();
-                vec![
-                    vec![html! {
-                        <>
-                            <button onclick={
-                                self.link
-                                    .callback(move |e: MouseEvent| Msg::Reset(k2.clone()))
-                            }>
-                                {"Original"}
-                            </button>
-                            // <button onclick={
-                            //     self.link
-                            //         .callback(move |e: MouseEvent| Msg::Inline(k1.clone()))
-                            // }>
-                            //     {"Inline"}
-                            // </button>
-                        </>
-                    }],
-                    vec![html! {
-                        <h3>
-                            {format!("{}:", k)}
-                        </h3>
-                    }],
-                    // v.iter()
-                    //     .enumerate()
-                    //     .map(|(i, b)| {
-                    //         [
-                    //             vec![html! { <h5 style="margin: 0">{format!("block #{}", i)}</h5> }],
-                    //             b.commands()
-                    //                 .into_iter()
-                    //                 .map(|y| html! { <div>{format!("    {:?}", y.0)}</div> })
-                    //                 .collect::<Vec<_>>(),
-                    //         ]
-                    //         .concat()
-                    //     })
-                    //     .flatten()
-                    //     .collect::<Vec<_>>(),
-                ]
-                .concat()
-            })
-            .flatten()
-            .collect::<Html>();
-
-        let dump = html! {
-            <pre>{blocks}</pre>
-        };
-
         let oninput = self
             .link
             .callback(|e: InputData| Msg::ChangeInput(e.value.clone()));
@@ -457,10 +383,12 @@ impl Component for App {
 
         let forth_input: String = self.forth_input.clone();
 
+        let active_status = if true { "Not active" } else { "Active" };
+
         html! {
-            <div style="display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column">
+            <div id="ide">
                 <div id="header">
-                    <h1>{"Pax Consola"}</h1>
+                    <h1><a href="/">{"Pax Consola"}</a></h1>
                     <div id="subheader">
                         <a href="/static/about/">{"About"}</a>
                         <a href="/book/">{"Docs"}</a>
@@ -476,7 +404,8 @@ impl Component for App {
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
                         <div>{gameboy_action_group}</div>
-                        <div style="background-color: #333; width: 700px; height: 444px" id="console-target"></div>
+                        <div id="console-target"><iframe src="/static/emulators/none/" width="700" height="444"></iframe></div>
+                        <div id="console-status">{active_status}</div>
                     </div>
                 </div>
             </div>

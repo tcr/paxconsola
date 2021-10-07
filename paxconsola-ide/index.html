@@ -10,8 +10,10 @@
 
   <link href="/static/paxconsola.css" rel="stylesheet">
 
+  <!--
   <script type="text/javascript"
     src="https://unpkg.com/responsive-gamepad@1.2.1/dist/responsive-gamepad.umd.js"></script>
+  -->
 
   <link data-trunk rel="copy-dir" href="static" />
   <link data-trunk rel="copy-dir" href="build/crossconsola" />
@@ -28,6 +30,8 @@
   <h1 style="font-family: Helvetica, Arial; color: #333; margin: 1em">Loading Pax Consola...</h1>
 
   <script>
+    // See https://www.typescriptlang.org/dev/sandbox/
+
     const getLoaderScript = document.createElement('script')
     getLoaderScript.src = 'https://www.typescriptlang.org/js/vs.loader.js'
     getLoaderScript.async = true
@@ -86,7 +90,7 @@
 
 
           clearInterval(handle);
-        }, 100);
+        }, 50);
       });
     };
     document.body.appendChild(getLoaderScript)

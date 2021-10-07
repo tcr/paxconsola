@@ -33,7 +33,6 @@ $(OUT): check $(BUILD_DIR)/tiles.bin $(BUILD_DIR)/pax_generated.asm $(INPUT) src
 	$(ASM) -E -D $(ENGINE_FLAG)=1 -o$(OBJ_NAME).obj $(INPUT)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJ_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb
-	rm $(OBJ_NAME).obj
 
 $(BUILD_DIR)/pax_generated.asm: $(GAME_PATH)
 	paxforth compile src/engines/gb-$(ENGINE).fth $(GAME_PATH) --target=gb > build/pax_generated.asm

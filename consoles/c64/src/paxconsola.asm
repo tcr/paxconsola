@@ -259,7 +259,7 @@ libraries:
         .res $2000-*
 
 FONT_EMBED:
-        .include "../../examples/gfx/libra-gfx.asm"
+        .include "../gfx/libra-gfx.asm"
 FONT_EMBED_END:
 
         .res $3000-*

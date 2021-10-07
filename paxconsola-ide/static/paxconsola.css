@@ -5,53 +5,15 @@ body,
 }
 
 html,
-body,
-#CONTENT {
+body {
     margin: 0;
+    padding: 0;
     height: 100%;
     width: 100%;
-    padding: 0;
 }
 
-#MONACO_INJECT {
-    /* height: 300px; */
-}
-
-#MONACO_TEXTAREA {
-    position: fixed;
-    left: -1000px;
-    top: -10000px;
-    visibility: hidden;
-}
-
-.button-action {
-    font-size: 18px;
-    margin: 10px 8px;
-    padding: 4px 16px;
-    border: 1px solid inset;
-    background: #eef;
-}
-
-#WASM_CANVAS {
-    cursor: pointer;
-    position: relative;
-}
-
-#WASM_CANVAS::after {
-    content: "Click to start playing."
-}
-
-#WASM_CANVAS:focus {
-    outline: 5px solid #0f0 !important;
-}
-
-#GAMEBOY_CANVAS {
-    width: 320px !important;
-    height: 288px !important;
-}
-
-#GAMEBOY_CANVAS:focus {
-    outline: 5px solid #0f0 !important;
+#ide {
+    display: flex; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column;
 }
 
 /* IDE header */
@@ -73,6 +35,15 @@ body,
     font-family: Bungee Inline, Arial Black, sans-serif;
     text-transform: uppercase;
     display: inline-block;
+}
+
+#header h1 a {
+    color: white;
+    text-decoration: none;
+}
+
+#header h1 a:hover {
+    text-decoration: underline;
 }
 
 #subheader {
@@ -102,6 +73,45 @@ body,
     text-decoration: underline;
 }
 
+/* Coding pane */
+
+#MONACO_TEXTAREA {
+    position: fixed;
+    left: -1000px;
+    top: -10000px;
+    visibility: hidden;
+}
+
+.button-action {
+    font-size: 18px;
+    margin: 10px 8px;
+    padding: 4px 16px;
+    border: 1px solid inset;
+    background: #eef;
+}
+
+#WASM_CANVAS {
+    cursor: pointer;
+    position: relative;
+}
+
+#WASM_CANVAS::after {
+    content: "Click to start playing."
+}
+
+#WASM_CANVAS:focus {
+    outline: 5px solid #0f0 !important;
+}
+
+/* Compilation pane */
+
+#console-target {
+    background-color: #333; width: 700px; height: 444px;
+}
+
+#console-target iframe {
+    background: transparent; border: 0px none;
+}
 
 /* About Page */
 

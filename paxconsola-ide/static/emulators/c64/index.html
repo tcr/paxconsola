@@ -59,22 +59,25 @@
             "-soundsync", "2",
             "-soundbufsize", "150",
             "-residsamp", "0",
-            "-joydev1", "4",
+            "-joydev1", "2",
             "-VICIIfilter", "0",
+            "-config", "/emulator/vice.cfg",
           ]),
           VICELoader.mountFile("paxconsola.prg",
             VICELoader.localFile("IDE Program",
               binary)),
           VICELoader.fliplist([["paxconsola.prg"]]),
-          VICELoader.autoLoad("paxconsola.prg")))
+          VICELoader.autoLoad("paxconsola.prg"),
+          VICELoader.mountFile("vice.cfg",
+            VICELoader.fetchFile("Config File",
+              "c64/vice.cfg")),
+        ))
         .setSplashImage('lib/logo/emularity_color_small.png');
 
       emulator.start({ waitAfterDownloading: false });
     }
 
-
-
-    if (!window.parent) {
+    if (window.parent == window) {
       fetch('c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => play(arr));
     }
 

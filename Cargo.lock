@@ -821,6 +821,7 @@ dependencies = [
  "include_dir",
  "indexmap",
  "js-sys",
+ "maplit",
  "paxforth",
  "serde",
  "wasm-bindgen",

@@ -12,9 +12,10 @@ deps: crossconsola emulators
 
 crossconsola:
 	mkdir -p build/crossconsola
-	wget -qO- https://github.com/tcr/crossconsola/releases/download/1.0.0/crossconsola.tar.gz | tar -xvf - -C ./build/crossconsola/
+	wget -qO- https://github.com/tcr/crossconsola/releases/download/1.1.0/crossconsola.tar.gz | tar -xvf - -C ./build/crossconsola/
 
 emulators:
+# TODO move to build dir
 	mkdir -p static/emulators/lib
 	cd static/emulators/lib; wget https://raw.githubusercontent.com/db48x/emularity/05390a4c915790825b67431803cada9ef66fa97f/browserfs.min.js
 	cd static/emulators/lib; wget https://archive.org/download/emularity_engine_v1/dosbox-sync.js.gz; gunzip dosbox-sync.js.gz

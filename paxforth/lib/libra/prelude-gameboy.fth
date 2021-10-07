@@ -29,3 +29,7 @@ $9800 constant graphics
 : read-index ( index -- color )
     graphics + c@
     ;
+
+: convert-x-y ( x y -- offset )  screen-row-width * + ;
+: write-char-at ( color x y -- )  rot rot convert-x-y draw-index ;
+: read-char-at convert-x-y read-index ;
