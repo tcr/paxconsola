@@ -285,7 +285,7 @@ impl Component for App {
         let on_play_dos = self.link.callback(|_| Msg::CompileDos);
         let on_play_gameboy = self.link.callback(|_| Msg::CompileGameboy);
         let on_play_c64 = self.link.callback(|_| Msg::CompileC64);
-        let gameboy_action_group = html! {
+        let console_target_actions = html! {
             <div id="console-target-actions">
                 <button class="button-action" onclick=on_play_dos>{ "DOS" }</button>
                 <button class="button-action" onclick=on_play_c64>{ "Commodore 64" }</button>
@@ -313,14 +313,17 @@ impl Component for App {
                     </div>
                 </div>
                 <div style="display: flex; flex: 1; align-items: stretch; overflow: auto;">
-                    <div style="flex: 1; flex-direction: column; display: flex; padding: 16px; overflow: hidden">
+                    <div style="flex: 1; flex-direction: column; display: flex; padding: 10px 16px 16px; overflow: hidden">
+                        <div style="padding: 0">
+                            <button class="button-action" disabled={true}>{ "Load example... "}</button>
+                        </div>
                         <div style="flex: 1; flex-direction: column; display: flex; border: 2px solid black">
                             <div id="MONACO_INJECT" style="flex: 1"></div>
                             <textarea id="MONACO_TEXTAREA" rows="10" value=forth_input oninput=oninput />
                         </div>
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
-                        <div>{gameboy_action_group}</div>
+                        <div>{console_target_actions}</div>
                         <div id="console-target"><iframe src="/static/emulators/none/" width="700" height="444"></iframe></div>
                         <div id="console-advice">{advice}</div>
                     </div>

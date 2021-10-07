@@ -5,10 +5,10 @@ PAXEXT_write2Dchar2Dat:
     SWAP    E
     RLC     E
     LD      A,E
-    AND     #0x03
+    AND     $03
     ADD     H
     LD      B,A
-    LD      A,#0xE0
+    LD      A, $E0
     AND     E
     ADD     D
     LD      C,A             ; dest BC = HL + 0x20 * Y + X

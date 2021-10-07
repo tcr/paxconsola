@@ -19,7 +19,7 @@ all: check build/paxconsola.prg
 
 check:
 ifeq ($(GAME),)
-	$(error GAME is a required argument)
+	$(error GAME is a required argument. Please specify a game file from the root "games" folder)
 endif
 
 clean:

@@ -393,6 +393,8 @@ PAX_NATIVE_draw2Dindex:
     ; [gb_ir] Ret
     ret
 
+	INCLUDE "src/engines/gb-taurus.asm"
+
 
 SECTION "RAM Vars",WRAM0[$C000]
 vblank_flag:

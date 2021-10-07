@@ -1,7 +1,14 @@
+\ Welcome to the basic "Snake World" game.
+\ This game is written in Pax Forth, an ahead-of-time compiled Forth
+\ that can run on several vintage consoles and computer systems. See
+\ the "Docs" for more inforamtion.
+\
+\ To try out this game, click any of the targets in the IDE.
+
+\ The following line tells the compiler which "game engine" we want to use.
 ( @engine taurus )
 
-variable initialized
-variable frame \ unused
+\ Setup variables for our in-game objects.
 
 variable snake-x-head
 500 cells allot
@@ -9,11 +16,11 @@ variable snake-x-head
 variable snake-y-head
 500 cells allot
 
-variable apple-x
-variable apple-y
-
 variable direction
 variable length
+
+variable apple-x
+variable apple-y
 
 : snake-x ( offset -- address )
     cells snake-x-head +
@@ -188,6 +195,9 @@ variable length
 
 \ Game loop
 
+\ This method is invoked once, at the start of the game,
+\ or each time the game resets (when you collide with a
+\ wall or with yourself)
 : initialize
     draw-background
     draw-walls
@@ -196,6 +206,8 @@ variable length
     draw-full-snake
     ;
 
+\ This method is called once per frame, to update the
+\ in-game state and check the termination condition.
 : next-frame
     draw-snake-head-tail
     draw-apple
