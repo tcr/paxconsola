@@ -3,7 +3,6 @@ use crate::targets::c64::*;
 use crate::targets::dos::*;
 use crate::targets::gb::*;
 use crate::*;
-use gloo_console::log;
 use include_dir::*;
 use maplit::*;
 use regex::Regex;
@@ -628,10 +627,6 @@ impl Agent for CompilationWorker {
                         Engine(engine),
                     ),
                 );
-            }
-
-            e => {
-                unimplemented!("{:?}", e);
             }
         }
     }

@@ -118,6 +118,12 @@ body {
     background: #eef;
 }
 
+.select-action {
+    font-size: 14px;
+    padding: 6px;
+    min-width: 15em;
+}
+
 /* About Page */
 
 #about-page {

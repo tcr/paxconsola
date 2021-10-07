@@ -1,18 +1,16 @@
 use crate::*;
 use gloo_console::log;
-use indexmap::IndexMap;
-use js_sys::{Uint16Array, Uint8Array};
+use js_sys::Uint8Array;
 use maplit::*;
-use paxforth::runner::wasm::*;
-use paxforth::targets::wasm::*;
-use paxforth::*;
 use std::io::prelude::*;
 use wasm_bindgen::prelude::*;
 use yew::worker::*;
-use yew::{html, Component, ComponentLink, Html, InputData, MouseEvent, ShouldRender};
+use yew::{html, ChangeData, Component, ComponentLink, Html, InputData, MouseEvent, ShouldRender};
 
 // Relative to src/
-const START_CODE: &str = include_str!("../../games/snake_world.fth");
+const SNAKE_WORLD: &str = include_str!("../../games/snake_world.fth");
+const SWORD_WORLD: &str = include_str!("../../games/sword_world.fth");
+const FORK_WORLD: &str = include_str!("../../games/fork_world.fth");
 
 #[wasm_bindgen(inline_js = r##"
 
@@ -52,17 +50,25 @@ export function play_c64_binary(binary) {
     };
 }
 
+export function setEditorValue(value) {
+    window.setEditorValue(value);
+}
+
 "##)]
 extern "C" {
     fn play_gameboy_binary(binary: Uint8Array);
     fn play_dos_binary(binary: Uint8Array);
     fn play_c64_binary(binary: Uint8Array);
+
+    fn setEditorValue(value: String);
 }
 
 pub enum Msg {
     Noop,
 
     ChangeInput(String),
+    ChangeExampleSelection(String),
+    ChangeExample,
 
     CompileGameboy,
     CompileDos,
@@ -78,9 +84,11 @@ pub enum Msg {
 }
 
 pub struct App {
-    forth_input: String,
     link: ComponentLink<Self>,
     context: Box<dyn Bridge<workers::CompilationWorker>>,
+
+    forth_input: String,
+    example_selection: String,
 
     current_target: CurrentTarget,
 }
@@ -102,7 +110,7 @@ impl Component for App {
                 log!("`rgbasm` succeeded.");
                 Msg::RgbasmCompilerResult(files, engine)
             }
-            Response::RgblinkCompilerResult(result, engine) => {
+            Response::RgblinkCompilerResult(result, _engine) => {
                 let files = result.expect("`rgblink` with non-zero status code");
 
                 log!("`rgblink` succeeded.");
@@ -133,8 +141,11 @@ impl Component for App {
 
         App {
             link,
-            forth_input: START_CODE.to_string(),
             context,
+
+            // Beginning value is "Snake World"
+            forth_input: SNAKE_WORLD.to_string(),
+            example_selection: "snake_world".to_string(),
 
             current_target: CurrentTarget::None,
         }
@@ -153,6 +164,27 @@ impl Component for App {
 
             Msg::ChangeInput(code) => {
                 self.forth_input = code.clone();
+
+                true
+            }
+            Msg::ChangeExampleSelection(example) => {
+                self.example_selection = example.clone();
+
+                true
+            }
+            Msg::ChangeExample => {
+                match self.example_selection.as_str() {
+                    "snake_world" => {
+                        setEditorValue(SNAKE_WORLD.to_string());
+                    }
+                    "sword_world" => {
+                        setEditorValue(SWORD_WORLD.to_string());
+                    }
+                    "fork_world" => {
+                        setEditorValue(FORK_WORLD.to_string());
+                    }
+                    _ => {}
+                }
 
                 true
             }
@@ -232,13 +264,13 @@ impl Component for App {
                 true
             }
 
-            Msg::NasmCompilerResult(files, engine) => {
+            Msg::NasmCompilerResult(files, _engine) => {
                 let binary = files["build/PAXCNSLA.COM"].clone();
 
                 // FIXME DOS needs a ZIP file to mount... let's give it one
 
                 let mut buf = [0; 65536];
-                let mut cur = std::io::Cursor::new(&mut buf[..]);
+                let cur = std::io::Cursor::new(&mut buf[..]);
                 let mut zip = zip::ZipWriter::new(cur);
 
                 let options = zip::write::FileOptions::default()
@@ -264,7 +296,7 @@ impl Component for App {
                 true
             }
 
-            Msg::Ld65CompilerResult(files, engine) => {
+            Msg::Ld65CompilerResult(files, _engine) => {
                 let binary = files["build/paxconsola.prg"].clone();
 
                 let array = Uint8Array::new_with_length(binary.len() as u32);
@@ -293,6 +325,12 @@ impl Component for App {
             </div>
         };
 
+        let on_change_example = self.link.callback(|e: ChangeData| match e {
+            ChangeData::Select(el) => Msg::ChangeExampleSelection(el.value()),
+            _ => Msg::Noop,
+        });
+        let on_change_click = self.link.callback(|_e: MouseEvent| Msg::ChangeExample);
+
         let forth_input: String = self.forth_input.clone();
 
         let advice = match self.current_target {
@@ -315,7 +353,12 @@ impl Component for App {
                 <div style="display: flex; flex: 1; align-items: stretch; overflow: auto;">
                     <div style="flex: 1; flex-direction: column; display: flex; padding: 10px 16px 16px; overflow: hidden">
                         <div style="padding: 0">
-                            <button class="button-action" disabled={true}>{ "Load example... "}</button>
+                            <button class="button-action" onclick=on_change_click>{ "Load example... "}</button>
+                            <select class="select-action" onchange=on_change_example value=self.example_selection.to_string()>
+                                <option value="snake_world">{"Snake World"}</option>
+                                <option value="fork_world">{"Fork World (DOS)"}</option>
+                                <option value="sword_world">{"Sword World (DOS)"}</option>
+                            </select>
                         </div>
                         <div style="flex: 1; flex-direction: column; display: flex; border: 2px solid black">
                             <div id="MONACO_INJECT" style="flex: 1"></div>

@@ -32,6 +32,10 @@
   <script>
     // See https://www.typescriptlang.org/dev/sandbox/
 
+    window.setEditorValue = function (value) {
+      /* no op */
+    };
+
     const getLoaderScript = document.createElement('script')
     getLoaderScript.src = 'https://www.typescriptlang.org/js/vs.loader.js'
     getLoaderScript.async = true
@@ -87,7 +91,9 @@
             document.getElementById("MONACO_TEXTAREA").dispatchEvent(new InputEvent('input'));
           });
 
-
+          window.setEditorValue = function (value) {
+            editor.getModel().setValue(value);
+          };
 
           clearInterval(handle);
         }, 50);
