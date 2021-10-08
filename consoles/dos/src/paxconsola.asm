@@ -129,9 +129,6 @@ main_loop:
         call wait_vsync
         call wait_vsync
         call wait_vsync
-        call wait_vsync
-        call wait_vsync
-        call wait_vsync
 
         ; Poll keyboards
         call poll_keyboard

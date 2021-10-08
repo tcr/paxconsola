@@ -336,7 +336,7 @@ impl Component for App {
         let advice = match self.current_target {
             CurrentTarget::None => "",
             CurrentTarget::Gameboy | CurrentTarget::Dos | CurrentTarget::Commodore64 => {
-                "Controls: Focus the emulator and use the keypad arrows"
+                "Controls: Use the keypad arrows"
             }
         };
 
