@@ -77,6 +77,8 @@ LOOP:
 	call JOY_DOWN
 
 	call WAIT_VBLANK
+	call WAIT_VBLANK
+	call WAIT_VBLANK
 
 	; Set forth stack to end of zero page RAM
 	ld c, $fe

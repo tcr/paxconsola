@@ -1,5 +1,7 @@
 \ extern write-char-at
 
+extern *
+
 $C020 constant last-key
 $C022 constant random-register
 $9800 constant graphics
