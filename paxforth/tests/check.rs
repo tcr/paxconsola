@@ -3,6 +3,7 @@ use paxforth::check::*;
 use paxforth::program::optimize::*;
 use paxforth::targets::wasm::WasmForthCompiler;
 use paxforth::ForthCompiler;
+use paxforth::ForthParser;
 use std::path::PathBuf;
 
 #[ctor::ctor]
@@ -63,7 +64,7 @@ fn run_check_tests(ignore_list: &[&str], check_mode: CheckMode, inline: bool, op
         );
 
         // Parse the program.
-        let mut program = WasmForthCompiler::parse(&test.contents, Some(&test.path));
+        let mut program = ForthParser::parse(&test.contents, Some(&test.path)).unwrap();
         program = optimize_main(program, inline, optimize);
 
         eprintln!("[forth] running '{}'", test.path.display());
@@ -104,7 +105,6 @@ static OPT_IGNORE_LIST: &[&str] = &[
     "roll.fth",
     // FIXME Has issues with inlining, reason unknown
     "json-test.fth",
-
     // Other unknown issues
     "case.fth",
     "std-case.fth",

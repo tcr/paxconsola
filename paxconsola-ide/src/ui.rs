@@ -75,6 +75,7 @@ pub enum Msg {
     CompileC64,
 
     PaxForthCompilerResult(String, CurrentTarget, Engine),
+    PaxForthCompilerError(String),
 
     RgbasmCompilerResult(HashMap<String, Vec<u8>>, Engine),
     GameboyBinary(Vec<u8>),
@@ -99,11 +100,13 @@ impl Component for App {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let callback = link.callback(|res| match res {
-            Response::PaxForthCompilerResult(result, target, engine) => {
-                let program = result.expect("Failed to compile Forth program");
-                log!("`paxforth` succeeded.");
-                Msg::PaxForthCompilerResult(program, target, engine)
-            }
+            Response::PaxForthCompilerResult(result, target, engine) => match result {
+                Err(err) => Msg::PaxForthCompilerError(err),
+                Ok(program) => {
+                    log!("`paxforth` succeeded.");
+                    Msg::PaxForthCompilerResult(program, target, engine)
+                }
+            },
             Response::RgbasmCompilerResult(result, engine) => {
                 let files = result.expect("`rgbasm` with non-zero status code");
 
@@ -248,6 +251,10 @@ impl Component for App {
                         unimplemented!();
                     }
                 }
+            }
+            Msg::PaxForthCompilerError(string) => {
+                gloo_console::error!("{}", string);
+                true
             }
 
             Msg::RgbasmCompilerResult(files, engine) => {

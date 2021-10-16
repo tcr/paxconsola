@@ -97,10 +97,6 @@ jump_if_0(target_{})",
 pub struct Tom1ForthCompiler {}
 
 impl ForthCompiler for Tom1ForthCompiler {
-    fn preludes() -> Vec<(PathBuf, String)> {
-        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
-    }
-
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {

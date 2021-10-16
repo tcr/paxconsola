@@ -191,10 +191,6 @@ impl PaxWalker for WasmForthCompilerWalker {
 pub struct WasmForthCompiler {}
 
 impl ForthCompiler for WasmForthCompiler {
-    fn preludes() -> Vec<(PathBuf, String)> {
-        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
-    }
-
     /// Returns a compiled WAT file
     fn compile(program: &PaxProgram) -> String {
         let mut walker = WasmForthCompilerWalker::new();

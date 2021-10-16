@@ -591,34 +591,19 @@ impl Agent for CompilationWorker {
                 ]
                 .join("\n\n");
 
-                let result = std::panic::catch_unwind(move || match target {
-                    CurrentTarget::None => unreachable!(),
-                    CurrentTarget::Commodore64 => {
-                        let mut program = C64ForthCompiler::parse(&engine_and_code, Some(&file));
-                        program =
-                            optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
-                        let result = C64ForthCompiler::compile(&program);
-                        println!("{}", &result);
-                        result
-                    }
-                    CurrentTarget::Gameboy => {
-                        let mut program =
-                            GameboyForthCompiler::parse(&engine_and_code, Some(&file));
-                        program =
-                            optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
-                        let result = GameboyForthCompiler::compile(&program);
-                        println!("{}", &result);
-                        result
-                    }
-                    CurrentTarget::Dos => {
-                        let mut program = DosForthCompiler::parse(&engine_and_code, Some(&file));
-                        program =
-                            optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
-                        let result = DosForthCompiler::compile(&program);
-                        println!("{}", &result);
-                        result
+                let result = ForthParser::parse(&engine_and_code, Some(&file)).map(|program| {
+                    let optprogram =
+                        optimize::optimize_main(program.clone(), arg_inline, arg_optimize);
+                    match target {
+                        CurrentTarget::None => unreachable!(),
+                        CurrentTarget::Commodore64 => C64ForthCompiler::compile(&optprogram),
+                        CurrentTarget::Gameboy => GameboyForthCompiler::compile(&optprogram),
+                        CurrentTarget::Dos => DosForthCompiler::compile(&optprogram),
                     }
                 });
+                if let Ok(res) = &result {
+                    println!("{}", res);
+                }
                 self.link.respond(
                     who,
                     Response::PaxForthCompilerResult(

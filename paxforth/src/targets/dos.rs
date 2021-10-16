@@ -285,10 +285,6 @@ pub fn cross_compile_ir_term_dos(i: usize, op: Located<PaxTerm>) -> String {
 pub struct DosForthCompiler {}
 
 impl ForthCompiler for DosForthCompiler {
-    fn preludes() -> Vec<(PathBuf, String)> {
-        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
-    }
-
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {

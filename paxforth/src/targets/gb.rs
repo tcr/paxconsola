@@ -461,12 +461,6 @@ PAX_FN_{}:
 pub struct GameboyForthCompiler {}
 
 impl ForthCompiler for GameboyForthCompiler {
-    fn preludes() -> Vec<(PathBuf, String)> {
-        vec![
-            (PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string()),
-        ]
-    }
-
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {

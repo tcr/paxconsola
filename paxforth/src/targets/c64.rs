@@ -534,10 +534,6 @@ pub fn cross_compile_ir_term_c64(i: usize, op: Located<PaxTerm>) -> String {
 pub struct C64ForthCompiler {}
 
 impl ForthCompiler for C64ForthCompiler {
-    fn preludes() -> Vec<(PathBuf, String)> {
-        vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())]
-    }
-
     fn compile(program: &PaxProgram) -> String {
         let mut out = String::new();
         for (name, code) in program {

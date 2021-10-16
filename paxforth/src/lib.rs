@@ -19,14 +19,21 @@ use std::path::{Path, PathBuf};
 pub const PRELUDE: &str = include_str!("../lib/prelude.fth");
 
 pub trait ForthCompiler {
-    fn preludes() -> Vec<(PathBuf, String)>;
     fn compile(program: &PaxProgram) -> String;
-    fn parse(code: &str, arg_file: Option<&Path>) -> PaxProgram {
+}
+
+pub struct ForthParser {}
+
+impl ForthParser {
+    pub fn parse(code: &str, arg_file: Option<&Path>) -> Result<PaxProgram, PaxParseError> {
+        let preludes: Vec<(PathBuf, String)> =
+            vec![(PathBuf::from("../../lib/prelude.fth"), PRELUDE.to_string())];
+
         if let Some(arg) = arg_file {
             let arg_str = arg.to_string_lossy().to_string();
-            parse_to_pax(&code, Some(&arg_str), Self::preludes())
+            parse_to_pax(&code, Some(&arg_str), preludes)
         } else {
-            parse_to_pax(&code, None, Self::preludes())
+            parse_to_pax(&code, None, preludes)
         }
     }
 }

@@ -8,10 +8,44 @@ use crate::*;
 pub use parse_util::*;
 pub use tokenizer::*;
 
+#[derive(Debug)]
+pub struct PaxParseError {
+    details: String,
+    pos: Pos,
+}
+
+use std::error::Error;
+use std::fmt;
+
+impl PaxParseError {
+    fn new(msg: &str, pos: Pos) -> PaxParseError {
+        PaxParseError {
+            details: msg.to_string(),
+            pos,
+        }
+    }
+}
+
+impl fmt::Display for PaxParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", self.details, self.pos)
+    }
+}
+
+impl Error for PaxParseError {
+    fn description(&self) -> &str {
+        &self.details
+    }
+}
+
 /**
  * Internal parse logic for code (whether it is prelude, code, etc.)
  */
-fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filename: Option<&str>) {
+fn parse_forth_inner(
+    program: &mut PaxProgramBuilder,
+    source_code: &str,
+    filename: Option<&str>,
+) -> Result<(), PaxParseError> {
     // Block references.
     let mut block_refs: Vec<BlockReference> = vec![];
 
@@ -48,7 +82,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                             .insert(word.to_string(), program.variable_offset);
                         program.variable_offset += 2;
                     }
-                    _ => panic!("expected variable name"),
+                    _ => {
+                        return Err(PaxParseError::new("expected variable name", pos));
+                    }
                 }
                 parse_mode = ParseMode::Default;
                 continue;
@@ -58,7 +94,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     Token::Word(ref word) => {
                         program.enter_function(word.to_string());
                     }
-                    _ => panic!("expected function name"),
+                    _ => {
+                        return Err(PaxParseError::new("expected function name", pos));
+                    }
                 }
                 parse_mode = ParseMode::Default;
                 continue;
@@ -70,7 +108,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                             .constants
                             .insert(word.to_string(), value as PaxLiteral);
                     }
-                    _ => panic!("expected constant name"),
+                    _ => {
+                        return Err(PaxParseError::new("expected constant name", pos));
+                    }
                 }
                 parse_mode = ParseMode::Default;
                 continue;
@@ -153,7 +193,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     program.defer_function(word.to_string());
                 }
                 _ => {
-                    panic!("Expected word following 'defer'");
+                    return Err(PaxParseError::new("Expected word following 'defer'", pos));
                 }
             },
             ":noname" => {
@@ -189,7 +229,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                 if previous_tokens[previous_tokens.len() - 2] == Token::Word("cells".to_string()) {
                     let cells = &previous_tokens[previous_tokens.len() - 3];
                     match cells {
-                        Token::Word(_) => panic!("Expected literal"),
+                        Token::Word(_) => {
+                            return Err(PaxParseError::new("Expected literal", pos));
+                        }
                         Token::Literal(cells) => {
                             // eprintln!("allocating {}", cells);
                             program.current().current_block.pop(); // "cells"
@@ -199,13 +241,15 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                         }
                     }
                 } else {
-                    panic!("expected cells");
+                    return Err(PaxParseError::new("expected cells", pos));
                 }
             }
             "constant" => {
                 let cells = &previous_tokens[previous_tokens.len() - 2];
                 match cells {
-                    Token::Word(_) => panic!("Expected literal"),
+                    Token::Word(_) => {
+                        return Err(PaxParseError::new("Expected literal", pos));
+                    }
                     Token::Literal(value) => {
                         program.current().current_block.pop(); // value
 
@@ -219,7 +263,9 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                     Some((Token::Word(word), _defer_pos)) => {
                         program.extern_function(word);
                     }
-                    _ => panic!("Expected word to follow 'extern'"),
+                    _ => {
+                        return Err(PaxParseError::new("Expected word to follow 'extern'", pos));
+                    }
                 }
             }
 
@@ -265,7 +311,12 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
                             Some((Token::Word(word), _defer_pos)) => {
                                 program.rename_function(word);
                             }
-                            _ => panic!("Expected word to follow 'is'"),
+                            _ => {
+                                return Err(PaxParseError::new(
+                                    "Expected word to follow 'is'",
+                                    pos,
+                                ));
+                            }
                         }
                     }
                     Some(token) => parser_iter.put_back(token),
@@ -412,7 +463,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "loop" => {
                 let name = "loopimpl";
                 if !program.program.contains_key(name) {
-                    panic!("no loopimpl defn found");
+                    return Err(PaxParseError::new("no loopimpl defn found", pos));
                 }
                 push_tokens(
                     &mut parser_iter,
@@ -430,7 +481,7 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
             "-loop" => {
                 let name = "-loopimpl";
                 if !program.program.contains_key(name) {
-                    panic!("no -loopimpl defn found");
+                    return Err(PaxParseError::new("no -loopimpl defn found", pos));
                 }
                 push_tokens(
                     &mut parser_iter,
@@ -448,7 +499,10 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
 
             // Unknown word
             word => {
-                panic!("unknown value: {:?}", word);
+                return Err(PaxParseError::new(
+                    &format!("unknown value: {:?}", word),
+                    pos,
+                ));
             }
         }
     }
@@ -456,24 +510,26 @@ fn parse_forth_inner(program: &mut PaxProgramBuilder, source_code: &str, filenam
     // Finish "main" function.
     assert_eq!(block_refs.len(), 0, "did not exhaust all flow markers");
     assert!(!program.in_function(), "did not finish all functions");
+
+    Ok(())
 }
 
 pub fn parse_to_pax(
     contents: &str,
     filename: Option<&str>,
     preludes: Vec<(PathBuf, String)>,
-) -> PaxProgram {
+) -> Result<PaxProgram, PaxParseError> {
     let mut stack = PaxProgramBuilder::new();
 
     // Parse preludes.
     for (key, prelude) in preludes {
         let arg_str = key.to_string_lossy().to_string();
         // dbg!(key);
-        parse_forth_inner(&mut stack, &prelude, Some(arg_str.as_str()));
+        parse_forth_inner(&mut stack, &prelude, Some(arg_str.as_str()))?;
     }
 
     // Parse contents.
-    parse_forth_inner(&mut stack, contents, filename);
+    parse_forth_inner(&mut stack, contents, filename)?;
 
     // Add final exit termination opcode.
     stack
@@ -487,5 +543,5 @@ pub fn parse_to_pax(
     let main = result.remove("main").unwrap();
     result.insert("main".to_string(), main);
 
-    result
+    Ok(result)
 }
