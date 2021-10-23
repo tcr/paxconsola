@@ -8,3 +8,6 @@ all:
 
 clean:
 	rm -rf build
+
+run:
+	mame -window -video opengl microvsn -cart ./build/invaders.bin
