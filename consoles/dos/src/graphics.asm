@@ -14,7 +14,10 @@ set_virtual_screen_width:
 		mov al, LINE_OFFSET
 		out dx, al
 		mov dx, CRTC_DATA
-		shr bx, 4 ; width / 16
+		shr bx, 1
+		shr bx, 1
+		shr bx, 1
+		shr bx, 1 ; width / 16
 		mov al, bl
 		out dx, al
 		ret
@@ -36,7 +39,10 @@ get_screen_pos:
 		add di,ax
 		
 		mov ax,[BufferOffscreen]
-		shr ax,4
+		shr ax,1
+		shr ax,1
+		shr ax,1
+		shr ax,1
 		add ax,0xA000
 		mov es,ax
 	pop ax
@@ -124,7 +130,9 @@ wait_display_enable:
 
 ; Await VSYNC signal, indicating the next frame.
 wait_vsync:
-		pusha
+		push ax
+		push dx
+
 		mov dx, INPUT_STATUS
 	.l1:
 		in al,dx
@@ -135,7 +143,9 @@ wait_vsync:
 		in al,dx
 		test al, 08h
 		jnz .l2
-		popa
+
+		pop dx
+		pop ax
 		ret
 
 
@@ -257,33 +267,39 @@ copy_screen_to_buffer:
         ; Set ds and es
 		push ax
 		mov ax, [BufferOffscreen]
-		shr ax, 4
+		shr ax, 1
+		shr ax, 1
+		shr ax, 1
+		shr ax, 1
         add ax, 0xA000
         mov es, ax
 		mov ax, [BufferOnscreen]
-		shr ax, 4
+		shr ax, 1
+		shr ax, 1
+		shr ax, 1
+		shr ax, 1
         add ax, 0xA000
         mov ds, ax
 		pop ax
 
-%macro  copy_plane 1 
+copy_plane macro   plane
         ; Copy plane
 		push ax
-        mov ax, 0004h + (%1 << 8)
+        mov ax, 0004h + (plane << 8)
         mov dx,GC_INDEX
         out dx,ax
-        mov ax, 0002h + ((1 << %1) << 8)
+        mov ax, 0002h + ((1 << plane) << 8)
         mov dx,SC_INDEX
         out dx,ax
 		pop ax
 
         mov di, bx
         mov si, ax
-    %%copy_plane:
+	.copy_plane_loop:
         movsw
         dec cx
-        jnz %%copy_plane
-%endmacro
+        jnz .copy_plane_loop
+	endm
 
 		push cx
         copy_plane 0
@@ -322,26 +338,26 @@ Palette:
 
     align 16
 BitmapTest:	
-	; incbin "lib/SpriteTestEGA.RAW"
-    incbin "build/tiles.raw"
+	; binclude "lib/SpriteTestEGA.RAW"
+    binclude "../build/tiles.raw"
 BitmapTestEnd:
 
     align 16
 bitmap_linear:
-    incbin "build/tiles-linear.raw"
+    binclude "../build/tiles-linear.raw"
 
     align 16
 bitmap_hero:
-    incbin "build/tiles-hero.raw"
+    binclude "../build/tiles-hero.raw"
 
     align 16
 bitmap_block:
-    incbin "build/tiles-block.raw"
+    binclude "../build/tiles-block.raw"
 
     align 16
 bitmap_door:
-    incbin "build/tiles-door.raw"
+    binclude "../build/tiles-door.raw"
 
     align 16
 bitmap_tilesheet:
-    incbin "build/tilesheet.raw"
+    binclude "../build/tilesheet.raw"

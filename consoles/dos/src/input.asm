@@ -1,8 +1,8 @@
 
-%define K_UP    48h
-%define K_LEFT  4Bh
-%define K_RIGHT 4Dh
-%define K_DOWN  50h
+K_UP    equ 48h
+K_LEFT  equ 4Bh
+K_RIGHT equ 4Dh
+K_DOWN  equ 50h
 
 poll_keyboard:
         mov ax, 0

@@ -41,7 +41,8 @@ build/level-1.asm:
 $(OUT): ENGINE = $(shell paxforth metadata $(GAME_PATH) | jq -r -e '.directives.engine')
 $(OUT): ENGINE_FLAG = ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
 $(OUT): check src/* $(BUILD_DIR)/paxconsola_generated.asm build/level-1.asm $(BUILD_DIR)/tiles.raw $(BUILD_DIR)/tiles-linear.raw $(BUILD_DIR)/tiles-block.raw $(BUILD_DIR)/tilesheet.raw $(BUILD_DIR)/tiles-hero.raw
-	nasm -f bin -D $(ENGINE_FLAG)=1 -o $(OUT) $(INPUT) -l build/paxconsola.lst
+	asl -D $(ENGINE_FLAG)=1 -o $(OUTPUT) $(INPUT) -relaxed
+	p2bin $(OUTPUT) $(OUT)
 
 run: $(OUT)
 	dosbox-x -c "mount c \"$$(pwd)/build\"" -c "c:" -c $(notdir $(OUT))

@@ -1,64 +1,59 @@
-[map symbols build/paxconsola.map]
+    cpu 8086
 
-    %use masm
-       section .text
+MISC_OUTPUT  equ 03c2h
+GC_INDEX     equ 03ceh
+SC_INDEX     equ 03c4h
+SC_DATA      equ 03c5h
+CRTC_INDEX   equ 03d4h
+CRTC_DATA    equ 03d5h
+INPUT_STATUS equ 03dah
+AC_WRITE     equ 03c0h
+AC_READ      equ 03c1h		
+MAP_MASK       equ 02h
+MEMORY_MODE    equ 04h
+UNDERLINE_LOC  equ 14h
+MODE_CONTROL   equ 17h
+HIGH_ADDRESS   equ 0ch
+LOW_ADDRESS    equ 0dh
+LINE_OFFSET    equ 13h
+PEL_PANNING    equ 13h
 
-		%define MISC_OUTPUT  03c2h
-		%define GC_INDEX     03ceh
-		%define SC_INDEX     03c4h
-		%define SC_DATA      03c5h
-		%define CRTC_INDEX   03d4h
-		%define CRTC_DATA    03d5h
-		%define INPUT_STATUS 03dah
-		%define AC_WRITE     03c0h
-		%define AC_READ      03c1h		
-		%define MAP_MASK       02h
-		%define MEMORY_MODE    04h
-		%define UNDERLINE_LOC  14h
-		%define MODE_CONTROL   17h
-		%define HIGH_ADDRESS   0ch
-		%define LOW_ADDRESS    0dh
-		%define LINE_OFFSET    13h
-		%define PEL_PANNING    13h
-		
-		%define CRTC_LINECOMPARE 24		
-		%define CRTC_OVERFLOW     7
-		%define CRTC_MAXSCANLINE  9
+CRTC_LINECOMPARE equ 24		
+CRTC_OVERFLOW     equ 7
+CRTC_MAXSCANLINE  equ 9
 
 
 
-        ; Application defines
+; Application defines
 
-        %define KEYBOARD_VALUE 0x7e
+KEYBOARD_VALUE equ 0x7e
 
-        %define ROWS_COUNT 15
-        %define COLUMNS_COUNT 21
+ROWS_COUNT equ 15
+COLUMNS_COUNT equ 21
 
-        %define TILE_WIDTH 16
-        %define TILE_HEIGHT 16
+TILE_WIDTH equ 16
+TILE_HEIGHT equ 16
 
-        %define TILE_IN_BYTES 2 * TILE_HEIGHT * 4
+TILE_IN_BYTES equ (2 * TILE_HEIGHT * 4)
 
-        %define ROW_WIDTH_IN_BYTES (COLUMNS_COUNT * 2)
-        %define SCREEN_IN_BYTES ROW_WIDTH_IN_BYTES * TILE_HEIGHT * ROWS_COUNT
+ROW_WIDTH_IN_BYTES equ (COLUMNS_COUNT * 2)
+SCREEN_IN_BYTES equ (ROW_WIDTH_IN_BYTES * TILE_HEIGHT * ROWS_COUNT)
 
-        %define START_HORIZONTAL_OFFSET 8
-        %define START_VERTICAL_OFFSET 8
+START_HORIZONTAL_OFFSET equ 8
+START_VERTICAL_OFFSET equ 8
 
-        ; Have the next screen offset be four pixels adjusted
-        %define VIDEO_BUFFER_OFFSET ROW_WIDTH_IN_BYTES * TILE_HEIGHT * (ROWS_COUNT + 4)
-        
-        %define ASCII_LEFT 37
-        %define ASCII_UP 38
-        %define ASCII_RIGHT 39
-        %define ASCII_DOWN 40
+; Have the next screen offset be four pixels adjusted
+VIDEO_BUFFER_OFFSET equ (ROW_WIDTH_IN_BYTES * TILE_HEIGHT * (ROWS_COUNT + 4))
 
-        %define MAP_WIDTH 32
-        %define MAP_HEIGHT 32
+ASCII_LEFT equ 37
+ASCII_UP equ 38
+ASCII_RIGHT equ 39
+ASCII_DOWN equ 40
+
+MAP_WIDTH equ 32
+MAP_HEIGHT equ 32
 
 
-        ; cpu 8086
-        bits 16
         org 100h
 
 ; Program start
@@ -85,7 +80,7 @@ start:
         call rand_seed
 
 
-%ifdef ENGINE_TAURUS
+    ifdef ENGINE_TAURUS
 
         ; Clear memory
         mov ax, $1000
@@ -136,9 +131,9 @@ main_loop:
         
         ; Loop
         jmp main_loop
-%endif
+    endif
 
-%ifdef ENGINE_LIBRA
+    ifdef ENGINE_LIBRA
 
 engine_start:
         ; Switch to Mode 13 (ega 320x200 16 color)
@@ -195,7 +190,10 @@ draw_entire_map:
         mov bh,cl	    ; X
         shl bh,1
         mov bl,ch	    ; Y
-        shl bl,4
+        shl bl,1
+        shl bl,1
+        shl bl,1
+        shl bl,1
         mov ch,2	    ; Width
         mov cl,16		; Height
         call draw_bitmap
@@ -223,7 +221,9 @@ game_loop:
         ; Calculate VRAM offset.
         mov bh, 0
 		mov bl, [PelPanning]
-        shr bx, 3
+        shr bx, 1
+        shr bx, 1
+        shr bx, 1
 		add bx, [VerticalOffset]
         add bx, [BufferOnscreen]
 
@@ -331,7 +331,7 @@ frame_work:
         ; Copy frame buffer
         mov ax, 0
         mov bx, 0
-        mov cx, (SCREEN_IN_BYTES / 4)
+        mov cx, (SCREEN_IN_BYTES / 2)
         call copy_screen_to_buffer
 
         ret
@@ -345,7 +345,7 @@ frame_work_left:
         ; Copy frame buffer right 8 pixels
         mov ax, 0
         mov bx, 1
-        mov cx, (SCREEN_IN_BYTES / 4)
+        mov cx, (SCREEN_IN_BYTES / 2)
         call copy_screen_to_buffer
 
         ; Update panning counter
@@ -358,7 +358,7 @@ frame_work_left:
         ; Copy frame buffer right 16 pixels
         mov ax, 0
         mov bx, 2
-        mov cx, (SCREEN_IN_BYTES / 4) - 2
+        mov cx, (SCREEN_IN_BYTES / 2) - 2
         call copy_screen_to_buffer
 
         ; Update panning counter
@@ -373,7 +373,10 @@ frame_work_left:
         ; draw individual tile
         mov bh,0
         mov bl,ch
-        shl bl,4
+        shl bl,1
+        shl bl,1
+        shl bl,1
+        shl bl,1
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
 	    call frame_map_bitmap_lookup
@@ -394,7 +397,7 @@ frame_work_right:
         ; Copy frame buffer left 16 pixels
         mov ax, 2
         mov bx, 0
-        mov cx, (SCREEN_IN_BYTES / 4) - 1
+        mov cx, (SCREEN_IN_BYTES / 2) - 2
         call copy_screen_to_buffer
 
         ; Update panning counter
@@ -409,7 +412,10 @@ frame_work_right:
         ; draw individual tile
         mov bh,(COLUMNS_COUNT - 1)*2
         mov bl,ch
-        shl bl,4        ; * 16
+        shl bl,1
+        shl bl,1
+        shl bl,1
+        shl bl,1        ; * 16
         mov ch,2	    ; Width
         mov cl,TILE_HEIGHT		; Height
 	    call frame_map_bitmap_lookup
@@ -429,7 +435,7 @@ frame_work_up:
         ; Copy frame buffer
         mov ax, 0
         mov bx, ROW_WIDTH_IN_BYTES * TILE_HEIGHT
-        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 4)
+        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 2)
         call copy_screen_to_buffer
 
         mov ax, (ROW_WIDTH_IN_BYTES * (TILE_HEIGHT - 1))
@@ -464,7 +470,7 @@ frame_work_down:
         ; Copy frame buffer
         mov ax, ROW_WIDTH_IN_BYTES * TILE_HEIGHT
         mov bx, 0
-        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 4)
+        mov cx, ((SCREEN_IN_BYTES - (ROW_WIDTH_IN_BYTES * TILE_HEIGHT)) / 2)
         call copy_screen_to_buffer
 
         mov ax, 0
@@ -554,15 +560,23 @@ redraw_sprites:
 get_panning_offset:
         mov ax, 0
         mov al, bh
-        shl ax, 3   ; bh * 8 
+        shl ax, 1
+        shl ax, 1
+        shl ax, 1   ; bh * 8 
         add ax, word ptr [RelativeXCoordinate]
-        sar ax, 4   ; / 16
+        sar ax, 1
+        sar ax, 1
+        sar ax, 1
+        sar ax, 1   ; / 16
         mov cx, ax
 
         mov ax, 0
         mov al, bl
         add ax, word ptr [RelativeYCoordinate]
-        sar ax, 4
+        sar ax, 1
+        sar ax, 1
+        sar ax, 1
+        sar ax, 1
         mov bx, ax
 
         ret
@@ -600,7 +614,11 @@ map_bitmap_lookup:
 
     .lookup:
         mov ax, bx
-        shl ax, 5 ; * MAP_WIDTH
+        shl ax, 1
+        shl ax, 1
+        shl ax, 1
+        shl ax, 1
+        shl ax, 1 ; * MAP_WIDTH
         add ax, cx
         shl ax, 1
         add ax, map_level_1
@@ -623,7 +641,7 @@ map_bitmap_lookup:
 
 
 
-%endif
+    endif
 
 
 
@@ -655,32 +673,36 @@ rand_new:
         add     ax, 13849               ; Add LCG increment value
         ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536
         mov     [RandSeed], ax          ; Update seed = return value
-        shr     ax,5                    ; Discard 5 bits
+        shr     ax,1
+        shr     ax,1
+        shr     ax,1
+        shr     ax,1
+        shr     ax,1                    ; Discard 5 bits
         ret
 
 
     align 16
-%include "src/graphics.asm"
-%include "src/input.asm"
+    include "graphics.asm"
+    include "input.asm"
 
 
 ; Forth extern methods
-%ifdef ENGINE_TAURUS
-    %include "src/engines/dos-taurus.asm"
-%endif
-%ifdef ENGINE_LIBRA
-    %include "src/engines/dos-libra.asm"
+    ifdef ENGINE_TAURUS
+    include "engines/dos-taurus.asm"
+    endif
+    ifdef ENGINE_LIBRA
+    include "engines/dos-libra.asm"
 
-    %include "build/level-1.asm"
-%endif
+    include "../build/level-1.asm"
+    endif
 
 
     align 16
 ; Forth compilation
-%include "build/paxconsola_generated.asm"
+    include "../build/paxconsola_generated.asm"
 
 
-    section .data
+    ; section .data
 
 .data_start:
 RelativeXCoordinate dw 0
