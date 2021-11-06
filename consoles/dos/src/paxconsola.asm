@@ -1,5 +1,6 @@
 [map symbols build/paxconsola.map]
 
+    %use masm
        section .text
 
 		%define MISC_OUTPUT  03c2h
@@ -92,7 +93,7 @@ start:
         dec ax
         mov bx,ax
         add bx,0xc000
-        mov byte [bx],0
+        mov byte ptr [bx],0
         test ax,ax
         jnz .clear_memory
 
@@ -279,46 +280,52 @@ pan_map:
     
     .key_left:
         ; Decrease relative coordinate
-        dec word [RelativeXCoordinate]
+        dec word ptr [RelativeXCoordinate]
 
         ; Decrease PEL Panning register
-        dec byte [PelPanning]
+        dec byte ptr [PelPanning]
         js frame_work_left
         jmp frame_work
     
     .key_right:
         ; Decrease relative coordinate
-        inc word [RelativeXCoordinate]
+        inc word ptr [RelativeXCoordinate]
 
         ; Increase PEL Panning register
-        inc byte [PelPanning]
+        inc byte ptr [PelPanning]
         mov al, [PelPanning]
         cmp al,TILE_WIDTH
-        jge frame_work_right
+        jge .key_right_frame_work_right
         jmp frame_work
+    .key_right_frame_work_right:
+        jmp frame_work_right
     
     .key_up:
         ; Decrease relative coordinate
-        dec word [RelativeYCoordinate]
+        dec word ptr [RelativeYCoordinate]
 
         ; Decrease Vertical Offset
         mov ax, [VerticalOffset]
         sub ax, ROW_WIDTH_IN_BYTES
         mov [VerticalOffset], ax
-        js frame_work_up
+        js .key_up_frame_work_up
         jmp frame_work
+    .key_up_frame_work_up:
+        jmp frame_work_up
 
     .key_down:
         ; Decrease relative coordinate
-        inc word [RelativeYCoordinate]
+        inc word ptr [RelativeYCoordinate]
 
         ; Decrease Vertical Offset
         mov ax, [VerticalOffset]
         add ax, ROW_WIDTH_IN_BYTES
         mov [VerticalOffset], ax
         cmp ax, (ROW_WIDTH_IN_BYTES * 16)
-        jge frame_work_down
+        jge .key_up_frame_work_down
         jmp frame_work
+    .key_up_frame_work_down:
+        jmp frame_work_down
     
 frame_work:
         ; Copy frame buffer
@@ -332,7 +339,7 @@ frame_work:
 ; Pan off left side, draw left column
 frame_work_left:
         ; if we only panned on the right side of a tile, don't redraw column
-        test word [RelativeXCoordinate], 0x8
+        test word ptr [RelativeXCoordinate], 0x8
         jnz .new_column
 
         ; Copy frame buffer right 8 pixels
@@ -377,8 +384,8 @@ frame_work_left:
         test ch,ch
         jnz .draw_column
 
-        inc word [HeroSpriteX]
-        inc word [HeroSpriteX]
+        inc word ptr [HeroSpriteX]
+        inc word ptr [HeroSpriteX]
 
         ret
 
@@ -413,8 +420,8 @@ frame_work_right:
         test ch,ch
         jnz .draw_column
 
-        dec word [HeroSpriteX]
-        dec word [HeroSpriteX]
+        dec word ptr [HeroSpriteX]
+        dec word ptr [HeroSpriteX]
 
         ret
 
@@ -447,9 +454,9 @@ frame_work_up:
         test cl,cl
         jnz .draw_row
 
-        mov ax, word [HeroSpriteY]
+        mov ax, word ptr [HeroSpriteY]
         add ax, TILE_HEIGHT
-        mov word [HeroSpriteY], ax
+        mov word ptr [HeroSpriteY], ax
 
         ret
 
@@ -482,9 +489,9 @@ frame_work_down:
         test cl,cl
         jnz .draw_row
 
-        mov ax, word [HeroSpriteY]
+        mov ax, word ptr [HeroSpriteY]
         sub ax, TILE_HEIGHT
-        mov word [HeroSpriteY], ax
+        mov word ptr [HeroSpriteY], ax
 
         ret
 
@@ -500,18 +507,18 @@ redraw_sprites:
 	    call frame_map_bitmap_lookup
 
         ; clear tile behind a sprite
-        mov bh, [HeroSpriteX]
-        mov bl, [HeroSpriteY]
+        mov bh, byte ptr [HeroSpriteX]
+        mov bl, byte ptr [HeroSpriteY]
         mov ch, 2	    ; Width
         mov cl, 16		; Height
         call draw_bitmap ; draw to second buffer
 
-        mov word [HeroSpriteX], 10 * 2
-        mov word [HeroSpriteY], 6 * TILE_HEIGHT
+        mov word ptr [HeroSpriteX], 10 * 2
+        mov word ptr [HeroSpriteY], 6 * TILE_HEIGHT
 
         ; draw sprite
-        mov bh, [HeroSpriteX]	    ; X
-        mov bl, [HeroSpriteY]	    ; Y
+        mov bh, byte ptr [HeroSpriteX]	    ; X
+        mov bl, byte ptr [HeroSpriteY]	    ; Y
         mov ch,2	    ; Width
         mov cl,16		; Height
 	    mov si, bitmap_hero
@@ -548,13 +555,13 @@ get_panning_offset:
         mov ax, 0
         mov al, bh
         shl ax, 3   ; bh * 8 
-        add ax, word [RelativeXCoordinate]
+        add ax, word ptr [RelativeXCoordinate]
         sar ax, 4   ; / 16
         mov cx, ax
 
         mov ax, 0
         mov al, bl
-        add ax, word [RelativeYCoordinate]
+        add ax, word ptr [RelativeYCoordinate]
         sar ax, 4
         mov bx, ax
 
@@ -644,7 +651,7 @@ rand_seed:
 ; clobbers: DX.  returns: AX = next random number
 rand_new:
         mov     ax, 25173               ; LCG Multiplier
-        mul     word [RandSeed]         ; DX:AX = LCG multiplier * seed
+        mul     word ptr [RandSeed]         ; DX:AX = LCG multiplier * seed
         add     ax, 13849               ; Add LCG increment value
         ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536
         mov     [RandSeed], ax          ; Update seed = return value

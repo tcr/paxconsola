@@ -280,7 +280,7 @@ copy_screen_to_buffer:
         mov di, bx
         mov si, ax
     %%copy_plane:
-        movsd
+        movsw
         dec cx
         jnz %%copy_plane
 %endmacro

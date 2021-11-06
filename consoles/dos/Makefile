@@ -5,6 +5,7 @@ BUILD_DIR = build
 
 INPUT = src/paxconsola.asm
 OUT = $(BUILD_DIR)/PAXCNSLA.COM
+OUTPUT = $(BUILD_DIR)/paxconsola.o
 
 # CC = cl65
 # AS = ca65
