@@ -7,13 +7,14 @@
 	INCLUDE "src/hardware.asm"
   	INCLUDE "src/header.asm"
 	INCLUDE "src/tiles.asm"
-  	INCLUDE "src/map.asm"
+  	; INCLUDE "../src/map.asm"
 
 ;-------------
 ; Start
 ;-------------
 
-SECTION "Program Start",ROM0[$150]
+	; org 0150h
+
 START:
 	ei				 ;enable interrupts
 	ld  sp,$FFFE
@@ -21,8 +22,8 @@ START:
 	ld  [rIE],a
 
 	ld  a,$0
-	ldh [rLCDC],a 	 ;LCD off
-	ldh [rSTAT],a
+	ld [rLCDC],a 	 ;LCD off
+	ld [rSTAT],a
 
 	; clear ram
 	; xor a
@@ -33,16 +34,16 @@ START:
 	; jr nz,.loop_clear
 
 	ld  a,%00011011  ;shade palette (11 10 01 00)
-	ldh [rBGP],a 	 ;setup palettes
-	ldh [rOCPD],a
-	ldh [rOBP0],a
+	ld [rBGP],a 	 ;setup palettes
+	ld [rOCPD],a
+	ld [rOBP0],a
 
 	call CLEAR_MAP
 	call LOAD_TILES
 	; call LOAD_MAP
 
 	ld  a,%11010011  ;turn on LCD, BG0, OBJ0, etc
-	ldh [rLCDC],a    ;load LCD flags
+	ld [rLCDC],a    ;load LCD flags
 
 	; Set stack to end of internal RAM
 	ld HL,$CFFF
@@ -138,7 +139,7 @@ CLEAR_MAP:
 	ld  bc,$400
 .clear_map_loop
 	ld  a,$1
-	ld  [hli],a      ;clear tile, increment hl
+	ldi  [hl],a      ;clear tile, increment hl
 	dec bc
 	ld  a,b
 	or  c
@@ -151,7 +152,7 @@ LOAD_TILES:
 	ld  de,_VRAM
 	ld  bc,TILE_COUNT
 .load_tiles_loop
-	ld  a,[hli]      ;grab a byte
+	ldi  a,[hl]      ;grab a byte
 	ld  [de],a       ;store the byte in VRAM
 	inc de
 	dec bc
@@ -160,19 +161,19 @@ LOAD_TILES:
 	jr  nz,.load_tiles_loop
 	ret
 
-LOAD_MAP:
-	ld  hl,MAP_DATA  ;same as LOAD_TILES
-	ld  de,_SCRN0
-	ld  bc,$400
-.load_map_loop
-	ld  a,[hli]
-	ld  [de],a
-	inc de
-	dec bc
-	ld  a,b
-	or  c
-	jr  nz,.load_map_loop
-	ret
+; LOAD_MAP:
+; 	ld  hl,MAP_DATA  ;same as LOAD_TILES
+; 	ld  de,_SCRN0
+; 	ld  bc,$400
+; .load_map_loop
+; 	ldi  a,[hl]
+; 	ld  [de],a
+; 	inc de
+; 	dec bc
+; 	ld  a,b
+; 	or  c
+; 	jr  nz,.load_map_loop
+; 	ret
 
 
 CLEAR_RAM:
@@ -180,7 +181,7 @@ CLEAR_RAM:
 	ld  bc,$200
 .loop
 	ld  a,$0
-	ld  [hli],a      ;clear tile, increment hl
+	ldi  [hl],a      ;clear tile, increment hl
 	dec bc
 	ld  a,b
 	or  c
@@ -290,7 +291,7 @@ RandomNumber:
 
         ld      hl,Seed
 
-        ld      a,[hl+]
+        ldi      a,[hl]
 
         sra     a
 
@@ -318,7 +319,7 @@ RandomNumber:
 
 randomness:
 
-        add     [hl]
+        add     a, [hl]
 
         ret
 
@@ -339,9 +340,10 @@ PAX_NATIVE_read2Dindex:
     add hl, de
 
 	; Wait until VRAM mode is 0 or 1
-:   ld   a,[$0FF41]
+.wait_for_vram_mode_during_read:
+    ld   a,[$0FF41]
     bit  1,a
-    jr   nz, :-
+    jr   nz, .wait_for_vram_mode_during_read
 
     ; [gb_ir] ReplaceLoad8
     ld a, [hl]
@@ -376,9 +378,10 @@ PAX_NATIVE_draw2Dindex:
     inc c
 
 	; Wait until VRAM mode is 0 or 1
-:   ld   a,[$0FF41]
+.wait_for_vram_mode:
+    ld   a,[$0FF41]
 	bit  1,a
-	jr   nz, :-
+	jr   nz, .wait_for_vram_mode
 
     ; [gb_ir] StoreDE8
     ld a, e
@@ -395,33 +398,43 @@ PAX_NATIVE_draw2Dindex:
     ; [gb_ir] Ret
     ret
 
+
+
+
+
 	INCLUDE "src/engines/gb-taurus.asm"
 
 
 SECTION "RAM Vars",WRAM0[$C000]
+	; org 0C000h
+
 vblank_flag:
-db
+	db 
 vblank_count:
-db
+	db 
 joypad_down:
-db                   ;dow/up/lef/rig/sta/sel/a/b
+	db                   ;dow/up/lef/rig/sta/sel/a/b
 joypad_pressed:
-db
+	db 
 vblank_temp:
-db
+	db 
 Seed:
-db
-db
-db
+	db 
+	db 
+	db 
 
 SECTION "Pax System Vars",WRAM0[$C020]
+	; org 0C020h
+
 pax_var_last_key:   ; hardcoded at
-db
-db
+	db 
+	db 
 pax_var_random:   ; hardcoded at
-db
-db
+	db 
+	db 
 
 
 SECTION "Pax User Vars",WRAM0[$C040]
+	; org 0C040h
+
 pax_user_vars:

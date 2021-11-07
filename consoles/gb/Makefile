@@ -30,6 +30,7 @@ endif
 $(OUT): ENGINE = $(shell paxforth metadata $(GAME_PATH) | jq -r -e '.directives.engine')
 $(OUT): ENGINE_FLAG = ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
 $(OUT): check $(BUILD_DIR)/tiles.bin $(BUILD_DIR)/pax_generated.asm $(INPUT) src/*.asm
+# asl -cpu gbz80 -D ENGINE_TAURUS -o build/paxconsola.obj src/paxconsola.asm -relaxed
 	$(ASM) -E -D $(ENGINE_FLAG)=1 -o$(OBJ_NAME).obj $(INPUT)
 	$(LINK) -m$(OBJ_NAME).map -n$(OBJ_NAME).sym -o$(OBJ_NAME).gb $(OBJ_NAME).obj
 	$(FIX) -v $(OBJ_NAME).gb

@@ -21,17 +21,6 @@
 
 ; If all of these are already defined, don't do it again.
 
-        IF      !DEF(HARDWARE_INC)
-HARDWARE_INC  SET  1
-
-rev_Check_hardware_inc: MACRO
-;NOTE: REVISION NUMBER CHANGES MUST BE ADDED
-;TO SECOND PARAMETER IN FOLLOWING LINE.
-        IF      \1 > 2.2      ;PUT REVISION NUMBER HERE
-        WARN    "Version \1 or later of 'hardware.inc' is required."
-        ENDC
-        ENDM
-
 _HW	EQU $FF00
 
 _VRAM         EQU  $8000 ; $8000->$A000
@@ -717,5 +706,3 @@ NINTENDO_LOGO:   MACRO
  DB $00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
  DB $BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
         ENDM
-
-        ENDC    ;HARDWARE_INC

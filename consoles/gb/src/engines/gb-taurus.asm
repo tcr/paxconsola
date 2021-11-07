@@ -6,11 +6,11 @@ PAXEXT_write2Dchar2Dat:
     RLC     E
     LD      A,E
     AND     $03
-    ADD     H
+    ADD     A,H
     LD      B,A
     LD      A, $E0
     AND     E
-    ADD     D
+    ADD     A,D
     LD      C,A             ; dest BC = HL + 0x20 * Y + X
     ret
 
@@ -92,6 +92,9 @@ NoMul16:
 ;*  Revision 1.00  01/21/82   JT  Initial Release
 ;*  Revision 1.10  25/Apr/97  Bug fixes - Jeff Frohwein
 ;*
+
+
+
 mul_DE_HL_BCDEu:
         push    hl              ; Save multiplier.
         ld      c,h             ; Save MSBs of multiplier.
@@ -105,7 +108,8 @@ mul_DE_HL_BCDEu:
         jr      nc,.mul2
         add     hl,de           ; Add multiplicand to product.
         adc     a,b             ; (Product in AHL)
-.mul2   add     hl,hl           ; Shift product left.
+.mul2:
+        add     hl,hl           ; Shift product left.
         adc     a,a             ; Test multiplier bit.
         jr      nc,.mul3
         add     hl,de           ; Add multiplicand to product.
