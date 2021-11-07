@@ -4,9 +4,9 @@
 ; Includes
 ;-------------
 
-	INCLUDE "src/hardware.asm"
-  	INCLUDE "src/header.asm"
-	INCLUDE "src/tiles.asm"
+	INCLUDE "../src/hardware.asm"
+  	INCLUDE "../src/header.asm"
+	INCLUDE "../src/tiles.asm"
   	; INCLUDE "../src/map.asm"
 
 ;-------------
@@ -19,31 +19,31 @@ START:
 	ei				 ;enable interrupts
 	ld  sp,$FFFE
 	ld  a,IEF_VBLANK ;enable vblank interrupt
-	ld  [rIE],a
+	ld  (rIE),a
 
 	ld  a,$0
-	ld [rLCDC],a 	 ;LCD off
-	ld [rSTAT],a
+	ld (rLCDC),a 	 ;LCD off
+	ld (rSTAT),a
 
 	; clear ram
 	; xor a
 	; ld hl, $C0FF
 ; .loop_clear:
-	; ldd [hl], a   ; 11001110 11111111
+	; ldd (hl), a   ; 11001110 11111111
 	; bit 7, h
 	; jr nz,.loop_clear
 
 	ld  a,%00011011  ;shade palette (11 10 01 00)
-	ld [rBGP],a 	 ;setup palettes
-	ld [rOCPD],a
-	ld [rOBP0],a
+	ld (rBGP),a 	 ;setup palettes
+	ld (rOCPD),a
+	ld (rOBP0),a
 
 	call CLEAR_MAP
 	call LOAD_TILES
 	; call LOAD_MAP
 
 	ld  a,%11010011  ;turn on LCD, BG0, OBJ0, etc
-	ld [rLCDC],a    ;load LCD flags
+	ld (rLCDC),a    ;load LCD flags
 
 	; Set stack to end of internal RAM
 	ld HL,$CFFF
@@ -52,18 +52,18 @@ START:
 	call CLEAR_RAM
 
 	; Seed the rng from DIV register
-	ld a,[$fff4]
-	ld [Seed], a
+	ld a,($fff4)
+	ld (Seed), a
 	xor $33
-	ld [Seed+1], a
+	ld (Seed+1), a
 	xor $a7
-	ld [Seed+2], a
+	ld (Seed+2), a
 
 	; Set end of HRAM marker. (Could be removed)
 	ld a, $ba
-	ld [$fffe], a
+	ld ($fffe), a
 	ld a, $dd
-	ld [$ffff], a
+	ld ($ffff), a
 
 	; Set forth stack to end of zero page RAM
 	ld c, $fe
@@ -88,9 +88,9 @@ LOOP:
 
 	; store random number in pax_var_random
 	call RandomNumber
-	ld [pax_var_random],a
+	ld (pax_var_random),a
 	call RandomNumber
-	ld [pax_var_random+1],a
+	ld (pax_var_random+1),a
 
 	;call _HRAM		 ;call DMA routine from HRAM
 	jp LOOP
@@ -100,17 +100,17 @@ LOOP:
 ; Pax Forth VM
 ;-------------
 
-	INCLUDE "build/pax_generated.asm"
+	INCLUDE "../build/pax_generated.asm"
 
 ;-------------
 ; Subroutines
 ;-------------
 
 VBLANK_IRQ:
-	ld  [vblank_temp], a
+	ld  (vblank_temp), a
 	ld  a,$1
-	ld  [vblank_flag],a
-	ld  a,[vblank_temp]
+	ld  (vblank_flag),a
+	ld  a,(vblank_temp)
 	reti
 
 WAIT_VBLANK:
@@ -119,12 +119,12 @@ WAIT_VBLANK:
 	halt
 	nop  			 ;Hardware bug
 	ld  a,$0
-	cp  [hl]
+	cp  (hl)
 	jr  z,.wait_vblank_loop
-	ld  [hl],a
-	ld  a,[vblank_count]
+	ld  (hl),a
+	ld  a,(vblank_count)
 	inc a
-	ld  [vblank_count],a
+	ld  (vblank_count),a
 	ret
 
 DMA_COPY:
@@ -139,7 +139,7 @@ CLEAR_MAP:
 	ld  bc,$400
 .clear_map_loop
 	ld  a,$1
-	ldi  [hl],a      ;clear tile, increment hl
+	ldi  (hl),a      ;clear tile, increment hl
 	dec bc
 	ld  a,b
 	or  c
@@ -152,8 +152,8 @@ LOAD_TILES:
 	ld  de,_VRAM
 	ld  bc,TILE_COUNT
 .load_tiles_loop
-	ldi  a,[hl]      ;grab a byte
-	ld  [de],a       ;store the byte in VRAM
+	ldi  a,(hl)      ;grab a byte
+	ld  (de),a       ;store the byte in VRAM
 	inc de
 	dec bc
 	ld  a,b
@@ -166,8 +166,8 @@ LOAD_TILES:
 ; 	ld  de,_SCRN0
 ; 	ld  bc,$400
 ; .load_map_loop
-; 	ldi  a,[hl]
-; 	ld  [de],a
+; 	ldi  a,(hl)
+; 	ld  (de),a
 ; 	inc de
 ; 	dec bc
 ; 	ld  a,b
@@ -181,7 +181,7 @@ CLEAR_RAM:
 	ld  bc,$200
 .loop
 	ld  a,$0
-	ldi  [hl],a      ;clear tile, increment hl
+	ldi  (hl),a      ;clear tile, increment hl
 	dec bc
 	ld  a,b
 	or  c
@@ -190,34 +190,34 @@ CLEAR_RAM:
 
 READ_JOYPAD:
 	ld  a,%00100000  ;select dpad
-	ld  [rP1],a
-	ld  a,[rP1]		 ;takes a few cycles to get accurate reading
-	ld  a,[rP1]
-	ld  a,[rP1]
-	ld  a,[rP1]
+	ld  (rP1),a
+	ld  a,(rP1)		 ;takes a few cycles to get accurate reading
+	ld  a,(rP1)
+	ld  a,(rP1)
+	ld  a,(rP1)
 	cpl 			 ;complement a
 	and %00001111    ;select dpad buttons
 	swap a
 	ld  b,a
 
 	ld  a,%00010000  ;select other buttons
-	ld  [rP1],a
-	ld  a,[rP1]
-	ld  a,[rP1]
-	ld  a,[rP1]
-	ld  a,[rP1]
+	ld  (rP1),a
+	ld  a,(rP1)
+	ld  a,(rP1)
+	ld  a,(rP1)
+	ld  a,(rP1)
 	cpl
 	and %00001111
 	or  b
 					 ;lower nybble is other
 	ld  b,a
-	ld  a,[joypad_down]
+	ld  a,(joypad_down)
 	cpl
 	and b
-	ld  [joypad_pressed],a
+	ld  (joypad_pressed),a
 					 ;upper nybble is dpad
 	ld  a,b
-	ld  [joypad_down],a
+	ld  (joypad_down),a
 	ret
 
 JOY_RIGHT:
@@ -226,7 +226,7 @@ JOY_RIGHT:
 	cp  %00010000
 	jp  nz,JOY_FALSE
 	ld  a,39
-	ld [pax_var_last_key], a
+	ld (pax_var_last_key), a
 	ld a,d
 	ret
 JOY_LEFT:
@@ -235,7 +235,7 @@ JOY_LEFT:
 	cp  %00100000
 	jp  nz,JOY_FALSE
 	ld  a,37
-	ld [pax_var_last_key], a
+	ld (pax_var_last_key), a
 	ld a,d
 	ret
 JOY_UP:
@@ -243,7 +243,7 @@ JOY_UP:
 	cp  %01000000
 	jp  nz,JOY_FALSE
 	ld  a,38
-	ld [pax_var_last_key], a
+	ld (pax_var_last_key), a
 	ld a,d
 	ret
 JOY_DOWN:
@@ -251,7 +251,7 @@ JOY_DOWN:
 	cp  %10000000
 	jp  nz,JOY_FALSE
 	ld  a,40
-	ld [pax_var_last_key], a
+	ld (pax_var_last_key), a
 	ld a,d
 	ret
 JOY_A:
@@ -280,7 +280,7 @@ JOY_START:
 	ret
 JOY_FALSE:
 	;ld  a,$0
-	;ld [pax_var_last_key], a
+	;ld (pax_var_last_key), a
 	ld a,d
 	ret
 
@@ -291,7 +291,7 @@ RandomNumber:
 
         ld      hl,Seed
 
-        ldi      a,[hl]
+        ldi      a,(hl)
 
         sra     a
 
@@ -299,27 +299,27 @@ RandomNumber:
 
         sra     a
 
-        xor     [hl]
+        xor     (hl)
 
         inc     hl
 
         rra
 
-        rl      [hl]
+        rl      (hl)
 
         dec     hl
 
-        rl      [hl]
+        rl      (hl)
 
         dec     hl
 
-        rl      [hl]
+        rl      (hl)
 
-        ld      a,[$fff4]          ; get divider register to increase
+        ld      a,($fff4)          ; get divider register to increase
 
 randomness:
 
-        add     a, [hl]
+        add     a, (hl)
 
         ret
 
@@ -341,12 +341,12 @@ PAX_NATIVE_read2Dindex:
 
 	; Wait until VRAM mode is 0 or 1
 .wait_for_vram_mode_during_read:
-    ld   a,[$0FF41]
+    ld   a,($0FF41)
     bit  1,a
     jr   nz, .wait_for_vram_mode_during_read
 
     ; [gb_ir] ReplaceLoad8
-    ld a, [hl]
+    ld a, (hl)
     ld l, a
     xor a
     ld h, a
@@ -370,28 +370,28 @@ PAX_NATIVE_draw2Dindex:
 
     ; [gb_ir] NipIntoDE
     ; Move second item to TOS
-    ld a, [c]
+    ld a, (c)
     ld e, a
     inc c
-    ld a, [c]
+    ld a, (c)
     ld d, a
     inc c
 
 	; Wait until VRAM mode is 0 or 1
 .wait_for_vram_mode:
-    ld   a,[$0FF41]
+    ld   a,($0FF41)
 	bit  1,a
 	jr   nz, .wait_for_vram_mode
 
     ; [gb_ir] StoreDE8
     ld a, e
-    ld [hl],a
+    ld (hl),a
 
     ; [gb_ir] Pop
-    ld a, [c]
+    ld a, (c)
     ld l, a
     inc c
-    ld a, [c]
+    ld a, (c)
     ld h, a
     inc c
 
@@ -402,11 +402,11 @@ PAX_NATIVE_draw2Dindex:
 
 
 
-	INCLUDE "src/engines/gb-taurus.asm"
+	INCLUDE "../src/engines/gb-taurus.asm"
 
 
-SECTION "RAM Vars",WRAM0[$C000]
-	; org 0C000h
+; SECTION "RAM Vars",WRAM0[$C000]
+	org 0C000h
 
 vblank_flag:
 	db 
@@ -423,8 +423,8 @@ Seed:
 	db 
 	db 
 
-SECTION "Pax System Vars",WRAM0[$C020]
-	; org 0C020h
+; SECTION "Pax System Vars",WRAM0[$C020]
+	org 0C020h
 
 pax_var_last_key:   ; hardcoded at
 	db 
@@ -434,7 +434,7 @@ pax_var_random:   ; hardcoded at
 	db 
 
 
-SECTION "Pax User Vars",WRAM0[$C040]
-	; org 0C040h
+; SECTION "Pax User Vars",WRAM0[$C040]
+	org 0C040h
 
 pax_user_vars:

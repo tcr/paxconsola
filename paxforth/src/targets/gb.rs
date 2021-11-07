@@ -188,10 +188,10 @@ PAX_FN_{}:
                 "
     dec c
     ld a, h
-    ld [c], a
+    ld (c), a
     dec c
     ld a, l
-    ld [c], a
+    ld (c), a
             "
             );
         }
@@ -199,10 +199,10 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-    ld a, [c]
+    ld a, (c)
     ld l, a
     inc c
-    ld a, [c]
+    ld a, (c)
     ld h, a
     inc c
             "
@@ -222,10 +222,10 @@ PAX_FN_{}:
                 out,
                 "
     ; Move second item to TOS
-    ld a, [c]
+    ld a, (c)
     ld e, a
     inc c
-    ld a, [c]
+    ld a, (c)
     ld d, a
     inc c
             "
@@ -270,9 +270,9 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-    ldi a, [hl]
+    ldi a, (hl)
     ld b, a
-    ldd a, [hl]
+    ldd a, (hl)
     ld h, a
     ld l, b
             "
@@ -282,9 +282,9 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-    ld a, [{}]
+    ld a, ({})
     ld l, a
-    ld a, [{}+1]
+    ld a, ({}+1)
     ld h, a
             ",
                 addr,
@@ -295,7 +295,7 @@ PAX_FN_{}:
             gb_output!(
                 out,
                 "
-    ld a, [hl]
+    ld a, (hl)
     ld l, a
     xor a
     ld h, a
@@ -308,7 +308,7 @@ PAX_FN_{}:
                 out,
                 "
     ld a, e
-    ld [hl],a
+    ld (hl),a
             "
             );
         }
@@ -317,9 +317,9 @@ PAX_FN_{}:
                 out,
                 "
     ld a, e
-    ldi [hl],a
+    ldi (hl),a
     ld a, d
-    ldd [hl],a
+    ldd (hl),a
             "
             );
         }

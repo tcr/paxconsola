@@ -17,10 +17,10 @@ PAXEXT_write2Dchar2Dat:
 PAXEXT_2A:
 
     ; pop
-    ld a, [c]
+    ld a, (c)
     ld e, a
     inc c
-    ld a, [c]
+    ld a, (c)
     ld d, a
     inc c
 
