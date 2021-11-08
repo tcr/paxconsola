@@ -6,7 +6,6 @@
 
 	INCLUDE "../src/hardware.asm"
   	INCLUDE "../src/header.asm"
-	INCLUDE "../src/tiles.asm"
   	; INCLUDE "../src/map.asm"
 
 ;-------------
@@ -118,6 +117,7 @@ WAIT_VBLANK:
 .wait_vblank_loop
 	halt
 	nop  			 ;Hardware bug
+	nop
 	ld  a,$0
 	cp  (hl)
 	jr  z,.wait_vblank_loop
@@ -404,34 +404,32 @@ PAX_NATIVE_draw2Dindex:
 
 	INCLUDE "../src/engines/gb-taurus.asm"
 
+	INCLUDE "../src/tiles.asm"
+
 
 ; SECTION "RAM Vars",WRAM0[$C000]
 	org 0C000h
 
 vblank_flag:
-	db 
+	rorg 1
 vblank_count:
-	db 
+	rorg 1 
 joypad_down:
-	db                   ;dow/up/lef/rig/sta/sel/a/b
+	rorg 1                   ;dow/up/lef/rig/sta/sel/a/b
 joypad_pressed:
-	db 
+	rorg 1 
 vblank_temp:
-	db 
+	rorg 1 
 Seed:
-	db 
-	db 
-	db 
+	rorg 3
 
 ; SECTION "Pax System Vars",WRAM0[$C020]
 	org 0C020h
 
 pax_var_last_key:   ; hardcoded at
-	db 
-	db 
+	rorg 2
 pax_var_random:   ; hardcoded at
-	db 
-	db 
+	rorg 2
 
 
 ; SECTION "Pax User Vars",WRAM0[$C040]
