@@ -37,9 +37,11 @@
     <script type="text/javascript" src="lib/es6-promise.js"></script>
     <script type="text/javascript" src="lib/browserfs.min.js"></script>
     <script type="text/javascript" src="lib/loader.js"></script>
+    <script type="text/javascript" src="lib/jszip.js"></script>
 
     <script type="text/javascript">
         function play(binary) {
+            console.log(binary);
             var canvas = document.querySelector("#canvas");
             var emulator = new Emulator(canvas,
                 {
@@ -65,8 +67,17 @@
             }
         }
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const rom = urlParams.get('rom') || '/local.bin';
+
+        function makezip(bin) {
+            var zip = new JSZip();
+            zip.file("PAXCNSLA.COM", bin);
+            return zip.generateAsync({ type: "uint8array" });
+        }
+
         if (window.parent == window) {
-            fetch('dos/paxconsola.zip').then(res => res.arrayBuffer()).then(arr => play(arr));
+            fetch(rom).then(res => res.arrayBuffer()).then(makezip).then(play);
         }
 
         window.onmessage = (e) => {

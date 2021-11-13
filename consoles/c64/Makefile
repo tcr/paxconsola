@@ -38,7 +38,7 @@ build/paxconsola.o: src/paxconsola.asm build/paxconsola_generated.asm
 $(OUT): ENGINE = $(shell paxforth metadata $(GAME_PATH) | jq -r -e '.directives.engine')
 $(OUT): ENGINE_FLAG = ENGINE_$(shell echo $(ENGINE) | tr a-z A-Z)
 $(OUT): check build/paxconsola.o
-	$(LD) --verbose --lib c64.lib -C c64-asm.cfg -u __EXEHDR__ build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -m build/paxconsola.map
+	$(LD) --lib c64.lib -C c64-asm.cfg -u __EXEHDR__ build/paxconsola.o -o $@ -Ln build/paxconsola.lbl -m build/paxconsola.map
 
 # Interactive
 
@@ -49,3 +49,6 @@ run: $(OUT)
 
 dump:
 	paxforth dump $(GAME) $(PAX_OPTS) > build/$(GAME).dump
+
+run-browser: $(OUT)
+	../../emularity/serve.py c64 $(OUT)

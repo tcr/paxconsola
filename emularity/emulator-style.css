@@ -8,9 +8,18 @@ body {
     overflow: hidden;
 }
 
+html {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 body {
     display: flex;
     align-items: center;
+    width: 700px;
+    height: 444px;
+    justify-content: center;
 }
 
 #canvas.loaded {

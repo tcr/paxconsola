@@ -49,3 +49,6 @@ run: $(OUT)
 
 debug: $(OUT)
 	dosbox-x -c "mount c \"$$(pwd)/build\"" -c "c:"
+
+run-browser: $(OUT)
+	../../emularity/serve.py dos $(OUT)

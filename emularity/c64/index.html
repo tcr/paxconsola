@@ -77,8 +77,11 @@
       emulator.start({ waitAfterDownloading: false });
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const rom = urlParams.get('rom') || '/local.bin';
+
     if (window.parent == window) {
-      fetch('c64/paxconsola.prg').then(res => res.arrayBuffer()).then(arr => play(arr));
+      fetch(rom).then(res => res.arrayBuffer()).then(arr => play(arr));
     }
 
     window.onmessage = (e) => {

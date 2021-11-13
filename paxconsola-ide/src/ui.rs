@@ -17,7 +17,7 @@ const FORK_WORLD: &str = include_str!("../../games/fork_world.fth");
 export function play_gameboy_binary(binary) {
     console.info('Playing Game Boy!');
     document.querySelector('#console-target').innerHTML = '\
-        <iframe src="/static/emulators/gameboy/" id="window-gameboy" width="700" height="444"></iframe>\
+        <iframe src="/emularity/gameboy/" id="window-gameboy" width="700" height="444"></iframe>\
     ';
     document.querySelector('#window-gameboy').onload = (e) => {
         let dos = document.querySelector('#window-gameboy').contentWindow;
@@ -29,7 +29,7 @@ export function play_gameboy_binary(binary) {
 export function play_dos_binary(binary) {
     console.info('Playing DOS!');
     document.querySelector('#console-target').innerHTML = '\
-        <iframe src="/static/emulators/dos/" id="window-dos" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
+        <iframe src="/emularity/dos/" id="window-dos" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
     ';
     document.querySelector('#window-dos').onload = (e) => {
         let dos = document.querySelector('#window-dos').contentWindow;
@@ -41,7 +41,7 @@ export function play_dos_binary(binary) {
 export function play_c64_binary(binary) {
     console.info('Playing Commodore 64!');
     document.querySelector('#console-target').innerHTML = '\
-        <iframe src="/static/emulators/c64/" id="window-c64" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
+        <iframe src="/emularity/c64/" id="window-c64" width="700" height="444" style="background: transparent; border: 0px none"></iframe>\
     ';
     document.querySelector('#window-c64').onload = (e) => {
         let dos = document.querySelector('#window-c64').contentWindow;
@@ -274,25 +274,7 @@ impl Component for App {
             Msg::NasmCompilerResult(files, _engine) => {
                 let binary = files["build/PAXCNSLA.COM"].clone();
 
-                // FIXME DOS needs a ZIP file to mount... let's give it one
-
-                let mut buf = [0; 65536];
-                let cur = std::io::Cursor::new(&mut buf[..]);
-                let mut zip = zip::ZipWriter::new(cur);
-
-                let options = zip::write::FileOptions::default()
-                    .compression_method(zip::CompressionMethod::Stored)
-                    .unix_permissions(0o755);
-                zip.start_file("PAXCNSLA.com", options).unwrap();
-                zip.write_all(&binary).unwrap();
-
-                let res = zip.finish().unwrap();
-                let len = res.position();
-                let out_buf = res.into_inner();
-
-                let array = Uint8Array::new_with_length(len as u32);
-                array.copy_from(&out_buf[0..len as usize]);
-
+                let array = Uint8Array::new_with_length(binary.len() as u32);
                 play_dos_binary(array);
 
                 true
@@ -374,7 +356,7 @@ impl Component for App {
                     </div>
                     <div style="overflow: auto; background: #ddf; padding: 10px; max-height: 100%">
                         <div>{console_target_actions}</div>
-                        <div id="console-target"><iframe src="/static/emulators/none/" width="700" height="444"></iframe></div>
+                        <div id="console-target"><iframe src="/emularity/none/" width="700" height="444"></iframe></div>
                         <div id="console-advice">{advice}</div>
                     </div>
                 </div>

@@ -52,8 +52,11 @@
             });
         };
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const rom = urlParams.get('rom') || '/local.bin';
+
         if (window.parent == window) {
-            fetch('gameboy/paxconsola.gb').then(res => res.arrayBuffer()).then(arr => play(arr));
+            fetch(rom).then(res => res.arrayBuffer()).then(arr => play(new Uint8Array(arr)));
         }
 
         window.onmessage = (e) => {

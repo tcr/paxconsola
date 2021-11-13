@@ -30,8 +30,8 @@ loop:
         call    printchar           ; print it
         djnz    r2,loop             ; do it again
         call    gfxon               ; lets see what is written
-stop:   
-        jmp     stop                ; Thats all
+    .stop:
+        jmp     .stop               ; Thats all
 
 hellostr
         ; http://www.atarihq.com/danb/files/o2doc.pdf#page=13&zoom=auto,-175,781
