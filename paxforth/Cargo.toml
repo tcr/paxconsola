@@ -41,7 +41,7 @@ crossterm = { version = "0.20", optional = true }
 js-sys = { version = "0.3", optional = true }
 web-sys = { version = "0.3", optional = true }
 wasm-bindgen = { version = "0.2.78", optional = true }
-wasmtime = { version = "0.13.0", optional = true }
+wasmtime = { version = "0.34.2", optional = true }
 
 [features]
 
